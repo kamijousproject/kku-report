@@ -60,7 +60,7 @@
                         class="nav-text"></span>แผนงาน<span class="badge badge-warning nav-badge">16</span></a>
                 <ul aria-expanded="false">
                     <li>
-                        <a href="table-report.php">รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)</a>
+                        <a href="report-plan-levels.php">รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)</a>
                     </li>
                     <li>
                         <a href="table-report.php">รายงานการปรับเปลี่ยนแผนงาน</a>
