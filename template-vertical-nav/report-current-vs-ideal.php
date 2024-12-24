@@ -16,13 +16,13 @@
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>Hello, <span>Welcome here</span></h4>
+                        <h4>รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">Basic</li>
+                            <li class="breadcrumb-item active">รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</li>
                         </ol>
                     </div>
                 </div>
@@ -31,43 +31,39 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>Table Hover</h4>
+                                    <h4>รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</h4>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th>#</th>
-                                                <th>Name</th>
-                                                <th>Status</th>
-                                                <th>Date</th>
-                                                <th>Price</th>
+                                                <th>ที่</th>
+                                                <th>ส่วนงาน</th>
+                                                <th>Job Family</th>
+                                                <th>ชื่อตำแหน่ง</th>
+                                                <th>กรอบที่มี</th>
+                                                <th>อัตราปัจจุบัน</th>
+                                                <th>ขาด / เกิน</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <th>1</th>
-                                                <td>Kolor Tea Shirt For Man</td>
-                                                <td><span class="badge badge-primary">Sale</span>
-                                                </td>
-                                                <td>January 22</td>
-                                                <td class="color-primary">$21.56</td>
+                                                <td>1</td>
+                                                <td>คณะวิทยาศาสตร์</td>
+                                                <td>Teaching</td>
+                                                <td>อาจารย์</td>
+                                                <td>20</td>
+                                                <td>18</td>
+                                                <td>-2</td>
                                             </tr>
                                             <tr>
-                                                <th>2</th>
-                                                <td>Kolor Tea Shirt For Women</td>
-                                                <td><span class="badge badge-success">Tax</span>
-                                                </td>
-                                                <td>January 30</td>
-                                                <td class="color-success">$55.32</td>
-                                            </tr>
-                                            <tr>
-                                                <th>3</th>
-                                                <td>Blue Backpack For Baby</td>
-                                                <td><span class="badge badge-danger">Extended</span>
-                                                </td>
-                                                <td>January 25</td>
-                                                <td class="color-danger">$14.85</td>
+                                                <td>2</td>
+                                                <td>คณะวิศวกรรมศาสตร์</td>
+                                                <td>Research</td>
+                                                <td>นักวิจัย</td>
+                                                <td>15</td>
+                                                <td>17</td>
+                                                <td>+2</td>
                                             </tr>
                                         </tbody>
                                     </table>

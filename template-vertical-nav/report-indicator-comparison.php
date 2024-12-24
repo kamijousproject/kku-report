@@ -16,13 +16,13 @@
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)</h4>
+                        <h4>รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)</li>
+                            <li class="breadcrumb-item active">รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน</li>
                         </ol>
                     </div>
                 </div>
@@ -31,12 +31,15 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายละเอียดแผนงาน/โครงการ</h4>
+                                    <h4>รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน</h4>
                                 </div>
                                 <div class="table-responsive">
                                     <table class="table table-hover">
                                         <thead>
                                             <tr>
+                                                <th>รหัส</th>
+                                                <th>ยุทธศาสตร์</th>
+                                                <th>รหัส</th>
                                                 <th>กลยุทธ์</th>
                                                 <th>รหัส</th>
                                                 <th>ผลลัพธ์สำคัญ</th>
@@ -58,6 +61,9 @@
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
                                                 <th>วันเริ่มต้น</th>
                                                 <th>วันสิ้นสุด</th>
                                                 <th></th>
@@ -66,44 +72,53 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>กลยุทธ์ที่ 1</td>
                                                 <td>001</td>
-                                                <td>เพิ่มประสิทธิภาพ</td>
-                                                <td>100%</td>
+                                                <td>ยุทธศาสตร์ที่ 1</td>
+                                                <td>G001</td>
+                                                <td>กลยุทธ์ที่ 1</td>
+                                                <td>R001</td>
+                                                <td>ผลลัพธ์ A</td>
+                                                <td>90%</td>
                                                 <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ01</td>
-                                                <td>โครงการเพิ่มประสิทธิภาพ</td>
-                                                <td class="color-primary">1,000,000 บาท</td>
+                                                <td>PRJ001</td>
+                                                <td>โครงการพัฒนา</td>
+                                                <td class="color-primary">1,200,000 บาท</td>
                                                 <td>01/01/2024</td>
                                                 <td>31/12/2024</td>
                                                 <td>ระดับ A</td>
                                                 <td>ทีมงาน A</td>
                                             </tr>
                                             <tr>
-                                                <td>กลยุทธ์ที่ 2</td>
                                                 <td>002</td>
-                                                <td>พัฒนาคุณภาพ</td>
-                                                <td>85%</td>
+                                                <td>ยุทธศาสตร์ที่ 2</td>
+                                                <td>G002</td>
+                                                <td>กลยุทธ์ที่ 2</td>
+                                                <td>R002</td>
+                                                <td>ผลลัพธ์ B</td>
+                                                <td>75%</td>
                                                 <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ02</td>
-                                                <td>โครงการพัฒนาคุณภาพ</td>
-                                                <td class="color-success">2,500,000 บาท</td>
-                                                <td>01/03/2024</td>
+                                                <td>PRJ002</td>
+                                                <td>โครงการปรับปรุง</td>
+                                                <td class="color-success">2,000,000 บาท</td>
+                                                <td>01/02/2024</td>
                                                 <td>30/11/2024</td>
                                                 <td>ระดับ B</td>
                                                 <td>ทีมงาน B</td>
                                             </tr>
                                             <tr>
-                                                <td>กลยุทธ์ที่ 3</td>
                                                 <td>003</td>
-                                                <td>ขยายตลาด</td>
-                                                <td>70%</td>
+                                                <td>ยุทธศาสตร์ที่ 3</td>
+                                                <td>G003</td>
+                                                <td>กลยุทธ์ที่ 3</td>
+                                                <td>R003</td>
+                                                <td>ผลลัพธ์ C</td>
+                                                <td>60%</td>
                                                 <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ03</td>
-                                                <td>โครงการขยายตลาด</td>
-                                                <td class="color-danger">3,000,000 บาท</td>
-                                                <td>01/05/2024</td>
-                                                <td>31/10/2024</td>
+                                                <td>PRJ003</td>
+                                                <td>โครงการขยาย</td>
+                                                <td class="color-danger">3,500,000 บาท</td>
+                                                <td>01/03/2024</td>
+                                                <td>30/10/2024</td>
                                                 <td>ระดับ C</td>
                                                 <td>ทีมงาน C</td>
                                             </tr>
