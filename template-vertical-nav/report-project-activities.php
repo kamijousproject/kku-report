@@ -100,6 +100,8 @@
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
+                                <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
+                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
 
                             </div>
                         </div>
@@ -136,6 +138,50 @@
             document.body.removeChild(link);
         }
 
+        function exportPDF() {
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF();
+
+            // ตั้งค่าชื่อหัวข้อของเอกสาร
+            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+
+            // ใช้ autoTable
+            doc.autoTable({
+                html: '#reportTable', // ดึงข้อมูลจากตาราง HTML
+                startY: 20, // เริ่มการวาดตารางด้านล่างข้อความ
+            });
+
+            // บันทึกไฟล์ PDF
+            doc.save('รายงาน.pdf');
+        }
+
+        function exportXLS() {
+            const rows = [];
+            const table = document.getElementById('reportTable');
+            for (let row of table.rows) {
+                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
+                rows.push(cells);
+            }
+            let xlsContent = "<table>";
+            rows.forEach(row => {
+                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
+            });
+            xlsContent += "</table>";
+
+            const blob = new Blob([xlsContent], {
+                type: 'application/vnd.ms-excel'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'รายงาน.xls');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
     </script>
     <!-- Common JS -->
     <script src="../../assets/plugins/common/common.min.js"></script>
