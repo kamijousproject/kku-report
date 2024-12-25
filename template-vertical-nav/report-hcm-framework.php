@@ -134,13 +134,23 @@
             } = window.jspdf;
             const doc = new jsPDF();
 
-            // ตั้งค่าชื่อหัวข้อของเอกสาร
+            // เพิ่มฟอนต์ภาษาไทย
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
+
+            // ตั้งค่าฟอนต์และข้อความ
+            doc.setFontSize(16);
             doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
 
-            // ใช้ autoTable
+            // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
-                html: '#reportTable', // ดึงข้อมูลจากตาราง HTML
-                startY: 20, // เริ่มการวาดตารางด้านล่างข้อความ
+                html: '#reportTable',
+                startY: 20,
+                styles: {
+                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
+                    fontSize: 14,
+                },
             });
 
             // บันทึกไฟล์ PDF
