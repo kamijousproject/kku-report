@@ -105,6 +105,7 @@
                                         <input name="file" type="file" multiple="multiple">
                                     </div>
                                 </form>
+                                <button type="button" class="btn btn-primary m-t-15" id="uploadButton">Upload</button>
                             </div>
                         </div>
                     </div>
@@ -112,6 +113,12 @@
             </div>
             <!-- #/ container -->
         </div>
+        <script>
+            document.getElementById('uploadButton').addEventListener('click', function() {
+                alert('อัพโหลดข้อมูลแล้ว');
+                location.reload();
+            });
+        </script>
         <!-- #/ content body -->
         <!-- footer -->
         <div class="footer">

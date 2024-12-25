@@ -60,54 +60,54 @@
                         class="nav-text"></span>แผนงาน<span class="badge badge-warning nav-badge">16</span></a>
                 <ul aria-expanded="false">
                     <li>
-                        <a href="report-plan-levels.php">รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)</a>
+                        <a href="report-plan-levels.php">9.1.1.29.1 รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)</a>
                     </li>
                     <li>
-                        <a href="report-plan-changes.php">รายงานการปรับเปลี่ยนแผนงาน</a>
+                        <a href="report-plan-changes.php">9.1.1.29.2 รายงานการปรับเปลี่ยนแผนงาน</a>
                     </li>
                     <li>
-                        <a href="report-plan-status.php">รายงานสถานะของแผนงานแต่ละแผน</a>
+                        <a href="report-plan-status.php">9.1.1.29.3 รายงานสถานะของแผนงานแต่ละแผน</a>
                     </li>
                     <li>
-                        <a href="report-indicator-comparison.php">รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน</a>
+                        <a href="report-indicator-comparison.php">9.1.1.29.4 รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน</a>
                     </li>
                     <li>
-                        <a href="report-strategy-overview.php">รายงานภาพรวมของยุทธศาสตร์</a>
+                        <a href="report-strategy-overview.php">9.1.1.29.5 รายงานภาพรวมของยุทธศาสตร์</a>
                     </li>
                     <li>
-                        <a href="report-budget-expenses.php">รายงานการใช้จ่ายงบประมาณตามแผนงาน</a>
+                        <a href="report-budget-expenses.php">9.1.1.29.6 รายงานการใช้จ่ายงบประมาณตามแผนงาน</a>
                     </li>
                     <li>
-                        <a href="report-annual-action-summary.php">รายงานสรุปผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (ระดับมหาวิทยาลัย)</a>
+                        <a href="report-annual-action-summary.php">9.1.1.29.7-1 รายงานสรุปผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (ระดับมหาวิทยาลัย)</a>
                     </li>
                     <li>
-                        <a href="report-strategic-issues.php">รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับ
+                        <a href="report-strategic-issues.php">9.1.1.29.7-2 รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับ
                             มหาวทิยาลัย)</a>
                     </li>
                     <li>
-                        <a href="report-strategic-indicators.php">รายงานจำนวนผลลัพธ์/ตัวชี้วัดที่สอดคล้องกับแผนยุทธศาสตร์มหาวิทยาลัย</a>
+                        <a href="report-strategic-indicators.php">9.1.1.29.7-3 รายงานจำนวนผลลัพธ์/ตัวชี้วัดที่สอดคล้องกับแผนยุทธศาสตร์มหาวิทยาลัย</a>
                     </li>
                     <li>
-                        <a href="report-department-indicators.php">รายงานจำนวนผลลัพธ์/ตัวชี้วัดในแผนปฏิบัติการ ประจำปีงบประมาณ ส่วนงาน/หน่วยงาน</a>
+                        <a href="report-department-indicators.php">9.1.1.29.7-4 รายงานจำนวนผลลัพธ์/ตัวชี้วัดในแผนปฏิบัติการ ประจำปีงบประมาณ ส่วนงาน/หน่วยงาน</a>
                     </li>
                     <li>
-                        <a href="report-department-strategy-overview.php">รายงานภาพรวมยุทธศาสตร์ ส่วนงาน/หน่วยงาน</a>
+                        <a href="report-department-strategy-overview.php">9.1.1.29.7-5 รายงานภาพรวมยุทธศาสตร์ ส่วนงาน/หน่วยงาน</a>
                     </li>
                     <li>
-                        <a href="report-department-action-summary.php">รายงานสรุปผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ ส่วนงาน/หน่วยงาน</a>
+                        <a href="report-department-action-summary.php">9.1.1.29.7-6 รายงานสรุปผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ ส่วนงาน/หน่วยงาน</a>
                     </li>
                     <li>
-                        <a href="report-department-strategic-issues.php">รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับ
+                        <a href="report-department-strategic-issues.php">9.1.1.29.7-7 รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับ
                             ส่วนงาน/หน่วยงาน)</a>
                     </li>
                     <li>
-                        <a href="report-project-summary.php">รายงานสรุปรายโครงการ</a>
+                        <a href="report-project-summary.php">9.1.1.29.7-8 รายงานสรุปรายโครงการ</a>
                     </li>
                     <li>
-                        <a href="report-budget-requests.php">รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ</a>
+                        <a href="report-budget-requests.php">9.1.1.29.7-9 รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ</a>
                     </li>
                     <li>
-                        <a href="report-reserve-funds.php">รายงานสรุปบัญชีทุนสำรองสะสม</a>
+                        <a href="report-reserve-funds.php">9.1.3.29.7-10 รายงานสรุปบัญชีทุนสำรองสะสม</a>
                     </li>
                 </ul>
             </li>
@@ -115,49 +115,49 @@
                         class="nav-text"></span>แผนอัตรากำลัง<span class="badge badge-warning nav-badge">15</span></a>
                 <ul aria-expanded="false">
                     <li>
-                        <a href="report-4year-framework.php">รายงานกรอบอัตรากำลังระยะเวลา 4 ปี</a>
+                        <a href="report-4year-framework.php">9.1.2.17.1 รายงานกรอบอัตรากำลังระยะเวลา 4 ปี</a>
                     </li>
                     <li>
-                        <a href="report-budget-framework.php">รายงานกรอบอัตรากำลังตามงบประมาณประเภทต่างๆ</a>
+                        <a href="report-budget-framework.php">9.1.2.17.2 รายงานกรอบอัตรากำลังตามงบประมาณประเภทต่างๆ</a>
                     </li>
                     <li>
-                        <a href="report-unit-personnel.php">รายงานอัตรากำลังประเภทต่างๆ ของหน่วยงาน</a>
+                        <a href="report-unit-personnel.php">9.1.2.17.3 รายงานอัตรากำลังประเภทต่างๆ ของหน่วยงาน</a>
                     </li>
                     <li>
-                        <a href="report-vacant-personnel.php">รายงานอัตรากำลังว่าง</a>
+                        <a href="report-vacant-personnel.php">9.1.2.17.4 รายงานอัตรากำลังว่าง</a>
                     </li>
                     <li>
-                        <a href="report-retirement.php">รายงานอัตรากำลังที่เกษียณอายุในแต่ละช่วงเวลา</a>
+                        <a href="report-retirement.php">9.1.2.17.5 รายงานอัตรากำลังที่เกษียณอายุในแต่ละช่วงเวลา</a>
                     </li>
                     <li>
-                        <a href="report-approval-requests.php">รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</a>
+                        <a href="report-approval-requests.php">9.1.2.17.6-1 รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</a>
                     </li>
                     <li>
-                        <a href="report-overview-framework.php">รายงานสรุปผลการจัดสรรกรอบอตัรากำลังทุกประเภทภาพรวมของมหาวิทยาลัย</a>
+                        <a href="report-overview-framework.php">9.1.2.17.6-2 รายงานสรุปผลการจัดสรรกรอบอตัรากำลังทุกประเภทภาพรวมของมหาวิทยาลัย</a>
                     </li>
                     <li>
-                        <a href="report-annual-allocation.php">รายงานการจัดสรรกรอบอัตรากำลัง ประจำปีงบประมาณ</a>
+                        <a href="report-annual-allocation.php">9.1.2.17.6-3 รายงานการจัดสรรกรอบอัตรากำลัง ประจำปีงบประมาณ</a>
                     </li>
                     <li>
-                        <a href="report-staff-requests.php">รายงานสรุปคำขออนุมัติกรอบอัตรากำลัง ประจำปีงบประมาณ แยกตามประเภทบุคลากร</a>
+                        <a href="report-staff-requests.php">9.1.2.17.6-4 รายงานสรุปคำขออนุมัติกรอบอัตรากำลัง ประจำปีงบประมาณ แยกตามประเภทบุคลากร</a>
                     </li>
                     <li>
-                        <a href="report-4year-workload.php">รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน</a>
+                        <a href="report-4year-workload.php">9.1.2.17.6-5 รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน</a>
                     </li>
                     <li>
-                        <a href="report-framework-summary.php">รายงานสรุปแผนกรอบอตัรากำลัง 4 ปีแยกตามประเภท</a>
+                        <a href="report-framework-summary.php">9.1.2.17.6-6 รายงานสรุปแผนกรอบอตัรากำลัง 4 ปีแยกตามประเภท</a>
                     </li>
                     <li>
-                        <a href="report-position-changes.php">รายงานผลการตัดโอน – เปลี่ยนตำแหน่ง</a>
+                        <a href="report-position-changes.php">9.1.2.17.6-7 รายงานผลการตัดโอน – เปลี่ยนตำแหน่ง</a>
                     </li>
                     <li>
-                        <a href="report-current-vs-ideal.php">รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</a>
+                        <a href="report-current-vs-ideal.php">9.1.2.17.6-8 รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</a>
                     </li>
                     <li>
-                        <a href="report-new-vs-old-positions.php">รายงานการสรุป คำขออัตราใหม่และอัตราเดิม (หลังจากส่วนงาน/หน่วยงาน กรอกคำขออัตราเดิมและอัตราใหม่)</a>
+                        <a href="report-new-vs-old-positions.php">9.1.2.17.6-9 รายงานการสรุป คำขออัตราใหม่และอัตราเดิม (หลังจากส่วนงาน/หน่วยงาน กรอกคำขออัตราเดิมและอัตราใหม่)</a>
                     </li>
                     <li>
-                        <a href="report-new-positions-summary.php">รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวทิยาลัย (อัตราใหม่)
+                        <a href="report-new-positions-summary.php">9.1.2.17.6-10 รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวทิยาลัย (อัตราใหม่)
                             รายตำแหน่ง</a>
                     </li>
                 </ul>
@@ -166,53 +166,53 @@
                         class="nav-text"></span>แผนงบประมาณ<span class="badge badge-warning nav-badge">16</span></a>
                 <ul aria-expanded="false">
                     <li>
-                        <a href="report-budget-annual-summary.php">รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</a>
+                        <a href="report-budget-annual-summary.php">9.1.3.30.1 รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</a>
                     </li>
                     <li>
-                        <a href="report-budget-comparison.php">รายงานเปรียบเทียบงประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</a>
+                        <a href="report-budget-comparison.php">9.1.3.30.2 รายงานเปรียบเทียบงประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</a>
                     </li>
                     <li>
-                        <a href="report-budget-structure-comparison.php">รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กร ตาม
+                        <a href="report-budget-structure-comparison.php">9.1.3.30.3 รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กร ตาม
                             แหล่งเงิน ตามแผนงาน/โครงการ โดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ</a>
                     </li>
                     <li>
-                        <a href="report-budget-spending-status.php">รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</a>
+                        <a href="report-budget-spending-status.php">9.1.3.30.4 รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</a>
                     </li>
                     <li>
-                        <a href="report-budget-adjustments.php">รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</a>
+                        <a href="report-budget-adjustments.php">9.1.3.30.5 รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</a>
                     </li>
                     <li>
-                        <a href="report-budget-carryover.php">รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้</a>
+                        <a href="report-budget-carryover.php">9.1.3.30.6 รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้</a>
                     </li>
                     <li>
-                        <a href="report-budget-revenue-summary.php">รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ</a>
+                        <a href="report-budget-revenue-summary.php">9.1.3.30.7-1 รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ</a>
                     </li>
                     <li>
-                        <a href="report-project-activities.php">รายงานโครงการ/กิจกรรม</a>
+                        <a href="report-project-activities.php">9.1.3.30.7-2 รายงานโครงการ/กิจกรรม</a>
                     </li>
                     <li>
-                        <a href="report-budget-request-summary.php">รายงานสรุปคำขอตั้งงบประมาณรายจ่ายประจำปี(สรุปประมาณการรายรับและประมาณการรายจ่าย)</a>
+                        <a href="report-budget-request-summary.php">9.1.3.30.7-3 รายงานสรุปคำขอตั้งงบประมาณรายจ่ายประจำปี(สรุปประมาณการรายรับและประมาณการรายจ่าย)</a>
                     </li>
                     <li>
-                        <a href="report-project-requests.php">รายงานสรุปคำขอรายโครงการ</a>
+                        <a href="report-project-requests.php">9.1.3.30.7-4 รายงานสรุปคำขอรายโครงการ</a>
                     </li>
                     <li>
-                        <a href="report-budget-remaining.php">รายงานสรุปยอดงบประมาณคงเหลือ</a>
+                        <a href="report-budget-remaining.php">9.1.3.30.7-5 รายงานสรุปยอดงบประมาณคงเหลือ</a>
                     </li>
                     <li>
-                        <a href="report-hcm-framework.php">รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM) เพื่อนำไปตั้งงบประมาณขอไฟล์ database จากระบบ HCM</a>
+                        <a href="report-hcm-framework.php">9.1.3.30.7-6 รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM) เพื่อนำไปตั้งงบประมาณขอไฟล์ database จากระบบ HCM</a>
                     </li>
                     <li>
-                        <a href="report-budget-allocation.php">รายงานการจัดสรรเงินรายงวด</a>
+                        <a href="report-budget-allocation.php">9.1.3.30.7-7 รายงานการจัดสรรเงินรายงวด</a>
                     </li>
                     <li>
-                        <a href="report-revenue-estimation-comparison.php">รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</a>
+                        <a href="report-revenue-estimation-comparison.php">9.1.3.30.7-8 รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</a>
                     </li>
                     <li>
-                        <a href="report-expense-estimation-comparison.php">รายงานแสดงการเปรียบเทียบการประมาณการรายจ่ายกับจ่ายจริง</a>
+                        <a href="report-expense-estimation-comparison.php">9.1.3.30.7-9 รายงานแสดงการเปรียบเทียบการประมาณการรายจ่ายกับจ่ายจริง</a>
                     </li>
                     <li>
-                        <a href="report-indicator-summary.php">รายงานสรุปรายการตัวชี้วัดแผน/ผลของแผนงานย่อย</a>
+                        <a href="report-indicator-summary.php">9.1.3.30.7-10 รายงานสรุปรายการตัวชี้วัดแผน/ผลของแผนงานย่อย</a>
                     </li>
                 </ul>
             </li>

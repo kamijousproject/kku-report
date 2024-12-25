@@ -43,7 +43,7 @@
                                     <p>โครงการ (Project): .......................</p>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table table-bordered">
+                                    <table id="reportTable" class="table table-bordered">
                                         <thead>
                                             <tr>
                                                 <th rowspan="2">คำใช้งบ</th>
@@ -95,6 +95,8 @@
                                         </tbody>
                                     </table>
                                 </div>
+                                <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
+
                             </div>
                         </div>
 
@@ -108,6 +110,29 @@
             </div>
         </div>
     </div>
+    <script>
+        function exportCSV() {
+            const rows = [];
+            const table = document.getElementById('reportTable');
+            for (let row of table.rows) {
+                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
+                rows.push(cells.join(","));
+            }
+            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', 'รายงาน.csv');
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+    </script>
     <!-- Common JS -->
     <script src="../../assets/plugins/common/common.min.js"></script>
     <!-- Custom script -->
