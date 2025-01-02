@@ -125,7 +125,7 @@
             doc.setFont("THSarabun");
 
             // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(16);
+            doc.setFontSize(12);
             doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
 
             // ใช้ autoTable สำหรับสร้างตาราง
@@ -134,7 +134,19 @@
                 startY: 20,
                 styles: {
                     font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 14,
+                    fontSize: 10,
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                },
+                bodyStyles: {
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                },
+                headStyles: {
+                    fillColor: [230, 230, 230], // สีพื้นหลังของหัวตาราง
+                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
                 },
             });
 
