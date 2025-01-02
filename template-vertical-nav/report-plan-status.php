@@ -60,7 +60,7 @@
                                                 <td>ยุทธศาสตร์ที่ 1</td>
                                                 <td>PRJ01</td>
                                                 <td>โครงการพัฒนา</td>
-                                                <td><span class="badge badge-secondary">✔</span></td>
+                                                <td><span class="badge badge-secondary">X</span></td>
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
@@ -71,7 +71,7 @@
                                                 <td>PRJ02</td>
                                                 <td>โครงการปรับปรุง</td>
                                                 <td></td>
-                                                <td><span class="badge badge-primary">✔</span></td>
+                                                <td><span class="badge badge-primary">X</span></td>
                                                 <td></td>
                                                 <td></td>
                                             </tr>
@@ -82,7 +82,7 @@
                                                 <td>โครงการขยาย</td>
                                                 <td></td>
                                                 <td></td>
-                                                <td><span class="badge badge-success">✔</span></td>
+                                                <td><span class="badge badge-success">X</span></td>
                                                 <td></td>
                                             </tr>
                                             <tr>
@@ -93,7 +93,7 @@
                                                 <td></td>
                                                 <td></td>
                                                 <td></td>
-                                                <td><span class="badge badge-danger">✔</span></td>
+                                                <td><span class="badge badge-danger">X</span></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -141,7 +141,7 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF();
+            const doc = new jsPDF('landscape');
 
             // เพิ่มฟอนต์ภาษาไทย
             doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
@@ -155,6 +155,7 @@
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
                 html: '#reportTable',
+                useCss: true,
                 startY: 20,
                 styles: {
                     font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย

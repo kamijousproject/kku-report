@@ -182,7 +182,7 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF();
+            const doc = new jsPDF('landscape');
 
             // เพิ่มฟอนต์ภาษาไทย
             doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
