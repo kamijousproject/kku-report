@@ -26,6 +26,54 @@
                         </ol>
                     </div>
                 </div>
+                <?php
+                // Database connection
+                include('../server/connectdb.php');
+                try {
+                    // Query to fetch data
+                    $sql = "SELECT 
+                                rpl.`so_code`,
+                                rpl.`okr_code`,
+                                rpl.`stp_code`,
+                                rpl.`Target`,
+                                rpl.`UOM`,
+                                rpl.`Start_Date`,
+                                rpl.`End_Date`,
+                                rpl.`Budget_Amount`,
+                                rpl.`Tiers_&_Deploy`,
+                                rpl.`Responsible_person`,
+                                p.`pilar_name`,
+                                p1.`pilar_name` AS so_code_1,
+                                ksp.`ksp_name` AS stp_name,
+                                okr.`okr_name` AS okr_name
+                            FROM 
+                                `report_plan_levels` AS rpl
+                            LEFT JOIN 
+                                `pilar` AS p
+                            ON 
+                                rpl.`so_code` = p.`pilar_id`
+                            LEFT JOIN 
+                                `pilar` AS p1
+                            ON 
+                                p1.`pilar_id` = REGEXP_REPLACE(rpl.`so_code`, 'SO(\\d+)-\\d+', 'SI\\1')
+                            LEFT JOIN 
+                                `ksp`
+                            ON 
+                                rpl.`stp_code` = ksp.`ksp_id`
+                            LEFT JOIN 
+                                `okr`
+                            ON 
+                                rpl.`okr_code` = okr.`okr_id`;
+                            ";
+                    $stmt = $conn->prepare($sql);
+                    $stmt->execute();
+
+                    // Fetch all rows
+                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } catch (PDOException $e) {
+                    die("Connection failed: " . $e->getMessage());
+                }
+                ?>
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="card">
@@ -37,6 +85,9 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
+                                                <th>รหัส</th>
+                                                <th>ยุทธศาสตร์</th>
+                                                <th>รหัส</th>
                                                 <th>กลยุทธ์</th>
                                                 <th>รหัส</th>
                                                 <th>ผลลัพธ์สำคัญ</th>
@@ -58,6 +109,9 @@
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
                                                 <th>วันเริ่มต้น</th>
                                                 <th>วันสิ้นสุด</th>
                                                 <th></th>
@@ -65,48 +119,25 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>กลยุทธ์ที่ 1</td>
-                                                <td>001</td>
-                                                <td>เพิ่มประสิทธิภาพ</td>
-                                                <td>100%</td>
-                                                <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ01</td>
-                                                <td>โครงการเพิ่มประสิทธิภาพ</td>
-                                                <td class="color-primary">1,000,000 บาท</td>
-                                                <td>01/01/2024</td>
-                                                <td>31/12/2024</td>
-                                                <td>ระดับ A</td>
-                                                <td>ทีมงาน A</td>
-                                            </tr>
-                                            <tr>
-                                                <td>กลยุทธ์ที่ 2</td>
-                                                <td>002</td>
-                                                <td>พัฒนาคุณภาพ</td>
-                                                <td>85%</td>
-                                                <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ02</td>
-                                                <td>โครงการพัฒนาคุณภาพ</td>
-                                                <td class="color-success">2,500,000 บาท</td>
-                                                <td>01/03/2024</td>
-                                                <td>30/11/2024</td>
-                                                <td>ระดับ B</td>
-                                                <td>ทีมงาน B</td>
-                                            </tr>
-                                            <tr>
-                                                <td>กลยุทธ์ที่ 3</td>
-                                                <td>003</td>
-                                                <td>ขยายตลาด</td>
-                                                <td>70%</td>
-                                                <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ03</td>
-                                                <td>โครงการขยายตลาด</td>
-                                                <td class="color-danger">3,000,000 บาท</td>
-                                                <td>01/05/2024</td>
-                                                <td>31/10/2024</td>
-                                                <td>ระดับ C</td>
-                                                <td>ทีมงาน C</td>
-                                            </tr>
+                                            <?php foreach ($data as $row): ?>
+                                                <tr>
+                                                    <td><?= htmlspecialchars(preg_replace('/SO(\d+)-\d+/', 'SI$1', $row['so_code'])) ?></td>
+                                                    <td><?= htmlspecialchars($row['so_code_1']) ?></td>
+                                                    <td><?= htmlspecialchars($row['so_code']) ?></td>
+                                                    <td><?= htmlspecialchars($row['pilar_name']) ?></td>
+                                                    <td><?= htmlspecialchars($row['okr_code']) ?></td> <!-- ยังคงแสดง okr_code หากต้องการ -->
+                                                    <td><?= htmlspecialchars($row['okr_name']) ?></td> <!-- ใช้ okr_name -->
+                                                    <td><?= htmlspecialchars($row['Target']) ?></td>
+                                                    <td><?= htmlspecialchars($row['UOM']) ?></td>
+                                                    <td><?= htmlspecialchars($row['stp_code']) ?></td>
+                                                    <td><?= htmlspecialchars($row['stp_name']) ?></td> <!-- ใช้ ksp_name -->
+                                                    <td><?= htmlspecialchars($row['Budget_Amount']) ?></td>
+                                                    <td><?= htmlspecialchars($row['Start_Date']) ?></td>
+                                                    <td><?= htmlspecialchars($row['End_Date']) ?></td>
+                                                    <td><?= htmlspecialchars($row['Tiers_&_Deploy']) ?></td>
+                                                    <td><?= htmlspecialchars($row['Responsible_person']) ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
