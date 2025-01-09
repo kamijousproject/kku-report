@@ -33,6 +33,56 @@
                                 <div class="card-title">
                                     <h4>รายงานภาพรวมของยุทธศาสตร์</h4>
                                 </div>
+                                <?php
+                                // Database connection
+                                include('../server/connectdb.php');
+                                try {
+                                    // Query to fetch data
+                                    $sql = "SELECT 
+                                                rso.`so_code`,
+                                                rso.`okr_code`,
+                                                rso.`stp_code`,
+                                                rso.`Y1`,
+                                                rso.`Y2`,
+                                                rso.`Y3`,
+                                                rso.`Y4`,
+                                                rso.`UOM`,
+                                                rso.`Start_Date`,
+                                                rso.`End_Date`,
+                                                rso.`Budget_Amount`,
+                                                rso.`Tiers_&_Deploy`,
+                                                rso.`Responsible_person`,
+                                                p.`pilar_name`,
+                                                p1.`pilar_name` AS so_code_1,
+                                                ksp.`ksp_name` AS stp_name,
+                                                okr.`okr_name` AS okr_name
+                                            FROM 
+                                                `report_strategy_overview` AS rso
+                                            LEFT JOIN 
+                                                `pilar` AS p
+                                            ON 
+                                                rso.`so_code` = p.`pilar_id`
+                                            LEFT JOIN 
+                                                `pilar` AS p1
+                                            ON 
+                                                p1.`pilar_id` = REGEXP_REPLACE(rso.`so_code`, 'SO(\\d+)-\\d+', 'SI\\1')
+                                            LEFT JOIN 
+                                                `ksp`
+                                            ON 
+                                                rso.`stp_code` = ksp.`ksp_id`
+                                            LEFT JOIN 
+                                                `okr`
+                                            ON 
+                                                rso.`okr_code` = okr.`okr_id`;";
+                                    $stmt = $conn->prepare($sql);
+                                    $stmt->execute();
+
+                                    // Fetch all rows
+                                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                } catch (PDOException $e) {
+                                    die("Connection failed: " . $e->getMessage());
+                                }
+                                ?>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -84,57 +134,35 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>001</td>
-                                                <td>หน่วยงาน A</td>
-                                                <td>S001</td>
-                                                <td>เสาหลักที่ 1</td>
-                                                <td>ST001</td>
-                                                <td>ยุทธศาสตร์ที่ 1</td>
-                                                <td>G001</td>
-                                                <td>กลยุทธ์ที่ 1</td>
-                                                <td>เพิ่มผลผลิต</td>
-                                                <td>PJ001</td>
-                                                <td>โครงการพัฒนา</td>
-                                                <td>R001</td>
-                                                <td>ผลลัพธ์ A</td>
-                                                <td>เปอร์เซ็นต์</td>
-                                                <td>80%</td>
-                                                <td>85%</td>
-                                                <td>90%</td>
-                                                <td>85%</td>
-                                                <td>88%</td>
-                                                <td>90%</td>
-                                                <td>92%</td>
-                                                <td>95%</td>
-                                                <td>1,500,000</td>
-                                                <td>ทีม A</td>
-                                            </tr>
-                                            <tr>
-                                                <td>002</td>
-                                                <td>หน่วยงาน B</td>
-                                                <td>S002</td>
-                                                <td>เสาหลักที่ 2</td>
-                                                <td>ST002</td>
-                                                <td>ยุทธศาสตร์ที่ 2</td>
-                                                <td>G002</td>
-                                                <td>กลยุทธ์ที่ 2</td>
-                                                <td>พัฒนาคุณภาพ</td>
-                                                <td>PJ002</td>
-                                                <td>โครงการปรับปรุง</td>
-                                                <td>R002</td>
-                                                <td>ผลลัพธ์ B</td>
-                                                <td>หน่วย</td>
-                                                <td>70</td>
-                                                <td>75</td>
-                                                <td>80</td>
-                                                <td>75</td>
-                                                <td>78</td>
-                                                <td>80</td>
-                                                <td>85</td>
-                                                <td>90</td>
-                                                <td>2,000,000</td>
-                                                <td>ทีม B</td>
+                                            <?php foreach ($data as $row): ?>
+                                                <tr>
+                                                    <td>รหัส ส่วนงาน/หน่วยงาน</td>
+                                                    <td>ส่วนงาน/หน่วยงาน</td>
+                                                    <td>รหัส เสาหลัก</td>
+                                                    <td>เสาหลัก</td>
+
+                                                    <td><?= htmlspecialchars(preg_replace('/SO(\d+)-\d+/', 'SI$1', $row['so_code'])) ?></td>
+                                                    <td><?= htmlspecialchars($row['so_code_1']) ?></td>
+                                                    <td><?= htmlspecialchars($row['so_code']) ?></td>
+                                                    <td><?= htmlspecialchars($row['pilar_name']) ?></td>
+                                                    <td>รหัส แผนงาน/โครงการ</td>
+                                                    <td>แผนงาน/โครงการ</td>
+                                                    <td>-</td>
+                                                    <td><?= htmlspecialchars($row['okr_code']) ?></td> <!-- ยังคงแสดง okr_code หากต้องการ -->
+                                                    <td><?= htmlspecialchars($row['okr_name']) ?></td> <!-- ใช้ okr_name -->
+                                                    <td><?= htmlspecialchars($row['UOM']) ?></td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td><?= htmlspecialchars($row['Y1']) ?></td>
+                                                    <td><?= htmlspecialchars($row['Y2']) ?></td>
+                                                    <td><?= htmlspecialchars($row['Y3']) ?></td>
+                                                    <td><?= htmlspecialchars($row['Y4']) ?></td>
+                                                    <td><?= htmlspecialchars($row['Budget_Amount']) ?></td>
+                                                    <td><?= htmlspecialchars($row['Responsible_person']) ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                             </tr>
                                         </tbody>
                                     </table>
