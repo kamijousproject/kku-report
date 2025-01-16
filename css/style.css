@@ -122,10 +122,10 @@ Table of Contents
 @import url(../icons/themify-icons/themify-icons.css);
 @import url(../icons/flag-icon-css/flag-icon.min.css);
 @import url(../icons/material-design-iconic-font/materialdesignicons.min.css);
-@import "../../assets/plugins/bootstrap/css/bootstrap.min.css";
-@import "../../assets/plugins/shortcode/shortcode.css";
-@import "../../assets/plugins/animate/animate.css";
-@import "../../assets/plugins/metismenu/css/metisMenu.min.css";
+@import "../assets/plugins/bootstrap/css/bootstrap.min.css";
+@import "../assets/plugins/shortcode/shortcode.css";
+@import "../assets/plugins/animate/animate.css";
+@import "../assets/plugins/metismenu/css/metisMenu.min.css";
 * {
   outline: none;
 }
@@ -2900,7 +2900,7 @@ svg.pulse-svg .third-circle {
   position: relative;
 }
 .photo-content .cover-photo {
-  background: url(../../assets/images/profile/cover.jpg);
+  background: url(../assets/images/profile/cover.jpg);
   background-size: cover;
   background-position: center;
   min-height: 250px;
@@ -3310,14 +3310,14 @@ svg.pulse-svg .third-circle {
 }
 
 .card-bg-img-1 {
-  background: url(../../assets/images/big/img6.jpg);
+  background: url(../assets/images/big/img6.jpg);
   background-position: center;
   background-size: cover;
   min-height: 300px;
 }
 
 .card-bg-img-2 {
-  background: url(../../assets/images/big/img6.jpg);
+  background: url(../assets/images/big/img6.jpg);
   background-position: center;
   background-size: cover;
   min-height: 400px;
@@ -5387,7 +5387,7 @@ input[type=checkbox]:not(:disabled) ~ .lever:active::after {
 }
 
 #login-page2 body {
-  background: url(../../assets/images/background/login-register2.jpg);
+  background: url(../assets/images/background/login-register2.jpg);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
@@ -5406,7 +5406,7 @@ input[type=checkbox]:not(:disabled) ~ .lever:active::after {
 }
 
 #login-page1 body {
-  background: url(../../assets/images/background/login-register.jpg);
+  background: url(../assets/images/background/login-register.jpg);
   background-size: cover;
   background-position: center;
   background-attachment: fixed;
