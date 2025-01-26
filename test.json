@@ -1,0 +1,85 @@
+{
+    "InvoiceId": 300000171672144,
+    "InvoiceNumber": "ap_inv_004",
+    "InvoiceCurrency": "THB",
+    "PaymentCurrency": "THB",
+    "InvoiceAmount": 1,
+    "InvoiceDate": "2025-01-20",
+    "BusinessUnit": "KKBU01-สำนักงานอธิการบดี",
+    "Supplier": "หจก. เอ็ม แอนด์ จี ซิสเต็ม",
+    "SupplierNumber": "0403545002183",
+    "ProcurementBU": null,
+    "SupplierSite": "HQ",
+    "RequesterId": null,
+    "Requester": null,
+    "InvoiceGroup": null,
+    "ConversionRateType": null,
+    "ConversionDate": null,
+    "ConversionRate": null,
+    "AccountingDate": "2025-01-20",
+    "Description": "Office Supplies",
+    "DeliveryChannelCode": null,
+    "DeliveryChannel": null,
+    "PayAloneFlag": false,
+    "InvoiceSourceCode": "External",
+    "InvoiceSource": null,
+    "InvoiceType": null,
+    "PayGroup": null,
+    "InvoiceReceivedDate": null,
+    "PaymentReasonCode": null,
+    "PaymentReason": null,
+    "PaymentReasonComments": null,
+    "RemittanceMessageOne": null,
+    "RemittanceMessageTwo": null,
+    "RemittanceMessageThree": null,
+    "PaymentTerms": null,
+    "TermsDate": "2025-01-20",
+    "GoodsReceivedDate": null,
+    "PaymentMethodCode": "Bank Transfer",
+    "PaymentMethod": null,
+    "SupplierTaxRegistrationNumber": null,
+    "FirstPartyTaxRegistrationId": 300000005334360,
+    "FirstPartyTaxRegistrationNumber": "0994000391609",
+    "LegalEntity": "มหาวิทยาลัยขอนแก่น",
+    "LegalEntityIdentifier": null,
+    "LiabilityDistribution": "1-01-00000-2101010200-00-0000-0000-000000-000000-0-0000",
+    ...
+    "invoiceLines": [
+        {
+            "LineNumber": 1,
+            "LineAmount": 1,
+            "AccountingDate": "2025-01-20",
+            ...
+            "links": [
+                {
+                    "rel": "self",
+                    "href": "https://iaajtj-dev1.fa.ocs.oraclecloud.com:443/fscmRestApi/resources/11.13.18.05/invoices/300000171672144/child/invoiceLines/00020000000EACED00057708000110D93BAA42500000000AACED0005770400000001",
+                    "name": "invoiceLines",
+                    "kind": "item",
+                    "properties": {
+                        "changeIndicator": "ACED0005737200136A6176612E7574696C2E41727261794C6973747881D21D99C7619D03000149000473697A65787000000001770400000001737200116A6176612E6C616E672E496E746567657212E2A0A4F781873802000149000576616C7565787200106A6176612E6C616E672E4E756D62657286AC951D0B94E08B02000078700000000178"
+                    }
+                },
+                ...
+            ]
+        }
+    ],
+    "links": [
+        {
+            "rel": "self",
+            "href": "https://iaajtj-dev1.fa.ocs.oraclecloud.com:443/fscmRestApi/resources/11.13.18.05/invoices/300000171672144",
+            "name": "invoices",
+            "kind": "item",
+            "properties": {
+                "changeIndicator": "ACED0005737200136A6176612E7574696C2E41727261794C6973747881D21D99C7619D03000149000473697A65787000000001770400000001737200116A6176612E6C616E672E496E746567657212E2A0A4F781873802000149000576616C7565787200106A6176612E6C616E672E4E756D62657286AC951D0B94E08B02000078700000000278"
+            }
+        },
+        ...
+        {
+            "rel": "child",
+            "href": "https://iaajtj-dev1.fa.ocs.oraclecloud.com:443/fscmRestApi/resources/11.13.18.05/invoices/300000171672144/child/invoiceLines",
+            "name": "invoiceLines",
+            "kind": "collection"
+        }
+    ]
+}

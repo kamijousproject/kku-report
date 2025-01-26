@@ -30,66 +30,106 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
-                                <div class="card-title">
-                                    <h4>รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</h4>
-                                </div>
-                                <div class="table-responsive">
-                                    <table id="reportTable" class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th rowspan="2">รายการ</th>
-                                                <th colspan="4">ปี 2567 (ปีปัจจุบัน)</th>
-                                                <th colspan="6">ปี 2568 (ปีที่ขอตั้งงบ)</th>
-                                                <th rowspan="2">เพิ่ม/ลด</th>
-                                            </tr>
-                                            <tr>
-                                                <th>เงินอุดหนุนจากรัฐ</th>
-                                                <th>เงินนอกงบประมาณ</th>
-                                                <th>เงินรายได้</th>
-                                                <th>รวม</th>
-                                                <th>เงินอุดหนุนจากรัฐ (คำขอ)</th>
-                                                <th>เงินอุดหนุนจากรัฐ (จัดสรร)</th>
-                                                <th>เงินนอกงบประมาณ (คำขอ)</th>
-                                                <th>เงินนอกงบประมาณ (จัดสรร)</th>
-                                                <th>เงินรายได้ (คำขอ)</th>
-                                                <th>เงินรายได้ (จัดสรร)</th>
-                                                <th>รวม</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>แผนงาน (ผลผลิต) [Plan]</td>
-                                                <td>5,000</td>
-                                                <td>2,000</td>
-                                                <td>3,000</td>
-                                                <td>10,000</td>
-                                                <td>6,000</td>
-                                                <td>5,800</td>
-                                                <td>2,500</td>
-                                                <td>2,400</td>
-                                                <td>3,200</td>
-                                                <td>3,100</td>
-                                                <td>11,300</td>
-                                                <td>+1,300</td>
-                                            </tr>
-                                            <tr>
-                                                <td>แผนงานย่อย (ผลผลิตย่อย/กิจกรรม) [Sub plan]</td>
-                                                <td>4,000</td>
-                                                <td>1,500</td>
-                                                <td>2,500</td>
-                                                <td>8,000</td>
-                                                <td>4,500</td>
-                                                <td>4,300</td>
-                                                <td>1,800</td>
-                                                <td>1,700</td>
-                                                <td>2,800</td>
-                                                <td>2,700</td>
-                                                <td>9,000</td>
-                                                <td>+1,000</td>
-                                            </tr>
-                                        </tbody>
-                                    </table>
-                                </div>
+                                <?php
+                                include('../server/connectdb.php');
+
+                                // Query ข้อมูลจาก table
+                                $query = "SELECT 
+                                    Account,
+                                    Oct, Nov, `Dec`, Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep,
+                                    Point_of_View,
+                                    Data_Load_Cube_Name
+                                FROM epm_data";
+                                    $stmt = $conn->prepare($query);
+                                    $stmt->execute();
+                                    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                    echo '<div class="card-title">
+                                <h4>รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</h4>
+                            </div>
+                            <div class="table-responsive">
+                                <table id="reportTable" class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2">รายการ</th>
+                                            <th colspan="4">ปี 2567 (ปีปัจจุบัน)</th>
+                                            <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
+                                            <th colspan="2">เพิ่ม/ลด</th>
+                                        </tr>
+                                        <tr>
+                                            <th>เงินอุดหนุนจากรัฐ</th>
+                                            <th>เงินนอกงบประมาณ</th>
+                                            <th>เงินรายได้</th>
+                                            <th>รวม</th>
+                                            <th>เงินอุดหนุนจากรัฐ (คำขอ)</th>
+                                            <th>เงินอุดหนุนจากรัฐ (จัดสรร)</th>
+                                            <th>เงินนอกงบประมาณ (คำขอ)</th>
+                                            <th>เงินนอกงบประมาณ (จัดสรร)</th>
+                                            <th>เงินรายได้ (คำขอ)</th>
+                                            <th>เงินรายได้ (จัดสรร)</th>
+                                            <th>รวม (คำขอ)</th>
+                                            <th>รวม (จัดสรร)</th>
+                                            <th>จำนวน</th>
+                                            <th>ร้อยละ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>';
+
+                                // วนลูปข้อมูลและคำนวณ
+                                if (!empty($results)) {
+                                    foreach ($results as $row) {
+                                        // ตัวอย่างการดึงข้อมูลปีปัจจุบัน (ปี 2567)
+                                        $current_state_fund = rand(4000, 6000);
+                                        $current_external_fund = rand(1500, 2500);
+                                        $current_income = rand(2500, 3500);
+                                        $current_total = $current_state_fund + $current_external_fund + $current_income;
+
+                                        // ตัวอย่างคำขอปี 2568
+                                        $request_state_fund = rand(5000, 7000);
+                                        $allocation_state_fund = rand(4800, 6800);
+                                        $request_external_fund = rand(2000, 3000);
+                                        $allocation_external_fund = rand(1800, 2800);
+                                        $request_income = rand(3000, 4000);
+                                        $allocation_income = rand(2900, 3900);
+
+                                        $request_total = $request_state_fund + $request_external_fund + $request_income;
+                                        $allocation_total = $allocation_state_fund + $allocation_external_fund + $allocation_income;
+
+                                        // การคำนวณเพิ่ม/ลด
+                                        $diff_amount = $allocation_total - $current_total;
+                                        $diff_percent = ($current_total > 0) ? round(($diff_amount / $current_total) * 100, 2) : 0;
+
+                                        // แสดงผลในตาราง
+                                        echo '<tr>
+                                                        <td>' . htmlspecialchars($row['Account']) . '</td>
+                                                        <td>' . number_format($current_state_fund) . '</td>
+                                                        <td>' . number_format($current_external_fund) . '</td>
+                                                        <td>' . number_format($current_income) . '</td>
+                                                        <td>' . number_format($current_total) . '</td>
+                                                        <td>' . number_format($request_state_fund) . '</td>
+                                                        <td>' . number_format($allocation_state_fund) . '</td>
+                                                        <td>' . number_format($request_external_fund) . '</td>
+                                                        <td>' . number_format($allocation_external_fund) . '</td>
+                                                        <td>' . number_format($request_income) . '</td>
+                                                        <td>' . number_format($allocation_income) . '</td>
+                                                        <td>' . number_format($request_total) . '</td>
+                                                        <td>' . number_format($allocation_total) . '</td>
+                                                        <td>' . number_format($diff_amount) . '</td>
+                                                        <td>' . $diff_percent . '%</td>
+                                                    </tr>';
+                                                        }
+                                                    } else {
+                                                        echo '<tr><td colspan="15">No data available.</td></tr>';
+                                                    }
+
+                                                    echo '</tbody>
+                                            </table>
+                                        </div>';
+
+                                // ปิดการเชื่อมต่อฐานข้อมูล
+                                $conn = null;
+                                ?>
+
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>

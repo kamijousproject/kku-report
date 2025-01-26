@@ -34,9 +34,23 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="basic-form">
-                                    <form>
-                                        <h4>เลือกประเภทรายงาน</h4>
-                                        <!-- <p>Select2 can take a regular select box like this...</p> -->
+                                    <?php
+                                    if (isset($_GET['status'])) {
+                                        if ($_GET['status'] == 'success') {
+                                            echo '<div style="background-color: #d4edda; color: #155724; padding: 10px; border: 1px solid #c3e6cb; margin-bottom: 15px;">';
+                                            echo 'บันทึกข้อมูลสำเร็จ.';
+                                            echo '</div>';
+                                        } elseif ($_GET['status'] == 'error') {
+                                            $message = isset($_GET['message']) ? htmlspecialchars($_GET['message']) : 'An unknown error occurred.';
+                                            echo '<div style="background-color: #f8d7da; color: #721c24; padding: 10px; border: 1px solid #f5c6cb; margin-bottom: 15px;">';
+                                            echo 'Error: ' . $message;
+                                            echo '</div>';
+                                        }
+                                    }
+                                    ?>
+                                    <form action="../server/upload.php" method="post" enctype="multipart/form-data">
+                                        <!-- <h4>เลือกประเภทรายงาน</h4>
+                                        <p>Select2 can take a regular select box like this...</p>
                                         <p>
                                             <select class="form-control">
                                                 <optgroup label="แผนงาน">
@@ -94,18 +108,26 @@
                                                     <option value="report-indicator-summary">รายงานสรุปรายการตัวชี้วัดแผน/ผลของแผนงานย่อย</option>
                                                 </optgroup>
                                             </select>
-                                        </p>
+                                        </p> -->
+                                        <h4>เลือกไฟล์</h4>
+                                        <hr>
+                                        <h6 class="card-subtitle">คลิ๊กเพื่อเลือกไฟล์ที่ต้องการ หรือลากไฟล์มาวาง</h6>
+                                        <div class="fallback">
+                                            <input name="file" type="file" accept=".csv" required>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary m-t-15">Upload</button>
                                     </form>
+                                    <!-- <script>
+                                        setTimeout(function() {
+                                            var alert = document.querySelector('div[style*="background-color"]');
+                                            if (alert) {
+                                                alert.style.display = 'none';
+                                            }
+                                        }, 5000); // ซ่อนข้อความหลังจาก 5 วินาที
+                                    </script> -->
                                 </div>
-                                <hr>
-                                <h4 class="card-title">เลือกไฟล์</h4>
-                                <h6 class="card-subtitle">คลิ๊กเพื่อเลือกไฟล์ที่ต้องการ หรือลากไฟล์มาวาง</h6>
-                                <form action="#" class="dropzone m-t-15">
-                                    <div class="fallback">
-                                        <input name="file" type="file" multiple="multiple">
-                                    </div>
-                                </form>
-                                <button type="button" class="btn btn-primary m-t-15" id="uploadButton">Upload</button>
+                                <!-- <hr> -->
+                                <br>
                             </div>
                         </div>
                     </div>
@@ -113,12 +135,7 @@
             </div>
             <!-- #/ container -->
         </div>
-        <script>
-            document.getElementById('uploadButton').addEventListener('click', function() {
-                alert('อัพโหลดข้อมูลแล้ว');
-                location.reload();
-            });
-        </script>
+
         <!-- #/ content body -->
         <!-- footer -->
         <div class="footer">
