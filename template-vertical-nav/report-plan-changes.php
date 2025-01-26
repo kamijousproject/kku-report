@@ -53,7 +53,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
+                                            <!-- <tr>
                                                 <td>ยุทธศาสตร์ที่ 1</td>
                                                 <td>กลยุทธ์ที่ 1.1</td>
                                                 <td>โครงการตัวอย่าง 1</td>
@@ -76,7 +76,7 @@
                                                 <td class="color-danger">500,000 บาท</td>
                                                 <td>ผู้รับผิดชอบ C</td>
                                                 <td>เหตุผลปรับเปลี่ยน C</td>
-                                            </tr>
+                                            </tr> -->
                                         </tbody>
                                     </table>
                                 </div>
@@ -98,6 +98,71 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'get_kku_planing'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.plan);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    let previousSiName = '';
+                    let previousSoName = '';
+
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
+
+                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td1 = document.createElement('td');
+                        td1.textContent = row.si_name === previousSiName ? '' : row.si_name;
+                        tr.appendChild(td1);
+
+                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td2 = document.createElement('td');
+                        td2.textContent = row.so_name === previousSoName ? '' : row.so_name;
+                        tr.appendChild(td2);
+
+                        const td3 = document.createElement('td');
+                        td3.textContent = row.ksp_name;
+                        tr.appendChild(td3);
+
+                        const td4 = document.createElement('td');
+                        td4.textContent = row.budged_amount;
+                        tr.appendChild(td4);
+
+                        const td5 = document.createElement('td');
+                        td5.textContent = row.responsible_person;
+                        tr.appendChild(td5);
+
+                        const td6 = document.createElement('td');
+                        td6.textContent = row.tiers_n_deploy;
+                        tr.appendChild(td6);
+
+                        tableBody.appendChild(tr);
+
+                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        previousSiName = row.si_name;
+                        previousSoName = row.so_name;
+                    });
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
@@ -184,6 +249,27 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function responseError(jqXHR, exception) {
+            let errorMessage = '';
+            if (jqXHR.status === 0) {
+                errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้.';
+            } else if (jqXHR.status === 404) {
+                errorMessage = 'ไม่พบไฟล์หรือ URL ที่ต้องการ.';
+            } else if (jqXHR.status === 500) {
+                errorMessage = 'เซิร์ฟเวอร์เกิดข้อผิดพลาด.';
+            } else if (exception === 'parsererror') {
+                errorMessage = 'ไม่สามารถแปลงข้อมูลจาก JSON ได้.';
+            } else if (exception === 'timeout') {
+                errorMessage = 'การเชื่อมต่อล้มเหลวเนื่องจากหมดเวลา.';
+            } else if (exception === 'abort') {
+                errorMessage = 'การเชื่อมต่อถูกยกเลิก.';
+            } else {
+                errorMessage = 'เกิดข้อผิดพลาดที่ไม่สามารถระบุได้.';
+            }
+            console.error("ข้อผิดพลาด: " + errorMessage);
+            alert("ข้อผิดพลาด: " + errorMessage);
         }
     </script>
     <!-- Common JS -->
