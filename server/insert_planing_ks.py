@@ -10,7 +10,7 @@ str_username = 'root'
 
 # กำหนดเส้นทางของไฟล์ CSV
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, '68FS24_20250125.csv')
+file_path = os.path.join(current_dir, '68KS00_20250125.csv')
 
 # อ่านไฟล์ CSV
 try:
@@ -29,12 +29,9 @@ try:
         'Budget Amount': 0,
         'Tiers & Deploy': '',
         'Responsible person': '',
-        'Start Date': '0000-00-00',
-        'End Date': '0000-00-00',
+        'Start Date': '',
+        'End Date': '',
         'UOM': '',
-        'KKU_Strategic_Plan_LOV': '',
-        'Dev Plan Proposed to Nomination Co._LOV': '',
-        'Division Noteworthy Plan LOV': '',
         'Scenario': '',
         'Version': ''
     })
@@ -54,12 +51,12 @@ try:
     )
     cursor = connection.cursor()
 
-    # สร้างตาราง planing_fs
+    # สร้างตาราง planing_ks
     create_table_query = '''
-    CREATE TABLE IF NOT EXISTS planing_fs (
+    CREATE TABLE IF NOT EXISTS planing_ks (
         Strategic_Object VARCHAR(50),
         Strategic_Project VARCHAR(50),
-        Faculty VARCHAR(20),
+        Faculty TEXT,
         OKR VARCHAR(50),
         Y1 FLOAT,
         Y2 FLOAT,
@@ -71,9 +68,6 @@ try:
         Start_Date VARCHAR(50),
         End_Date VARCHAR(50),
         UOM VARCHAR(50),
-        KKU_Strategic_Plan_LOV TEXT,
-        Dev_Plan_Proposed_to_Nomination_Co_LOV TEXT,
-        Division_Noteworthy_Plan_LOV TEXT,
         Scenario TEXT,
         Version TEXT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -84,12 +78,10 @@ try:
     # เตรียมข้อมูลสำหรับการ INSERT
     for _, row in data.iterrows():
         insert_query = '''
-        INSERT INTO planing_fs (
+        INSERT INTO planing_ks (
             Strategic_Object, Strategic_Project, Faculty, OKR, Y1, Y2, Y3, Y4,
-            Budget_Amount, Tiers_Deploy, Responsible_person, Start_Date, End_Date,
-            UOM, KKU_Strategic_Plan_LOV, Dev_Plan_Proposed_to_Nomination_Co_LOV,
-            Division_Noteworthy_Plan_LOV, Scenario, Version
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            Budget_Amount, Tiers_Deploy, Responsible_person, Start_Date, End_Date, UOM, Scenario, Version
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         '''
         cursor.execute(insert_query, (
             row['Strategic Object'],
@@ -106,16 +98,13 @@ try:
             row['Start Date'],
             row['End Date'],
             row['UOM'],
-            row['KKU_Strategic_Plan_LOV'],
-            row['Dev Plan Proposed to Nomination Co._LOV'],
-            row['Division Noteworthy Plan LOV'],
             row['Scenario'],
             row['Version']
         ))
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into planing_fs table.")
+    print("Data inserted successfully into planing_ks table.")
 
 except Exception as e:
     print(f"Error: {e}")

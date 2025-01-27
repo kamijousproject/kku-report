@@ -4,7 +4,7 @@ import os
 
 # Current directory and file path
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, '68FA17_20250125.csv')
+file_path = os.path.join(current_dir, '68FA24_20250125.csv')
 
 # Database connection information
 str_hosting = '110.164.146.250'
@@ -46,7 +46,7 @@ try:
         cursor.execute(create_table_query)
 
         # Read the CSV file using pandas
-        df = pd.read_csv(file_path)
+        df = pd.read_csv(file_path, dtype={'Faculty': str})
 
         # Replace NaN values with defaults
         df.fillna({

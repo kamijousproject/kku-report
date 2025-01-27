@@ -10,18 +10,18 @@ str_username = 'root'
 
 # กำหนดเส้นทางของไฟล์ CSV
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, '68FAC04_Project_20250125.csv')
+file_path = os.path.join(current_dir, '68KKU_OKR_20250125.csv')
 
 # อ่านไฟล์ CSV
 try:
-    data = pd.read_csv(file_path)
+    data = pd.read_csv(file_path, dtype={'Faculty': str})
 
     # แก้ไข DataFrame ให้จัดการค่า NaN ก่อน
     data = data.fillna(value={
         'Strategic Object': '',
-        'Faculty': 0,
+        'Faculty': '',
         'OKR': '',
-        'Quarter Progress Value': 0.0,
+        'Quarter Progress Value': 0,
         'OKR Progress Details': '',
         'Prob/Solution/Suggestion': '',
         'Responsible person': '',
@@ -44,11 +44,11 @@ try:
     )
     cursor = connection.cursor()
 
-    # สร้างตาราง planing_fa
+    # สร้างตาราง planing_okr
     create_table_query = '''
-    CREATE TABLE IF NOT EXISTS planing_fac (
+    CREATE TABLE IF NOT EXISTS planing_okr (
         Strategic_Object VARCHAR(50),
-        Faculty INT,
+        Faculty TEXT,
         OKR VARCHAR(50),
         Quarter_Progress_Value FLOAT,
         OKR_Progress_Details TEXT,
@@ -64,7 +64,7 @@ try:
     # เตรียมข้อมูลสำหรับการ INSERT
     for _, row in data.iterrows():
         insert_query = '''
-        INSERT INTO planing_fac (
+        INSERT INTO planing_okr (
             Strategic_Object, Faculty, OKR, Quarter_Progress_Value, OKR_Progress_Details,
             Prob_Solution_Suggestion, Responsible_person, Scenario, Version
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
@@ -83,7 +83,7 @@ try:
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into planing_fa table.")
+    print("Data inserted successfully into planing_okr table.")
 
 except Exception as e:
     print(f"Error: {e}")
