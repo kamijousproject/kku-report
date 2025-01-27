@@ -1,8 +1,26 @@
 <?php
 header('Content-Type: application/json');
-require_once 'connectdb.php';
+class Database
+{
+    private $host = "110.164.146.250";
+    private $dbname = "epm_report";
+    private $username = "root";
+    private $password = "TDyutdYdyudRTYDsEFOPI";
+    private $conn;
 
-// ตรวจสอบว่าได้รับข้อมูล POST ถูกต้อง
+    public function connect()
+    {
+        try {
+            $this->conn = new PDO("mysql:host=$this->host;dbname=$this->dbname", $this->username, $this->password);
+            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        } catch (PDOException $e) {
+            echo "Connection error: " . $e->getMessage();
+        }
+
+        return $this->conn;
+    }
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $command = $_POST["command"];
     switch ($command) {
@@ -13,18 +31,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // เชื่อมต่อฐานข้อมูล
                 $sqlPlan = "SELECT 
-                                kp.*, 
-                                so.pilar_name AS so_name, 
+                                pka.*, 
                                 si.pilar_name AS si_name,
-                                ksp.ksp_name 
+                                so.pilar_name AS so_name,
+                                ksp.ksp_name AS ksp_name
                             FROM 
-                                kku_planing AS kp
+                                planing_ka AS pka
                             LEFT JOIN 
-                                pilar AS so ON kp.so = so.pilar_id
-                            LEFT JOIN 
-                                pilar AS si ON kp.si = si.pilar_id
-                            LEFT JOIN 
-                                ksp ON kp.strategic_project = ksp.ksp_id;";
+                                pilar AS si 
+                            ON 
+                                si.pilar_id = REPLACE(SUBSTRING_INDEX(pka.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilar AS so ON so.pilar_id = pka.Strategic_Object
+                            LEFT JOIN ksp ON ksp.ksp_id = pka.Strategic_Project; 
+";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
