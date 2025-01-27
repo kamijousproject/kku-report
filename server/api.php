@@ -42,8 +42,43 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ON 
                                 si.pilar_id = REPLACE(SUBSTRING_INDEX(pka.Strategic_Object, '-', 1), 'SO', 'SI')
                             LEFT JOIN pilar AS so ON so.pilar_id = pka.Strategic_Object
-                            LEFT JOIN ksp ON ksp.ksp_id = pka.Strategic_Project; 
-";
+                            LEFT JOIN ksp ON ksp.ksp_id = pka.Strategic_Project; ";
+                $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "get_kku_planing_status":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sqlPlan = "SELECT 
+                            pp.*, 
+                            si.pilar_name AS si_name,
+                            REPLACE(SUBSTRING_INDEX(pp.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
+                            ksp.ksp_name,
+                            Faculty.name_th AS fa_name
+                            FROM planing_project AS pp
+                            LEFT JOIN pilar AS si 
+                            ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pp.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN ksp
+                            ON ksp.ksp_id = TRIM(pp.Strategic_Project)
+                            LEFT JOIN Faculty 
+                            ON Faculty.id = pp.Faculty;";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
