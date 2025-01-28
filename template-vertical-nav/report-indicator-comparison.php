@@ -71,57 +71,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>001</td>
-                                                <td>ยุทธศาสตร์ที่ 1</td>
-                                                <td>G001</td>
-                                                <td>กลยุทธ์ที่ 1</td>
-                                                <td>R001</td>
-                                                <td>ผลลัพธ์ A</td>
-                                                <td>90%</td>
-                                                <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ001</td>
-                                                <td>โครงการพัฒนา</td>
-                                                <td class="color-primary">1,200,000 บาท</td>
-                                                <td>01/01/2024</td>
-                                                <td>31/12/2024</td>
-                                                <td>ระดับ A</td>
-                                                <td>ทีมงาน A</td>
-                                            </tr>
-                                            <tr>
-                                                <td>002</td>
-                                                <td>ยุทธศาสตร์ที่ 2</td>
-                                                <td>G002</td>
-                                                <td>กลยุทธ์ที่ 2</td>
-                                                <td>R002</td>
-                                                <td>ผลลัพธ์ B</td>
-                                                <td>75%</td>
-                                                <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ002</td>
-                                                <td>โครงการปรับปรุง</td>
-                                                <td class="color-success">2,000,000 บาท</td>
-                                                <td>01/02/2024</td>
-                                                <td>30/11/2024</td>
-                                                <td>ระดับ B</td>
-                                                <td>ทีมงาน B</td>
-                                            </tr>
-                                            <tr>
-                                                <td>003</td>
-                                                <td>ยุทธศาสตร์ที่ 3</td>
-                                                <td>G003</td>
-                                                <td>กลยุทธ์ที่ 3</td>
-                                                <td>R003</td>
-                                                <td>ผลลัพธ์ C</td>
-                                                <td>60%</td>
-                                                <td>เปอร์เซ็นต์</td>
-                                                <td>PRJ003</td>
-                                                <td>โครงการขยาย</td>
-                                                <td class="color-danger">3,500,000 บาท</td>
-                                                <td>01/03/2024</td>
-                                                <td>30/10/2024</td>
-                                                <td>ระดับ C</td>
-                                                <td>ทีมงาน C</td>
-                                            </tr>
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -143,6 +93,113 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'get_kku_planing_indicator_compare'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.plan);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    let previousSICode = '';
+                    let previousSIName = '';
+                    let previousSOCode = '';
+                    let previousSOName = '';
+                    let previousOKRCode = '';
+                    let previousOKRName = '';
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
+
+                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td1 = document.createElement('td');
+                        td1.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                        tr.appendChild(td1);
+
+                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td2 = document.createElement('td');
+                        td2.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                        tr.appendChild(td2);
+
+                        const td3 = document.createElement('td');
+                        td3.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                        tr.appendChild(td3);
+
+                        const td4 = document.createElement('td');
+                        td4.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                        tr.appendChild(td4);
+
+                        const td5 = document.createElement('td');
+                        td5.textContent = row.OKR;
+                        tr.appendChild(td5);
+
+                        const td6 = document.createElement('td');
+                        td6.textContent = row.okr_name;
+                        tr.appendChild(td6);
+
+                        const td7 = document.createElement('td');
+                        td7.textContent = row.Target_OKR_Objective_and_Key_Result;
+                        tr.appendChild(td7);
+
+                        const td8 = document.createElement('td');
+                        td8.textContent = row.UOM;
+                        tr.appendChild(td8);
+
+                        const td9 = document.createElement('td');
+                        td9.textContent = row.Strategic_Project;
+                        tr.appendChild(td9);
+
+                        const td10 = document.createElement('td');
+                        td10.textContent = row.ksp_name;
+                        tr.appendChild(td10);
+
+                        const td11 = document.createElement('td');
+                        td11.textContent = row.Budget_Amount;
+                        tr.appendChild(td11);
+
+                        const td12 = document.createElement('td');
+                        td12.textContent = row.Start_Date;
+                        tr.appendChild(td12);
+
+                        const td13 = document.createElement('td');
+                        td13.textContent = row.End_Date;
+                        tr.appendChild(td13);
+
+                        const td14 = document.createElement('td');
+                        td14.textContent = row.Tiers_Deploy;
+                        tr.appendChild(td14);
+
+                        const td15 = document.createElement('td');
+                        td15.textContent = row.Responsible_person;
+                        tr.appendChild(td15);
+
+
+                        tableBody.appendChild(tr);
+
+                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        previousSICode = row.si_code;
+                        previousSIName = row.si_name;
+                        previousSOName = row.so_name;
+                        previousSOName = row.so_name;
+                    });
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

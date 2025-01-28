@@ -129,6 +129,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+
+        case "get_kku_planing_indicator_compare":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sqlPlan = "SELECT  pfap.*,REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pilar_name AS si_name, so.pilar_name AS so_name,ksp.ksp_name , okr.okr_name
+                            FROM planning_faculty_action_plan AS pfap
+                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilar AS so ON si.pilar_id = pfap.Strategic_Object
+                            LEFT JOIN ksp ON ksp.id = pfap.Strategic_Project
+                            LEFT JOIN okr ON okr.okr_id = pfap.OKR
+                            ORDER BY 
+                            REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI'),
+                            pfap.Strategic_Object,
+                            pfap.OKR,
+                            pfap.Strategic_Project";
+                $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }
