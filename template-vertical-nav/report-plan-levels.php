@@ -26,54 +26,6 @@
                         </ol>
                     </div>
                 </div>
-                <?php
-                // Database connection
-                include('../server/connectdb.php');
-                try {
-                    // Query to fetch data
-                    $sql = "SELECT 
-                                rpl.`so_code`,
-                                rpl.`okr_code`,
-                                rpl.`stp_code`,
-                                rpl.`Target`,
-                                rpl.`UOM`,
-                                rpl.`Start_Date`,
-                                rpl.`End_Date`,
-                                rpl.`Budget_Amount`,
-                                rpl.`Tiers_&_Deploy`,
-                                rpl.`Responsible_person`,
-                                p.`pilar_name`,
-                                p1.`pilar_name` AS so_code_1,
-                                ksp.`ksp_name` AS stp_name,
-                                okr.`okr_name` AS okr_name
-                            FROM 
-                                `report_plan_levels` AS rpl
-                            LEFT JOIN 
-                                `pilar` AS p
-                            ON 
-                                rpl.`so_code` = p.`pilar_id`
-                            LEFT JOIN 
-                                `pilar` AS p1
-                            ON 
-                                p1.`pilar_id` = REGEXP_REPLACE(rpl.`so_code`, 'SO(\\d+)-\\d+', 'SI\\1')
-                            LEFT JOIN 
-                                `ksp`
-                            ON 
-                                rpl.`stp_code` = ksp.`ksp_id`
-                            LEFT JOIN 
-                                `okr`
-                            ON 
-                                rpl.`okr_code` = okr.`okr_id`;
-                            ";
-                    $stmt = $conn->prepare($sql);
-                    $stmt->execute();
-
-                    // Fetch all rows
-                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                } catch (PDOException $e) {
-                    die("Connection failed: " . $e->getMessage());
-                }
-                ?>
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="card">
@@ -119,25 +71,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($data as $row): ?>
-                                                <tr>
-                                                    <td><?= htmlspecialchars(preg_replace('/SO(\d+)-\d+/', 'SI$1', $row['so_code'])) ?></td>
-                                                    <td><?= htmlspecialchars($row['so_code_1']) ?></td>
-                                                    <td><?= htmlspecialchars($row['so_code']) ?></td>
-                                                    <td><?= htmlspecialchars($row['pilar_name']) ?></td>
-                                                    <td><?= htmlspecialchars($row['okr_code']) ?></td> <!-- ยังคงแสดง okr_code หากต้องการ -->
-                                                    <td><?= htmlspecialchars($row['okr_name']) ?></td> <!-- ใช้ okr_name -->
-                                                    <td><?= htmlspecialchars($row['Target']) ?></td>
-                                                    <td><?= htmlspecialchars($row['UOM']) ?></td>
-                                                    <td><?= htmlspecialchars($row['stp_code']) ?></td>
-                                                    <td><?= htmlspecialchars($row['stp_name']) ?></td> <!-- ใช้ ksp_name -->
-                                                    <td><?= htmlspecialchars($row['Budget_Amount']) ?></td>
-                                                    <td><?= htmlspecialchars($row['Start_Date']) ?></td>
-                                                    <td><?= htmlspecialchars($row['End_Date']) ?></td>
-                                                    <td><?= htmlspecialchars($row['Tiers_&_Deploy']) ?></td>
-                                                    <td><?= htmlspecialchars($row['Responsible_person']) ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
+                                           
                                         </tbody>
                                     </table>
                                 </div>
@@ -159,6 +93,113 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'get_kku_planing_level'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.plan);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    let previousSICode = '';
+                    let previousSIName = '';
+                    let previousSOCode = '';
+                    let previousSOName = '';
+                    let previousOKRCode = '';
+                    let previousOKRName = '';
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
+
+                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td1 = document.createElement('td');
+                        td1.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                        tr.appendChild(td1);
+
+                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td2 = document.createElement('td');
+                        td2.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                        tr.appendChild(td2);
+
+                        const td3 = document.createElement('td');
+                        td3.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                        tr.appendChild(td3);
+
+                        const td4 = document.createElement('td');
+                        td4.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                        tr.appendChild(td4);
+
+                        const td5 = document.createElement('td');
+                        td5.textContent = row.OKR;
+                        tr.appendChild(td5);
+
+                        const td6 = document.createElement('td');
+                        td6.textContent = row.okr_name;
+                        tr.appendChild(td6);
+
+                        const td7 = document.createElement('td');
+                        td7.textContent = row.Target_OKR_Objective_and_Key_Result;
+                        tr.appendChild(td7);
+
+                        const td8 = document.createElement('td');
+                        td8.textContent = row.UOM;
+                        tr.appendChild(td8);
+
+                        const td9 = document.createElement('td');
+                        td9.textContent = row.Strategic_Project;
+                        tr.appendChild(td9);
+
+                        const td10 = document.createElement('td');
+                        td10.textContent = row.ksp_name;
+                        tr.appendChild(td10);
+
+                        const td11 = document.createElement('td');
+                        td11.textContent = row.Budget_Amount;
+                        tr.appendChild(td11);
+
+                        const td12 = document.createElement('td');
+                        td12.textContent = row.Start_Date;
+                        tr.appendChild(td12);
+
+                        const td13 = document.createElement('td');
+                        td13.textContent = row.End_Date;
+                        tr.appendChild(td13);
+
+                        const td14 = document.createElement('td');
+                        td14.textContent = row.Tiers_Deploy;
+                        tr.appendChild(td14);
+
+                        const td15 = document.createElement('td');
+                        td15.textContent = row.Responsible_person;
+                        tr.appendChild(td15);
+
+
+                        tableBody.appendChild(tr);
+
+                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        previousSICode = row.si_code;
+                        previousSIName = row.si_name;
+                        previousSOName = row.so_name;
+                        previousSOName = row.so_name;
+                    });
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
@@ -245,6 +286,27 @@
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+        }
+
+        function responseError(jqXHR, exception) {
+            let errorMessage = '';
+            if (jqXHR.status === 0) {
+                errorMessage = 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ได้.';
+            } else if (jqXHR.status === 404) {
+                errorMessage = 'ไม่พบไฟล์หรือ URL ที่ต้องการ.';
+            } else if (jqXHR.status === 500) {
+                errorMessage = 'เซิร์ฟเวอร์เกิดข้อผิดพลาด.';
+            } else if (exception === 'parsererror') {
+                errorMessage = 'ไม่สามารถแปลงข้อมูลจาก JSON ได้.';
+            } else if (exception === 'timeout') {
+                errorMessage = 'การเชื่อมต่อล้มเหลวเนื่องจากหมดเวลา.';
+            } else if (exception === 'abort') {
+                errorMessage = 'การเชื่อมต่อถูกยกเลิก.';
+            } else {
+                errorMessage = 'เกิดข้อผิดพลาดที่ไม่สามารถระบุได้.';
+            }
+            console.error("ข้อผิดพลาด: " + errorMessage);
+            alert("ข้อผิดพลาด: " + errorMessage);
         }
     </script>
     <!-- Common JS -->

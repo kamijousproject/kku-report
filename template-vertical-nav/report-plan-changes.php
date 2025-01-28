@@ -81,7 +81,7 @@
                 type: "POST",
                 url: "../server/api.php",
                 data: {
-                    'command': 'get_kku_planing'
+                    'command': 'get_kku_planing_change'
                 },
                 dataType: "json",
                 success: function(response) {
