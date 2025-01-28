@@ -36,7 +36,7 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th>รหัส</th>
                                                 <th>ยุทธศาสตร์</th>
                                                 <th>รหัส</th>

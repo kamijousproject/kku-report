@@ -36,7 +36,7 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th>รหัส</th>
                                                 <th>ยุทธศาสตร์</th>
                                                 <th>รหัส</th>
@@ -46,13 +46,13 @@
                                                 <th>ค่าเป้าหมาย</th>
                                                 <th>หน่วยนับ</th>
                                                 <th>รหัส</th>
-                                                <th>แผนงาน/โครงการ</th>
+                                                <th >แผนงาน/โครงการ</th>
                                                 <th>กรอบวงเงินงบประมาณ</th>
                                                 <th colspan="2">ระยะเวลาที่ดำเนินการ</th>
                                                 <th>ระดับและการปรับใช้</th>
                                                 <th>ผู้รับผิดชอบ</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>

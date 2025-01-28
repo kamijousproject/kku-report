@@ -36,13 +36,13 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th>ยุทธศาสตร์</th>
                                                 <th>กลยุทธ์</th>
                                                 <th colspan="2">โครงการตามยุทธศาสตร์</th>
                                                 <th>ผู้รับผิดชอบ</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th></th>
                                                 <th></th>
                                                 <th>แผนงาน/โครงการ</th>

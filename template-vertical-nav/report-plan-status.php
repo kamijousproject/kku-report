@@ -36,7 +36,7 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th>ส่วนงาน/หน่วยงาน</th>
                                                 <th>รหัส</th>
                                                 <th>ยุทธศาสตร์</th>
@@ -44,7 +44,7 @@
                                                 <th>แผนงาน/โครงการ</th>
                                                 <th colspan="4">สถานะ (Status)</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
@@ -57,50 +57,6 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>001</td>
-                                                <td>ยุทธศาสตร์ที่ 1</td>
-                                                <th></th>
-                                                <td>PRJ01</td>
-                                                <td>โครงการพัฒนา</td>
-                                                <td><span class="badge badge-secondary">X</span></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>002</td>
-                                                <td>ยุทธศาสตร์ที่ 2</td>
-                                                <th></th>
-                                                <td>PRJ02</td>
-                                                <td>โครงการปรับปรุง</td>
-                                                <td></td>
-                                                <td><span class="badge badge-primary">X</span></td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>003</td>
-                                                <td>ยุทธศาสตร์ที่ 3</td>
-                                                <th></th>
-                                                <td>PRJ03</td>
-                                                <td>โครงการขยาย</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td><span class="badge badge-success">X</span></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>004</td>
-                                                <td>ยุทธศาสตร์ที่ 4</td>
-                                                <th></th>
-                                                <td>PRJ04</td>
-                                                <td>โครงการยกเลิก</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td><span class="badge badge-danger">X</span></td>
-                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>

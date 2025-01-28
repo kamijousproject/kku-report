@@ -37,7 +37,7 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th>รหัส</th>
                                                 <th>ส่วนงาน/หน่วยงาน</th>
                                                 <th>รหัส</th>
@@ -56,7 +56,7 @@
                                                 <th>กรอบวงเงินงบประมาณ (บาท)</th>
                                                 <th>ผู้รับผิดชอบ</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
