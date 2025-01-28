@@ -33,56 +33,7 @@
                                 <div class="card-title">
                                     <h4>รายงานภาพรวมของยุทธศาสตร์</h4>
                                 </div>
-                                <?php
-                                // Database connection
-                                include('../server/connectdb.php');
-                                try {
-                                    // Query to fetch data
-                                    $sql = "SELECT 
-                                                rso.`so_code`,
-                                                rso.`okr_code`,
-                                                rso.`stp_code`,
-                                                rso.`Y1`,
-                                                rso.`Y2`,
-                                                rso.`Y3`,
-                                                rso.`Y4`,
-                                                rso.`UOM`,
-                                                rso.`Start_Date`,
-                                                rso.`End_Date`,
-                                                rso.`Budget_Amount`,
-                                                rso.`Tiers_&_Deploy`,
-                                                rso.`Responsible_person`,
-                                                p.`pilar_name`,
-                                                p1.`pilar_name` AS so_code_1,
-                                                ksp.`ksp_name` AS stp_name,
-                                                okr.`okr_name` AS okr_name
-                                            FROM 
-                                                `report_strategy_overview` AS rso
-                                            LEFT JOIN 
-                                                `pilar` AS p
-                                            ON 
-                                                rso.`so_code` = p.`pilar_id`
-                                            LEFT JOIN 
-                                                `pilar` AS p1
-                                            ON 
-                                                p1.`pilar_id` = REGEXP_REPLACE(rso.`so_code`, 'SO(\\d+)-\\d+', 'SI\\1')
-                                            LEFT JOIN 
-                                                `ksp`
-                                            ON 
-                                                rso.`stp_code` = ksp.`ksp_id`
-                                            LEFT JOIN 
-                                                `okr`
-                                            ON 
-                                                rso.`okr_code` = okr.`okr_id`;";
-                                    $stmt = $conn->prepare($sql);
-                                    $stmt->execute();
 
-                                    // Fetch all rows
-                                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                } catch (PDOException $e) {
-                                    die("Connection failed: " . $e->getMessage());
-                                }
-                                ?>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -95,7 +46,6 @@
                                                 <th>ยุทธศาสตร์</th>
                                                 <th>รหัส</th>
                                                 <th>กลยุทธ์</th>
-                                                <th>เป้าหมายของกลยุทธ์</th>
                                                 <th>รหัส</th>
                                                 <th>แผนงาน/โครงการ</th>
                                                 <th>รหัส</th>
@@ -118,7 +68,7 @@
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
-                                                <th></th>
+
                                                 <th></th>
                                                 <th></th>
                                                 <th>2564</th>
@@ -134,36 +84,6 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($data as $row): ?>
-                                                <tr>
-                                                    <td>รหัส ส่วนงาน/หน่วยงาน</td>
-                                                    <td>ส่วนงาน/หน่วยงาน</td>
-                                                    <td>รหัส เสาหลัก</td>
-                                                    <td>เสาหลัก</td>
-
-                                                    <td><?= htmlspecialchars(preg_replace('/SO(\d+)-\d+/', 'SI$1', $row['so_code'])) ?></td>
-                                                    <td><?= htmlspecialchars($row['so_code_1']) ?></td>
-                                                    <td><?= htmlspecialchars($row['so_code']) ?></td>
-                                                    <td><?= htmlspecialchars($row['pilar_name']) ?></td>
-                                                    <td>รหัส แผนงาน/โครงการ</td>
-                                                    <td>แผนงาน/โครงการ</td>
-                                                    <td>-</td>
-                                                    <td><?= htmlspecialchars($row['okr_code']) ?></td> <!-- ยังคงแสดง okr_code หากต้องการ -->
-                                                    <td><?= htmlspecialchars($row['okr_name']) ?></td> <!-- ใช้ okr_name -->
-                                                    <td><?= htmlspecialchars($row['UOM']) ?></td>
-                                                    <td>-</td>
-                                                    <td>-</td>
-                                                    <td>-</td>
-                                                    <td>-</td>
-                                                    <td><?= htmlspecialchars($row['Y1']) ?></td>
-                                                    <td><?= htmlspecialchars($row['Y2']) ?></td>
-                                                    <td><?= htmlspecialchars($row['Y3']) ?></td>
-                                                    <td><?= htmlspecialchars($row['Y4']) ?></td>
-                                                    <td><?= htmlspecialchars($row['Budget_Amount']) ?></td>
-                                                    <td><?= htmlspecialchars($row['Responsible_person']) ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -185,6 +105,154 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'get_kku_strategy-overview'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.plan);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    let previousFacultyCode = '';
+                    let previousFacultyName = '';
+                    let previousPilarCode = '';
+                    let previousPilarName = '';
+                    let previousSICode = '';
+                    let previousSIName = '';
+                    let previousSOCode = '';
+                    let previousSOName = '';
+                    let previousOKRCode = '';
+                    let previousOKRName = '';
+
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
+
+                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td1 = document.createElement('td');
+                        td1.textContent =  row.Faculty === previousFacultyCode ? '' : row.Faculty;;
+                        tr.appendChild(td1);
+
+                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td2 = document.createElement('td');
+                        td2.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                        tr.appendChild(td2);
+
+                        const td3 = document.createElement('td');
+                        td3.textContent = row.pilar_code === previousPilarCode ? '' : row.pilar_code;
+                        tr.appendChild(td3);
+
+                        const td4 = document.createElement('td');
+                        td4.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
+                        tr.appendChild(td4);
+
+                        const td5 = document.createElement('td');
+                        td5.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                        tr.appendChild(td5);
+
+                        const td6 = document.createElement('td');
+                        td6.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                        tr.appendChild(td6);
+
+                        const td7 = document.createElement('td');
+                        td7.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                        tr.appendChild(td7);
+
+                        const td8 = document.createElement('td');
+                        td8.textContent = row.so_name === previousSOCode ? '' : row.so_name;
+                        tr.appendChild(td8);
+
+                        const td9 = document.createElement('td');
+                        td9.textContent = row.Strategic_Project;
+                        tr.appendChild(td9);
+
+                        const td10 = document.createElement('td');
+                        td10.textContent = row.ksp_name;
+                        tr.appendChild(td10);
+
+                        const td11 = document.createElement('td');
+                        td11.textContent = row.OKR;
+                        tr.appendChild(td11);
+
+                        const td12 = document.createElement('td');
+                        td12.textContent = row.okr_name;
+                        tr.appendChild(td12);
+
+                        const td13 = document.createElement('td');
+                        td13.textContent = row.UOM;
+                        tr.appendChild(td13);
+
+                        const td14 = document.createElement('td');
+                        td14.textContent = row.Quarter_Progress_Value;
+                        tr.appendChild(td14);
+
+                        const td15 = document.createElement('td');
+                        td15.textContent = row.Quarter_Progress_Value;
+                        tr.appendChild(td15);
+
+                        const td16 = document.createElement('td');
+                        td16.textContent = row.Quarter_Progress_Value;
+                        tr.appendChild(td16);
+
+                        const td17 = document.createElement('td');
+                        td17.textContent = row.Quarter_Progress_Value;
+                        tr.appendChild(td17);
+
+                        const td18 = document.createElement('td');
+                        td18.textContent = row.Y1;
+                        tr.appendChild(td18);
+
+                        const td19 = document.createElement('td');
+                        td19.textContent = row.Y2;
+                        tr.appendChild(td19);
+
+                        const td20 = document.createElement('td');
+                        td20.textContent = row.Y3;
+                        tr.appendChild(td20);
+
+                        const td21 = document.createElement('td');
+                        td21.textContent = row.Y4;
+                        tr.appendChild(td21);
+
+                        const td22 = document.createElement('td');
+                        td22.textContent = row.Budget_Amount;
+                        tr.appendChild(td22);
+
+                        const td23 = document.createElement('td');
+                        td23.textContent = row.Responsible_person;
+                        tr.appendChild(td23);
+
+
+                        tableBody.appendChild(tr);
+
+                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        previousFacultyCode = row.Faculty;
+                        previousFacultyName = row.fa_name;
+                        previousPilarCode = row.pilar_code;
+                        previousPilarName = row.pilar_name;
+                        previousSICode = row.si_code;
+                        previousSIName = row.si_name;
+                        previousSOName = row.so_name;
+                        previousSOName = row.so_name;
+                    });
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

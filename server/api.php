@@ -164,6 +164,63 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "get_kku_strategy-overview":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sqlPlan = "SELECT 
+                            pksp.*, 
+                            Faculty.name_th  AS fa_name,
+                            CONCAT(
+                            LEFT(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) - 1),
+                            'P',
+                            SUBSTRING(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) + 2, 2 ) ) as pilar_code,
+                            p.pilar_name,
+                            REPLACE(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
+                            si.pilar_name AS si_name,
+                            so.pilar_name as so_name,
+                            ksp.ksp_name,
+                            okr.okr_name,
+                            pkop.Quarter_Progress_Value
+                            FROM 
+                            planning_kku_strategic_plan AS pksp
+                            LEFT JOIN Faculty 
+                            ON pksp.Faculty = Faculty.id
+                            LEFT JOIN pilar AS p 
+                            ON p.pilar_id = CONCAT(
+                            LEFT(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) - 1),
+                            'P',
+                            SUBSTRING(
+                            SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1),
+                            LOCATE('SO', pksp.Strategic_Object) + 2,
+                            2
+                            )
+                            )
+                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilar AS so ON so.pilar_id = pksp.Strategic_Object
+                            LEFT JOIN ksp ON ksp.ksp_id = pksp.Strategic_Project
+                            LEFT JOIN okr ON okr.okr_id = pksp.okr
+                            LEFT JOIN planning_kku_okr_progress as pkop ON pkop.OKR = okr.okr_id
+                            ORDER BY Faculty.id, pilar_code, si_code , pksp.Strategic_Object , ksp.ksp_id ;";
+                $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }
