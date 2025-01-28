@@ -41,14 +41,12 @@
                                                 <th>กลยุทธ์</th>
                                                 <th colspan="2">โครงการตามยุทธศาสตร์</th>
                                                 <th>ผู้รับผิดชอบ</th>
-                                                <th>เหตุผลการปรับเปลี่ยนแผนงาน</th>
                                             </tr>
                                             <tr>
                                                 <th></th>
                                                 <th></th>
                                                 <th>แผนงาน/โครงการ</th>
                                                 <th>กรอบวงเงินงบประมาณ</th>
-                                                <th></th>
                                                 <th></th>
                                             </tr>
                                         </thead>
@@ -112,16 +110,13 @@
                         tr.appendChild(td3);
 
                         const td4 = document.createElement('td');
-                        td4.textContent = row.budged_amount;
+                        td4.textContent = row.Budget_Amount;
                         tr.appendChild(td4);
 
                         const td5 = document.createElement('td');
-                        td5.textContent = row.responsible_person;
+                        td5.textContent = row.Responsible_person;
                         tr.appendChild(td5);
 
-                        const td6 = document.createElement('td');
-                        td6.textContent = row.tiers_n_deploy;
-                        tr.appendChild(td6);
 
                         tableBody.appendChild(tr);
 

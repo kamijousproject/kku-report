@@ -37,6 +37,7 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
+                                                <th>ส่วนงาน/หน่วยงาน</th>
                                                 <th>รหัส</th>
                                                 <th>ยุทธศาสตร์</th>
                                                 <th>รหัส</th>
@@ -44,6 +45,7 @@
                                                 <th colspan="4">สถานะ (Status)</th>
                                             </tr>
                                             <tr>
+                                                <th></th>
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
@@ -58,6 +60,7 @@
                                             <tr>
                                                 <td>001</td>
                                                 <td>ยุทธศาสตร์ที่ 1</td>
+                                                <th></th>
                                                 <td>PRJ01</td>
                                                 <td>โครงการพัฒนา</td>
                                                 <td><span class="badge badge-secondary">X</span></td>
@@ -68,6 +71,7 @@
                                             <tr>
                                                 <td>002</td>
                                                 <td>ยุทธศาสตร์ที่ 2</td>
+                                                <th></th>
                                                 <td>PRJ02</td>
                                                 <td>โครงการปรับปรุง</td>
                                                 <td></td>
@@ -78,6 +82,7 @@
                                             <tr>
                                                 <td>003</td>
                                                 <td>ยุทธศาสตร์ที่ 3</td>
+                                                <th></th>
                                                 <td>PRJ03</td>
                                                 <td>โครงการขยาย</td>
                                                 <td></td>
@@ -88,6 +93,7 @@
                                             <tr>
                                                 <td>004</td>
                                                 <td>ยุทธศาสตร์ที่ 4</td>
+                                                <th></th>
                                                 <td>PRJ04</td>
                                                 <td>โครงการยกเลิก</td>
                                                 <td></td>
@@ -116,6 +122,166 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'get_kku_planing_status'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.plan);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    let previousFacultyName = '';
+                    let previousSIName = '';
+                    let previousSICode = '';
+                    let previousKSPName = '';
+
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
+
+                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td1 = document.createElement('td');
+                        td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                        tr.appendChild(td1);
+
+                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td2 = document.createElement('td');
+                        td2.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                        tr.appendChild(td2);
+
+                        const td3 = document.createElement('td');
+                        td3.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                        tr.appendChild(td3);
+
+                        const td4 = document.createElement('td');
+                        td4.textContent = row.Strategic_Project;
+                        tr.appendChild(td4);
+
+                        const td5 = document.createElement('td');
+                        td5.textContent = row.ksp_name;
+                        tr.appendChild(td5);
+
+                        if (row.Progress_Status === "Not Started") {
+                            const td6 = document.createElement('td');
+                            td6.innerHTML = `<span class="badge badge-secondary">X</span>`;
+                            tr.appendChild(td6);
+
+                            const td7 = document.createElement('td');
+                            td7.innerHTML = ``;
+                            tr.appendChild(td7);
+
+                            const td8 = document.createElement('td');
+                            td8.innerHTML = ``;
+                            tr.appendChild(td8);
+
+                            const td9 = document.createElement('td');
+                            td9.innerHTML = ``;
+                            tr.appendChild(td9);
+                        }
+
+                        if (row.Progress_Status === "In Progress") {
+                            const td6 = document.createElement('td');
+                            td6.innerHTML = ``;
+                            tr.appendChild(td6);
+
+                            const td7 = document.createElement('td');
+                            td7.innerHTML = `<span class="badge badge-primary">X</span>`;
+                            tr.appendChild(td7);
+
+                            const td8 = document.createElement('td');
+                            td8.innerHTML = ``;
+                            tr.appendChild(td8);
+
+                            const td9 = document.createElement('td');
+                            td9.innerHTML = ``;
+                            tr.appendChild(td9);
+                        }
+
+                        if (row.Progress_Status === "Completed") {
+                            const td6 = document.createElement('td');
+                            td6.innerHTML = ``;
+                            tr.appendChild(td6);
+
+                            const td7 = document.createElement('td');
+                            td7.innerHTML = ``;
+                            tr.appendChild(td7);
+
+                            const td8 = document.createElement('td');
+                            td8.innerHTML = `<span class="badge badge-success">X</span>`;
+                            tr.appendChild(td8);
+
+                            const td9 = document.createElement('td');
+                            td9.innerHTML = ``;
+                            tr.appendChild(td9);
+                        }
+
+                        if (row.Progress_Status === "Cancelled") {
+                            const td6 = document.createElement('td');
+                            td6.innerHTML = ``;
+                            tr.appendChild(td6);
+
+                            const td7 = document.createElement('td');
+                            td7.innerHTML = ``;
+                            tr.appendChild(td7);
+
+                            const td8 = document.createElement('td');
+                            td8.innerHTML = ``;
+                            tr.appendChild(td8);
+
+                            const td9 = document.createElement('td');
+                            td9.innerHTML = `<span class="badge badge-danfer">X</span>`;
+                            tr.appendChild(td9);
+                        }
+
+                        if (!row.Progress_Status) {
+                            const td6 = document.createElement('td');
+                            td6.innerHTML = ``;
+                            tr.appendChild(td6);
+
+                            const td7 = document.createElement('td');
+                            td7.innerHTML = ``;
+                            tr.appendChild(td7);
+
+                            const td8 = document.createElement('td');
+                            td8.innerHTML = ``;
+                            tr.appendChild(td8);
+
+                            const td9 = document.createElement('td');
+                            td9.innerHTML = ``;
+                            tr.appendChild(td9);
+                        }
+
+                        
+
+
+
+
+
+                        tableBody.appendChild(tr);
+
+                        // เก็บค่า fa_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        previousFacultyName = row.fa_name;
+                        previousSICode = row.si_code;
+                        previousSIName = row.si_name;
+                    });
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
