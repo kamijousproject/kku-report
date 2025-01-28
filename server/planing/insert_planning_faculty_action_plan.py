@@ -24,7 +24,7 @@ try:
     with connection.cursor() as cursor:
         # Create the table if it does not exist
         create_table_query = """
-        CREATE TABLE IF NOT EXISTS planing_fa (
+        CREATE TABLE IF NOT EXISTS planning_faculty_action_plan (
             Strategic_Object VARCHAR(255),
             Strategic_Project VARCHAR(255),
             Faculty VARCHAR(255),
@@ -81,7 +81,7 @@ try:
 
         # Prepare the insert query
         insert_query = """
-        INSERT INTO planing_fa (
+        INSERT INTO planning_faculty_action_plan (
             Strategic_Object, Strategic_Project, Faculty, OKR, Target_OKR_Objective_and_Key_Result, UOM, 
             Start_Date, End_Date, Budget_Amount, Tiers_Deploy, KKU_Strategic_Plan_LOV, 
             Dev_Plan_Proposed_to_Nomination_Co_LOV, Division_Noteworthy_Plan_LOV, Responsible_person, Scenario, Version

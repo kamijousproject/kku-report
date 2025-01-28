@@ -1,0 +1,94 @@
+import os
+import pandas as pd
+import pymysql
+
+# ข้อมูลการเชื่อมต่อฐานข้อมูล
+str_hosting = '110.164.146.250'
+str_database = 'epm_report'
+str_password = 'TDyutdYdyudRTYDsEFOPI'
+str_username = 'root'
+
+# กำหนดเส้นทางของไฟล์ CSV
+current_dir = os.path.dirname(__file__)
+# เปลี่ยนชื่อไฟล์ CSV ตามต้องการ
+file_path = os.path.join(current_dir, 'new_file.csv')
+
+# อ่านไฟล์ CSV
+try:
+    data = pd.read_csv(file_path, dtype={'Faculty': str})
+
+    # แก้ไข DataFrame ให้จัดการค่า NaN ก่อน
+    data = data.fillna(value={
+        'Strategic Object': '',
+        'Strategic Project': '',
+        'Faculty': '',
+        'OKR': '',
+        'Target (OKR : Objective and Key Result)': '',
+        'UOM': '',
+        'Start Date': '',
+        'End Date': '',
+        'Budget Amount': 0,
+        'Tiers & Deploy': '',
+        'KKU_Strategic_Plan_LOV': '',
+        'Dev Plan Proposed to Nomination Co._LOV': '',
+        'Division Noteworthy Plan LOV': '',
+        'Responsible person': '',
+        'Scenario': '',
+        'Version': ''
+    })
+
+except Exception as e:
+    print(f"Error reading CSV file: {e}")
+    exit()
+
+# สร้างการเชื่อมต่อกับฐานข้อมูล
+try:
+    connection = pymysql.connect(
+        host=str_hosting,
+        user=str_username,
+        password=str_password,
+        database=str_database,
+        charset='utf8mb4'
+    )
+    cursor = connection.cursor()
+
+    # เตรียมข้อมูลสำหรับการ INSERT
+    for _, row in data.iterrows():
+        insert_query = '''
+        INSERT INTO planning_faculty_revised_action_plan (
+            Strategic_Object, Strategic_Project, Faculty, OKR, Target_OKR_Objective_and_Key_Result,
+            UOM, Start_Date, End_Date, Budget_Amount, Tiers_Deploy, KKU_Strategic_Plan_LOV,
+            Dev_Plan_Proposed_to_Nomination_Co_LOV, Division_Noteworthy_Plan_LOV, Responsible_person,
+            Scenario, Version
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        '''
+        cursor.execute(insert_query, (
+            row['Strategic Object'],
+            row['Strategic Project'],
+            row['Faculty'],
+            row['OKR'],
+            row['Target (OKR : Objective and Key Result)'],
+            row['UOM'],
+            row['Start Date'],
+            row['End Date'],
+            row['Budget Amount'],
+            row['Tiers & Deploy'],
+            row['KKU_Strategic_Plan_LOV'],
+            row['Dev Plan Proposed to Nomination Co._LOV'],
+            row['Division Noteworthy Plan LOV'],
+            row['Responsible person'],
+            row['Scenario'],
+            row['Version']
+        ))
+
+    # บันทึกข้อมูล
+    connection.commit()
+    print("Data inserted successfully into planning_faculty_revised_action_plan table.")
+
+except Exception as e:
+    print(f"Error: {e}")
+
+finally:
+    if connection:
+        cursor.close()
+        connection.close()

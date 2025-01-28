@@ -29,8 +29,8 @@ try:
         'Budget Amount': 0,
         'Tiers & Deploy': '',
         'Responsible person': '',
-        'Start Date': '0000-00-00',
-        'End Date': '0000-00-00',
+        'Start Date': '',
+        'End Date': '',
         'UOM': '',
         'KKU_Strategic_Plan_LOV': '',
         'Dev Plan Proposed to Nomination Co._LOV': '',
@@ -56,7 +56,7 @@ try:
 
     # สร้างตาราง planing_fs
     create_table_query = '''
-    CREATE TABLE IF NOT EXISTS planing_fs (
+    CREATE TABLE IF NOT EXISTS planning_faculty_strategic_plan (
         Strategic_Object VARCHAR(50),
         Strategic_Project VARCHAR(50),
         Faculty VARCHAR(20),
@@ -84,7 +84,7 @@ try:
     # เตรียมข้อมูลสำหรับการ INSERT
     for _, row in data.iterrows():
         insert_query = '''
-        INSERT INTO planing_fs (
+        INSERT INTO planning_faculty_strategic_plan (
             Strategic_Object, Strategic_Project, Faculty, OKR, Y1, Y2, Y3, Y4,
             Budget_Amount, Tiers_Deploy, Responsible_person, Start_Date, End_Date,
             UOM, KKU_Strategic_Plan_LOV, Dev_Plan_Proposed_to_Nomination_Co_LOV,

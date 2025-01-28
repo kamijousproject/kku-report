@@ -10,7 +10,7 @@ str_username = 'root'
 
 # กำหนดเส้นทางของไฟล์ CSV
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, '68KKU_Project_20250125.csv')
+file_path = os.path.join(current_dir, '68KKU_OKR_20250125.csv')
 
 # อ่านไฟล์ CSV
 try:
@@ -19,13 +19,12 @@ try:
     # แก้ไข DataFrame ให้จัดการค่า NaN ก่อน
     data = data.fillna(value={
         'Strategic Object': '',
-        'Strategic Project': '',
-        'Faculty': 0,
-        'Progress Status': '',
-        'Allocated budget': 0,
-        'Actual Spend Amount': 0,
-        'Strategic Project Progress Details': '',
-        'Obstacles': '',
+        'Faculty': '',
+        'OKR': '',
+        'Quarter Progress Value': 0,
+        'OKR Progress Details': '',
+        'Prob/Solution/Suggestion': '',
+        'Responsible person': '',
         'Scenario': '',
         'Version': ''
     })
@@ -45,17 +44,16 @@ try:
     )
     cursor = connection.cursor()
 
-    # สร้างตาราง planing_project
+    # สร้างตาราง planing_okr
     create_table_query = '''
-    CREATE TABLE IF NOT EXISTS planing_project (
+    CREATE TABLE IF NOT EXISTS planning_faculty_okr_progress (
         Strategic_Object VARCHAR(50),
-        Strategic_Project VARCHAR(50),
-        Faculty INT,
-        Progress_Status VARCHAR(50),
-        Allocated_budget FLOAT,
-        Actual_Spend_Amount FLOAT,
-        Strategic_Project_Progress_Details TEXT,
-        Obstacles TEXT,
+        Faculty TEXT,
+        OKR VARCHAR(50),
+        Quarter_Progress_Value FLOAT,
+        OKR_Progress_Details TEXT,
+        Prob_Solution_Suggestion TEXT,
+        Responsible_person TEXT,
         Scenario TEXT,
         Version TEXT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -66,27 +64,26 @@ try:
     # เตรียมข้อมูลสำหรับการ INSERT
     for _, row in data.iterrows():
         insert_query = '''
-        INSERT INTO planing_project (
-            Strategic_Object, Strategic_Project, Faculty, Progress_Status, Allocated_budget,
-            Actual_Spend_Amount, Strategic_Project_Progress_Details, Obstacles, Scenario, Version
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        INSERT INTO planning_faculty_okr_progress (
+            Strategic_Object, Faculty, OKR, Quarter_Progress_Value, OKR_Progress_Details,
+            Prob_Solution_Suggestion, Responsible_person, Scenario, Version
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
         '''
         cursor.execute(insert_query, (
             row['Strategic Object'],
-            row['Strategic Project'],
             row['Faculty'],
-            row['Progress Status'],
-            row['Allocated budget'],
-            row['Actual Spend Amount'],
-            row['Strategic Project Progress Details'],
-            row['Obstacles'],
+            row['OKR'],
+            row['Quarter Progress Value'],
+            row['OKR Progress Details'],
+            row['Prob/Solution/Suggestion'],
+            row['Responsible person'],
             row['Scenario'],
             row['Version']
         ))
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into planing_project table.")
+    print("Data inserted successfully into planing_okr table.")
 
 except Exception as e:
     print(f"Error: {e}")
