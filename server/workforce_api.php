@@ -76,7 +76,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     );
                     echo json_encode($response);
                 }
-                break;       
+                break;   
+                case "kku_wf_annual-allocation":
+                    try {
+                        $db = new Database();
+                        $conn = $db->connect();
+        
+                        // เชื่อมต่อฐานข้อมูล
+                        $sql = "SELECT w.*,f.name_th FROM workforce_new_position_request w
+                                LEFT JOIN Faculty f
+                                ON w.Faculty=f.id COLLATE utf8mb4_general_ci";
+                        $cmd = $conn->prepare($sql);
+                        $cmd->execute();
+                        $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                        $conn = null;
+        
+                        $response = array(
+                            'wf' => $wf
+                        );
+                        echo json_encode($response);
+                    } catch (PDOException $e) {
+                        $response = array(
+                            'status' => 'error',
+                            'message' => 'Database error: ' . $e->getMessage()
+                        );
+                        echo json_encode($response);
+                    }
+                    break;    
         default:
             break;
     }
