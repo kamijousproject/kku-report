@@ -52,7 +52,31 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
                 echo json_encode($response);
             }
-            break;       
+            break;
+            case "kku_wf_approval-requests":
+                try {
+                    $db = new Database();
+                    $conn = $db->connect();
+    
+                    // เชื่อมต่อฐานข้อมูล
+                    $sql = "SELECT * FROM workforce_new_position_request";
+                    $cmd = $conn->prepare($sql);
+                    $cmd->execute();
+                    $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                    $conn = null;
+    
+                    $response = array(
+                        'wf' => $wf
+                    );
+                    echo json_encode($response);
+                } catch (PDOException $e) {
+                    $response = array(
+                        'status' => 'error',
+                        'message' => 'Database error: ' . $e->getMessage()
+                    );
+                    echo json_encode($response);
+                }
+                break;       
         default:
             break;
     }

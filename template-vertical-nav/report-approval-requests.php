@@ -101,6 +101,99 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_approval-requests'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    
+                    response.wf.forEach((row, index) => {
+                        const tr = document.createElement('tr');
+                        
+                        // td1 - running number
+                        const td1 = document.createElement('td');
+                        td1.textContent = index + 1;
+                        tr.appendChild(td1);
+                        
+                        
+                        const td2 = document.createElement('td');
+                        td2.textContent = row.Personnel_Type;
+                        tr.appendChild(td2);
+                        
+                        
+                        const td3 = document.createElement('td');
+                        td3.textContent = row.All_PositionTypes;
+                        tr.appendChild(td3);
+                        
+                        
+                        const td4 = document.createElement('td');
+                        td4.textContent = row.Position;
+                        tr.appendChild(td4);
+                        
+                        
+                        const td5 = document.createElement('td');
+                        td5.textContent = row.Position_Qualififcations;
+                        tr.appendChild(td5);
+                        
+                        
+                        const td6 = document.createElement('td');
+                        td6.textContent = "";
+                        tr.appendChild(td6);
+                        
+                        
+                        const td7 = document.createElement('td');
+                        td7.textContent = row.Field_of_Study;
+                        tr.appendChild(td7);
+
+                        const td8 = document.createElement('td');
+                        td8.textContent = row.Salary_Wages_Baht_per_month;
+                        tr.appendChild(td8);
+
+                        const td9 = document.createElement('td');
+                        td9.textContent = row.Fund_FT;
+                        tr.appendChild(td9);
+
+                        const td10 = document.createElement('td');
+                        td10.textContent = row.Contract_Type;
+                        tr.appendChild(td10);
+
+                        const td11 = document.createElement('td');
+                        td11.textContent = row.Current_Age_YR_MT;
+                        tr.appendChild(td11);
+                        
+                        const td12 = document.createElement('td');
+                        td12.textContent = "";
+                        tr.appendChild(td12);
+
+                        tableBody.appendChild(tr);
+
+                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        previousSICode = row.si_code;
+                        previousSIName = row.si_name;
+                        previousSOName = row.so_name;
+                        previousSOName = row.so_name;
+                    });
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
