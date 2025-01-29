@@ -1,0 +1,147 @@
+import os
+import pandas as pd
+import pymysql
+
+# ข้อมูลการเชื่อมต่อฐานข้อมูล
+str_hosting = '110.164.146.250'
+str_database = 'epm_report'
+str_password = 'TDyutdYdyudRTYDsEFOPI'
+str_username = 'root'
+
+# กำหนดเส้นทางของไฟล์ CSV
+current_dir = os.path.dirname(__file__)
+# เปลี่ยนชื่อไฟล์ CSV ตามต้องการ
+file_path = os.path.join(current_dir, 'Annual Budget Plan.csv')
+
+# อ่านไฟล์ CSV
+try:
+    data = pd.read_csv(file_path, dtype={'Faculty': str}, thousands=',')
+
+    # แก้ไข DataFrame ให้จัดการค่า NaN ก่อน
+    data = data.fillna(value={
+        'Service': '',
+        'Faculty': '',
+        'Fund': '',
+        'Project': '',
+        'Plan': '',
+        'Sub Plan': '',
+        'KKU Item Name': '',
+        'Quantity': 0,
+        'Unit Price': 0.0,
+        'UOM': '',
+        'Q1_Spending Plan': 0.0,
+        'Q2_Spending Plan': 0.0,
+        'Q3_Spending Plan': 0.0,
+        'Reason': '',
+        'Objective': '',
+        'Utility': '',
+        'Place': '',
+        'Account': '',
+        'Scenario': '',
+        'Version': '',
+        'Budget Management Year': 0,
+        'Total_Amount_Quantity': 0.0,
+        'Plan_Desc': '',
+        'SubPlan_Desc': '',
+        'Proj_Desc': ''
+    })
+
+except Exception as e:
+    print(f"Error reading CSV file: {e}")
+    exit()
+
+# สร้างการเชื่อมต่อกับฐานข้อมูล
+try:
+    connection = pymysql.connect(
+        host=str_hosting,
+        user=str_username,
+        password=str_password,
+        database=str_database,
+        charset='utf8mb4'
+    )
+    cursor = connection.cursor()
+
+    # สร้างตารางหากยังไม่มี
+    create_table_query = '''
+    CREATE TABLE IF NOT EXISTS budget_planning_annual_budget_plan (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        Service VARCHAR(50),
+        Faculty VARCHAR(50),
+        Fund VARCHAR(50),
+        Project VARCHAR(50),
+        Plan VARCHAR(50),
+        Sub_Plan VARCHAR(50),
+        KKU_Item_Name TEXT,
+        Quantity INT,
+        Unit_Price DECIMAL(15,2),
+        UOM VARCHAR(50),
+        Q1_Spending_Plan DECIMAL(15,2),
+        Q2_Spending_Plan DECIMAL(15,2),
+        Q3_Spending_Plan DECIMAL(15,2),
+        Reason TEXT,
+        Objective TEXT,
+        Utility TEXT,
+        Place TEXT,
+        Account VARCHAR(50),
+        Scenario VARCHAR(50),
+        Version VARCHAR(50),
+        Budget_Management_Year INT,
+        Total_Amount_Quantity DECIMAL(15,2),
+        Plan_Desc TEXT,
+        SubPlan_Desc TEXT,
+        Proj_Desc TEXT
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    '''
+    cursor.execute(create_table_query)
+    connection.commit()
+
+    # เตรียมข้อมูลสำหรับการ INSERT
+    for _, row in data.iterrows():
+        insert_query = '''
+        INSERT INTO budget_planning_annual_budget_plan (
+            Service, Faculty, Fund, Project, Plan, Sub_Plan, KKU_Item_Name,
+            Quantity, Unit_Price, UOM, Q1_Spending_Plan, Q2_Spending_Plan,
+            Q3_Spending_Plan, Reason, Objective, Utility, Place, Account, Scenario,
+            Version, Budget_Management_Year, Total_Amount_Quantity, Plan_Desc,
+            SubPlan_Desc, Proj_Desc
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        '''
+        cursor.execute(insert_query, (
+            row['Service'],
+            row['Faculty'],
+            row['Fund'],
+            row['Project'],
+            row['Plan'],
+            row['Sub Plan'],
+            row['KKU Item Name'],
+            row['Quantity'],
+            row['Unit Price'],
+            row['UOM'],
+            row['Q1_Spending Plan'],
+            row['Q2_Spending Plan'],
+            row['Q3_Spending Plan'],
+            row['Reason'],
+            row['Objective'],
+            row['Utility'],
+            row['Place'],
+            row['Account'],
+            row['Scenario'],
+            row['Version'],
+            row['Budget Management Year'],
+            row['Total_Amount_Quantity'],
+            row['Plan_Desc'],
+            row['SubPlan_Desc'],
+            row['Proj_Desc']
+        ))
+
+    # บันทึกข้อมูล
+    connection.commit()
+    print("Data inserted successfully into budget_planning_annual_budget_plan table.")
+
+except Exception as e:
+    print(f"Error: {e}")
+
+finally:
+    if connection:
+        cursor.close()
+        connection.close()
