@@ -191,15 +191,15 @@
                         tr.appendChild(td13);
 
                         const td14 = document.createElement('td');
-                        td14.textContent = row.Quarter_Progress_Value;
+                        td14.textContent = null;
                         tr.appendChild(td14);
 
                         const td15 = document.createElement('td');
-                        td15.textContent = row.Quarter_Progress_Value;
+                        td15.textContent = null;
                         tr.appendChild(td15);
 
                         const td16 = document.createElement('td');
-                        td16.textContent = row.Quarter_Progress_Value;
+                        td16.textContent = null;
                         tr.appendChild(td16);
 
                         const td17 = document.createElement('td');
