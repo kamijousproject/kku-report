@@ -148,7 +148,7 @@
                         <a href="report-framework-summary.php">9.1.2.17.6-6 รายงานสรุปแผนกรอบอตัรากำลัง 4 ปีแยกตามประเภท</a>
                     </li>
                     <li>
-                        <a href="report-position-changes.php">9.1.2.17.6-7 รายงานผลการตัดโอน – เปลี่ยนตำแหน่ง</a>
+                        <a href="report-position-changes.php">9.1.2.17.6-10 รายงานผลการตัดโอน – เปลี่ยนตำแหน่ง</a>
                     </li>
                     <li>
                         <a href="report-current-vs-ideal.php">9.1.2.17.6-8 รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</a>
