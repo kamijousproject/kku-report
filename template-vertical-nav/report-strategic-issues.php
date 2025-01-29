@@ -36,13 +36,15 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            <tr>
+                                            <tr class="text-nowrap">
+                                                <th>ส่วนงาน/หน่วยงาน</th>
                                                 <th>เสาหลัก</th>
                                                 <th>ยุทธศาสตร์</th>
                                                 <th colspan="3">จำนวน</th>
                                                 <th>ร้อยละ ความสำเร็จ</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="text-nowrap">
+                                                <th></th>
                                                 <th></th>
                                                 <th></th>
                                                 <th>กลยุทธ์</th>
@@ -89,6 +91,91 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'get_kku_annual_action_summary'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.plan);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    let previousFacultyCode = '';
+                    let previousFacultyName = '';
+                    let previousPilarCode = '';
+                    let previousPilarName = '';
+                    let previousSICode = '';
+                    let previousSIName = '';
+                    let previousSOCode = '';
+                    let previousSOName = '';
+                    let previousOKRCode = '';
+                    let previousOKRName = '';
+
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
+
+                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td1 = document.createElement('td');
+                        td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                        tr.appendChild(td1);
+
+                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td2 = document.createElement('td');
+                        td2.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
+                        tr.appendChild(td2);
+
+                        const td3 = document.createElement('td');
+                        td3.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                        tr.appendChild(td3);
+
+                        const td4 = document.createElement('td');
+                        td4.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                        tr.appendChild(td4);
+
+                        const td5 = document.createElement('td');
+                        td5.textContent = row.okr_name === previousOKRName ? '' : row.okr_name;
+                        tr.appendChild(td5);
+
+                        const td6 = document.createElement('td');
+                        td6.textContent = row.ksp_name;
+                        tr.appendChild(td6);
+
+                        const td7 = document.createElement('td');
+                        td7.textContent = null;
+                        tr.appendChild(td7);
+
+                        tableBody.appendChild(tr);
+
+                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        previousFacultyCode = row.Faculty;
+                        previousFacultyName = row.fa_name;
+                        previousPilarCode = row.pilar_code;
+                        previousPilarName = row.pilar_name;
+                        previousSICode = row.si_code;
+                        previousSIName = row.si_name;
+                        previousSOCode = row.Strategic_Object;
+                        previousSOName = row.so_name;
+                        previousOKRCode = row.OKR;
+                        previousOKRName = row.okr_name;
+                    });
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
