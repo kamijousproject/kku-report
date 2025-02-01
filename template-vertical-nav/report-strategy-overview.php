@@ -167,7 +167,7 @@
                         tr.appendChild(td7);
 
                         const td8 = document.createElement('td');
-                        td8.textContent = row.so_name === previousSOCode ? '' : row.so_name;
+                        td8.textContent = row.so_name === previousSOName ? '' : row.so_name;
                         tr.appendChild(td8);
 
                         const td9 = document.createElement('td');
@@ -203,7 +203,7 @@
                         tr.appendChild(td16);
 
                         const td17 = document.createElement('td');
-                        td17.textContent = row.Quarter_Progress_Value;
+                        td17.textContent = null;
                         tr.appendChild(td17);
 
                         const td18 = document.createElement('td');
@@ -240,7 +240,7 @@
                         previousPilarName = row.pilar_name;
                         previousSICode = row.si_code;
                         previousSIName = row.si_name;
-                        previousSOName = row.so_name;
+                        previousSOCode = row.Strategic_Object;
                         previousSOName = row.so_name;
                     });
 

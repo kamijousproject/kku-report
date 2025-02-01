@@ -223,7 +223,7 @@
                         tr.appendChild(td16);
 
                         const td17 = document.createElement('td');
-                        td17.textContent = row.Quarter_Progress_Value;
+                        td17.textContent = null;
                         tr.appendChild(td17);
 
                         const td18 = document.createElement('td');

@@ -46,7 +46,7 @@
                                                 <th>ค่าเป้าหมาย</th>
                                                 <th>หน่วยนับ</th>
                                                 <th>รหัส</th>
-                                                <th >แผนงาน/โครงการ</th>
+                                                <th>แผนงาน/โครงการ</th>
                                                 <th>กรอบวงเงินงบประมาณ</th>
                                                 <th colspan="2">ระยะเวลาที่ดำเนินการ</th>
                                                 <th>ระดับและการปรับใช้</th>
@@ -71,7 +71,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                           
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -94,10 +94,10 @@
     </div>
     <script>
         $(document).ready(function() {
-            laodData();
+            loadData();
         });
 
-        function laodData() {
+        function loadData() {
             $.ajax({
                 type: "POST",
                 url: "../server/api.php",
@@ -116,43 +116,90 @@
                     let previousSOName = '';
                     let previousOKRCode = '';
                     let previousOKRName = '';
+                    let previousTarget = '';
+                    let previousUOM = '';
+
                     response.plan.forEach(row => {
                         const tr = document.createElement('tr');
 
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        // ถ้าค่าปัจจุบันไม่เท่ากับค่าก่อนหน้า ให้แสดงค่า และรีเซ็ตค่าของคอลัมน์ถัดไป
                         const td1 = document.createElement('td');
-                        td1.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                        if (row.si_code !== previousSICode) {
+                            td1.textContent = row.si_code;
+                            previousSIName = '';
+                            previousSOCode = '';
+                            previousSOName = '';
+                            previousOKRCode = '';
+                            previousOKRName = '';
+                            previousTarget = '';
+                            previousUOM = '';
+                        }
                         tr.appendChild(td1);
 
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
                         const td2 = document.createElement('td');
-                        td2.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                        if (row.si_name !== previousSIName) {
+                            td2.textContent = row.si_name;
+                            previousSOCode = '';
+                            previousSOName = '';
+                            previousOKRCode = '';
+                            previousOKRName = '';
+                            previousTarget = '';
+                            previousUOM = '';
+                        }
                         tr.appendChild(td2);
 
                         const td3 = document.createElement('td');
-                        td3.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                        if (row.Strategic_Object !== previousSOCode) {
+                            td3.textContent = row.Strategic_Object;
+                            previousSOName = '';
+                            previousOKRCode = '';
+                            previousOKRName = '';
+                            previousTarget = '';
+                            previousUOM = '';
+                        }
                         tr.appendChild(td3);
 
                         const td4 = document.createElement('td');
-                        td4.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                        if (row.so_name !== previousSOName) {
+                            td4.textContent = row.so_name;
+                            previousOKRCode = '';
+                            previousOKRName = '';
+                            previousTarget = '';
+                            previousUOM = '';
+                        }
                         tr.appendChild(td4);
 
                         const td5 = document.createElement('td');
-                        td5.textContent = row.OKR;
+                        if (row.OKR !== previousOKRCode) {
+                            td5.textContent = row.OKR;
+                            previousOKRName = '';
+                            previousTarget = '';
+                            previousUOM = '';
+                        }
                         tr.appendChild(td5);
 
                         const td6 = document.createElement('td');
-                        td6.textContent = row.okr_name;
+                        if (row.okr_name !== previousOKRName) {
+                            td6.textContent = row.okr_name;
+                            previousTarget = '';
+                            previousUOM = '';
+                        }
                         tr.appendChild(td6);
 
                         const td7 = document.createElement('td');
-                        td7.textContent = row.Target_OKR_Objective_and_Key_Result;
+                        if (row.Target_OKR_Objective_and_Key_Result !== previousTarget) {
+                            td7.textContent = row.Target_OKR_Objective_and_Key_Result;
+                            previousUOM = ''; // รีเซ็ต UOM เมื่อเป้าหมายเปลี่ยนไป
+                        }
                         tr.appendChild(td7);
 
                         const td8 = document.createElement('td');
-                        td8.textContent = row.UOM;
+                        if (row.UOM !== previousUOM) {
+                            td8.textContent = row.UOM;
+                        }
                         tr.appendChild(td8);
 
+                        // คอลัมน์ที่ไม่ต้องเช็คค่าก่อนหน้า
                         const td9 = document.createElement('td');
                         td9.textContent = row.Strategic_Project;
                         tr.appendChild(td9);
@@ -181,17 +228,18 @@
                         td15.textContent = row.Responsible_person;
                         tr.appendChild(td15);
 
-
                         tableBody.appendChild(tr);
 
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        // อัปเดตค่าก่อนหน้า
                         previousSICode = row.si_code;
                         previousSIName = row.si_name;
+                        previousSOCode = row.Strategic_Object;
                         previousSOName = row.so_name;
-                        previousSOName = row.so_name;
+                        previousOKRCode = row.OKR;
+                        previousOKRName = row.okr_name;
+                        previousTarget = row.Target_OKR_Objective_and_Key_Result;
+                        previousUOM = row.UOM;
                     });
-
-
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -199,6 +247,7 @@
                 }
             });
         }
+
 
         function exportCSV() {
             const rows = [];

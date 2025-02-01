@@ -33,8 +33,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sqlPlan = "SELECT  pkap.*,REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pilar_name AS si_name, so.pilar_name AS so_name,ksp.ksp_name , okr.okr_name
                             FROM planning_kku_action_plan AS pkap
                             LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON si.pilar_id = pkap.Strategic_Object
-                            LEFT JOIN ksp ON ksp.id = pkap.Strategic_Project
+                            LEFT JOIN pilar AS so ON so.pilar_id = pkap.Strategic_Object
+                            LEFT JOIN ksp ON ksp.ksp_id = pkap.Strategic_Project
                             LEFT JOIN okr ON okr.okr_id = pkap.OKR
                             ORDER BY 
                             si_code,
@@ -97,7 +97,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             LEFT JOIN pilar AS so ON so.pilar_id = pfap.Strategic_Object
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfap.Strategic_Project)
 
-                            ORDER BY si_code, Strategic_Object, Strategic_Project";
+                            ORDER BY Faculty desc,si_code, Strategic_Object, Strategic_Project";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
@@ -123,35 +123,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sqlPlan = "SELECT 
                             pkpp.Faculty,
-                            Faculty.name_th AS fa_name,
+                            Faculty.Alias_Default AS fa_name,
                             REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
                             si.pilar_name AS si_name,
                             pkpp.Strategic_Object,
                             pkpp.Strategic_Project,
                             ksp.ksp_name,
                             pkpp.Progress_Status
-                            FROM planning_kku_project_progress AS pkpp
-                            LEFT JOIN ksp ON ksp.ksp_id = TRIM(pkpp.Strategic_Project)
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN Faculty ON Faculty.id = pkpp.Faculty 
+                        FROM planning_kku_project_progress AS pkpp
+                        LEFT JOIN ksp ON ksp.ksp_id = TRIM(pkpp.Strategic_Project)
+                        LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI')
+                        LEFT JOIN Faculty ON Faculty.Faculty = pkpp.Faculty
 
-                            UNION ALL 
+                        UNION ALL 
 
-                            SELECT 
+                        SELECT 
                             pfpp.Faculty,
-                            Faculty.name_th AS fa_name,
+                            f.Alias_Default AS fa_name,
                             REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
                             si.pilar_name AS si_name,
                             pfpp.Strategic_Object,
                             pfpp.Strategic_Project,
                             ksp.ksp_name,
                             pfpp.Progress_Status
-                            FROM planning_faculty_project_progress AS pfpp
-                            LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfpp.Strategic_Project)
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN Faculty ON Faculty.id = pfpp.Faculty
+                        FROM planning_faculty_project_progress AS pfpp
+                        LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfpp.Strategic_Project)
+                        LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI')
+                        LEFT JOIN (
+                            SELECT DISTINCT Faculty, Alias_Default
+                            FROM Faculty
+                        ) AS f ON pfpp.Faculty = f.Faculty
 
-                            ORDER BY Faculty, si_code,Strategic_Project";
+                        ORDER BY fa_name, si_code, Strategic_Project;";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
@@ -176,11 +179,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sqlPlan = "SELECT  pfap.*,REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pilar_name AS si_name, so.pilar_name AS so_name,ksp.ksp_name , okr.okr_name
+                $sqlPlan = "SELECT pfap.*,REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pilar_name AS si_name, so.pilar_name AS so_name,ksp.ksp_name , okr.okr_name
                             FROM planning_faculty_action_plan AS pfap
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON si.pilar_id = pfap.Strategic_Object
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfap.Strategic_Project)
+                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilar AS so ON so.pilar_id = pfap.Strategic_Object
                             LEFT JOIN okr ON okr.okr_id = pfap.OKR
                             ORDER BY 
                             si_code,
@@ -212,7 +215,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sqlPlan = "SELECT 
                             pksp.*, 
-                            Faculty.name_th  AS fa_name,
+                            Faculty.Alias_Default  AS fa_name,
                             CONCAT(
                             LEFT(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) - 1),
                             'P',
@@ -227,7 +230,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             FROM 
                             planning_kku_strategic_plan AS pksp
                             LEFT JOIN Faculty 
-                            ON pksp.Faculty = Faculty.id
+                            ON pksp.Faculty = Faculty.Faculty
                             LEFT JOIN pilar AS p ON p.pilar_id = CONCAT(LEFT(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) - 1),'P',
                             SUBSTRING(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1),LOCATE('SO', pksp.Strategic_Object) + 2,2))
                             LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), 'SO', 'SI')
@@ -261,7 +264,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sqlPlan = "SELECT 
                             pkpp.Faculty,
-                            Faculty.name_th AS fa_name,
+                            Faculty.Alias_Default AS fa_name,
                             CONCAT(
                             LEFT(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), LOCATE('SO', pkpp.Strategic_Object) - 1),
                             'P',
@@ -277,7 +280,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             pkpp.Allocated_budget,
                             pkpp.Actual_Spend_Amount
                             FROM planning_kku_project_progress AS pkpp
-                            LEFT JOIN Faculty ON Faculty.id = pkpp.Faculty
+                            LEFT JOIN Faculty ON Faculty.Faculty = pkpp.Faculty
                             LEFT JOIN pilar AS p 
                             ON p.pilar_id = CONCAT(
                             LEFT(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), LOCATE('SO', pkpp.Strategic_Object) - 1),
@@ -294,7 +297,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             SELECT 
                             pfpp.Faculty,
-                            Faculty.name_th AS fa_name,
+                            f.Alias_Default AS fa_name,
                             CONCAT(
                             LEFT(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), LOCATE('SO', pfpp.Strategic_Object) - 1),
                             'P',
@@ -310,7 +313,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             pfpp.Allocated_budget,
                             pfpp.Actual_Spend_Amount
                             FROM planning_faculty_project_progress AS pfpp
-                            LEFT JOIN Faculty ON Faculty.id = pfpp.Faculty
+                            LEFT JOIN (
+                                                        SELECT DISTINCT Faculty, Alias_Default
+                                                        FROM Faculty
+                                                    ) AS f ON pfpp.Faculty = f.Faculty
                             LEFT JOIN pilar AS p 
                             ON p.pilar_id = CONCAT(
                             LEFT(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), LOCATE('SO', pfpp.Strategic_Object) - 1),
@@ -323,7 +329,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfpp.Strategic_Project)
                             LEFT JOIN planning_faculty_action_plan AS pfap ON TRIM(pfap.Strategic_Project) = TRIM(pfpp.Strategic_Project)
 
-                            ORDER BY Faculty, pilar_code, si_code, Strategic_Object, Strategic_Project";
+                            ORDER BY fa_name, pilar_code, si_code, Strategic_Object, Strategic_Project";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
@@ -366,7 +372,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             pkpp.Allocated_budget,
                             pkpp.Actual_Spend_Amount,
                             pkap.Responsible_person,
-                            Faculty.name_th AS fa_name,
+                            Faculty.Alias_Default AS fa_name,
                             ksp.ksp_name
                             FROM planning_kku_okr_progress AS pkop
                             LEFT JOIN okr ON okr.okr_id = pkop.OKR
@@ -375,8 +381,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             SUBSTRING(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1),LOCATE('SO', pkop.Strategic_Object) + 2,2))
                             LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), 'SO', 'SI')
                             LEFT JOIN planning_kku_action_plan AS pkap ON pkap.OKR = pkop.OKR
-                            LEFT JOIN planning_kku_project_progress AS pkpp ON pkpp.Strategic_Project = pkap.Strategic_Project
-                            LEFT JOIN Faculty ON Faculty.id = pkop.Faculty
+                            LEFT JOIN planning_kku_project_progress AS pkpp ON TRIM(pkpp.Strategic_Project) = TRIM(pkap.Strategic_Project)
+                            LEFT JOIN Faculty ON Faculty.Faculty = pkop.Faculty
                             LEFT JOIN ksp ON ksp.ksp_id = pkap.Strategic_Project
                             ORDER BY Faculty, si_code,pkop.Strategic_Object, okr.okr_id,ksp.ksp_id";
                 $stmtPlan = $conn->prepare($sqlPlan);
@@ -403,15 +409,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
 
 
-            case "get_department_strategy_overview":
-                try {
-                    $db = new Database();
-                    $conn = $db->connect();
-    
-                    // เชื่อมต่อฐานข้อมูล
-                    $sqlPlan = "SELECT 
+        case "get_department_strategy_overview":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sqlPlan = "SELECT 
                                 pfsp.*,
-                                Faculty.name_th AS fa_name,
+                                f.Alias_Default AS fa_name,
                                 CONCAT(LEFT(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1), LOCATE('SO', pfsp.Strategic_Object) - 1),'P',
                                 SUBSTRING(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1),LOCATE('SO', pfsp.Strategic_Object) + 2,2)) AS pilar_code,
                                 p.pilar_name,
@@ -422,7 +428,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 okr.okr_name,
                                 pfop.Quarter_Progress_Value
                                 FROM planning_faculty_strategic_plan AS pfsp
-                                LEFT JOIN Faculty ON Faculty.id = pfsp.Faculty
+                                LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default FROM Faculty ) AS f ON pfsp.Faculty = f.Faculty
                                 LEFT JOIN pilar AS so ON so.pilar_id = pfsp.Strategic_Object
                                 LEFT JOIN pilar AS p ON p.pilar_id = CONCAT(LEFT(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1), LOCATE('SO', pfsp.Strategic_Object) - 1),'P',
                                 SUBSTRING(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1),LOCATE('SO', pfsp.Strategic_Object) + 2,2))
@@ -431,23 +437,79 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 LEFT JOIN okr ON okr.okr_id = pfsp.OKR
                                 LEFT JOIN planning_faculty_okr_progress AS pfop ON pfop.OKR = pfsp.OKR
                                 ORDER BY Faculty,pilar_code,si_code,pfsp.Strategic_Object,pfsp.Strategic_Project,pfop.OKR";
-                    $stmtPlan = $conn->prepare($sqlPlan);
-                    $stmtPlan->execute();
-                    $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
-                    $conn = null;
-    
-                    $response = array(
-                        'plan' => $plan
-                    );
-                    echo json_encode($response);
-                } catch (PDOException $e) {
-                    $response = array(
-                        'status' => 'error',
-                        'message' => 'Database error: ' . $e->getMessage()
-                    );
-                    echo json_encode($response);
-                }
-                break;
+                $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "get_department-action-summary":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sqlPlan = "SELECT 
+                            pfop.*,
+                            CONCAT(
+                            LEFT(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), LOCATE('SO', pfop.Strategic_Object) - 1),
+                            'P',
+                            SUBSTRING(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), LOCATE('SO', pfop.Strategic_Object) + 2, 2 ) ) as pilar_code,
+                            p.pilar_name,
+                            REPLACE(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
+                            si.pilar_name AS si_name,
+                            pfop.Strategic_Object,
+                            so.pilar_name AS so_name,
+                            pfop.OKR,
+                            okr.okr_name,
+                            pfap.Target_OKR_Objective_and_Key_Result,
+                            pfap.UOM,
+                            pfap.Budget_Amount,
+                            pfpp.Allocated_budget,
+                            pfpp.Actual_Spend_Amount,
+                            pfap.Responsible_person,
+                            Faculty.Alias_Default AS fa_name,
+                            ksp.ksp_name
+                            FROM planning_faculty_okr_progress AS pfop
+                            LEFT JOIN okr ON okr.okr_id = pfop.OKR
+                            LEFT JOIN pilar AS so ON so.pilar_id = pfop.Strategic_Object
+                            LEFT JOIN pilar AS p ON p.pilar_id = CONCAT(LEFT(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), LOCATE('SO', pfop.Strategic_Object) - 1),'P',
+                            SUBSTRING(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1),LOCATE('SO', pfop.Strategic_Object) + 2,2))
+                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN planning_faculty_action_plan AS pfap ON pfap.OKR = pfop.OKR
+                            LEFT JOIN planning_faculty_project_progress AS pfpp ON TRIM(pfpp.Strategic_Project) = TRIM(pfap.Strategic_Project)
+                            LEFT JOIN Faculty ON Faculty.Faculty = pfop.Faculty
+                            LEFT JOIN ksp ON ksp.ksp_id = pfap.Strategic_Project
+                            ORDER BY Faculty, si_code,pfop.Strategic_Object, okr.okr_id,ksp.ksp_id";
+                $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+
         default:
             break;
     }

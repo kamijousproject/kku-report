@@ -199,19 +199,19 @@
                         tr.appendChild(td10);
 
                         const td11 = document.createElement('td');
-                        td11.textContent = row.Quarter_Progress_Value;
+                        td11.textContent = null;
                         tr.appendChild(td11);
 
                         const td12 = document.createElement('td');
-                        td12.textContent = row.Quarter_Progress_Value;
+                        td12.textContent = null;
                         tr.appendChild(td12);
 
                         const td13 = document.createElement('td');
-                        td13.textContent = row.Quarter_Progress_Value;
+                        td13.textContent = null;
                         tr.appendChild(td13);
 
                         const td14 = document.createElement('td');
-                        td14.textContent = row.Quarter_Progress_Value;
+                        td14.textContent = null;
                         tr.appendChild(td14);
 
                         const td15 = document.createElement('td');
