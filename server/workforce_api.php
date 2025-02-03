@@ -470,6 +470,80 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "kku_wf_overview-framework":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH CURRENT AS (
+                        SELECT 'อัตราเดิม' COLLATE utf8mb4_general_ci AS TYPE 
+                        ,Personnel_Type COLLATE UTF8MB4_GENERAL_CI AS Personnel_Type
+                        ,Faculty COLLATE UTF8MB4_GENERAL_CI AS Faculty
+                        ,All_PositionTypes COLLATE UTF8MB4_GENERAL_CI AS All_PositionTypes
+                        ,POSITION COLLATE UTF8MB4_GENERAL_CI AS POSITION
+                        ,Position_Number COLLATE UTF8MB4_GENERAL_CI AS Position_Number
+                        ,Fund_FT COLLATE UTF8MB4_GENERAL_CI AS Fund_FT
+                        ,Salary_rate COLLATE UTF8MB4_GENERAL_CI AS Salary_rate
+                        ,Govt_Fund COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
+                        ,Division_Revenue COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
+                        ,OOP_Central_Revenue COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
+                        FROM workforce_current_positions_allocation)
+                        , NEW AS (
+                        SELECT 'อัตราใหม่'AS TYPE 
+                        ,Personnel_Type
+                        ,Faculty
+                        ,All_PositionTypes
+                        ,POSITION 
+                        ,NULL AS Position_Number
+                        ,Fund_FT
+                        ,NULL AS Salary_rate
+                        ,Govt_Fund
+                        ,Division_Revenue
+                        ,OOP_Central_Revenue
+                        FROM workforce_new_positions_allocation)
+                        , all_data AS (
+                        SELECT * FROM CURRENT
+                        UNION ALL 
+                        SELECT * FROM NEW)
+
+                        SELECT a.*
+                        ,f.Alias_Default
+                        ,act1.Employment_Type
+                        ,act1.Workers_Name_Surname
+                        ,act1.Personnel_Group
+                        ,act1.Job_Family
+                        ,act1.Position_Qualifications 
+                        ,act1.Contract_Type
+                        ,act1.Contract_Period_Short_Term
+                        ,act5.Location_Code
+                        FROM all_data a
+                        LEFT JOIN actual_data_1 act1
+                        ON a.Position_Number=act1.Position_Number
+                        LEFT JOIN actual_data_5 act5
+                        ON a.Position_Number=act5.Position_Number
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default 
+                        FROM Faculty
+                        ) f ON a.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        ORDER BY a.Faculty";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }
