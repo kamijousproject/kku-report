@@ -37,18 +37,47 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th>ที่</th>
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th colspan="2">ประเภทบริหาร</th>
-                                                <th colspan="2">ประเภทวิชาการ</th>
+                                            <th rowspan="3">ที่</th>
+                                            <th rowspan="3">ส่วนงาน/หน่วยงาน</th>
+                                            <th colspan="4">ประเภทบริหาร</th>
+                                            <th colspan="4">ประเภทวิชาการ</th>
+                                            <th colspan="4">ประเภทวิจัย</th>
+                                            <th colspan="4">ประเภทสนับสนุน</th>
+                                            <th colspan="4">รวม</th>
                                             </tr>
                                             <tr>
-                                                <th></th>
-                                                <th></th>
-                                                <th>จำนวน (อัตรา)</th>
-                                                <th>งบประมาณ (บาท)</th>
-                                                <th>จำนวน (อัตรา)</th>
-                                                <th>งบประมาณ (บาท)</th>
+                                            <th colspan="2">งบประมาณแผ่นดิน</th>
+                                            <th colspan="2">งบประมาณเงินรายได้</th>
+                                            <th colspan="2">งบประมาณแผ่นดิน</th>
+                                            <th colspan="2">งบประมาณเงินรายได้</th>
+                                            <th colspan="2">งบประมาณแผ่นดิน</th>
+                                            <th colspan="2">งบประมาณเงินรายได้</th>
+                                            <th colspan="2">งบประมาณแผ่นดิน</th>
+                                            <th colspan="2">งบประมาณเงินรายได้</th>
+                                            <th colspan="2">งบประมาณแผ่นดิน</th>
+                                            <th colspan="2">งบประมาณเงินรายได้</th>
+                                            </tr>
+                                            <tr>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
+                                            <th>จำนวน (อัตรา)</th>
+                                            <th>งบประมาณ (บาท)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -70,13 +99,7 @@
                                             </tr>
                                         </tbody>
                                         <tfoot>
-                                            <tr>
-                                                <td colspan="2">รวมทั้งหมด</td>
-                                                <td>18</td>
-                                                <td>1,800,000</td>
-                                                <td>27</td>
-                                                <td>2,700,000</td>
-                                            </tr>
+                                            
                                         </tfoot>
                                     </table>
                                 </div>
@@ -98,6 +121,114 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_budget-framework'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    console.log(response.faculty);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+
+                        response.wf.forEach((row, index) => {                   
+                            const tr = document.createElement('tr');
+
+                            const columns = [
+                                { key: 'No', value: index+1 },
+                                { key: 'Alias_Default', value: row.Alias_Default },
+                                
+                                { key: 'TYPE1_fund1_num', value: row.TYPE1_fund1_num },
+                                { key: 'TYPE1_fund1', value: row.TYPE1_fund1 },
+                                
+                                { key: 'TYPE1_fund2_num', value: row.TYPE1_fund2_num },
+                                { key: 'TYPE1_fund2', value: row.TYPE1_fund2 },
+                                
+                                { key: 'TYPE2_fund1_num', value: row.TYPE2_fund1_num },
+                                { key: 'TYPE2_fund1', value: row.TYPE2_fund1 },
+                                
+                                { key: 'TYPE2_fund2_num', value: row.TYPE2_fund2_num },
+                                { key: 'TYPE2_fund2', value: row.TYPE2_fund2 },
+                                
+                                { key: 'TYPE3_fund1_num', value: row.TYPE3_fund1_num },
+                                { key: 'TYPE3_fund1', value: row.TYPE3_fund1 },
+                                
+                                { key: 'TYPE3_fund2_num', value: row.TYPE3_fund2_num },
+                                { key: 'TYPE3_fund2', value: row.TYPE3_fund2 },
+                                
+                                { key: 'TYPE4_fund1_num', value: row.TYPE4_fund1_num },
+                                { key: 'TYPE4_fund1', value: row.TYPE4_fund1 },
+                                
+                                { key: 'TYPE4_fund2_num', value: row.TYPE4_fund2_num },
+                                { key: 'TYPE4_fund2', value: row.TYPE4_fund2 },
+                                
+                                { key: 'sum_fund1_num', value: parseInt(row.TYPE1_fund1_num)+parseInt(row.TYPE2_fund1_num)+parseInt(row.TYPE3_fund1_num)+parseInt(row.TYPE4_fund1_num) },
+                                { key: 'sum_fund1', value: parseInt(row.TYPE1_fund1)+parseInt(row.TYPE2_fund1)+parseInt(row.TYPE3_fund1)+parseInt(row.TYPE4_fund1) },
+                                
+                                { key: 'sum_fund2_num', value: parseInt(row.TYPE1_fund2_num)+parseInt(row.TYPE2_fund2_num)+parseInt(row.TYPE3_fund2_num)+parseInt(row.TYPE4_fund2_num)},
+                                { key: 'sum_fund2', value: parseInt(row.TYPE1_fund2)+parseInt(row.TYPE2_fund2)+parseInt(row.TYPE3_fund2)+parseInt(row.TYPE4_fund2) },
+                            ];
+
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+
+                            tableBody.appendChild(tr);
+                            
+                        });
+                        calculateSum();
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+        function calculateSum() {
+        const table = document.querySelector('table');
+        const rows = table.querySelectorAll('tbody tr');
+        const footer = table.querySelector('tfoot');
+        const columns = rows[0].querySelectorAll('td').length;
+
+        // สร้างแถว footer
+        let footerRow = document.createElement('tr');
+        footerRow.innerHTML = '<td colspan="2">รวม</td>';
+
+        // เริ่มต้นผลรวมแต่ละคอลัมน์
+        let sums = new Array(columns - 2).fill(0); 
+
+        // คำนวณผลรวม
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+            if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
+                sums[index - 2] += parseFloat(cell.textContent) || 0;
+            }
+            });
+        });
+
+        // เพิ่มผลรวมลงใน footer
+        sums.forEach(sum => {
+            footerRow.innerHTML += `<td>${sum}</td>`;
+        });
+
+        // เพิ่มแถว footer ลงในตาราง
+        footer.appendChild(footerRow);
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

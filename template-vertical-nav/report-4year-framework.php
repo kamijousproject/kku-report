@@ -155,21 +155,9 @@
                                             </tr>
                                             
                                         </tbody>
-                                        <!-- <tfoot>
-                                            <tr>
-                                                <td>รวมทั้งหมด</td>
-                                                <td>18</td>
-                                                <td>15</td>
-                                                <td>27</td>
-                                                <td>25</td>
-                                                <td>15</td>
-                                                <td>13</td>
-                                                <td>45</td>
-                                                <td>40</td>
-                                                <td>105</td>
-                                                <td>93</td>
-                                            </tr>
-                                        </tfoot> -->
+                                        <tfoot>
+                                           
+                                        </tfoot>
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
@@ -192,6 +180,7 @@
     <script>
         $(document).ready(function() {
             laodData();
+            
         });
 
         function laodData() {
@@ -264,7 +253,7 @@
 
 
                             tableBody.appendChild(tr);
-                            
+                            calculateSum();
                         });
 
                 },
@@ -274,7 +263,39 @@
                 }
             });
         }
+        function calculateSum() {
+        const table = document.querySelector('table');
+        const rows = table.querySelectorAll('tbody tr');
+        const footer = table.querySelector('tfoot');
+        const columns = rows[0].querySelectorAll('td').length;
 
+        // สร้างแถว footer
+        let footerRow = document.createElement('tr');
+        footerRow.innerHTML = '<td>รวมทั้งหมด</td>';
+
+        // เริ่มต้นผลรวมแต่ละคอลัมน์
+        let sums = new Array(columns - 1).fill(0); 
+
+        // คำนวณผลรวม
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+            if (index >= 1) { // "ส่วนงาน/หน่วยงาน"               
+                sums[index - 1] += parseFloat(cell.textContent) || 0;
+            }
+            });
+        });
+
+        // เพิ่มผลรวมลงใน footer
+        sums.forEach(sum => {
+            footerRow.innerHTML += `<td>${sum}</td>`;
+        });
+
+        // เพิ่มแถว footer ลงในตาราง
+        footer.appendChild(footerRow);
+        }
+
+        
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
