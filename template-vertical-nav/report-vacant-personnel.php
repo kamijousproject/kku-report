@@ -107,6 +107,60 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_vacant-personnel'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    console.log(response.faculty);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    response.wf.forEach((row, index) => {                   
+                        const tr = document.createElement('tr');
+
+                        const columns = [
+                            { key: 'No', value: index+1 },
+                            { key: 'Alias_Default', value: row.Faculty },                           
+                            { key: 'personnel_type', value: row.personnel_type },
+                            { key: 'all_position_types', value: row.all_position_types },  
+                            { key: 'Personnel_Group', value: row.Personnel_Group },
+                            { key: 'position_number', value: row.position_number },                            
+                            { key: 'Location_Code', value: row.Location_Code },
+                            { key: 'POSITION', value: row.POSITION },
+                            { key: 'Job_Family', value: row.Job_Family },                           
+                            { key: 'empty', value: 1 },
+                            { key: 'Vacant_From_Which_Date', value: row.Vacant_From_Which_Date },                     
+                            { key: 'Reason_For_Vacancy', value: row.Reason_For_Vacancy },
+                            { key: 'status', value: "" },                    
+                            { key: 'V_For_6_Months_On', value: row.V_For_6_Months_On },                            
+                        ];
+
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);     
+                    });
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

@@ -92,6 +92,55 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_retirement'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    console.log(response.faculty);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    response.wf.forEach((row, index) => {                   
+                        const tr = document.createElement('tr');
+
+                        const columns = [
+                            { key: 'No', value: index+1 },
+                            { key: 'Faculty', value: row.faculty },                           
+                            { key: 'personnel_type', value: row.Personnel_Type },
+                            { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },  
+                            { key: 'Position', value: row.Position },
+                            { key: 'Position_Number', value: row.Position_Number },                            
+                            { key: 'All_PositionTypes', value: row.All_PositionTypes },
+                            { key: 'Job_Family', value: row.Job_Family },
+                            { key: 'Retirement_Date', value: row.Retirement_Date },                                                                                   
+                        ];
+
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);     
+                    });
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

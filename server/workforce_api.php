@@ -379,6 +379,97 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "kku_wf_vacant-personnel":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH ad2 AS (
+                        SELECT Faculty 
+                        ,personnel_type
+                        ,all_position_types
+                        ,POSITION
+                        ,position_number 
+                        FROM actual_data_2
+                        WHERE rate_status='อัตราว่าง')
+
+                        SELECT distinct act2.Faculty 
+                        ,act2.personnel_type
+                        ,act2.all_position_types
+                        ,act2.POSITION
+                        ,act2.position_number
+                        ,act1.Personnel_Group
+                        ,act1.Job_Family
+                        ,act5.Location_Code
+                        ,act4.Vacant_From_Which_Date
+                        ,act4.Reason_For_Vacancy
+                        ,act4.V_For_6_Months_On
+                        FROM ad2 act2
+                        LEFT JOIN actual_data_1 act1
+                        ON act2.position_number=act1.Position_Number
+                        LEFT JOIN actual_data_5 act5
+                        ON act2.position_number=act5.Position_Number
+                        LEFT JOIN actual_data_4 act4
+                        ON act2.position_number=act4.Position_Number
+                        order BY act2.position_number";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "kku_wf_retirement":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT distinct COALESCE(f.Alias_Default,act1.Faculty) AS faculty
+                        ,act1.Personnel_Type
+                        ,act1.Workers_Name_Surname
+                        ,act1.`Position`
+                        ,act1.Position_Number
+                        ,act1.All_PositionTypes
+                        ,act1.Job_Family
+                        ,act4.Retirement_Date
+                        FROM actual_data_1 act1
+                        LEFT JOIN actual_data_4 act4
+                        ON act1.Position_Number=act4.Position_Number
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default 
+                        FROM Faculty
+                        ) f ON act1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        where act1.Faculty!='00000'
+                        ORDER BY COALESCE(f.Alias_Default,act1.Faculty)";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }
