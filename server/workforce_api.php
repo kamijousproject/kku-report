@@ -287,6 +287,98 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;  
+        case "kku_wf_unit-personnel":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH ad1 AS (
+                        SELECT 
+                            faculty,
+                            Personnel_Type,
+                            all_position_types,
+                            rate_status,
+                            fund_ft,
+                            COUNT(*) AS total_person
+                        FROM actual_data_2
+                        WHERE 
+                            Faculty != '00000' 
+                            AND all_position_types IS NOT NULL 
+                            AND (fund_ft = 'เงินงบประมาณ' OR fund_ft = 'เงินรายได้') 
+                            AND Personnel_Type = 'พนักงานมหาวิทยาลัย'
+                        GROUP BY 
+                            faculty, Personnel_Type, all_position_types, rate_status, fund_ft
+                        ORDER BY Faculty
+                    ),
+                    ad2 AS (
+                        SELECT 
+                            faculty,
+                            Personnel_Type,
+                            all_position_types,
+                            rate_status,
+                            '' AS fund_ft,
+                            COUNT(*) AS total_person
+                        FROM actual_data_2
+                        WHERE 
+                            Faculty != '00000' 
+                            AND all_position_types IS NOT NULL 
+                            AND (fund_ft = 'เงินงบประมาณ' OR fund_ft = 'เงินรายได้') 
+                            AND Personnel_Type != 'พนักงานมหาวิทยาลัย'
+                        GROUP BY 
+                            faculty, Personnel_Type, all_position_types, rate_status
+                        ORDER BY Faculty
+                    ), t1 AS(
+                    SELECT * FROM ad1
+                    UNION ALL
+                    SELECT * FROM ad2)
+
+                    SELECT f.Alias_Default
+                    ,sum(case when t1.Personnel_Type='ข้าราชการ'AND t1.all_position_types='วิชาการ' then total_person ELSE 0 END) AS c1
+                    ,sum(case when t1.Personnel_Type='ข้าราชการ'AND t1.all_position_types='สนับนสุน' then total_person ELSE 0 END) AS c2
+                    ,sum(case when t1.Personnel_Type='ลูกจ้างประจำ'AND t1.all_position_types='สนับสนุน' then total_person ELSE 0 END) AS c3
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินงบประมาณ' AND t1.all_position_types='บริหาร' then t1.total_person ELSE 0 END) AS c4
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินงบประมาณ' AND t1.all_position_types='วิชาการ'AND t1.rate_status='คนครอง' then t1.total_person ELSE 0 END) AS c5
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินงบประมาณ' AND t1.all_position_types='วิชาการ'AND t1.rate_status='อัตราว่าง' then t1.total_person ELSE 0 END) AS c6
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินงบประมาณ' AND t1.all_position_types='วิจัย'AND t1.rate_status='คนครอง' then t1.total_person ELSE 0 END) AS c7
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินงบประมาณ' AND t1.all_position_types='วิจัย'AND t1.rate_status='อัตราว่าง' then t1.total_person ELSE 0 END) AS c8
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินงบประมาณ' AND t1.all_position_types='สนับสนุน'AND t1.rate_status='คนครอง' then t1.total_person ELSE 0 END) AS c9
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินงบประมาณ' AND t1.all_position_types='สนับสนุน'AND t1.rate_status='อัตราว่าง' then t1.total_person ELSE 0 END) AS c10
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินรายได้' AND t1.all_position_types='บริหาร' then t1.total_person ELSE 0 END) AS c11
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินรายได้' AND t1.all_position_types='วิชาการ'AND t1.rate_status='คนครอง' then t1.total_person ELSE 0 END) AS c12
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินรายได้' AND t1.all_position_types='วิชาการ'AND t1.rate_status='อัตราว่าง' then t1.total_person ELSE 0 END) AS c13
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินรายได้' AND t1.all_position_types='วิจัย'AND t1.rate_status='คนครอง' then t1.total_person ELSE 0 END) AS c14
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินรายได้' AND t1.all_position_types='วิจัย'AND t1.rate_status='อัตราว่าง' then t1.total_person ELSE 0 END) AS c15
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินรายได้' AND t1.all_position_types='สนับสนุน'AND t1.rate_status='คนครอง' then t1.total_person ELSE 0 END) AS c16
+                    ,sum(case when t1.Personnel_Type='พนักงานมหาวิทยาลัย'AND t1.fund_ft='เงินรายได้' AND t1.all_position_types='สนับสนุน'AND t1.rate_status='อัตราว่าง' then t1.total_person ELSE 0 END) AS c17
+                    ,sum(case when t1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'AND t1.all_position_types='วิจัย' AND t1.rate_status='คนครอง'then t1.total_person ELSE 0 END) AS c18
+                    ,sum(case when t1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'AND t1.all_position_types='วิจัย' AND t1.rate_status='อัตราว่าง'then t1.total_person ELSE 0 END) AS c19
+                    ,sum(case when t1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'AND t1.all_position_types='สนับสนุน' AND t1.rate_status='คนครอง'then t1.total_person ELSE 0 END) AS c20
+                    ,sum(case when t1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'AND t1.all_position_types='สนับสนุน' AND t1.rate_status='อัตราว่าง'then t1.total_person ELSE 0 END) AS c21
+                    FROM t1
+                    LEFT JOIN (
+                    SELECT DISTINCT Faculty, Alias_Default 
+                    FROM Faculty
+                    ) f ON t1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                    GROUP BY f.Alias_Default
+                    ORDER BY f.Alias_Default";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }
