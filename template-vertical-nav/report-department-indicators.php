@@ -36,21 +36,45 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th>ลำดับ</th>
                                                 <th>รหัส</th>
                                                 <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>จำนวน ผลลัพธ์/ตัวชี้วัดทั้งหมด</th>
-                                                <th colspan="11">แผนยุทธศาสตร์การบริหารมหาวิทยาลัยขอนแก่น</th>
-                                                <th colspan="2">แผนพันธกิจ</th>
+                                                <th>จำนวนผลลัพธ์/ตัวชี้วัดทั้งหมด</th>
+                                                <th colspan="19">ความสอดคล้องของแผน</th>
+                                            </tr>
+                                            <tr class="text-nowrap">
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th colspan="13">แผนยุทธศาสตร์การบริหารมหาวิทยาลัยขอนแก่น</th>
+                                                <th colspan="2">แผนพัธกิจ</th>
                                                 <th colspan="2">แผนสรรหา</th>
                                                 <th colspan="2">แผนสร้างความโดดเด่น</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="text-nowrap">
+                                                <th></th>
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
                                                 <th>จำนวน</th>
+                                                <th>ร้อยละ</th>
+                                                <th colspan="11">ยุทธศาสตร์</th>
+                                                <th>จำนวน</th>
+                                                <th>ร้อยละ</th>
+                                                <th>จำนวน</th>
+                                                <th>ร้อยละ</th>
+                                                <th>จำนวน</th>
+                                                <th>ร้อยละ</th>
+                                            </tr>
+                                            <tr class="text-nowrap">
+                                                <th></th>
+                                                <th></th>
+                                                <th>รวมจำนวนทั้งหมด</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
                                                 <th>1</th>
                                                 <th>2</th>
                                                 <th>3</th>
@@ -62,61 +86,14 @@
                                                 <th>9</th>
                                                 <th>10</th>
                                                 <th>11</th>
-                                                <th>จำนวน</th>
-                                                <th>ร้อยละ</th>
-                                                <th>จำนวน</th>
-                                                <th>ร้อยละ</th>
-                                                <th>จำนวน</th>
-                                                <th>ร้อยละ</th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
+                                                <th></th>
                                             </tr>
-                                        </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>001</td>
-                                                <td>หน่วยงาน A</td>
-                                                <td>10</td>
-                                                <td>2</td>
-                                                <td>3</td>
-                                                <td>1</td>
-                                                <td>1</td>
-                                                <td>1</td>
-                                                <td>1</td>
-                                                <td>0</td>
-                                                <td>0</td>
-                                                <td>1</td>
-                                                <td>0</td>
-                                                <td>0</td>
-                                                <td>5</td>
-                                                <td>50%</td>
-                                                <td>3</td>
-                                                <td>30%</td>
-                                                <td>2</td>
-                                                <td>20%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>002</td>
-                                                <td>หน่วยงาน B</td>
-                                                <td>15</td>
-                                                <td>5</td>
-                                                <td>4</td>
-                                                <td>2</td>
-                                                <td>1</td>
-                                                <td>2</td>
-                                                <td>1</td>
-                                                <td>0</td>
-                                                <td>0</td>
-                                                <td>0</td>
-                                                <td>0</td>
-                                                <td>0</td>
-                                                <td>7</td>
-                                                <td>46.67%</td>
-                                                <td>4</td>
-                                                <td>26.67%</td>
-                                                <td>3</td>
-                                                <td>20%</td>
-                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -138,6 +115,146 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'get_department-indicators'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.plan);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    let previousFacultyCode = '';
+                    let previousFacultyName = '';
+                    let previousFacultyCount = '';
+                    let facultyCount = 1;
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
+
+                        if (row.Faculty !== previousFacultyCode) {
+                            facultyCount++; // เพิ่มค่า count เมื่อ Faculty เปลี่ยน
+                        }
+
+                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td1 = document.createElement('td');
+                        td1.textContent = facultyCount === previousFacultyCount ? '' : facultyCount;
+                        tr.appendChild(td1);
+
+                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                        const td2 = document.createElement('td');
+                        td2.textContent = row.Faculty === previousFacultyCode ? '' : row.Faculty;
+                        tr.appendChild(td2);
+
+                        const td3 = document.createElement('td');
+                        td3.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                        tr.appendChild(td3);
+
+                        const td4 = document.createElement('td');
+                        td4.textContent = row.so_name;
+                        tr.appendChild(td4);
+
+                        const td5 = document.createElement('td');
+                        td5.textContent = row.okr_name;
+                        tr.appendChild(td5);
+
+                        const td6 = document.createElement('td');
+                        td6.textContent = row.ksp_name;
+                        tr.appendChild(td6);
+
+                        const td7 = document.createElement('td');
+                        td7.textContent = null;
+                        tr.appendChild(td7);
+
+                        const td8 = document.createElement('td');
+                        td8.textContent = null;
+                        tr.appendChild(td8);
+
+                        const td9 = document.createElement('td');
+                        td9.textContent = null;
+                        tr.appendChild(td9);
+
+                        const td10 = document.createElement('td');
+                        td10.textContent = null;
+                        tr.appendChild(td10);
+
+                        const td11 = document.createElement('td');
+                        td11.textContent = null;
+                        tr.appendChild(td11);
+
+                        const td12 = document.createElement('td');
+                        td12.textContent = null;
+                        tr.appendChild(td12);
+
+                        const td13 = document.createElement('td');
+                        td13.textContent = null;
+                        tr.appendChild(td13);
+
+                        const td14 = document.createElement('td');
+                        td14.textContent = null;
+                        tr.appendChild(td14);
+
+                        const td15 = document.createElement('td');
+                        td15.textContent = null;
+                        tr.appendChild(td15);
+
+                        const td16 = document.createElement('td');
+                        td16.textContent = null;
+                        tr.appendChild(td16);
+
+                        const td17 = document.createElement('td');
+                        td17.textContent = null;
+                        tr.appendChild(td17);
+
+                        const td18 = document.createElement('td');
+                        td18.textContent = null;
+                        tr.appendChild(td18);
+
+
+                        const td19 = document.createElement('td');
+                        td19.textContent = null;
+                        tr.appendChild(td19);
+
+                        const td20 = document.createElement('td');
+                        td20.textContent = row.Dev_Plan_Proposed_to_Nomination_Co_LOV;
+                        tr.appendChild(td20);
+
+                        const td21 = document.createElement('td');
+                        td21.textContent = null;
+                        tr.appendChild(td21);
+
+                        const td22 = document.createElement('td');
+                        td22.textContent = row.Division_Noteworthy_Plan_LOV;
+                        tr.appendChild(td22);
+
+                        const td23 = document.createElement('td');
+                        td23.textContent = null;
+                        tr.appendChild(td23);
+
+                        tableBody.appendChild(tr);
+
+                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        previousFacultyCode = row.Faculty;
+                        previousFacultyName = row.fa_name;
+                        previousFacultyCount = facultyCount;
+                    });
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
