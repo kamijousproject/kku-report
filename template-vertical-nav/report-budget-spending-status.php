@@ -34,57 +34,139 @@
                                     <h4>รรายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
                                 </div>
                                 <div class="table-responsive">
-                                    <table id="reportTable" class="table table-hover">
+                                    <table id="reportTable" class="table table-bordered table-hover">
                                         <thead>
                                             <tr>
-                                                <th rowspan="2">รายการ</th>
-                                                <th>เงินอุดหนุนจากรัฐ</th>
-                                                <th colspan="3">ปี 2566</th>
-                                                <th colspan="3">ปี 2567 (ปีปัจจุบัน)</th>
-                                                <th colspan="3">ปี 2568 (ปีที่ขอตั้ง)</th>
-                                                <th rowspan="2">เพิ่ม/ลด</th>
-                                                <th rowspan="2">คำชี้แจง</th>
+                                                <th rowspan="3">รายการ</th>
+                                                <th colspan="8">ปี 2566</th>
+                                                <th colspan="8">ปี 2567 (ปีปัจจุบัน)</th>
+                                                <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
+                                                <th rowspan="2" colspan="2">เพิ่ม/ลด</th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="2">เงินอุดหนุนจากรัฐ (FN06)</th>
+                                                <th colspan="2">เงินนอกงบประมาณ (FN08)</th>
+                                                <th colspan="2">เงินรายได้ (FN02)</th>
+                                                <th colspan="2">รวม</th>
+
+                                                <th colspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                <th colspan="2">เงินนอกงบประมาณ</th>
+                                                <th colspan="2">จำนวน</th>
+                                                <th colspan="2">รวม</th>
+
+                                                <th rowspan="2" colspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                <th rowspan="2" colspan="2">เงินรายได้</th>
+                                                <th rowspan="2" colspan="2">เงินนอกงบประมาณ</th>
+                                                <th rowspan="2" colspan="2">รวม</th>
                                             </tr>
                                             <tr>
                                                 <th>ประมาณการ</th>
                                                 <th>จ่ายจริง</th>
-                                                <th>รวม</th>
                                                 <th>ประมาณการ</th>
                                                 <th>จ่ายจริง</th>
-                                                <th>รวม</th>
                                                 <th>ประมาณการ</th>
                                                 <th>จ่ายจริง</th>
-                                                <th>รวม</th>
+                                                <th>ประมาณการ</th>
+                                                <th>จ่ายจริง</th>
+                                                <th>ประมาณการ</th>
+                                                <th>จ่ายจริง</th>
+                                                <th>ประมาณการ</th>
+                                                <th>จ่ายจริง</th>
+                                                <th>ประมาณการ</th>
+                                                <th>จ่ายจริง</th>
+                                                <th>ประมาณการ</th>
+                                                <th>จ่ายจริง</th>
+                                                <th>จำนวน</th>
+                                                <th>ร้อยละ</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>แผนงาน (ผลผลิต) [Plan]</td>
+                                                <td>Annual Budget Plan/Midyear Plan</td>
                                                 <td>10,000</td>
                                                 <td>8,000</td>
-                                                <td>18,000</td>
+                                                <td>5,000</td>
+                                                <td>4,500</td>
+                                                <td>3,000</td>
+                                                <td>8,000</td>
+                                                <td>5,000</td>
+                                                <td>4,500</td>
+                                                <td>3,000</td>
+                                                <td>2,500</td>
                                                 <td>12,000</td>
                                                 <td>10,000</td>
-                                                <td>22,000</td>
+                                                <td>6,000</td>
+                                                <td>5,000</td>
+                                                <td>4,000</td>
+                                                <td>3,500</td>
+                                                <td>4,000</td>
+                                                <td>3,500</td>
                                                 <td>14,000</td>
                                                 <td>12,000</td>
-                                                <td>26,000</td>
+                                                <td>7,000</td>
+                                                <td>6,500</td>
+                                                <td>5,000</td>
+                                                <td>4,500</td>
                                                 <td>+4,000</td>
-                                                <td>รองรับโครงการเพิ่มเติม</td>
+                                                <td>5%</td>
                                             </tr>
                                             <tr>
-                                                <td>แผนงานย่อย (ผลผลิตย่อย/กิจกรรม) [Sub plan]</td>
+                                                <td>FreeText</td>
                                                 <td>7,000</td>
                                                 <td>6,000</td>
-                                                <td>13,000</td>
+                                                <td>3,500</td>
+                                                <td>3,000</td>
+                                                <td>2,000</td>
+                                                <td>1,800</td>
+                                                <td>9,000</td>
+                                                <td>3,000</td>
+                                                <td>2,000</td>
+                                                <td>1,800</td>
                                                 <td>9,000</td>
                                                 <td>7,500</td>
-                                                <td>16,500</td>
+                                                <td>4,000</td>
+                                                <td>3,500</td>
+                                                <td>4,500</td>
+                                                <td>4,000</td>
+                                                <td>3,000</td>
+                                                <td>2,800</td>
                                                 <td>11,000</td>
                                                 <td>8,000</td>
-                                                <td>19,000</td>
+                                                <td>5,500</td>
+                                                <td>5,000</td>
+                                                <td>4,000</td>
+                                                <td>3,500</td>
                                                 <td>+2,500</td>
-                                                <td>เพิ่มการลงทุนในระบบ</td>
+                                                <td>3.5%</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Total_Amount_Quantity</td>
+                                                <td>20,000</td>
+                                                <td>18,000</td>
+                                                <td>10,000</td>
+                                                <td>9,500</td>
+                                                <td>6,000</td>
+                                                <td>5,500</td>
+                                                <td>22,000</td>
+                                                <td>9,500</td>
+                                                <td>6,000</td>
+                                                <td>5,500</td>
+                                                <td>22,000</td>
+                                                <td>20,000</td>
+                                                <td>12,000</td>
+                                                <td>11,000</td>
+                                                <td>7,500</td>
+                                                <td>7,000</td>
+                                                <td>4,000</td>
+                                                <td>3,500</td>
+                                                <td>26,000</td>
+                                                <td>24,000</td>
+                                                <td>14,000</td>
+                                                <td>13,500</td>
+                                                <td>9,000</td>
+                                                <td>8,500</td>
+                                                <td>+6,000</td>
+                                                <td>8%</td>
                                             </tr>
                                         </tbody>
                                     </table>

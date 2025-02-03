@@ -26,6 +26,43 @@
                                 <div class="card-title">
                                     <h4>รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</h4>
                                 </div>
+                                <?php
+                                include '../server/connectdb.php';
+
+                                $db = new Database();
+                                $conn = $db->connect();
+
+                                function fetchBudgetData($conn, $fund)
+                                {
+                                    $query = "SELECT
+                                                bpaap.*,
+                                                bpabp.*,
+                                                f.Alias_Default AS Faculty_Name,
+                                                p.plan_name AS Plan_Name,
+                                                sp.sub_plan_name AS Sub_Plan_Name,
+                                                pr.project_name AS Project_Name
+                                            FROM
+                                                budget_planning_allocated_annual_budget_plan bpaap
+                                                LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpaap.Account = bpabp.`Account`
+                                                LEFT JOIN Faculty f ON bpaap.Faculty COLLATE utf8mb4_general_ci = f.Faculty COLLATE utf8mb4_general_ci
+                                                LEFT JOIN plan p ON bpaap.Plan COLLATE utf8mb4_general_ci = p.plan_id COLLATE utf8mb4_general_ci
+                                                LEFT JOIN sub_plan sp ON bpaap.Sub_Plan COLLATE utf8mb4_general_ci = sp.sub_plan_id COLLATE utf8mb4_general_ci
+                                                LEFT JOIN project pr ON bpaap.Project COLLATE utf8mb4_general_ci = pr.project_id COLLATE utf8mb4_general_ci
+                                            WHERE
+                                                bpaap.Fund = :fund
+                                            LIMIT 500;";
+
+                                    $stmt = $conn->prepare($query);
+                                    $stmt->bindParam(':fund', $fund);
+                                    $stmt->execute();
+                                    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                }
+
+                                $resultsFN06 = fetchBudgetData($conn, 'FN06');
+                                $resultsFN08 = fetchBudgetData($conn, 'FN08');
+                                $resultsFN02 = fetchBudgetData($conn, 'FN02');
+
+                                ?>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -53,41 +90,46 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>ตัวอย่างรายการ 1</td>
-                                                <td>5,000</td>
-                                                <td>2,000</td>
-                                                <td>3,000</td>
-                                                <td>10,000</td>
-                                                <td>6,000</td>
-                                                <td>5,800</td>
-                                                <td>2,500</td>
-                                                <td>2,200</td>
-                                                <td>3,500</td>
-                                                <td>3,200</td>
-                                                <td>12,000</td>
-                                                <td>11,200</td>
-                                                <td>1,200</td>
-                                                <td>12%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>ตัวอย่างรายการ 2</td>
-                                                <td>4,500</td>
-                                                <td>1,800</td>
-                                                <td>2,500</td>
-                                                <td>8,800</td>
-                                                <td>5,500</td>
-                                                <td>5,300</td>
-                                                <td>2,200</td>
-                                                <td>2,100</td>
-                                                <td>3,200</td>
-                                                <td>3,000</td>
-                                                <td>10,900</td>
-                                                <td>10,400</td>
-                                                <td>1,600</td>
-                                                <td>18.18%</td>
-                                            </tr>
-                                            <!-- เพิ่มข้อมูลตัวอย่างได้ตามต้องการ -->
+                                            <?php
+                                            foreach ($resultsFN06 as $row):
+                                                $fn08 = $resultsFN08[array_search($row['Account'], array_column($resultsFN08, 'Account'))] ?? [];
+                                                $fn02 = $resultsFN02[array_search($row['Account'], array_column($resultsFN02, 'Account'))] ?? [];
+                                                $sum67 = ($row['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
+                                                $sum68Request = ($row['Total_Amount_Quanity'] ?? 0) + ($fn08['Total_Amount_Quanity'] ?? 0) + ($fn02['Total_Amount_Quanity'] ?? 0);
+                                                $sum68Allocated = ($row['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
+                                                $diff = $sum67 - $sum68Allocated;
+                                                // $percent = $diff / $sum68Allocated * 100;
+                                                $percent = ($sum67 - $sum68Allocated) / $sum68Allocated * 100;
+                                            ?>
+                                                <tr>
+                                                    <td>
+                                                        <strong><?= htmlspecialchars($row['Faculty_Name'] ?? '-') ?></strong><br>
+                                                        <?= htmlspecialchars($row['Plan_Name'] ?? '-') ?><br>
+                                                        <?= htmlspecialchars($row['Sub_Plan_Name'] ?? '-') ?><br>
+                                                        <?= htmlspecialchars($row['Project_Name'] ?? '-') ?>
+                                                    </td>
+                                                    <!-- -------------- 67 -------------- -->
+                                                    <td><?= number_format($row['Allocated_Total_Amount_Quantity'] ?? 0, decimals: 2) ?></td>
+                                                    <td><?= number_format(num: $fn08['Allocated_Total_Amount_Quantity'] ?? 0, decimals: 2) ?></td>
+                                                    <td><?= number_format($fn02['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($sum67, 2) ?></td>
+                                                    <!-- --  ---------- 68 -------------- -->
+                                                    <td><?= number_format($row['Total_Amount_Quanity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($row['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+
+                                                    <td><?= number_format($fn08['Total_Amount_Quanity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($fn08['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+
+                                                    <td><?= number_format($fn02['Total_Amount_Quanity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($fn02['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+
+                                                    <td><?= number_format($sum68Request, 2) ?></td>
+                                                    <td><?= number_format($sum68Allocated, 2) ?></td>
+
+                                                    <td><?= number_format($diff, 2) ?></td>
+                                                    <td><?= number_format($percent, 2) . '%' ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
@@ -95,6 +137,7 @@
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
                             </div>
+
                         </div>
                     </div>
                 </div>
