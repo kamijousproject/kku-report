@@ -113,7 +113,7 @@
                         
                         // td2 - name_th
                         const td2 = document.createElement('td');
-                        td2.textContent = row.name_th;
+                        td2.textContent = row.Alias_Default;
                         tr.appendChild(td2);
                         
                         // td3 - All_PositionTypes

@@ -147,12 +147,12 @@
                         
                         
                         const td3 = document.createElement('td');
-                        td3.textContent = row.name_th;
+                        td3.textContent = row.Alias_Default;
                         tr.appendChild(td3);
 
                         // td4 - Faculty
                         const td4 = document.createElement('td');
-                        td4.textContent = row.name_th;
+                        td4.textContent = row.Alias_Default;
                         tr.appendChild(td4);
 
                         // td5 - Workers_Name_Surname

@@ -37,15 +37,66 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th>ส่วนงาน/หน่วยงาน</th>
+                                                <th rowspan="3">ส่วนงาน/หน่วยงาน</th>
+                                                <th colspan="10">2567</th>
+                                                <th colspan="10">2568</th>
+                                                <th colspan="10">2569</th>  
+                                                <th colspan="10">2570</th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="2">ประเภทบริหาร</th>
+                                                <th colspan="2">ประเภทวิชาการ</th>
+                                                <th colspan="2">ประเภทวิจัย</th>
+                                                <th colspan="2">ประเภทสนับสนุน</th>
+                                                <th colspan="2">รวม</th>
+                                                <th colspan="2">ประเภทบริหาร</th>
+                                                <th colspan="2">ประเภทวิชาการ</th>
+                                                <th colspan="2">ประเภทวิจัย</th>
+                                                <th colspan="2">ประเภทสนับสนุน</th>
+                                                <th colspan="2">รวม</th>
+                                                <th colspan="2">ประเภทบริหาร</th>
+                                                <th colspan="2">ประเภทวิชาการ</th>
+                                                <th colspan="2">ประเภทวิจัย</th>
+                                                <th colspan="2">ประเภทสนับสนุน</th>
+                                                <th colspan="2">รวม</th>
                                                 <th colspan="2">ประเภทบริหาร</th>
                                                 <th colspan="2">ประเภทวิชาการ</th>
                                                 <th colspan="2">ประเภทวิจัย</th>
                                                 <th colspan="2">ประเภทสนับสนุน</th>
                                                 <th colspan="2">รวม</th>
                                             </tr>
+                                           
                                             <tr>
-                                                <th></th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
+                                                <th>แผน</th>
+                                                <th>ผล</th>
                                                 <th>แผน</th>
                                                 <th>ผล</th>
                                                 <th>แผน</th>
@@ -60,33 +111,51 @@
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>หน่วยงาน A</td>
-                                                <td>10</td>
-                                                <td>8</td>
-                                                <td>15</td>
-                                                <td>14</td>
-                                                <td>5</td>
-                                                <td>4</td>
-                                                <td>20</td>
-                                                <td>18</td>
-                                                <td>50</td>
-                                                <td>44</td>
+                                                <td>-</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
+                                                <td>0</td>
                                             </tr>
-                                            <tr>
-                                                <td>หน่วยงาน B</td>
-                                                <td>8</td>
-                                                <td>7</td>
-                                                <td>12</td>
-                                                <td>11</td>
-                                                <td>10</td>
-                                                <td>9</td>
-                                                <td>25</td>
-                                                <td>22</td>
-                                                <td>55</td>
-                                                <td>49</td>
-                                            </tr>
+                                            
                                         </tbody>
-                                        <tfoot>
+                                        <!-- <tfoot>
                                             <tr>
                                                 <td>รวมทั้งหมด</td>
                                                 <td>18</td>
@@ -100,7 +169,7 @@
                                                 <td>105</td>
                                                 <td>93</td>
                                             </tr>
-                                        </tfoot>
+                                        </tfoot> -->
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
@@ -121,6 +190,91 @@
     </div>
 
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_4year-framework'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    console.log(response.faculty);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+
+                        response.wf.forEach((row, index) => {                   
+                            const tr = document.createElement('tr');
+
+                            const columns = [
+                                { key: 'Alias_Default', value: row.Alias_Default },
+                                { key: 'TYPE1_year1', value: row.TYPE1_year1 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE2_year1', value: row.TYPE2_year1 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE3_year1', value: row.TYPE3_year1 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE4_year1', value: row.TYPE4_year1 },
+                                { key: '0', value: "0" },
+                                { key: 'sum_year1', value: parseInt(row.TYPE1_year1) + parseInt(row.TYPE2_year1) + parseInt(row.TYPE3_year1) + parseInt(row.TYPE4_year1) },
+                                { key: 'actual_year1', value: "0" },
+                                { key: 'TYPE1_year2', value: row.TYPE1_year2 },
+                                { key: 'Actual_type1', value: row.Actual_type1 },
+                                { key: 'TYPE2_year2', value: row.TYPE2_year2 },
+                                { key: 'Actual_type2', value: row.Actual_type2 },
+                                { key: 'TYPE3_year2', value: row.TYPE3_year2 },
+                                { key: 'Actual_type3', value: row.Actual_type3 },
+                                { key: 'TYPE4_year2', value: row.TYPE4_year2 },
+                                { key: 'Actual_type4', value: row.Actual_type4 },
+                                { key: 'sum_year2', value: parseInt(row.TYPE1_year2) + parseInt(row.TYPE2_year2) + parseInt(row.TYPE3_year2) + parseInt(row.TYPE4_year2) },
+                                { key: 'actual_year2', value: parseInt(row.Actual_type1) + parseInt(row.Actual_type2) + parseInt(row.Actual_type3) + parseInt(row.Actual_type4) },
+                                { key: 'TYPE1_year3', value: row.TYPE1_year3 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE2_year3', value: row.TYPE2_year3 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE3_year3', value: row.TYPE3_year3 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE4_year3', value: row.TYPE4_year3 },
+                                { key: '0', value: "0" },
+                                { key: 'sum_year3', value: parseInt(row.TYPE1_year3) + parseInt(row.TYPE2_year3) + parseInt(row.TYPE3_year3) + parseInt(row.TYPE4_year3) },
+                                { key: 'actual_year3', value: "0" },
+                                { key: 'TYPE1_year4', value: row.TYPE1_year4 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE2_year4', value: row.TYPE2_year4 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE3_year4', value: row.TYPE3_year4 },
+                                { key: '0', value: "0" },
+                                { key: 'TYPE4_year4', value: row.TYPE4_year4 },
+                                { key: '0', value: "0" },
+                                { key: 'sum_year4', value: parseInt(row.TYPE1_year4) + parseInt(row.TYPE2_year4) + parseInt(row.TYPE3_year4) + parseInt(row.TYPE4_year4) },
+                                { key: 'actual_year4', value: "0" }
+                            ];
+
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+
+                            tableBody.appendChild(tr);
+                            
+                        });
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
