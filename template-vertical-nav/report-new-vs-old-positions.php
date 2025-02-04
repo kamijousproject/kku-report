@@ -35,26 +35,42 @@
                                 </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>ที่</th>
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>ประเภทจ้าง</th>
-                                                <th>ชื่อ - นามสกุล</th>
-                                                <th>ประเภทบุคลากร</th>
-                                                <th>ประเภทการจ้าง</th>
-                                                <th>เลขประจำตำแหน่ง</th>
-                                                <th>ชื่อตำแหน่ง</th>
-                                                <th>จำนวนที่ขอ</th>
-                                                <th>Job Family</th>
-                                                <th>ประเภทตำแหน่ง</th>
-                                                <th>กลุ่มบุคลากร</th>
-                                                <th>ประเภทสัญญา</th>
-                                                <th>ระยะเวลาสัญญา</th>
-                                                <th>คุณวุฒิของตำแหน่ง</th>
-                                                <th>สถานะอัตรา</th>
-                                            </tr>
-                                        </thead>
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2">ที่</th>
+                                            <th rowspan="2">ส่วนงาน/หน่วยงาน</th>
+                                            <th rowspan="2">ประเภทคำขอ</th>
+                                            <th rowspan="2">ชื่อ - นามสกุล</th>
+                                            <th rowspan="2">ประเภทบุคลากร</th>
+                                            <th rowspan="2">ประเภทการจ้าง</th>
+                                            <th rowspan="2">เลขประจำตำแหน่ง</th>
+                                            <th rowspan="2">ชื่อตำแหน่ง</th>
+                                            <th rowspan="2">จำนวนที่ขอ</th>
+                                            <th rowspan="2">Job Family</th>
+                                            <th rowspan="2">ประเภทตำแหน่ง</th>
+                                            <th rowspan="2">กลุ่มบุคลากร</th>
+                                            <th rowspan="2">ประเภทสัญญา</th>
+                                            <th rowspan="2">ระยะเวลาสัญญา</th>
+                                            <th rowspan="2">คุณวุฒิของตำแหน่ง</th>
+                                            <th rowspan="2">สถานะอัตรา</th>
+                                            <th rowspan="2">เงินเดือน</th>
+                                            <th rowspan="2">แหล่งงบประมาณ</th>
+                                            <th rowspan="2">งบประมาณแผ่นดิน</th>
+                                            <th rowspan="2">งบประมาณเงินรายได้</th>
+                                            <th rowspan="2">งบประมาณเงินรายได้ สนอ.</th>
+                                            <th rowspan="2">สาขาวิชา/สถานที่ปฏิบัติงาน</th>
+                                            <th rowspan="2">สถานะการปฏิบัติงาน</th>
+                                            <th rowspan="2">วันที่เกษียณ</th>
+                                            <th colspan="2">ผลการประเมิน</th>                                           
+                                            <th>ประสงค์จ้างต่อเนื่อง</th>
+                                            <th rowspan="2">ระยะเวลาการจ้าง</th>
+                                        </tr>
+                                        <tr>
+                                            <th>ผลประเมิน</th>
+                                            <th>ร้อยละ</th>
+                                            <th>ใช่/ไม่ใช่</th>
+                                        </tr>
+                                    </thead>
                                         <tbody>
                                             <tr>
                                                 <td>1</td>
@@ -113,6 +129,74 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_new-vs-old-positions'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    response.wf.forEach((row, index) => {                   
+                        const tr = document.createElement('tr');
+
+                        const columns = [
+                            { key: 'No', value: index + 1 },
+                            { key: 'Alias_Default', value: row.Alias_Default },
+                            { key: 'TYPE', value: row.TYPE },
+                            { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },
+                            { key: 'Personnel_Type', value: row.Personnel_Type },
+                            { key: 'Employment_Type', value: row.Employment_Type },
+                            { key: 'Position_Number', value: row.Position_Number },
+                            { key: 'Position', value: row.Position },
+                            { key: 'Requested_HC_unit', value: row.Requested_HC_unit },
+                            { key: 'Job_Family', value: row.Job_Family },
+                            { key: 'All_PositionTypes', value: row.All_PositionTypes },
+                            { key: 'Personnel_Group', value: row.Personnel_Group },
+                            { key: 'Contract_Type', value: row.Contract_Type },
+                            { key: 'Contract_Period_Short_Term', value: row.Contract_Period_Short_Term },
+                            { key: 'Position_Qualifications', value: row.Position_Qualifications },
+                            { key: 'rate_status', value: row.rate_status },
+                            { key: 'salary_rate', value: row.salary_rate },
+                            { key: 'fund_ft', value: row.fund_ft },
+                            { key: 'govt_fund', value: row.govt_fund },
+                            { key: 'division_revenue', value: row.division_revenue },
+                            { key: 'oop_central_revenue', value: row.oop_central_revenue },
+                            { key: 'Location_Code', value: row.Location_Code },
+                            { key: 'Position_Status', value: row.Position_Status },
+                            { key: 'Vacant_From_Which_Date', value: row.Vacant_From_Which_Date },
+                            { key: 'Performance_Evaluation', value: row.Performance_Evaluation },
+                            { key: 'Performance_Evaluation_Percentage', value: row.Performance_Evaluation_Percentage },                            
+                            { key: 'Wish_to_Continue_Employement', value: row.Wish_to_Continue_Employement },
+                            { key: 'Hiring_Start_End_Date', value: row.Hiring_Start_End_Date },
+
+                        ];
+
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);     
+                    });
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

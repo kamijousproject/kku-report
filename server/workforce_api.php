@@ -764,6 +764,97 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "kku_wf_new-vs-old-positions":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH w1 AS (
+                        SELECT 'อัตราเดิม' AS TYPE ,Position_Number
+                        ,case when Wish_to_Continue_Employement='ประสงค์จ้างต่อ' then 'ใช่'
+                        when Wish_to_Continue_Employement='ไม่ประสงค์จ้างต่อ' then 'ไม่ใช่'
+                        ELSE NULL END AS Wish_to_Continue_Employement
+                        ,Performance_Evaluation_Percentage,Performance_Evaluation
+                        FROM workforce_current_position_request)
+                        ,act1 AS (
+                        SELECT a1.faculty,a1.Position_Number,a1.Workers_Name_Surname,a1.Personnel_Type,a1.Employment_Type,a1.`Position`,a1.Job_Family,a1.All_PositionTypes,a1.Personnel_Group,a1.Contract_Type,a1.Contract_Period_Short_Term,a1.Position_Qualifications,w1.Wish_to_Continue_Employement,w1.Performance_Evaluation_Percentage,w1.Performance_Evaluation,w1.type
+                        FROM w1
+                        LEFT JOIN actual_data_1 a1
+                        ON w1.Position_Number=a1.Position_Number)
+                        ,act2 AS (
+                        SELECT act1.*,a2.rate_status,a2.salary_rate,a2.fund_ft,a2.govt_fund,a2.division_revenue,a2.oop_central_revenue
+                        FROM act1
+                        LEFT JOIN actual_data_2 a2
+                        ON act1.Position_Number=a2.position_number)
+                        ,act4 AS (
+                        SELECT act2.*,a4.Vacant_From_Which_Date,a4.Hiring_Start_End_Date,a4.Position_Status
+                        FROM act2
+                        LEFT JOIN actual_data_4 a4
+                        ON act2.Position_Number=a4.position_number)
+                        ,act5 AS (
+                        SELECT act4.*,a5.Location_Code,NULL AS Requested_HC_unit
+                        FROM act4
+                        LEFT JOIN actual_data_5 a5
+                        ON act4.Position_Number=a5.Position_Number)
+                        ,w2 AS (
+                        SELECT 
+                            Faculty COLLATE utf8mb4_general_ci AS faculty,
+                            NULL AS Position_Number,
+                            Workers_Name_Surname COLLATE utf8mb4_general_ci,
+                            Personnel_Type COLLATE utf8mb4_general_ci,
+                            Employment_Type COLLATE utf8mb4_general_ci,
+                            POSITION COLLATE utf8mb4_general_ci AS Position,
+                            Job_Family COLLATE utf8mb4_general_ci,
+                            All_PositionTypes COLLATE utf8mb4_general_ci,
+                            Personnel_Group COLLATE utf8mb4_general_ci,
+                            Contract_Type COLLATE utf8mb4_general_ci,
+                            Hiring_Start_End_Date COLLATE utf8mb4_general_ci AS Contract_Period_Short_Term,
+                            Position_Qualififcations COLLATE utf8mb4_general_ci AS Position_Qualifications,
+                            NULL AS Wish_to_Continue_Employement,
+                            NULL AS Performance_Evaluation_Percentage,
+                            NULL AS Performance_Evaluation,
+                            'อัตราใหม่'COLLATE utf8mb4_general_ci AS type,
+                            NULL AS rate_status,
+                            Salary_Wages_Baht_per_month COLLATE utf8mb4_general_ci AS salary_rate,
+                            Fund_FT COLLATE utf8mb4_general_ci AS fund_ft,
+                            NULL AS govt_fund,
+                            NULL AS division_revenue,
+                            NULL AS oop_central_revenue,
+                            NULL AS Vacant_From_Which_Date,
+                            NULL AS Hiring_Start_End_Date,
+                            NULL AS Position_Status,
+                            Field_of_Study COLLATE utf8mb4_general_ci AS Location_Code,
+                            Requested_HC_unit
+                        FROM workforce_new_position_request)
+                        ,all_data AS (
+                        SELECT * FROM act5
+                        UNION ALL
+                        SELECT * FROM w2
+                        )
+                        SELECT a.*,f.Alias_Default FROM all_data a
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default 
+                        FROM Faculty
+                        ) f ON a.faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        ORDER BY faculty";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }
