@@ -600,6 +600,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "kku_wf_4year-workload":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH act1 AS (
+                        SELECT Faculty,All_PositionTypes,COUNT(*) AS count_staff 
+                        FROM actual_data_1 
+                        WHERE All_PositionTypes!='No Position Type' AND Faculty!='00000'
+                        GROUP BY Faculty,All_PositionTypes)
+                        ,transform_data AS (
+                        SELECT Faculty 
+                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type1
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type2
+                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type3
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type4
+                        FROM act1
+                        GROUP BY Faculty)
+                        ,4year AS (
+                        SELECT Faculty 
+                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(wf, 0) ELSE 0 END) AS wf_type1
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(wf, 0) ELSE 0 END) AS wf_type2
+                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(wf, 0) ELSE 0 END) AS wf_type3
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(wf, 0) ELSE 0 END) AS wf_type4
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(FTES_criteria, 0) ELSE 0 END) AS sum_FTES
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(Research_Workload_Criteria, 0) ELSE 0 END) AS sum_RWC
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(Workload_Criteria_Academic_Services, 0) ELSE 0 END) AS sum_WCAS
+                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(Research_Workload_Criteria, 0) ELSE 0 END) AS sum_RWC2
+                        FROM workforce_4year_plan
+                        GROUP BY Faculty)
+                        ,ty AS (
+                        SELECT td.*,y.wf_type1,y.wf_type2,y.wf_type3,y.wf_type4,y.sum_FTES,y.sum_RWC,y.sum_WCAS,y.sum_RWC2
+                        FROM transform_data td
+                        LEFT JOIN 4year y
+                        ON td.faculty = y.faculty COLLATE UTF8MB4_GENERAL_CI
+                        )
+
+
+                        SELECT ty.*,f.Alias_Default FROM ty
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default 
+                        FROM Faculty
+                        ) f ON ty.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        WHERE ty.wf_type1 IS NOT NULL 
+                        ORDER BY ty.faculty";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }

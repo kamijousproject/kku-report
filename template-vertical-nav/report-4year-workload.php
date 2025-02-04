@@ -34,28 +34,48 @@
                                     <h4>รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน</h4>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>ที่</th>
-                                                <th>ส่วนงาน</th>
-                                                <th colspan="2">ประเภทบริหาร</th>
-                                                <th colspan="4">ประเภทวิชาการ</th>
-                                                <th colspan="2">ประเภทวิจัย</th>
-                                            </tr>
-                                            <tr>
-                                                <th></th>
-                                                <th></th>
-                                                <th>อัตราปัจจุบัน</th>
-                                                <th>กรอบที่ตั้ง</th>
-                                                <th>อัตราปัจจุบัน</th>
-                                                <th>กรอบที่ตั้ง</th>
-                                                <th>เกณฑ์ FTES</th>
-                                                <th>รวมวิชาการ</th>
-                                                <th>เกณฑ์การวิจัย</th>
-                                                <th>รวมวิจัย</th>
-                                            </tr>
-                                        </thead>
+                                    <table id="reportTable" class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2">ที่</th>
+                                            <th rowspan="2">ส่วนงาน</th>
+                                            <th colspan="2">ประเภทบริหาร</th>
+                                            <th colspan="6">ประเภทวิชาการ</th>
+                                            <th colspan="2">ประเภทวิจัย</th>
+                                            <th colspan="14">ประเภทสนับสนุน</th>
+                                            <th rowspan="2">รวมกรอบอัตราพึงมีทั้งหมด</th>
+                                        </tr>
+                                        <tr>
+                                            <!-- ประเภทบริหาร -->
+                                            <th>อัตราปัจจุบัน</th>
+                                            <th>กรอบที่พึงมี</th>
+                                            <!-- ประเภทวิชาการ -->
+                                            <th>อัตราปัจจุบัน</th>
+                                            <th>กรอบพึงมีวิชาการตามแผน 2563-2566</th>
+                                            <th>เกณฑ์ FTES</th>
+                                            <th>เกณฑ์ภาระงานวิจัย</th>
+                                            <th>เกณฑ์ภาระงานบริการวิชาการ</th>
+                                            <th>รวมวิชาการ</th>
+                                            <!-- ประเภทวิจัย -->
+                                            <th>เกณฑ์ภาระงานวิจัย</th>
+                                            <th>รวมวิจัย</th>
+                                            <!-- ประเภทสนับสนุน -->
+                                            <th>Healthcare Services</th>
+                                            <th>Student and Faculty Services</th>
+                                            <th>Technical and Research services</th>
+                                            <th>Internationalization</th>
+                                            <th>Human Resources</th>
+                                            <th>Administration</th>
+                                            <th>Legal, Compliance and Protection</th>
+                                            <th>Strategic Management</th>
+                                            <th>Information Technology</th>
+                                            <th>Infrastructure and Facility Services</th>
+                                            <th>Communication and Relation Management</th>
+                                            <th>Cultural Affair</th>
+                                            <th>Financial Services</th>
+                                            <th>รวมประเภทสนับสนุน</th>
+                                        </tr>
+                                    </thead>
                                         <tbody>
                                             <tr>
                                                 <td>1</td>
@@ -83,17 +103,7 @@
                                             </tr>
                                         </tbody>
                                         <tfoot>
-                                            <tr>
-                                                <td colspan="2">รวมทั้งหมด</td>
-                                                <td>35</td>
-                                                <td>45</td>
-                                                <td>55</td>
-                                                <td>65</td>
-                                                <td>27</td>
-                                                <td>82</td>
-                                                <td>18</td>
-                                                <td>38</td>
-                                            </tr>
+                                            
                                         </tfoot>
                                     </table>
                                 </div>
@@ -114,6 +124,111 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_4year-workload'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    console.log(response.faculty);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    response.wf.forEach((row, index) => {                   
+                        const tr = document.createElement('tr');
+
+                        const columns = [
+                                { key: 'No', value: index+1 },
+                                { key: 'Alias_Default', value: row.Alias_Default },
+                                
+                                { key: 'Actual_type1', value: row.Actual_type1 },
+                                { key: 'wf_type1', value: row.wf_type1 },
+                                
+                                { key: 'Actual_type2', value: row.Actual_type2 },
+                                { key: 'wf_plan', value: "" },
+                                { key: 'sum_FTES', value: row.sum_FTES },
+                                
+                                { key: 'sum_RWC', value: row.sum_RWC },
+                                { key: 'sum_WCAS', value: row.sum_WCAS },
+                                
+                                { key: 'total_type2', value:  parseInt(row.Actual_type2) +parseInt(row.sum_FTES) +parseInt(row.sum_RWC) +parseInt(row.sum_WCAS) },
+                                { key: 'sum_RWC2', value: row.sum_RWC2 },
+                                
+                                { key: 'sum_RWC2', value: row.sum_RWC2 },
+
+                                { key: 's1', value: "" },        
+                                { key: 's2', value: "" },
+                                { key: 's3', value: "" },
+                                { key: 's4', value: ""},
+                                { key: 's5', value: "" },
+                                { key: 's6', value: "" },
+                                { key: 's7', value: "" },
+                                { key: 's8', value: ""},
+                                { key: 's9', value: "" },
+                                { key: 's10', value: "" },
+                                { key: 's11', value: "" },
+                                { key: 's12', value: "" },        
+                                { key: 's13', value: "" },
+                                { key: 's14', value: "" },
+                                { key: 's15', value: "" },
+                            ];
+
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);     
+                    });
+                    calculateSum();
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+        function calculateSum() {
+        const table = document.querySelector('table');
+        const rows = table.querySelectorAll('tbody tr');
+        const footer = table.querySelector('tfoot');
+        const columns = rows[0].querySelectorAll('td').length;
+
+        // สร้างแถว footer
+        let footerRow = document.createElement('tr');
+        footerRow.innerHTML = '<td colspan="2">รวม</td>';
+
+        // เริ่มต้นผลรวมแต่ละคอลัมน์
+        let sums = new Array(columns - 2).fill(0); 
+
+        // คำนวณผลรวม
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+            if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
+                sums[index - 2] += parseFloat(cell.textContent) || 0;
+            }
+            });
+        });
+
+        // เพิ่มผลรวมลงใน footer
+        sums.forEach(sum => {
+            footerRow.innerHTML += `<td>${sum}</td>`;
+        });
+
+        // เพิ่มแถว footer ลงในตาราง
+        footer.appendChild(footerRow);
+        }
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
