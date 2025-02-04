@@ -29,79 +29,125 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <div class="card">
+                            <?php
+                            include '../server/connectdb.php';
+
+                            $db = new Database();
+                            $conn = $db->connect();
+
+                            function fetchBudgetData($conn, $fund)
+                            {
+                                $query = "SELECT
+                                            bpaap.*, bpsk.*, bpabp.*, 
+                                            f.Alias_Default AS Faculty_Name,
+                                            p.plan_name AS Plan_Name,
+                                            sp.sub_plan_name AS Sub_Plan_Name,
+                                            pr.project_name AS Project_Name
+                                        FROM
+                                            budget_planning_allocated_annual_budget_plan AS bpaap
+                                            LEFT JOIN budget_planning_subplan_kpi AS bpsk ON bpaap.Sub_Plan = bpsk.Sub_Plan
+                                            LEFT JOIN budget_planning_annual_budget_plan AS bpabp ON bpabp.`Account` = bpaap.`Account`
+                                            LEFT JOIN Faculty AS f ON bpaap.Faculty = f.Faculty
+                                            LEFT JOIN plan AS p ON bpaap.Plan = p.plan_id
+                                            LEFT JOIN sub_plan AS sp ON bpaap.Sub_Plan = sp.sub_plan_id
+                                            LEFT JOIN project AS pr ON bpaap.Project = pr.project_id
+                                        WHERE
+                                            bpaap.Fund = :fund";
+
+                                $stmt = $conn->prepare($query);
+                                $stmt->bindParam(':fund', $fund);
+                                $stmt->execute();
+                                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            }
+
+                            $resultsFN06 = fetchBudgetData($conn, 'FN06');
+                            $resultsFN08 = fetchBudgetData($conn, 'FN08');
+                            $resultsFN02 = fetchBudgetData($conn, 'FN02');
+                            ?>
+
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานเปรียบเทียบงประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</h4>
+                                    <h4>รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</h4>
                                 </div>
                                 <div class="table-responsive">
-                                    <table id="reportTable" class="table table-hover">
+                                    <table id="reportTable" class="table table-bordered table-hover">
                                         <thead>
                                             <tr>
-                                                <th rowspan="2">รายการ</th>
-                                                <th>หน่วยรับงบจัดสรร</th>
-                                                <th colspan="4">ปี 2567 (ปีปัจจุบัน)</th>
-                                                <th colspan="6">ปี 2568 (ปีที่ขอตั้งงบ)</th>
-                                                <th rowspan="2">เพิ่ม/ลด</th>
-                                                <th rowspan="2">คำชี้แจง</th>
+                                                <th rowspan="3">รายการ</th>
+                                                <th rowspan="3">หน่วยนับของตัวชี้วัด (UOM)</th>
+                                                <th colspan="5">ปี 2567 (ปีปัจจุบัน)</th>
+                                                <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
+                                                <th colspan="2" rowspan="2">เพิ่ม/ลด</th>
+                                                <th rowspan="3">คำชี้แจง</th>
                                             </tr>
                                             <tr>
-                                                <th>ปริมาณของงบจัดสรร</th>
-                                                <th>เงินอุดหนุนจากรัฐ</th>
-                                                <th>เงินนอกงบประมาณ</th>
-                                                <th>เงินรายได้</th>
-                                                <th>รวม</th>
-                                                <th>เงินอุดหนุนจากรัฐ (คำขอ)</th>
-                                                <th>เงินอุดหนุนจากรัฐ (จัดสรร)</th>
-                                                <th>เงินนอกงบประมาณ (คำขอ)</th>
-                                                <th>เงินนอกงบประมาณ (จัดสรร)</th>
-                                                <th>เงินรายได้ (คำขอ)</th>
-                                                <th>เงินรายได้ (จัดสรร)</th>
-                                                <th>รวม</th>
+                                                <th rowspan="2">ปริมาณของตัวชี้วัด</th>
+                                                <th rowspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                <th rowspan="2">เงินนอกงบประมาณ</th>
+                                                <th rowspan="2">เงินรายได้</th>
+                                                <th rowspan="2">รวม</th>
+                                                <th rowspan="2">ปริมาณของตัวชี้วัด</th>
+                                                <th colspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                <th colspan="2">เงินนอกงบประมาณ</th>
+                                                <th colspan="2">เงินรายได้</th>
+                                                <th rowspan="2">รวม</th>
+                                            </tr>
+                                            <tr>
+                                                <th>คำขอ</th>
+                                                <th>จัดสรร</th>
+                                                <th>คำขอ</th>
+                                                <th>จัดสรร</th>
+                                                <th>คำขอ</th>
+                                                <th>จัดสรร</th>
+                                                <th>จำนวน</th>
+                                                <th>ร้อยละ</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>แผนงาน (ผลผลิต) [Plan]</td>
-                                                <td>หน่วยงาน A</td>
-                                                <td>5,000</td>
-                                                <td>2,000</td>
-                                                <td>3,000</td>
-                                                <td>10,000</td>
-                                                <td>6,000</td>
-                                                <td>5,800</td>
-                                                <td>2,500</td>
-                                                <td>2,400</td>
-                                                <td>3,200</td>
-                                                <td>3,100</td>
-                                                <td>11,300</td>
-                                                <td>+1,300</td>
-                                                <td>เพิ่มเพื่อรองรับโครงการใหม่</td>
-                                            </tr>
-                                            <tr>
-                                                <td>แผนงานย่อย (ผลผลิตย่อย/กิจกรรม) [Sub plan]</td>
-                                                <td>หน่วยงาน B</td>
-                                                <td>4,000</td>
-                                                <td>1,500</td>
-                                                <td>2,500</td>
-                                                <td>8,000</td>
-                                                <td>4,500</td>
-                                                <td>4,300</td>
-                                                <td>1,800</td>
-                                                <td>1,700</td>
-                                                <td>2,800</td>
-                                                <td>2,700</td>
-                                                <td>9,000</td>
-                                                <td>+1,000</td>
-                                                <td>เพิ่มเพื่อการพัฒนาโครงสร้างพื้นฐาน</td>
-                                            </tr>
+                                            <?php foreach ($resultsFN06 as $row):
+                                                $fn08 = $resultsFN08[array_search($row['Account'], array_column($resultsFN08, 'Account'))] ?? [];
+                                                $fn02 = $resultsFN02[array_search($row['Account'], array_column($resultsFN02, 'Account'))] ?? [];
+                                                $sum67 = ($row['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
+                                                $sum68Request = ($row['Total_Amount_Quanity'] ?? 0) + ($fn08['Total_Amount_Quanity'] ?? 0) + ($fn02['Total_Amount_Quanity'] ?? 0);
+                                                $sum68Allocated = ($row['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
+                                                $diff = $sum68Allocated - $sum67;
+                                                $percent = ($diff / max($sum67, 1)) * 100;
+                                            ?>
+                                                <tr>
+                                                    <td>
+                                                        <strong><?= htmlspecialchars($row['Faculty_Name'] ?? '-') ?></strong><br>
+                                                        <?= htmlspecialchars($row['Plan_Name'] ?? '-') ?><br>
+                                                        <?= htmlspecialchars($row['Sub_Plan_Name'] ?? '-') ?><br>
+                                                        <?= htmlspecialchars($row['Project_Name'] ?? '-') ?>
+                                                    </td>
+                                                    <td><?php echo $row['UoM_for_Sub_plan_KPI'] ?></td>
+                                                    <td><?php echo $row['Sub_plan_KPI_Name'] ?></td>
+                                                    <td><?= number_format($row['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($fn02['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($fn08['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($sum67, 2) ?></td>
+                                                    <td><?php echo $row['Sub_plan_KPI_Name'] ?></td>
+                                                    <td><?= number_format($row['Total_Amount_Quanity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($row['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($fn08['Total_Amount_Quanity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($fn08['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($fn02['Total_Amount_Quanity'] ?? 0, 2) ?></td>
+                                                    <td><?= number_format($fn02['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
+                                                    
+                                                    <td><?= number_format($sum68Allocated, 2) ?></td>
+                                                    <td><?= number_format($diff, 2) ?></td>
+                                                    <td><?= number_format($percent, 2) . '%' ?></td>
+                                                    <td><?php echo $row['Reason'] ?></td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
-
                             </div>
+
                         </div>
                     </div>
                 </div>
