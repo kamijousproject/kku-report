@@ -663,6 +663,78 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "kku_wf_framework-summary":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH act1 AS (
+                        SELECT Faculty,All_PositionTypes,COUNT(*) AS count_staff 
+                        FROM actual_data_1 
+                        WHERE All_PositionTypes!='No Position Type' AND Faculty!='00000'
+                        GROUP BY Faculty,All_PositionTypes)
+                        ,transform_data AS (
+                        SELECT Faculty 
+                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type1
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type2
+                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type3
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type4
+                        FROM act1
+                        GROUP BY Faculty)
+                        ,4year AS (
+                        SELECT Faculty AS f2
+                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(Year_1_Headcount, 0) ELSE 0 END) AS wf_type1_y1
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(Year_1_Headcount, 0) ELSE 0 END) AS wf_type2_y1
+                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(Year_1_Headcount, 0) ELSE 0 END) AS wf_type3_y1
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(Year_1_Headcount, 0) ELSE 0 END) AS wf_type4_y1
+                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(Year_2_Headcount, 0) ELSE 0 END) AS wf_type1_y2
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(Year_2_Headcount, 0) ELSE 0 END) AS wf_type2_y2
+                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(Year_2_Headcount, 0) ELSE 0 END) AS wf_type3_y2
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(Year_2_Headcount, 0) ELSE 0 END) AS wf_type4_y2
+                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(Year_3_Headcount, 0) ELSE 0 END) AS wf_type1_y3
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(Year_3_Headcount, 0) ELSE 0 END) AS wf_type2_y3
+                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(Year_3_Headcount, 0) ELSE 0 END) AS wf_type3_y3
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(Year_3_Headcount, 0) ELSE 0 END) AS wf_type4_y3
+                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(Year_4_Headcount, 0) ELSE 0 END) AS wf_type1_y4
+                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(Year_4_Headcount, 0) ELSE 0 END) AS wf_type2_y4
+                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(Year_4_Headcount, 0) ELSE 0 END) AS wf_type3_y4
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(Year_4_Headcount, 0) ELSE 0 END) AS wf_type4_y4
+                        FROM workforce_4year_plan
+                        GROUP BY Faculty)
+                        ,ty AS (
+                        SELECT td.*,y.*
+                        FROM transform_data td
+                        LEFT JOIN 4year y
+                        ON td.faculty = y.f2 COLLATE UTF8MB4_GENERAL_CI
+                        )
+
+
+                        SELECT ty.*,f.Alias_Default FROM ty
+
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default 
+                        FROM Faculty
+                        ) f ON ty.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        WHERE ty.wf_type1_y1 IS NOT NULL 
+                        ORDER BY ty.faculty";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }

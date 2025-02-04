@@ -37,30 +37,46 @@
                                 </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>ที่</th>
-                                                <th>ส่วนงาน</th>
-                                                <th colspan="5">ประเภทบริหาร</th>
-                                                <th colspan="5">ประเภทวิชาการ</th>
-                                            </tr>
-                                            <tr>
-                                                <th></th>
-                                                <th></th>
-                                                <th>อัตราปัจจุบัน</th>
-                                                <th>กรอบที่ตั้ง</th>
-                                                <th>ปี 2567 (ปีที่ 1)</th>
-                                                <th>ปี 2568 (ปีที่ 2)</th>
-                                                <th>ปี 2569 (ปีที่ 3)</th>
-                                                <th>ปี 2570 (ปีที่ 4)</th>
-                                                <th>อัตราปัจจุบัน</th>
-                                                <th>กรอบที่ตั้ง</th>
-                                                <th>ปี 2567 (ปีที่ 1)</th>
-                                                <th>ปี 2568 (ปีที่ 2)</th>
-                                                <th>ปี 2569 (ปีที่ 3)</th>
-                                                <th>ปี 2570 (ปีที่ 4)</th>
-                                            </tr>
-                                        </thead>
+                                    <thead>
+                                        <tr>
+                                            <th rowspan="2">ที่</th>
+                                            <th rowspan="2">ส่วนงาน</th>
+                                            <th colspan="6">ประเภทบริหาร</th>
+                                            <th colspan="6">ประเภทวิชาการ</th>
+                                            <th colspan="6">ประเภทวิจัย</th>
+                                            <th colspan="6">ประเภทสนับสนุน</th>
+                                        </tr>
+                                        <tr>
+                                            <!-- ประเภทบริหาร -->
+                                            <th>อัตราปัจจุบัน</th>
+                                            <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
+                                            <th>ปี 2567 (ปีที่ 1)</th>
+                                            <th>ปี 2568 (ปีที่ 2)</th>
+                                            <th>ปี 2569 (ปีที่ 3)</th>
+                                            <th>ปี 2570 (ปีที่ 4)</th>
+                                            <!-- ประเภทวิชาการ -->
+                                            <th>อัตราปัจจุบัน</th>
+                                            <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
+                                            <th>ปี 2567 (ปีที่ 1)</th>
+                                            <th>ปี 2568 (ปีที่ 2)</th>
+                                            <th>ปี 2569 (ปีที่ 3)</th>
+                                            <th>ปี 2570 (ปีที่ 4)</th>
+                                            <!-- ประเภทวิจัย -->
+                                            <th>อัตราปัจจุบัน</th>
+                                            <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
+                                            <th>ปี 2567 (ปีที่ 1)</th>
+                                            <th>ปี 2568 (ปีที่ 2)</th>
+                                            <th>ปี 2569 (ปีที่ 3)</th>
+                                            <th>ปี 2570 (ปีที่ 4)</th>
+                                            <!-- ประเภทสนับสนุน -->
+                                            <th>อัตราปัจจุบัน</th>
+                                            <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
+                                            <th>ปี 2567 (ปีที่ 1)</th>
+                                            <th>ปี 2568 (ปีที่ 2)</th>
+                                            <th>ปี 2569 (ปีที่ 3)</th>
+                                            <th>ปี 2570 (ปีที่ 4)</th>
+                                        </tr>
+                                    </thead>
                                         <tbody>
                                             <tr>
                                                 <td>1</td>
@@ -96,21 +112,7 @@
                                             </tr>
                                         </tbody>
                                         <tfoot>
-                                            <tr>
-                                                <td colspan="2">รวมทั้งหมด</td>
-                                                <td>35</td>
-                                                <td>45</td>
-                                                <td>40</td>
-                                                <td>43</td>
-                                                <td>47</td>
-                                                <td>51</td>
-                                                <td>55</td>
-                                                <td>65</td>
-                                                <td>60</td>
-                                                <td>63</td>
-                                                <td>67</td>
-                                                <td>71</td>
-                                            </tr>
+                                            
                                         </tfoot>
                                     </table>
                                 </div>
@@ -132,6 +134,107 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_framework-summary'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    console.log(response.faculty);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    response.wf.forEach((row, index) => {                   
+                        const tr = document.createElement('tr');
+
+                        const columns = [
+                                { key: 'No', value: index+1 },
+                                { key: 'Alias_Default', value: row.Alias_Default },
+                                
+                                { key: 'Actual_type1', value: row.Actual_type1 },
+                                { key: 'wf1', value: ""},
+                                { key: 'wf_type1_y1', value: row.wf_type1_y1 },
+                                { key: 'wf_type2_y1', value: row.wf_type2_y1 },
+                                { key: 'wf_type3_y1', value: row.wf_type3_y1 },
+                                { key: 'wf_type4_y1', value: row.wf_type4_y1 },
+                                
+                                { key: 'Actual_type2', value: row.Actual_type1 },
+                                { key: 'wf2', value: ""},
+                                { key: 'wf_type1_y2', value: row.wf_type1_y2 },
+                                { key: 'wf_type2_y2', value: row.wf_type2_y2 },
+                                { key: 'wf_type3_y2', value: row.wf_type3_y2 },
+                                { key: 'wf_type4_y2', value: row.wf_type4_y2 },
+
+                                { key: 'Actual_type3', value: row.Actual_type1 },
+                                { key: 'wf3', value: ""},
+                                { key: 'wf_type1_y3', value: row.wf_type1_y3 },
+                                { key: 'wf_type2_y3', value: row.wf_type2_y3 },
+                                { key: 'wf_type3_y3', value: row.wf_type3_y3 },
+                                { key: 'wf_type4_y3', value: row.wf_type4_y3 },
+
+                                { key: 'Actual_type4', value: row.Actual_type4 },
+                                { key: 'wf4', value: ""},
+                                { key: 'wf_type1_y4', value: row.wf_type1_y4 },
+                                { key: 'wf_type2_y4', value: row.wf_type2_y4 },
+                                { key: 'wf_type3_y4', value: row.wf_type3_y4 },
+                                { key: 'wf_type4_y4', value: row.wf_type4_y4 },
+                            ];
+
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);     
+                    });
+                    calculateSum();
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+        function calculateSum() {
+        const table = document.querySelector('table');
+        const rows = table.querySelectorAll('tbody tr');
+        const footer = table.querySelector('tfoot');
+        const columns = rows[0].querySelectorAll('td').length;
+
+        // สร้างแถว footer
+        let footerRow = document.createElement('tr');
+        footerRow.innerHTML = '<td colspan="2">รวม</td>';
+
+        // เริ่มต้นผลรวมแต่ละคอลัมน์
+        let sums = new Array(columns - 2).fill(0); 
+
+        // คำนวณผลรวม
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+            if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
+                sums[index - 2] += parseFloat(cell.textContent) || 0;
+            }
+            });
+        });
+
+        // เพิ่มผลรวมลงใน footer
+        sums.forEach(sum => {
+            footerRow.innerHTML += `<td>${sum}</td>`;
+        });
+
+        // เพิ่มแถว footer ลงในตาราง
+        footer.appendChild(footerRow);
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
