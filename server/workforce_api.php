@@ -735,6 +735,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "kku_wf_positions-summary":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT w.*,f.Alias_Default
+                        FROM workforce_new_position_request w
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default 
+                        FROM Faculty
+                        ) f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }

@@ -35,25 +35,35 @@
                                 </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>ลำดับ</th>
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>ประเภทบุคลากร</th>
-                                                <th>ประเภทการจ้าง</th>
-                                                <th>ประเภทตำแหน่ง</th>
-                                                <th>กลุ่มบุคลากร</th>
-                                                <th>ชื่อตำแหน่ง</th>
-                                                <th>กลุ่มตำแหน่ง/Job Family</th>
-                                                <th>คุณวุฒิอัตรา</th>
-                                                <th>ประเภทสัญญา</th>
-                                                <th>ระยะเวลาสัญญา</th>
-                                                <th>จำนวนอัตราที่ขอ</th>
-                                                <th>เงินเดือน/ค่าจ้าง</th>
-                                                <th>แหล่งงบประมาณ</th>
-                                                <th>สายวิชา (ตำแหน่งอาจารย์/สถานที่ปฏิบัติงาน)</th>
-                                            </tr>
-                                        </thead>
+                                    <thead>
+                                        <tr>
+                                            <th colspan="15">ส่วนงาน/หน่วยงาน</th>
+                                            <th colspan="3">ข้อมูลเฉพาะผู้เกษียณอายุราชการ/ชาวต่างประเทศ</th>
+                                            <th colspan="2">ข้อมูลสำคัญสำหรับทุกประเภทบุคลากร</th>
+                                        </tr>
+                                        <tr>
+                                            <th rowspan="2">ลำดับ</th>
+                                            <th rowspan="2">ส่วนงาน/หน่วยงาน</th>
+                                            <th rowspan="2">ประเภทบุคลากร</th>
+                                            <th rowspan="2">ประเภทการจ้าง</th>
+                                            <th rowspan="2">ประเภทตำแหน่ง</th>
+                                            <th rowspan="2">กลุ่มบุคลากร</th>
+                                            <th rowspan="2">ชื่อตำแหน่ง</th>
+                                            <th rowspan="2">กลุ่มตำแหน่ง Job Family</th>
+                                            <th rowspan="2">คุณวุฒิอัตรา</th>
+                                            <th rowspan="2">ประเภทสัญญา</th>
+                                            <th rowspan="2">ระยะเวลาสัญญา</th>
+                                            <th rowspan="2">จำนวนอัตราที่ขอ</th>
+                                            <th rowspan="2">เงินเดือน / ค่าจ้าง</th>
+                                            <th rowspan="2">แหล่งงบประมาณ</th>
+                                            <th rowspan="2">สาขาวิชา (ตำแหน่งอาจารย์) / สถานที่ปฏิบัติงาน (ตำแหน่งอื่น)</th>
+                                            <th rowspan="2">ผู้ครองตำแหน่ง</th>
+                                            <th rowspan="2">ตำแหน่งทางวิชาการ</th>
+                                            <th rowspan="2">ระยะเวลาการจ้าง</th>
+                                            <th rowspan="2">เหตุผลจำเพาะ</th>
+                                            <th rowspan="2">แนบรายละเอียด Link file detail</th>
+                                        </tr>
+                                    </thead>
                                         <tbody>
                                             <tr>
                                                 <td>1</td>
@@ -111,6 +121,66 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_positions-summary'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.wf);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    response.wf.forEach((row, index) => {                   
+                        const tr = document.createElement('tr');
+
+                        const columns = [
+                            { key: 'No', value: index+1 },
+                            { key: 'Alias_Default', value: row.Alias_Default },
+                            { key: 'Personnel_Type', value: row.Personnel_Type },
+                            { key: 'Employment_Type', value: row.Employment_Type },      
+                            { key: 'All_PositionTypes', value: row.All_PositionTypes },                                                            
+                            { key: 'Personnel_Group', value: row.Personnel_Group },                              
+                            { key: 'Position', value: row.Position }, 
+                            { key: 'Job_Family', value: row.Job_Family }, 
+                            { key: 'Position_Qualififcations', value: row.Position_Qualififcations },
+                            { key: 'Contract_Type', value: row.Contract_Type },
+                            { key: 'period', value: "" },   
+                            { key: 'Requested_HC_unit', value: row.Requested_HC_unit },
+                            { key: 'Salary_Wages_Baht_per_month', value: row.Salary_Wages_Baht_per_month },
+                            { key: 'Fund_FT', value: row.Fund_FT }, 
+                            { key: 'Field_of_Study', value: row.Field_of_Study },                             
+                            { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },    
+                            { key: 'Academic_Position', value: row.Academic_Position },
+                            { key: 'Hiring_Start_End_Date', value: row.Hiring_Start_End_Date },
+                            { key: 'Specific_reasons', value: row.Specific_reasons },
+                            { key: 'Additional_Information', value: row.Additional_Information },
+                                                                                                
+                        ];
+
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);     
+                    });
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
