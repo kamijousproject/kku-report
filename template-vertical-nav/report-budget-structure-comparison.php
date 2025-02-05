@@ -53,7 +53,6 @@
                                 <div class="card-title">
                                     <h4>รายงานเปรียบเทียบงบประมาณ</h4>
                                 </div>
-
                                 <?php
                                 include '../server/connectdb.php';
 
@@ -63,27 +62,47 @@
                                 // ฟังก์ชันดึงข้อมูล
                                 function fetchBudgetData($conn, $fund)
                                 {
-                                    $query = "SELECT 
-                                                bpaap.*, 
-                                                bpa.*, 
-                                                f.Alias_Default AS Faculty_Name, 
-                                                p.plan_name AS Plan_Name, 
-                                                sp.sub_plan_name AS Sub_Plan_Name, 
+                                    $query = "SELECT DISTINCT
+                                                acc.sub_type,
+                                                acc.type,
+                                                bpanbp.Service,
+                                                bpa.SERVICE,
+                                                bpanbp.Account,
+                                                bpa.ACCOUNT,
+                                                bpanbp.Fund,
+                                                bpanbp.Faculty,
+                                                bpanbp.Plan,
+                                                bpanbp.Sub_Plan,
+                                                bpanbp.Project,
+                                                bpanbp.KKU_Item_Name,
+                                                bpanbp.Allocated_Total_Amount_Quantity,
+                                                bpa.TOTAL_BUDGET,
+                                                bpa.TOTAL_CONSUMPTION,
+                                                bpa.EXPENDITURES,
+                                                bpa.FUNDS_AVAILABLE_AMOUNT,
+                                                bpa.INITIAL_BUDGET,
+                                                bpa.FUNDS_AVAILABLE_PERCENTAGE,
+                                                bpa.COMMITMENTS,
+                                                bpa.OBLIGATIONS,
+                                                f.Alias_Default AS Faculty_Name,
+                                                p.plan_name AS Plan_Name,
+                                                sp.sub_plan_name AS Sub_Plan_Name,
                                                 pr.project_name AS Project_Name
-                                            FROM budget_planning_allocated_annual_budget_plan bpaap
-                                            LEFT JOIN budget_planning_actual bpa 
-                                                ON bpaap.Account = bpa.ACCOUNT
-                                            LEFT JOIN Faculty f
-                                                ON bpaap.Faculty COLLATE utf8mb4_general_ci = f.Faculty COLLATE utf8mb4_general_ci
-                                            LEFT JOIN plan p
-                                                ON bpaap.Plan COLLATE utf8mb4_general_ci = p.plan_id COLLATE utf8mb4_general_ci
-                                            LEFT JOIN sub_plan sp
-                                                ON bpaap.Sub_Plan COLLATE utf8mb4_general_ci = sp.sub_plan_id COLLATE utf8mb4_general_ci
-                                            LEFT JOIN project pr
-                                                ON bpaap.Project COLLATE utf8mb4_general_ci = pr.project_id COLLATE utf8mb4_general_ci
-                                            WHERE bpaap.Fund = :fund 
-                                            LIMIT 500;
-                                            ";
+                                            FROM
+                                                budget_planning_allocated_annual_budget_plan bpanbp
+                                                LEFT JOIN budget_planning_actual bpa 
+                                                ON bpanbp.Faculty = bpa.FACULTY 
+                                                AND bpanbp.Plan = bpa.PLAN
+                                                AND bpanbp.Sub_Plan = bpa.SUBPLAN
+                                                AND bpanbp.Project = bpa.PROJECT
+                                                AND bpanbp.Fund = bpa.FUND
+                                                LEFT JOIN account acc ON bpanbp.Account = acc.account
+                                                LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
+                                                LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
+                                                LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
+                                                LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
+                                            WHERE
+                                                bpanbp.Fund = :fund";
 
                                     $stmt = $conn->prepare($query);
                                     $stmt->bindParam(':fund', $fund);
@@ -92,20 +111,130 @@
                                 }
 
                                 $resultsFN02 = fetchBudgetData($conn, 'FN02');
-
                                 $resultsFN06 = fetchBudgetData($conn, 'FN06');
-                                ?>
 
+                                echo "<pre>";
+                                // print_r($resultsFN02);
+                                // print_r($resultsFN06);
+                                echo "</pre>";
+
+
+                                $mergedData = [];
+
+                                foreach ($resultsFN06 as $fn06) {
+                                    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
+                                        return (string) $fn06['Plan'] === (string) $fn02['Plan'] &&
+                                            (string) $fn06['Sub_Plan'] === (string) $fn02['Sub_Plan'] &&
+                                            (string) $fn06['Project'] === (string) $fn02['Project'] &&
+                                            (string) $fn06['Account'] === (string) $fn02['ACCOUNT'];
+                                    });
+
+                                    // ใช้แค่ตัวแรกที่ตรงกับ FN06
+                                    $fn02 = reset($fn02Match);
+
+                                    // ✅ กำหนดค่าเริ่มต้นให้ตัวแปร
+                                    $commitment_FN06 = 0;
+                                    $commitment_FN02 = 0;
+                                    $commitment_percent_FN06 = 0;
+                                    $commitment_percent_FN02 = 0;
+                                    $Expenditures_Percent_FN06 = 0;
+                                    $Expenditures_Percent_FN02 = 0;
+
+                                    // ✅ คำนวณค่าเริ่มต้นสำหรับ Total
+                                    $Total_Allocated = 0;
+                                    $Total_Commitments = 0;
+                                    $Total_Commitments_Percent = 0;
+                                    $Total_Expenditures = 0;
+                                    $Total_Expenditures_Percent = 0;
+
+                                    // ✅ ตรวจสอบว่ามีข้อมูล FN02 หรือไม่
+                                    if ($fn02) {
+                                        $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
+                                        $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
+
+                                        $commitment_percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
+                                            ? (($commitment_FN06 - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
+                                            : 0;
+
+                                        $commitment_percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
+                                            ? (($commitment_FN02 - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
+                                            : 0;
+
+                                        $Expenditures_Percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
+                                            ? (($fn06['EXPENDITURES'] - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
+                                            : 0;
+
+                                        $Expenditures_Percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
+                                            ? (($fn02['EXPENDITURES'] - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
+                                            : 0;
+                                    }
+
+                                    // ✅ คำนวณค่า Total
+                                    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
+                                    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
+                                    $Total_Commitments_Percent = $commitment_percent_FN06 + $commitment_percent_FN02;
+                                    $Total_Expenditures = ($fn06['EXPENDITURES'] ?? 0) + ($fn02['EXPENDITURES'] ?? 0);
+                                    $Total_Expenditures_Percent = $Expenditures_Percent_FN06 + $Expenditures_Percent_FN02;
+
+                                    // ✅ เพิ่มข้อมูลลงใน mergedData
+                                    $mergedData[] = [
+                                        'Plan' => $fn06['Plan'],
+                                        'Sub_Plan' => $fn06['Sub_Plan'],
+                                        'Project' => $fn06['Project'],
+                                        'Type' => $fn06['type'],
+                                        'Sub_Type' => $fn06['sub_type'],
+                                        'KKU_Item_Name' => $fn06['KKU_Item_Name'],
+                                        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
+                                        'Commitments_FN06' => $commitment_FN06,
+                                        'Commitment_Percent_FN06' => $commitment_percent_FN06,
+                                        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
+                                        'Expenditures_Percent_FN06' => $Expenditures_Percent_FN06,
+                                        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
+                                        'Commitments_FN02' => $commitment_FN02,
+                                        'Commitment_Percent_FN02' => $commitment_percent_FN02,
+                                        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
+                                        'Expenditures_Percent_FN02' => $Expenditures_Percent_FN02,
+                                        'Total_Allocated' => $Total_Allocated,
+                                        'Total_Commitments' => $Total_Commitments,
+                                        'Total_Commitments_Percent' => $Total_Commitments_Percent,
+                                        'Total_Expenditures' => $Total_Expenditures,
+                                        'Total_Expenditures_Percent' => $Total_Expenditures_Percent,
+                                    ];
+                                }
+
+
+                                // สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
+                                $rowspanData = [];
+
+                                // วนลูปเพื่อคำนวณว่าข้อมูลไหนต้อง merge
+                                foreach ($mergedData as $row) {
+                                    $key = $row['Plan'] . '|' . $row['Sub_Plan'] . '|' . $row['Project'] . '|' . $row['Type'] . '|' . $row['Sub_Type'];
+
+                                    if (!isset($rowspanData[$key])) {
+                                        $rowspanData[$key] = 0;
+                                    }
+                                    $rowspanData[$key]++;
+                                }
+
+                                // ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
+                                $usedRowspan = [];
+                                ?>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover">
                                         <thead>
                                             <tr>
-                                                <th rowspan="2">รายการ</th>
+                                                <th colspan="6">รายการ</th>
                                                 <th colspan="5">เงินอุดหนุนจากรัฐ (FN06)</th>
                                                 <th colspan="5">เงินรายได้ (FN02)</th>
                                                 <th colspan="5">รวม</th>
                                             </tr>
                                             <tr>
+                                                <th>Plan</th>
+                                                <th>Subplan</th>
+                                                <th>Project</th>
+                                                <th>ค่าใช้จ่าย</th>
+                                                <th>ประเภทรายจ่าย</th>
+                                                <th>รายการรายจ่าย</th>
                                                 <th>งบประมาณที่ได้รับจัดสรร</th>
                                                 <th>ผลการก่อหนี้ผูกพัน</th>
                                                 <th>ร้อยละผลการก่อหนี้ผูกพัน</th>
@@ -118,118 +247,49 @@
                                                 <th>ร้อยละผลการใช้จ่าย</th>
                                                 <th>งบประมาณที่ได้รับจัดสรร</th>
                                                 <th>ผลการก่อหนี้ผูกพัน</th>
-                                                <th>จำนวน (รวมจัดสรร68-รวม67)</th>
+                                                <th>จำนวน(รวมจัดสรร68-รวม67)</th>
                                                 <th>ผลการใช้จ่าย</th>
                                                 <th>ร้อยละผลการใช้จ่าย</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php
-                                            $mergedData = [];
-                                            // รวมข้อมูล FN06 และ FN02 โดยใช้ Account เป็นกุญแจหลัก
-                                            foreach ($resultsFN06 as $row) {
-                                                $account = $row['Account'] ?? 'NO_ACCOUNT_FN06';
-                                                if (!isset($mergedData[$account])) {
-                                                    $mergedData[$account] = ['FN06' => [], 'FN02' => []];
+                                            <?php foreach ($mergedData as $row) : ?>
+                                                <?php
+                                                // กำหนด Key เพื่อเช็คว่า Row นี้ต้อง merge หรือไม่
+                                                $key = $row['Plan'] . '|' . $row['Sub_Plan'] . '|' . $row['Project'] . '|' . $row['Type'] . '|' . $row['Sub_Type'];
+
+                                                // ตรวจสอบว่าเคยใช้ rowspan ไปแล้วหรือยัง
+                                                $showRowspan = !isset($usedRowspan[$key]);
+                                                if ($showRowspan) {
+                                                    $usedRowspan[$key] = true;
                                                 }
-                                                $mergedData[$account]['FN06'][] = $row;
-                                            }
-
-                                            foreach ($resultsFN02 as $row) {
-                                                $account = $row['Account'] ?? 'NO_ACCOUNT_FN02';
-                                                if (!isset($mergedData[$account])) {
-                                                    $mergedData[$account] = ['FN06' => [], 'FN02' => []];
-                                                }
-                                                $mergedData[$account]['FN02'][] = $row;
-                                            }
-
-                                            foreach ($mergedData as $account => $data):
-                                                $fn06Rows = $data['FN06'];
-                                                $fn02Rows = $data['FN02'];
-                                                $rowCount = max(count($fn06Rows), count($fn02Rows)); // ใช้จำนวนแถวที่มากที่สุด
-
-                                                for ($i = 0; $i < $rowCount; $i++):
-                                                    $rowFN06 = $fn06Rows[$i] ?? null;
-                                                    $rowFN02 = $fn02Rows[$i] ?? null;
-                                                    $key = ($rowFN06['Faculty'] ?? $rowFN02['Faculty'] ?? '-') . "|" .
-                                                        ($rowFN06['Plan'] ?? $rowFN02['Plan'] ?? '-') . "|" .
-                                                        ($rowFN06['Sub_Plan'] ?? $rowFN02['Sub_Plan'] ?? '-') . "|" .
-                                                        ($rowFN06['Project'] ?? $rowFN02['Project'] ?? '-');
-                                            ?>
-                                                    <tr>
-                                                        <!-- ตรวจสอบว่าควรแสดง Faculty, Plan, Sub_Plan, Project ในแถวแรกของกลุ่ม -->
-                                                        <?php if ($i == 0): ?>
-                                                            <td rowspan="<?= $rowCount ?>" class="wide-column">
-                                                                <div><strong><?= htmlspecialchars($rowFN06['Faculty_Name'] ?? $rowFN02['Faculty_Name'] ?? '-') ?></strong></div>
-                                                                <div><?= htmlspecialchars($rowFN06['Plan_Name'] ?? $rowFN02['Plan_Name'] ?? '-') ?></div>
-                                                                <div><?= htmlspecialchars($rowFN06['Sub_Plan_Name'] ?? $rowFN02['Sub_Plan_Name'] ?? '-') ?></div>
-                                                                <div><?= htmlspecialchars($rowFN06['Project_Name'] ?? $rowFN02['Project_Name'] ?? '-') ?></div>
-                                                            </td>
-                                                        <?php endif; ?>
-
-                                                        <!-- FN06 ข้อมูล -->
-                                                        <td><?= isset($rowFN06) ? number_format($rowFN06['Allocated_Total_Amount_Quantity'] ?? 0, 2) : '-' ?></td>
-                                                        <td><?= isset($rowFN06) ? number_format(($rowFN06['OBLIGATIONS'] ?? 0) + ($rowFN06['COMMITMENTS'] ?? 0), 2) : '-' ?></td>
-                                                        <td>
-                                                            <?php
-                                                            if (isset($rowFN06)) {
-                                                                $allocated = $rowFN06['Allocated_Total_Amount_Quantity'] ?? 0;
-                                                                $total_budget = ($rowFN06['OBLIGATIONS'] ?? 0) + ($rowFN06['COMMITMENTS'] ?? 0);
-                                                                echo ($allocated != 0) ? number_format((($total_budget - $allocated) / $allocated) * 100, 2) . '%' : '-';
-                                                            } else {
-                                                                echo '-';
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                        <td><?= isset($rowFN06) ? number_format($rowFN06['FUNDS_AVAILABLE_AMOUNT'] ?? 0, 2) : '-' ?></td>
-                                                        <td><?= isset($rowFN06) ? number_format(($rowFN06['FUNDS_AVAILABLE_AMOUNT'] ?? 0) / max($rowFN06['Allocated_Total_Amount_Quantity'] ?? 1, 1) * 100, 2) . '%' : '-' ?></td>
-
-                                                        <!-- FN02 ข้อมูล -->
-                                                        <td><?= isset($rowFN02) ? number_format($rowFN02['Allocated_Total_Amount_Quantity'] ?? 0, 2) : '-' ?></td>
-                                                        <td><?= isset($rowFN02) ? number_format(($rowFN02['OBLIGATIONS'] ?? 0) + ($rowFN02['COMMITMENTS'] ?? 0), 2) : '-' ?></td>
-                                                        <td>
-                                                            <?php
-                                                            if (isset($rowFN02)) {
-                                                                $allocated = $rowFN02['Allocated_Total_Amount_Quantity'] ?? 0;
-                                                                $total_budget = ($rowFN02['OBLIGATIONS'] ?? 0) + ($rowFN02['COMMITMENTS'] ?? 0);
-                                                                echo ($allocated != 0) ? number_format((($total_budget - $allocated) / $allocated) * 100, 2) . '%' : '-';
-                                                            } else {
-                                                                echo '-';
-                                                            }
-                                                            ?>
-                                                        </td>
-                                                        <td><?= isset($rowFN02) ? number_format($rowFN02['FUNDS_AVAILABLE_AMOUNT'] ?? 0, 2) : '-' ?></td>
-                                                        <td><?= isset($rowFN02) ? number_format(($rowFN02['FUNDS_AVAILABLE_AMOUNT'] ?? 0) / max($rowFN02['Allocated_Total_Amount_Quantity'] ?? 1, 1) * 100, 2) . '%' : '-' ?></td>
-
-                                                        <!-- รวม -->
-                                                        <td><?= number_format(($rowFN06['Allocated_Total_Amount_Quantity'] ?? 0) + ($rowFN02['Allocated_Total_Amount_Quantity'] ?? 0), 2) ?></td>
-                                                        <td><?= number_format(($rowFN06['OBLIGATIONS'] ?? 0) + ($rowFN06['COMMITMENTS'] ?? 0) + ($rowFN02['OBLIGATIONS'] ?? 0) + ($rowFN02['COMMITMENTS'] ?? 0), 2) ?></td>
-
-                                                        <td>
-                                                            <?php
-                                                            $total_difference = (($rowFN06['Allocated_Total_Amount_Quantity'] ?? 0) +
-                                                                ($rowFN02['Allocated_Total_Amount_Quantity'] ?? 0)) -
-                                                                (($rowFN06['OBLIGATIONS'] ?? 0) +
-                                                                    ($rowFN06['COMMITMENTS'] ?? 0) +
-                                                                    ($rowFN02['OBLIGATIONS'] ?? 0) +
-                                                                    ($rowFN02['COMMITMENTS'] ?? 0));
-                                                            echo number_format($total_difference, 2);
-                                                            ?>
-                                                        </td>
-
-                                                        <td><?= number_format(($rowFN06['FUNDS_AVAILABLE_AMOUNT'] ?? 0) + ($rowFN02['FUNDS_AVAILABLE_AMOUNT'] ?? 0), 2) ?></td>
-                                                        <td>
-                                                            <?php
-                                                            $total_expended = ($rowFN06['EXPENDITURES'] ?? 0) + ($rowFN02['EXPENDITURES'] ?? 0);
-                                                            $total_allocated = ($rowFN06['Allocated_Total_Amount_Quantity'] ?? 0) + ($rowFN02['Allocated_Total_Amount_Quantity'] ?? 0);
-                                                            echo ($total_allocated != 0) ? number_format(($total_expended / $total_allocated) * 100, 2) . '%' : '-';
-                                                            ?>
-                                                        </td>
-                                                    </tr>
-                                            <?php
-                                                endfor;
-                                            endforeach;
-                                            ?>
+                                                ?>
+                                                <tr>
+                                                    <?php if ($showRowspan) : ?>
+                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Plan'] ?></td>
+                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Sub_Plan'] ?></td>
+                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Project'] ?></td>
+                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Type'] ?></td>
+                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Sub_Type'] ?></td>
+                                                    <?php endif; ?>
+                                                    <td><?= $row['KKU_Item_Name'] ?></td>
+                                                    <td><?= $row['Allocated_FN06'] ?></td>
+                                                    <td><?= $row['Commitments_FN06'] ?></td>
+                                                    <td><?= number_format($row['Commitment_Percent_FN06'], 2) ?>%</td>
+                                                    <td><?= $row['Expenditures_FN06'] ?></td>
+                                                    <td><?= number_format($row['Expenditures_Percent_FN06'], 2) ?>%</td>
+                                                    <td><?= $row['Allocated_FN02'] ?></td>
+                                                    <td><?= $row['Commitments_FN02'] ?></td>
+                                                    <td><?= number_format($row['Commitment_Percent_FN02'], 2) ?>%</td>
+                                                    <td><?= $row['Expenditures_FN02'] ?></td>
+                                                    <td><?= number_format($row['Expenditures_Percent_FN02'], 2) ?>%</td>
+                                                    <td><?= number_format($row['Total_Allocated'], 2) ?></td>
+                                                    <td><?= number_format($row['Total_Commitments'], 2) ?></td>
+                                                    <td><?= number_format($row['Total_Commitments_Percent'], 2) ?>%</td>
+                                                    <td><?= number_format($row['Total_Expenditures'], 2) ?></td>
+                                                    <td><?= number_format($row['Total_Expenditures_Percent'], 2) ?>%</td>
+                                                </tr>
+                                            <?php endforeach; ?>
                                         </tbody>
                                     </table>
                                 </div>

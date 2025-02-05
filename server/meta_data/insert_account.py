@@ -5,7 +5,7 @@ import re
 
 # กำหนดพาธของไฟล์ CSV
 current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, 'warissarac_ExportedMetadata_Account.csv')
+file_path = os.path.join(current_dir, 'Book1.csv')
 
 # ข้อมูลการเชื่อมต่อฐานข้อมูล
 str_hosting = '110.164.146.250'

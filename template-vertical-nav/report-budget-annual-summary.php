@@ -35,44 +35,59 @@
                                 function fetchBudgetData($conn, $fund)
                                 {
                                     $query = "SELECT
-                                                bpaap.*,
-                                                bpabp.*,
+                                                acc.alias_default,
+                                                acc.account_type,
+                                                bpanbp.Service,
+                                                bpanbp.Account,
+                                                bpanbp.Faculty,
+                                                bpanbp.Plan,
+                                                bpanbp.Sub_Plan,
+                                                bpanbp.Project,
+                                                bpanbp.KKU_Item_Name,
+                                                bpanbp.Allocated_Total_Amount_Quantity,
+                                                bpabp.Total_Amount_Quantity,
                                                 f.Alias_Default AS Faculty_Name,
                                                 p.plan_name AS Plan_Name,
                                                 sp.sub_plan_name AS Sub_Plan_Name,
                                                 pr.project_name AS Project_Name
                                             FROM
-                                                budget_planning_allocated_annual_budget_plan bpaap
-                                                LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpaap.Account = bpabp.`Account`
-                                                LEFT JOIN Faculty f ON bpaap.Faculty COLLATE utf8mb4_general_ci = f.Faculty COLLATE utf8mb4_general_ci
-                                                LEFT JOIN plan p ON bpaap.Plan COLLATE utf8mb4_general_ci = p.plan_id COLLATE utf8mb4_general_ci
-                                                LEFT JOIN sub_plan sp ON bpaap.Sub_Plan COLLATE utf8mb4_general_ci = sp.sub_plan_id COLLATE utf8mb4_general_ci
-                                                LEFT JOIN project pr ON bpaap.Project COLLATE utf8mb4_general_ci = pr.project_id COLLATE utf8mb4_general_ci
+                                                budget_planning_allocated_annual_budget_plan bpanbp
+                                                LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.`Account` = bpabp.`Account`
+                                                LEFT JOIN account acc ON bpanbp.Account = acc.account
+                                                LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
+                                                LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
+                                                LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
+                                                LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
                                             WHERE
-                                                bpaap.Fund = :fund
-                                            LIMIT 500;";
+                                                bpanbp.Plan = bpabp.PLAN
+                                                AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+                                                AND bpanbp.Project = bpabp.PROJECT
+                                                AND bpabp.ACCOUNT = bpanbp.ACCOUNT
+                                                AND bpabp.Fund = :fund";
 
                                     $stmt = $conn->prepare($query);
                                     $stmt->bindParam(':fund', $fund);
                                     $stmt->execute();
                                     return $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 }
-
                                 $resultsFN06 = fetchBudgetData($conn, 'FN06');
                                 $resultsFN08 = fetchBudgetData($conn, 'FN08');
                                 $resultsFN02 = fetchBudgetData($conn, 'FN02');
-
                                 ?>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th rowspan="2">รายการ</th>
+                                                <th colspan="4">รายการ</th>
                                                 <th colspan="4">ปี 2567 (ปีปัจจุบัน)</th>
                                                 <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
                                                 <th colspan="2">เพิ่ม/ลด</th>
                                             </tr>
                                             <tr>
+                                                <th>แผนงาน</th>
+                                                <th>แผนงานย่อย</th>
+                                                <th>โครงการ/กิจกรรม</th>
+                                                <th>ประเภทค่าใช้จ่าย</th>
                                                 <th>เงินอุดหนุนจากรัฐ</th>
                                                 <th>เงินนอกงบประมาณ</th>
                                                 <th>เงินรายได้</th>
@@ -102,14 +117,15 @@
                                                 $percent = ($sum67 - $sum68Allocated) / $sum68Allocated * 100;
                                             ?>
                                                 <tr>
-                                                    <td>
-                                                        <strong><?= htmlspecialchars($row['Faculty_Name'] ?? '-') ?></strong><br>
-                                                        <?= htmlspecialchars($row['Plan_Name'] ?? '-') ?><br>
-                                                        <?= htmlspecialchars($row['Sub_Plan_Name'] ?? '-') ?><br>
-                                                        <?= htmlspecialchars($row['Project_Name'] ?? '-') ?>
-                                                    </td>
+                                                    <td><?= $row['Plan_Name'] ?? 'ไม่มีข้อมูล' ?></td>
+                                                    <td><?= $row['Sub_Plan_Name'] ?? 'ไม่มีข้อมูล' ?></td>
+                                                    <td><?= $row['Project_Name'] ?? 'ไม่มีข้อมูล' ?></td>
+                                                    <td><?= $row['alias_default'] ?? 'ไม่มีข้อมูล' ?></td>
+
                                                     <!-- -------------- 67 -------------- -->
+
                                                     <td><?= number_format($row['Allocated_Total_Amount_Quantity'] ?? 0, decimals: 2) ?></td>
+
                                                     <td><?= number_format(num: $fn08['Allocated_Total_Amount_Quantity'] ?? 0, decimals: 2) ?></td>
                                                     <td><?= number_format($fn02['Allocated_Total_Amount_Quantity'] ?? 0, 2) ?></td>
                                                     <td><?= number_format($sum67, 2) ?></td>
