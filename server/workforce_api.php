@@ -23,36 +23,6 @@ class Database
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $command = $_POST["command"];
     switch ($command) {
-        case "kku_wf_current-vs-ideal":
-            try {
-                $db = new Database();
-                $conn = $db->connect();
-
-                // เชื่อมต่อฐานข้อมูล
-                $sql = "SELECT f.Alias_Default,w.All_PositionTypes,w.Position,w.WF,w.Current_HC_of_the_Position
-                            ,case when w.wf- w.Current_HC_of_the_Position < 0 then 'เกิน'
-                            when w.wf- w.Current_HC_of_the_Position > 0 then 'ขาด'
-                            ELSE '' END AS state
-                            from workforce_new_positions_allocation w
-                            LEFT JOIN Faculty f
-                            ON w.Faculty=f.id COLLATE utf8mb4_general_ci";
-                $cmd = $conn->prepare($sql);
-                $cmd->execute();
-                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
-                $conn = null;
-
-                $response = array(
-                    'wf' => $wf
-                );
-                echo json_encode($response);
-            } catch (PDOException $e) {
-                $response = array(
-                    'status' => 'error',
-                    'message' => 'Database error: ' . $e->getMessage()
-                );
-                echo json_encode($response);
-            }
-            break;
         case "kku_wf_approval-requests":
             try {
                 $db = new Database();
@@ -899,6 +869,108 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM Faculty
                         ) f ON a.faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
                         ORDER BY faculty";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "list-faculty":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH f AS (
+                        SELECT parent FROM Faculty
+                        WHERE parent LIKE 'Faculty-%' AND parent!='Faculty-00'
+                        GROUP BY parent)
+                        ,t1 AS (
+                        SELECT f2.Alias_Default,f.Parent
+                        FROM f
+                        LEFT JOIN Faculty f2
+                        ON f.Parent=f2.Faculty)
+
+                        SELECT * FROM t1
+                        ORDER BY t1.Alias_Default";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "kku_wf_current-vs-ideal":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                $slt = $_POST["slt"];
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH f AS (
+                        SELECT parent FROM Faculty
+                        WHERE parent ='".$slt."'
+                        GROUP BY parent)
+                        ,t1 AS (
+                        SELECT f2.Alias_Default,f2.faculty
+                        FROM f
+                        LEFT JOIN Faculty f2
+                        ON f.Parent=f2.Faculty)
+                        ,t2 AS (
+                        SELECT t.Alias_Default,j.code,j.name,t.faculty FROM t1 t
+                        CROSS JOIN job_families j)
+                        ,t3 AS (
+                        SELECT *
+                        FROM t2
+                        CROSS JOIN (SELECT position 
+                        FROM positions) p)
+                        ,t4 AS (
+                        SELECT w.*,f.parent 
+                        FROM workforce_4year_plan w
+                        LEFT JOIN Faculty f
+                        ON w.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
+                        WHERE f.parent ='".$slt."'
+                        )
+                        ,t5 AS (
+                        SELECT t.*,COALESCE(tt.WF,0) as wf
+                        FROM t3 t
+                        LEFT JOIN t4 tt
+                        ON t.name=tt.Job_Family COLLATE utf8mb4_general_ci AND t.position=tt.`Position` COLLATE utf8mb4_general_ci AND t.faculty=tt.parent COLLATE UTF8MB4_GENERAL_CI)
+                        ,t6 AS (
+                        SELECT a.POSITION,a.Job_Family,COUNT(*) AS count_person,f.parent
+                        FROM actual_data_1 a
+                        LEFT JOIN Faculty f
+                        ON a.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
+                        WHERE f.parent ='".$slt."'
+                        GROUP BY a.faculty,a.POSITION,a.Job_Family,f.parent)
+                        ,t7 AS (
+                        SELECT t.*,COALESCE(tt.count_person,0) as count_person
+                        FROM t5 t
+                        LEFT JOIN t6 tt
+                        ON t.name=tt.Job_Family COLLATE utf8mb4_general_ci AND t.position=tt.`POSITION` COLLATE utf8mb4_general_ci AND t.faculty=tt.parent COLLATE UTF8MB4_GENERAL_CI)
+
+                        SELECT * FROM t7
+                        order BY  t7.Alias_Default,t7.code";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);

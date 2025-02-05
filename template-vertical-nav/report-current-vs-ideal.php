@@ -1,7 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<style>   
+    .expand-icon, .expand-position {
+        cursor: pointer;
+        font-size: 18px;
+    }
+    .hidden {
+        display: none;
+    }
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -33,6 +42,10 @@
                                 <div class="card-title">
                                     <h4>รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</h4>
                                 </div>
+                                <label for="category">เลือกส่วนงาน:</label>
+                                <select name="category" id="category" onchange="fetchData()">
+                                    <option value="">-- Loading Categories --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -41,30 +54,13 @@
                                                 <th>ส่วนงาน</th>
                                                 <th>Job Family</th>
                                                 <th>ชื่อตำแหน่ง</th>
-                                                <th>กรอบที่มี</th>
+                                                <th>กรอบพึงมี</th>
                                                 <th>อัตราปัจจุบัน</th>
                                                 <th>ขาด / เกิน</th>
                                             </tr>
                                         </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>คณะวิทยาศาสตร์</td>
-                                                <td>Teaching</td>
-                                                <td>อาจารย์</td>
-                                                <td>20</td>
-                                                <td>18</td>
-                                                <td>-2</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>คณะวิศวกรรมศาสตร์</td>
-                                                <td>Research</td>
-                                                <td>นักวิจัย</td>
-                                                <td>15</td>
-                                                <td>17</td>
-                                                <td>+2</td>
-                                            </tr>
+                                        <tbody id="table-body">
+                                            
                                         </tbody>
                                     </table>
                                 </div>
@@ -94,64 +90,18 @@
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'kku_wf_current-vs-ideal'
+                    'command': 'list-faculty'
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
-                    
-                    response.wf.forEach((row, index) => {
-                        const tr = document.createElement('tr');
-                        
-                        // td1 - running number
-                        const td1 = document.createElement('td');
-                        td1.textContent = index + 1;
-                        tr.appendChild(td1);
-                        
-                        // td2 - name_th
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.Alias_Default;
-                        tr.appendChild(td2);
-                        
-                        // td3 - All_PositionTypes
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.All_PositionTypes;
-                        tr.appendChild(td3);
-                        
-                        // td4 - Position
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.Position;
-                        tr.appendChild(td4);
-                        
-                        // td5 - WF
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.WF;
-                        tr.appendChild(td5);
-                        
-                        // td6 - Current_HC_of_the_Position
-                        const td6 = document.createElement('td');
-                        td6.textContent = row.Current_HC_of_the_Position;
-                        tr.appendChild(td6);
-                        
-                        // td7 - state
-                        const td7 = document.createElement('td');
-                        td7.textContent = row.state;
-                        tr.appendChild(td7);
-
-
-                        tableBody.appendChild(tr);
-
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
-                        previousSICode = row.si_code;
-                        previousSIName = row.si_name;
-                        previousSOName = row.so_name;
-                        previousSOName = row.so_name;
+                    let dropdown = document.getElementById("category");
+                    dropdown.innerHTML = '<option value="">-- Select --</option>';
+                    response.wf.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category.Parent;
+                        option.textContent = category.Alias_Default;
+                        dropdown.appendChild(option);
                     });
-
-
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -159,6 +109,51 @@
                 }
             });
         }
+        function fetchData() {
+            let category = document.getElementById("category").value;
+            let resultDiv = document.getElementById("result");
+
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_current-vs-ideal',
+                    'slt':category
+                },
+                dataType: "json",
+                success: function(response) {
+                    
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    response.wf.forEach((row, index) => {                   
+                        const tr = document.createElement('tr');
+
+                        const columns = [
+                            { key: 'No', value: index + 1 },
+                            { key: 'Alias_Default', value: row.Alias_Default },
+                            { key: 'name', value: row.name },
+                            { key: 'position', value: row.position },
+                            { key: 'c1', value: row.wf },
+                            { key: 'c2', value: row.count_person },
+                            { key: 'c3', value: parseInt(row.wf)-parseInt(row.count_person) },                            
+                        ];
+
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);     
+                    });
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+        
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
