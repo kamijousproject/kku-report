@@ -59,15 +59,76 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "SELECT * FROM workforce_new_position_request";
+                $sql = "SELECT *  FROM workforce_new_positions_allocation";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
-                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);                     
+                $f4 = $cmd->fetchAll(PDO::FETCH_ASSOC);                  
+                
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN actual_data_1 act1
+                        ON w.Position_Number=act1.Position_Number
+                        LEFT JOIN actual_data_2 act2
+                        ON w.Position_Number=act2.position_number
+                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $c1 = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN actual_data_1 act1
+                        ON w.Position_Number=act1.Position_Number
+                        LEFT JOIN actual_data_2 act2
+                        ON w.Position_Number=act2.position_number
+                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย' and act1.Contract_Type='วิชาการระยะสั้น'";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $c2 = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN actual_data_1 act1
+                        ON w.Position_Number=act1.Position_Number
+                        LEFT JOIN actual_data_2 act2
+                        ON w.Position_Number=act2.position_number
+                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'and act1.Contract_Type='ผู้เกษียณอายุราชการ' ";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $c3 = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN actual_data_1 act1
+                        ON w.Position_Number=act1.Position_Number
+                        LEFT JOIN actual_data_2 act2
+                        ON w.Position_Number=act2.position_number
+                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย' and act1.Contract_Type='ชาวต่างประเทศ' ";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $c4 = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN actual_data_1 act1
+                        ON w.Position_Number=act1.Position_Number
+                        LEFT JOIN actual_data_2 act2
+                        ON w.Position_Number=act2.position_number
+                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย' and act1.Contract_Type='ผู้ปฏิบัติงานในมหาวิทยาลัย'";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $c5 = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+
                 $conn = null;
 
                 $response = array(
-                    'wf' => $wf,
-                    
+                    'f4' => $f4,
+                    'c1' => $c1,
+                    'c2' => $c2,
+                    'c3' => $c3,
+                    'c4' => $c4,
+                    'c5' => $c5,
                 );
                 echo json_encode($response);
             } catch (PDOException $e) {

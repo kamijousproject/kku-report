@@ -33,56 +33,136 @@
                                 <div class="card-title">
                                     <h4>รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</h4>
                                 </div>
-                                <div class="table-responsive">
-                                    <table id="reportTable" class="table table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th>ลำดับ</th>
-                                                <th>ประเภทบุคลากร</th>
-                                                <th>ประเภทตำแหน่ง</th>
-                                                <th>ชื่อตำแหน่ง</th>
-                                                <th>คุณวุฒิ</th>
-                                                <th>เลขประจำตำแหน่ง</th>
-                                                <th>สถานที่ปฏิบัติงาน</th>
-                                                <th>อัตราเงินเดือน</th>
-                                                <th>แหล่งงบประมาณ</th>
-                                                <th>ประเภทสัญญา</th>
-                                                <th>ระยะเวลาสัญญา</th>
-                                                <th>หมายเหตุอื่นๆ</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>ข้าราชการ</td>
-                                                <td>วิชาการ</td>
-                                                <td>อาจารย์</td>
-                                                <td>ปริญญาเอก</td>
-                                                <td>12345</td>
-                                                <td>กรุงเทพฯ</td>
-                                                <td>50,000</td>
-                                                <td>งบประมาณแผ่นดิน</td>
-                                                <td>ประจำ</td>
-                                                <td>ไม่กำหนด</td>
-                                                <td>-</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>พนักงานมหาวิทยาลัย</td>
-                                                <td>สนับสนุน</td>
-                                                <td>เจ้าหน้าที่วิจัย</td>
-                                                <td>ปริญญาโท</td>
-                                                <td>67890</td>
-                                                <td>เชียงใหม่</td>
-                                                <td>35,000</td>
-                                                <td>รายได้มหาวิทยาลัย</td>
-                                                <td>สัญญาจ้าง</td>
-                                                <td>1 ปี</td>
-                                                <td>มีการต่อสัญญา</td>
-                                            </tr>
-                                        </tbody>
+                                
+                                <div class="table-responsive" id="content_table">
+                                    <!-- <table>
+                                        <tr>
+                                            <th colspan="12">อัตราใหม่</th>
+                                        </tr>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>ประเภทบุคลากร</th>
+                                            <th>ประเภทตำแหน่ง</th>
+                                            <th>ชื่อตำแหน่ง</th>
+                                            <th>คุณวุฒิ</th>
+                                            <th>เลขประจำตำแหน่ง</th>
+                                            <th>สถานที่ปฏิบัติงาน</th>
+                                            <th>อัตราเงินเดือน</th>
+                                            <th>แหล่งงบประมาณ</th>
+                                            <th>ประเภทสัญญา</th>
+                                            <th>ระยะเวลาสัญญา</th>
+                                            <th>หมายเหตุอื่นๆ</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td>All_PositionTypes</td>
+                                            <td>Position</td>
+                                            <td>Position Qualifications</td>
+                                            <td>Position_Number</td>
+                                            <td>Salary rate</td>
+                                            <td>Fund(FT)</td>
+                                            <td>Rate status</td>
+                                            <td>ข้ามก่อนค่ะ</td>
+                                        </tr>
+                                    </table>                                   
+                                    <table>
+                                        <tr>
+                                            <th colspan="9">อัตราเดิม</th>                                           
+                                        </tr>
+                                        <tr>
+                                        <th colspan="9" style="text-align:left">ประเภทบุคลากร : ลูกจ้างของมหาวิทยาลัย</th>                                          
+                                        </tr>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>ประเภทตำแหน่ง</th>
+                                            <th>ชื่อตำแหน่ง</th>
+                                            <th>คุณวุฒิ</th>
+                                            <th>เลขประจำตำแหน่ง</th>
+                                            <th>อัตราเงินเดือน</th>
+                                            <th>แหล่งงบประมาณ</th>
+                                            <th>สถานะอัตรา</th>
+                                            <th>หมายเหตุอื่นๆ</th>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                            <td>All_PositionTypes</td>
+                                            <td>Position</td>
+                                            <td>Position Qualifications</td>
+                                            <td>Position_Number</td>
+                                            <td>Salary rate</td>
+                                            <td>Fund(FT)</td>
+                                            <td>Rate status</td>
+                                            <td>ข้ามก่อนค่ะ</td>
+                                        </tr>
                                     </table>
+                                    
+                                    <div class="section-header">ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : วิชาการระยะสั้น</div>
+                                    <table>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>ประเภทตำแหน่ง</th>
+                                            <th>ชื่อตำแหน่ง</th>
+                                            <th>คุณวุฒิ</th>
+                                            <th>เลขประจำตำแหน่ง</th>
+                                            <th>อัตราเงินเดือน</th>
+                                            <th>แหล่งงบประมาณ</th>
+                                            <th>สถานะอัตรา</th>
+                                            <th>หมายเหตุอื่นๆ</th>
+                                        </tr>
+                                    </table>
+
+                                    <div class="section-header">ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ผู้เกษียณอายุราชการ</div>
+                                    <table>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>ชื่อ - นามสกุล</th>
+                                            <th>ประเภทตำแหน่ง</th>
+                                            <th>ชื่อตำแหน่ง</th>
+                                            <th>คุณวุฒิ</th>
+                                            <th>เลขประจำตำแหน่ง</th>
+                                            <th>อัตราเงินเดือน</th>
+                                            <th>แหล่งงบประมาณ</th>
+                                            <th>ระยะเวลาการจ้าง</th>
+                                            <th>สถานะอัตรา</th>
+                                            <th>หมายเหตุอื่นๆ</th>
+                                        </tr>
+                                    </table>
+
+                                    <div class="section-header">ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ชาวต่างประเทศ</div>
+                                    <table>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>ชื่อ - นามสกุล</th>
+                                            <th>ประเภทตำแหน่ง</th>
+                                            <th>ชื่อตำแหน่ง</th>
+                                            <th>คุณวุฒิ</th>
+                                            <th>เลขประจำตำแหน่ง</th>
+                                            <th>อัตราเงินเดือน</th>
+                                            <th>แหล่งงบประมาณ</th>
+                                            <th>ระยะเวลาการจ้าง</th>
+                                            <th>สถานะอัตรา</th>
+                                            <th>หมายเหตุอื่นๆ</th>
+                                        </tr>
+                                    </table>
+
+                                    <div class="section-header">ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ผู้ปฏิบัติงานในมหาวิทยาลัย</div>
+                                    <table>
+                                        <tr>
+                                            <th>ลำดับ</th>
+                                            <th>ชื่อ - นามสกุล</th>
+                                            <th>ประเภทตำแหน่ง</th>
+                                            <th>ชื่อตำแหน่ง</th>
+                                            <th>คุณวุฒิ</th>
+                                            <th>เลขประจำตำแหน่ง</th>
+                                            <th>อัตราเงินเดือน</th>
+                                            <th>แหล่งงบประมาณ</th>
+                                            <th>ระยะเวลาการจ้าง</th>
+                                            <th>สถานะอัตรา</th>
+                                            <th>หมายเหตุอื่นๆ</th>
+                                        </tr>
+                                    </table> -->
                                 </div>
+                                
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
@@ -114,77 +194,456 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.wf);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    console.log(response.f4);
+                    var new_header=true;
+                    if(response.f4.length>0)
+                    {
+                        const tableContainer = document.createElement('div');
+                        const table = document.createElement('table');
 
+                        // Create the header row with colspan
+                        const headerRow = document.createElement('tr');
+                        const headerCell = document.createElement('th');
+                        headerCell.setAttribute('colspan', '12');
+                        headerCell.textContent = 'อัตราใหม่';
+                        headerRow.appendChild(headerCell);
+                        table.appendChild(headerRow);
+
+                        // Create the column headers
+                        const columnHeaders = [
+                            'ลำดับ', 'ประเภทบุคลากร', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                            'สถานที่ปฏิบัติงาน', 'อัตราเงินเดือน', 'แหล่งงบประมาณ', 'ประเภทสัญญา', 'ระยะเวลาสัญญา', 'หมายเหตุอื่นๆ'
+                        ];
+                        const headerRow2 = document.createElement('tr');
+                        columnHeaders.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow2.appendChild(th);
+                        });
+                        table.appendChild(headerRow2);
+
+                        // Create the table body
+                        const tableBody = document.createElement('tbody');
+
+                        // Loop through response.f4 and create rows
+                        response.f4.forEach((row, index) => {
+                            const tr = document.createElement('tr');
+
+                            // Define the columns to display
+                            const columns = [
+                                { value: index+1 },
+                                { value: row.Personnel_Type },
+                                { value: row.All_PositionTypes },
+                                { value: row.Position },
+                                { value: "" },
+                                { value: row.New_Position_No_of_Uni_Staff_Gov },
+                                { value: "" },
+                                { value: row.Salary_rate },
+                                { value: row.Fund_FT },
+                                { value: "" },
+                                { value: "" },
+                                { value: "" }
+                            ];
+
+                            // Create and append table cells
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+                            tableBody.appendChild(tr);
+                        });
+
+                        // Append the table body to the table
+                        table.appendChild(tableBody);
+                        tableContainer.appendChild(table);
+                        // Append the table to a container in the HTML (e.g., a div with id="table-container")
+                        document.getElementById('content_table').appendChild(tableContainer);
+                    }
+                    if(response.c1.length>0)
+                    {
+                        const tableContainer = document.createElement('div');
+                        const table = document.createElement('table');
+                        if(new_header)
+                        {
+                            // Create the header row with colspan
+                            const headerRow1 = document.createElement('tr');
+                            const headerCell1 = document.createElement('th');
+                            headerCell1.setAttribute('colspan', '9');
+                            headerCell1.textContent = 'อัตราเดิม';
+                            headerRow1.appendChild(headerCell1);
+                            table.appendChild(headerRow1);
+                            new_header=false;
+                        }
+                        
+
+                        // Create the second header row with colspan and left-aligned text
+                        const headerRow2 = document.createElement('tr');
+                        const headerCell2 = document.createElement('th');
+                        headerCell2.setAttribute('colspan', '9');
+                        headerCell2.setAttribute('style', 'text-align:left');
+                        headerCell2.textContent = 'ประเภทบุคลากร : ลูกจ้างของมหาวิทยาลัย';
+                        headerRow2.appendChild(headerCell2);
+                        table.appendChild(headerRow2);
+
+                        // Create the column headers
+                        const columnHeaders = [
+                            'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                            'อัตราเงินเดือน', 'แหล่งงบประมาณ', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
+                        ];
+                        const headerRow3 = document.createElement('tr');
+                        columnHeaders.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow3.appendChild(th);
+                        });
+                        table.appendChild(headerRow3);
+
+                        // Create the table body
+                        const tableBody = document.createElement('tbody');
+
+                        // Loop through data and create rows
+                        response.c1.forEach((row, index) => {
+                            const tr = document.createElement('tr');
+
+                            // Define the columns to display
+                            const columns = [
+                                { value: index+1 },
+                                { value: row.All_PositionTypes },
+                                { value: row.Position },
+                                { value: row.Position_Qualifications },
+                                { value: row.Position_Number },
+                                { value: row.Salary_rate },
+                                { value: row.Fund_FT },
+                                { value: row.rate_status },
+                                { value: "" }
+                            ];
+
+                            // Create and append table cells
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+                            tableBody.appendChild(tr);
+                        });
+
+                        // Append the table body to the table
+                        table.appendChild(tableBody);
+                        tableContainer.appendChild(table);
+                        // Append the table to a container in the HTML (e.g., a div with id="table-container")
+                        document.getElementById('content_table').appendChild(tableContainer);
+                    }
+                    if(response.c2.length>0)
+                    {
+                        const tableContainer = document.createElement('div');
+                        const table = document.createElement('table');
+                        if(new_header)
+                        {
+                            // Create the header row with colspan
+                            const headerRow1 = document.createElement('tr');
+                            const headerCell1 = document.createElement('th');
+                            headerCell1.setAttribute('colspan', '9');
+                            headerCell1.textContent = 'อัตราเดิม';
+                            headerRow1.appendChild(headerCell1);
+                            table.appendChild(headerRow1);
+                            new_header=false;
+                        }
+                        
+
+                        // Create the second header row with colspan and left-aligned text
+                        const headerRow2 = document.createElement('tr');
+                        const headerCell2 = document.createElement('th');
+                        headerCell2.setAttribute('colspan', '9');
+                        headerCell2.setAttribute('style', 'text-align:left');
+                        headerCell2.textContent = 'ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : วิชาการระยะสั้น';
+                        headerRow2.appendChild(headerCell2);
+                        table.appendChild(headerRow2);
+
+                        // Create the column headers
+                        const columnHeaders = [
+                            'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                            'อัตราเงินเดือน', 'แหล่งงบประมาณ', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
+                        ];
+                        const headerRow3 = document.createElement('tr');
+                        columnHeaders.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow3.appendChild(th);
+                        });
+                        table.appendChild(headerRow3);
+
+                        // Create the table body
+                        const tableBody = document.createElement('tbody');
+
+                        // Loop through data and create rows
+                        response.c2.forEach((row, index) => {
+                            const tr = document.createElement('tr');
+
+                            // Define the columns to display
+                            const columns = [
+                                { value: index+1 },
+                                { value: row.All_PositionTypes },
+                                { value: row.Position },
+                                { value: row.Position_Qualifications },
+                                { value: row.Position_Number },
+                                { value: row.Salary_rate },
+                                { value: row.Fund_FT },
+                                { value: row.rate_status },
+                                { value: "" }
+                            ];
+
+                            // Create and append table cells
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+                            tableBody.appendChild(tr);
+                        });
+
+                        // Append the table body to the table
+                        table.appendChild(tableBody);
+                        tableContainer.appendChild(table);
+                        // Append the table to a container in the HTML (e.g., a div with id="table-container")
+                        document.getElementById('content_table').appendChild(tableContainer);
+                    }
+                    if(response.c3.length>0)
+                    {
+                        const tableContainer = document.createElement('div');
+                        const table = document.createElement('table');
+                        table.setAttribute('border', '1');
+                        if(new_header)
+                        {
+                            // Create the header row with colspan
+                            const headerRow1 = document.createElement('tr');
+                            const headerCell1 = document.createElement('th');
+                            headerCell1.setAttribute('colspan', '10');
+                            headerCell1.textContent = 'อัตราเดิม';
+                            headerRow1.appendChild(headerCell1);
+                            table.appendChild(headerRow1);
+                            new_header=false;
+                        }
+                        
+
+                        // Create the second header row with colspan and left-aligned text
+                        const headerRow2 = document.createElement('tr');
+                        const headerCell2 = document.createElement('th');
+                        headerCell2.setAttribute('colspan', '10');
+                        headerCell2.setAttribute('style', 'text-align:left');
+                        headerCell2.textContent = 'ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ผู้เกษียณอายุราชการ';
+                        headerRow2.appendChild(headerCell2);
+                        table.appendChild(headerRow2);
+
+                        // Create the column headers
+                        const columnHeaders = [
+                            'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                            'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
+                        ];
+                        const headerRow3 = document.createElement('tr');
+                        columnHeaders.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow3.appendChild(th);
+                        });
+                        table.appendChild(headerRow3);
+
+                        // Create the table body
+                        const tableBody = document.createElement('tbody');
+
+                        // Loop through data and create rows
+                        response.c3.forEach((row, index) => {
+                            const tr = document.createElement('tr');
+
+                            // Define the columns to display
+                            const columns = [
+                                { value: index+1 },
+                                { value: row.All_PositionTypes },
+                                { value: row.Position },
+                                { value: row.Position_Qualifications },
+                                { value: row.Position_Number },
+                                { value: row.Salary_rate },
+                                { value: row.Fund_FT },
+                                { value: row.Contract_Period_Short_Term },
+                                { value: row.rate_status },
+                                { value: "" }
+                            ];
+
+                            // Create and append table cells
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+                            tableBody.appendChild(tr);
+                        });
+
+                        // Append the table body to the table
+                        table.appendChild(tableBody);
+                        tableContainer.appendChild(table);
+                        // Append the table to a container in the HTML (e.g., a div with id="table-container")
+                        document.getElementById('content_table').appendChild(tableContainer);
+                    }
+                    if(response.c4.length>0)
+                    {
+                        const tableContainer = document.createElement('div');
+                        const table = document.createElement('table');
+                        table.setAttribute('border', '1');
+                        if(new_header)
+                        {
+                            // Create the header row with colspan
+                            const headerRow1 = document.createElement('tr');
+                            const headerCell1 = document.createElement('th');
+                            headerCell1.setAttribute('colspan', '10');
+                            headerCell1.textContent = 'อัตราเดิม';
+                            headerRow1.appendChild(headerCell1);
+                            table.appendChild(headerRow1);
+                            new_header=false;
+                        }
+                        
+
+                        // Create the second header row with colspan and left-aligned text
+                        const headerRow2 = document.createElement('tr');
+                        const headerCell2 = document.createElement('th');
+                        headerCell2.setAttribute('colspan', '10');
+                        headerCell2.setAttribute('style', 'text-align:left');
+                        headerCell2.textContent = 'ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ชาวต่างประเทศ';
+                        headerRow2.appendChild(headerCell2);
+                        table.appendChild(headerRow2);
+
+                        // Create the column headers
+                        const columnHeaders = [
+                            'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                            'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
+                        ];
+                        const headerRow3 = document.createElement('tr');
+                        columnHeaders.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow3.appendChild(th);
+                        });
+                        table.appendChild(headerRow3);
+
+                        // Create the table body
+                        const tableBody = document.createElement('tbody');
+
+                        // Loop through data and create rows
+                        response.c4.forEach((row, index) => {
+                            const tr = document.createElement('tr');
+
+                            // Define the columns to display
+                            const columns = [
+                                { value: index+1 },
+                                { value: row.All_PositionTypes },
+                                { value: row.Position },
+                                { value: row.Position_Qualifications },
+                                { value: row.Position_Number },
+                                { value: row.Salary_rate },
+                                { value: row.Fund_FT },
+                                { value: row.Contract_Period_Short_Term },
+                                { value: row.rate_status },
+                                { value: "" }
+                            ];
+
+                            // Create and append table cells
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+                            tableBody.appendChild(tr);
+                        });
+
+                        // Append the table body to the table
+                        table.appendChild(tableBody);
+                        tableContainer.appendChild(table);
+                        // Append the table to a container in the HTML (e.g., a div with id="table-container")
+                        document.getElementById('content_table').appendChild(tableContainer);
+                    }
+                    if(response.c5.length>0)
+                    {
+                        const tableContainer = document.createElement('div');
+                        const table = document.createElement('table');
+                        table.setAttribute('border', '1');
+                        if(new_header)
+                        {
+                            // Create the header row with colspan
+                            const headerRow1 = document.createElement('tr');
+                            const headerCell1 = document.createElement('th');
+                            headerCell1.setAttribute('colspan', '10');
+                            headerCell1.textContent = 'อัตราเดิม';
+                            headerRow1.appendChild(headerCell1);
+                            table.appendChild(headerRow1);
+                            new_header=false;
+                        }
+                        
+
+                        // Create the second header row with colspan and left-aligned text
+                        const headerRow2 = document.createElement('tr');
+                        const headerCell2 = document.createElement('th');
+                        headerCell2.setAttribute('colspan', '10');
+                        headerCell2.setAttribute('style', 'text-align:left');
+                        headerCell2.textContent = 'ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ผู้ปฏิบัติงานในมหาวิทยาลัย';
+                        headerRow2.appendChild(headerCell2);
+                        table.appendChild(headerRow2);
+
+                        // Create the column headers
+                        const columnHeaders = [
+                            'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                            'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
+                        ];
+                        const headerRow3 = document.createElement('tr');
+                        columnHeaders.forEach(header => {
+                            const th = document.createElement('th');
+                            th.textContent = header;
+                            headerRow3.appendChild(th);
+                        });
+                        table.appendChild(headerRow3);
+
+                        // Create the table body
+                        const tableBody = document.createElement('tbody');
+
+                        // Loop through data and create rows
+                        response.c5.forEach((row, index) => {
+                            const tr = document.createElement('tr');
+
+                            // Define the columns to display
+                            const columns = [
+                                { value: index+1 },
+                                { value: row.All_PositionTypes },
+                                { value: row.Position },
+                                { value: row.Position_Qualifications },
+                                { value: row.Position_Number },
+                                { value: row.Salary_rate },
+                                { value: row.Fund_FT },
+                                { value: row.Contract_Period_Short_Term },
+                                { value: row.rate_status },
+                                { value: "" }
+                            ];
+
+                            // Create and append table cells
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+                            tableBody.appendChild(tr);
+                        });
+
+                        // Append the table body to the table
+                        table.appendChild(tableBody);
+                        tableContainer.appendChild(table);
+                        // Append the table to a container in the HTML (e.g., a div with id="table-container")
+                        document.getElementById('content_table').appendChild(tableContainer);
+                    }
                     
-                    response.wf.forEach((row, index) => {
-                        const tr = document.createElement('tr');
-                        
-                        // td1 - running number
-                        const td1 = document.createElement('td');
-                        td1.textContent = index + 1;
-                        tr.appendChild(td1);
-                        
-                        
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.Personnel_Type;
-                        tr.appendChild(td2);
-                        
-                        
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.All_PositionTypes;
-                        tr.appendChild(td3);
-                        
-                        
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.Position;
-                        tr.appendChild(td4);
-                        
-                        
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.Position_Qualififcations;
-                        tr.appendChild(td5);
-                        
-                        
-                        const td6 = document.createElement('td');
-                        td6.textContent = "";
-                        tr.appendChild(td6);
-                        
-                        
-                        const td7 = document.createElement('td');
-                        td7.textContent = row.Field_of_Study;
-                        tr.appendChild(td7);
-
-                        const td8 = document.createElement('td');
-                        td8.textContent = row.Salary_Wages_Baht_per_month;
-                        tr.appendChild(td8);
-
-                        const td9 = document.createElement('td');
-                        td9.textContent = row.Fund_FT;
-                        tr.appendChild(td9);
-
-                        const td10 = document.createElement('td');
-                        td10.textContent = row.Contract_Type;
-                        tr.appendChild(td10);
-
-                        const td11 = document.createElement('td');
-                        td11.textContent = row.Current_Age_YR_MT;
-                        tr.appendChild(td11);
-                        
-                        const td12 = document.createElement('td');
-                        td12.textContent = "";
-                        tr.appendChild(td12);
-
-                        tableBody.appendChild(tr);
-
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
-                        previousSICode = row.si_code;
-                        previousSIName = row.si_name;
-                        previousSOName = row.so_name;
-                        previousSOName = row.so_name;
-                    });
+                    
 
 
                 },
