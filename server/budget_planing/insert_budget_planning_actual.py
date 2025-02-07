@@ -1,33 +1,35 @@
 import pandas as pd
 import pymysql
+import sys
 import os
 
+# ตรวจสอบว่ามีพารามิเตอร์ไฟล์ CSV ที่ส่งมาหรือไม่
+if len(sys.argv) < 2:
+    print("Error: No CSV file provided.")
+    sys.exit(1)
+
+file_path = sys.argv[1]
+
+# ตรวจสอบว่าไฟล์ CSV มีอยู่จริงหรือไม่
+if not os.path.exists(file_path):
+    print(f"Error: File '{file_path}' not found.")
+    sys.exit(1)
+
 # ตั้งค่าการเชื่อมต่อ MySQL
-str_hosting = '110.164.146.250'
-str_database = 'epm_report'
-str_username = 'root'
-str_password = 'TDyutdYdyudRTYDsEFOPI'
+db_config = {
+    'host': '110.164.146.250',
+    'user': 'root',
+    'password': 'TDyutdYdyudRTYDsEFOPI',
+    'database': 'epm_report',
+    'charset': 'utf8mb4'
+}
 
-# กำหนด path ของไฟล์ CSV
-current_dir = os.path.dirname(__file__)
-file_path = os.path.join(
-    current_dir, 'KKU_INT_EPM_18_ACTUALS_REP_RPT_T1 (1).csv')
-
-# อ่านไฟล์ CSV และบังคับให้คอลัมน์ที่อาจมีเลขศูนย์นำหน้าเป็น string
+# อ่านไฟล์ CSV
 df = pd.read_csv(file_path, dtype=str)
-
-# แปลงค่า NaN เป็น None
 df = df.where(pd.notna(df), None)
 
-# เชื่อมต่อฐานข้อมูล MySQL
-conn = pymysql.connect(
-    host=str_hosting,
-    user=str_username,
-    password=str_password,
-    database=str_database,
-    charset='utf8mb4',
-    cursorclass=pymysql.cursors.DictCursor
-)
+# เชื่อมต่อฐานข้อมูล
+conn = pymysql.connect(**db_config)
 
 try:
     with conn.cursor() as cursor:
@@ -68,7 +70,7 @@ try:
         cursor.execute(create_table_sql)
         conn.commit()
 
-        # สร้างคำสั่ง SQL สำหรับการ Insert ข้อมูล
+        # คำสั่ง SQL สำหรับ Insert ข้อมูล
         insert_sql = """
         INSERT INTO budget_planning_actual (
             PERIOD, FISCAL_YEAR, PILLAR, STRATEGIC_PROJECT, FACULTY, FUND, OKR, PROJECT,
@@ -80,7 +82,6 @@ try:
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
 
-        # แปลงค่า NaN ที่อาจเหลืออยู่เป็น None อีกครั้ง
         for _, row in df.iterrows():
             cursor.execute(insert_sql, tuple(
                 None if pd.isna(x) else x for x in row))

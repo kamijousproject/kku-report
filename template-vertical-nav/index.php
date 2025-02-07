@@ -49,66 +49,24 @@
                                     }
                                     ?>
                                     <form action="../server/upload.php" method="post" enctype="multipart/form-data">
-                                        <!-- <h4>เลือกประเภทรายงาน</h4>
-                                        <p>Select2 can take a regular select box like this...</p>
-                                        <p>
-                                            <select class="form-control">
-                                                <optgroup label="แผนงาน">
-                                                    <option value="report-plan-levels">รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)</option>
-                                                    <option value="report-plan-changes">รายงานการปรับเปลี่ยนแผนงาน</option>
-                                                    <option value="report-plan-status">รายงานสถานะของแผนงานแต่ละแผน</option>
-                                                    <option value="report-indicator-comparison">รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน</option>
-                                                    <option value="report-strategy-overview">รายงานภาพรวมของยุทธศาสตร์</option>
-                                                    <option value="report-budget-expenses">รายงานการใช้จ่ายงบประมาณตามแผนงาน</option>
-                                                    <option value="report-annual-action-summary">รายงานสรุปผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (ระดับมหาวิทยาลัย)</option>
-                                                    <option value="report-strategic-issues">รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับ มหาวิทยาลัย)</option>
-                                                    <option value="report-strategic-indicators">รายงานจำนวนผลลัพธ์/ตัวชี้วัดที่สอดคล้องกับแผนยุทธศาสตร์มหาวิทยาลัย</option>
-                                                    <option value="report-department-indicators">รายงานจำนวนผลลัพธ์/ตัวชี้วัดในแผนปฏิบัติการ ประจำปีงบประมาณ ส่วนงาน/หน่วยงาน</option>
-                                                    <option value="report-department-strategy-overview">รายงานภาพรวมยุทธศาสตร์ ส่วนงาน/หน่วยงาน</option>
-                                                    <option value="report-department-action-summary">รายงานสรุปผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ ส่วนงาน/หน่วยงาน</option>
-                                                    <option value="report-department-strategic-issues">รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับ ส่วนงาน/หน่วยงาน)</option>
-                                                    <option value="report-project-summary">รายงานสรุปรายโครงการ</option>
-                                                    <option value="report-budget-requests">รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ</option>
-                                                    <option value="report-reserve-funds">รายงานสรุปบัญชีทุนสำรองสะสม</option>
+                                        <h4>เลือกประเภทไฟล์</h4>
+                                        <select name="file_type" class="form-control" required>
+                                            <option value="">-- กรุณาเลือกประเภทไฟล์ --</option>
+                                            <optgroup label="Budget Planning">
+                                                <option value="budget_planning_actual">Budget Planning Actual</option>
+                                                <option value="budget_planning_allocated_annual_budget_plan">Allocated annual budget plan</option>
+                                                <option value="budget_planning_annual_budget_plan">Annual budget plan</option>
+                                                <option value="budget_planning_disbursement_budget_plan_anl_release">Disbursement budget plan annual release</option>
+                                                <option value="budget_planning_project_kpi_progress">Budget planning project KPI progress</option>
+                                                <option value="budget_planning_project_kpi">Budget planning project kpi</option>
+                                                <option value="budget_planning_sub_plan_kpi_progress">Budget planning sub plan KPI progress</option>
+                                                <option value="budget_planning_subplan_kpi">Budget planning subplan KPI</option>
+                                                <!-- สามารถเพิ่มหมวดหมู่และไฟล์เพิ่มเติมได้ -->
+                                            </optgroup>
+                                            <!-- เพิ่มหมวดหมู่อื่น ๆ ตามต้องการ -->
+                                        </select>
+                                        <br>
 
-                                                </optgroup>
-                                                <optgroup label="แผนอัตรากำลัง">
-                                                    <option value="report-4year-framework">รายงานกรอบอัตรากำลังระยะเวลา 4 ปี</option>
-                                                    <option value="report-budget-framework">รายงานกรอบอัตรากำลังตามงบประมาณประเภทต่างๆ</option>
-                                                    <option value="report-unit-personnel">รายงานอัตรากำลังประเภทต่างๆ ของหน่วยงาน</option>
-                                                    <option value="report-vacant-personnel">รายงานอัตรากำลังว่าง</option>
-                                                    <option value="report-retirement">รายงานอัตรากำลังที่เกษียณอายุในแต่ละช่วงเวลา</option>
-                                                    <option value="report-approval-requests">รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</option>
-                                                    <option value="report-overview-framework">รายงานสรุปผลการจัดสรรกรอบอตัรากำลังทุกประเภทภาพรวมของมหาวิทยาลัย</option>
-                                                    <option value="report-annual-allocation">รายงานการจัดสรรกรอบอัตรากำลัง ประจำปีงบประมาณ</option>
-                                                    <option value="report-staff-requests">รายงานสรุปคำขออนุมัติกรอบอัตรากำลัง ประจำปีงบประมาณ แยกตามประเภทบุคลากร</option>
-                                                    <option value="report-4year-workload">รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน</option>
-                                                    <option value="report-framework-summary">รายงานสรุปแผนกรอบอตัรากำลัง 4 ปีแยกตามประเภท</option>
-                                                    <option value="report-position-changes">รายงานผลการตัดโอน – เปลี่ยนตำแหน่ง</option>
-                                                    <option value="report-current-vs-ideal">รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</option>
-                                                    <option value="report-new-vs-old-positions">รายงานการสรุป คำขออัตราใหม่และอัตราเดิม (หลังจากส่วนงาน/หน่วยงาน กรอกคำขออัตราเดิมและอัตราใหม่)</option>
-                                                    <option value="report-new-positions-summary">รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวทิยาลัย (อัตราใหม่) รายตำแหน่ง</option>
-                                                </optgroup>
-                                                <optgroup label="แผนงบประมาณ">
-                                                    <option value="report-budget-annual-summary">รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</option>
-                                                    <option value="report-budget-comparison">รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</option>
-                                                    <option value="report-budget-structure-comparison">รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กร ตามแหล่งเงิน ตามแผนงาน/โครงการ โดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ</option>
-                                                    <option value="report-budget-spending-status">รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</option>
-                                                    <option value="report-budget-adjustments">รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</option>
-                                                    <option value="report-budget-carryover">รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมกีารสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้</option>
-                                                    <option value="report-budget-revenue-summary">รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ</option>
-                                                    <option value="report-project-activities">รายงานโครงการ/กิจกรรม</option>
-                                                    <option value="report-budget-request-summary">รายงานสรุปคำขอตั้งงบประมาณรายจ่ายประจำปี(สรุปประมาณการรายรับและประมาณการรายจ่าย)</option>
-                                                    <option value="report-project-requests">รายงานสรุปคำขอรายโครงการ</option>
-                                                    <option value="report-budget-remaining">รายงานสรุปยอดงบประมาณคงเหลือ</option>
-                                                    <option value="report-hcm-framework">รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM) เพื่อนำไปตั้งงบประมาณขอไฟล์ database จากระบบ HCM</option>
-                                                    <option value="report-budget-allocation">รายงานการจัดสรรเงินรายงวด</option>
-                                                    <option value="report-revenue-estimation-comparison">รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</option>
-                                                    <option value="report-expense-estimation-comparison">รายงานแสดงการเปรียบเทียบการประมาณการรายจ่ายกับจ่ายจริง</option>
-                                                    <option value="report-indicator-summary">รายงานสรุปรายการตัวชี้วัดแผน/ผลของแผนงานย่อย</option>
-                                                </optgroup>
-                                            </select>
-                                        </p> -->
                                         <h4>เลือกไฟล์</h4>
                                         <hr>
                                         <h6 class="card-subtitle">คลิ๊กเพื่อเลือกไฟล์ที่ต้องการ หรือลากไฟล์มาวาง</h6>
@@ -117,6 +75,7 @@
                                         </div>
                                         <button type="submit" class="btn btn-primary m-t-15">Upload</button>
                                     </form>
+
                                     <!-- <script>
                                         setTimeout(function() {
                                             var alert = document.querySelector('div[style*="background-color"]');

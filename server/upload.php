@@ -1,45 +1,63 @@
 <?php
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $target_dir = "";
-    $file_name = basename($_FILES["file"]["name"]);
-    $target_file = $file_name;
-
-    // ตรวจสอบว่าไฟล์เป็น CSV
-    $file_type = pathinfo($target_file, PATHINFO_EXTENSION);
-    if ($file_type != "csv") {
-        die("Only CSV files are allowed.");
+    $target_dir = __DIR__ . "/uploads/";
+    if (!file_exists($target_dir)) {
+        mkdir($target_dir, 0777, true);
     }
 
-    // ย้ายไฟล์ไปยังโฟลเดอร์ที่กำหนด
-    if (move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
-        // เรียก Python script เพื่ออัปโหลดข้อมูลลง SQL
-        $command = "python insertdata.py " . escapeshellarg($target_file);
-        $process = proc_open($command, [
-            1 => ['pipe', 'w'], // stdout
-            2 => ['pipe', 'w'], // stderr
-        ], $pipes);
+    $file_name = basename($_FILES["file"]["name"]);
+    $target_file = $target_dir . $file_name;
 
-        if (is_resource($process)) {
-            $output = stream_get_contents($pipes[1]);
-            $error_output = stream_get_contents($pipes[2]);
-            fclose($pipes[1]);
-            fclose($pipes[2]);
-            proc_close($process);
+    // ตรวจสอบประเภทไฟล์ CSV
+    $file_type = pathinfo($target_file, PATHINFO_EXTENSION);
+    if ($file_type != "csv") {
+        header("Location: ../template-vertical-nav/index.php?status=error&message=Only CSV files are allowed.");
+        exit();
+    }
 
-            // ตรวจสอบผลลัพธ์จาก Python script
-            if (strpos($output, 'successfully imported') !== false) {
-                // Redirect พร้อมส่งข้อความสำเร็จไปยัง index.php
-                header("Location: ../template-vertical-nav/index.php?status=success");
-                exit();
-            } else {
-                // Redirect พร้อมส่งข้อความข้อผิดพลาดไปยัง index.php
-                header("Location: ../template-vertical-nav/index.php?status=error&message=" . urlencode($error_output));
-                exit();
-            }
-        }
-    } else {
-        // Redirect พร้อมแสดงข้อผิดพลาดการอัปโหลด
+    // ตรวจสอบการเลือกประเภทไฟล์
+    if (!isset($_POST['file_type']) || empty($_POST['file_type'])) {
+        header("Location: ../template-vertical-nav/index.php?status=error&message=File type is required.");
+        exit();
+    }
+
+    $file_category = $_POST['file_type'];
+
+    // แมปประเภทไฟล์กับ Python script
+    $python_scripts = [
+        "budget_planning_actual" => __DIR__ . "/budget_planing/insert_budget_planning_actual.py",
+        "budget_planning_allocated_annual_budget_plan" => __DIR__ . "/budget_planing/insert_budget_planning_allocated_annual_budget_plan.py",
+        "budget_planning_annual_budget_plan" => __DIR__ . "/budget_planing/insert_budget_planning_annual_budget_plan.py",
+        "budget_planning_disbursement_budget_plan_anl_release" => __DIR__ . "/budget_planing/insert_budget_planning_disbursement_budget_plan_anl_release.py",
+        "budget_planning_project_kpi_progress" => __DIR__ . "/budget_planing/insert_budget_planning_project_kpi_progress.py",
+        "budget_planning_project_kpi" => __DIR__ . "/budget_planing/insert_budget_planning_project_kpi.py",
+        "budget_planning_sub_plan_kpi_progress" => __DIR__ . "/budget_planing/insert_budget_planning_sub_plan_kpi_progress.py",
+        "budget_planning_subplan_kpi" => __DIR__ . "/budget_planing/insert_budget_planning_subplan_kpi.py",
+    ];
+
+    // ตรวจสอบว่า script มีอยู่จริง
+    if (!array_key_exists($file_category, $python_scripts) || !file_exists($python_scripts[$file_category])) {
+        header("Location: ../template-vertical-nav/index.php?status=error&message=Invalid or missing Python script.");
+        exit();
+    }
+
+    // ย้ายไฟล์ไปยังโฟลเดอร์ `uploads/`
+    if (!move_uploaded_file($_FILES["file"]["tmp_name"], $target_file)) {
         header("Location: ../template-vertical-nav/index.php?status=error&message=File upload failed.");
+        exit();
+    }
+
+    // เรียกใช้ Python script และรับ error message จาก Python
+    $python_script = escapeshellarg($python_scripts[$file_category]);
+    $command = "python $python_script " . escapeshellarg($target_file) . " 2>&1";
+
+    $output = shell_exec($command);
+
+    if (strpos($output, 'Insert data completed successfully') !== false) {
+        header("Location: ../template-vertical-nav/index.php?status=success");
+        exit();
+    } else {
+        header("Location: ../template-vertical-nav/index.php?status=error&message=" . urlencode(nl2br($output)));
         exit();
     }
 }
