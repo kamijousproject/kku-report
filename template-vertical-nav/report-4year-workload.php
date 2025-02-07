@@ -165,21 +165,33 @@
                                 
                                 { key: 'sum_RWC2', value: row.sum_RWC2 },
 
-                                { key: 's1', value: "" },        
-                                { key: 's2', value: "" },
-                                { key: 's3', value: "" },
-                                { key: 's4', value: ""},
-                                { key: 's5', value: "" },
-                                { key: 's6', value: "" },
-                                { key: 's7', value: "" },
-                                { key: 's8', value: ""},
-                                { key: 's9', value: "" },
-                                { key: 's10', value: "" },
-                                { key: 's11', value: "" },
-                                { key: 's12', value: "" },        
-                                { key: 's13', value: "" },
-                                { key: 's14', value: "" },
-                                { key: 's15', value: "" },
+                                { key: 'j1', value: row.j1 },        
+                                { key: 'j2', value: row.j2 },
+                                { key: 'j3', value: row.j3 },
+                                { key: 'j4', value: row.j4},
+                                { key: 'j5', value: row.j5 },
+                                { key: 'j6', value: row.j6 },
+                                { key: 'j7', value: row.j7 },
+                                { key: 'j8', value: row.j8},
+                                { key: 'j9', value: row.j9 },
+                                { key: 'j10', value: row.j10 },
+                                { key: 'j11', value: row.j11 },
+                                { key: 'j12', value: row.j12 },        
+                                { key: 'j13', value: row.j13 },
+                                { key: 'j14', value: parseInt(row.j1) + 
+                                                        parseInt(row.j2) + 
+                                                        parseInt(row.j3) + 
+                                                        parseInt(row.j4) + 
+                                                        parseInt(row.j5) + 
+                                                        parseInt(row.j6) + 
+                                                        parseInt(row.j7) + 
+                                                        parseInt(row.j8) + 
+                                                        parseInt(row.j9) + 
+                                                        parseInt(row.j10) + 
+                                                        parseInt(row.j11) + 
+                                                        parseInt(row.j12) + 
+                                                        parseInt(row.j13) },
+                                { key: 'j15', value: "0"},
                             ];
 
                         columns.forEach(col => {
