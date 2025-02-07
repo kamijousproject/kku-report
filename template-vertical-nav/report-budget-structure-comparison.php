@@ -2,6 +2,22 @@
 <html lang="en">
 <?php include('../component/header.php'); ?>
 <style>
+    #reportTable th:nth-child(1),
+    #reportTable td:nth-child(1) {
+        width: 300px;
+        /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
+    }
+
+    #reportTable th,
+    #reportTable td {
+        text-align: center;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: middle;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
+
     .wide-column {
         min-width: 250px;
         /* ปรับขนาด column ให้กว้างขึ้น */
@@ -18,6 +34,43 @@
     .wide-column div {
         margin-bottom: 5px;
         /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+    }
+
+    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        /* ลบช่องว่างระหว่างเซลล์ */
+    }
+
+    /* ทำให้หัวตารางติดอยู่กับด้านบน */
+    th {
+        position: sticky;
+        /* ทำให้ header ติดอยู่กับด้านบน */
+        top: 0;
+        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
+        background-color: #fff;
+        /* กำหนดพื้นหลังให้กับหัวตาราง */
+        z-index: 2;
+        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* เพิ่มเงาให้หัวตาราง */
+        padding: 8px;
+    }
+
+    /* เพิ่มเงาให้กับแถวหัวตาราง */
+    th,
+    td {
+        border: 1px solid #ddd;
+        /* เพิ่มขอบให้เซลล์ */
+    }
+
+    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
+    .table-responsive {
+        max-height: 60vh;
+        /* กำหนดความสูงของตาราง */
+        overflow-y: auto;
+        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
     }
 </style>
 
@@ -50,9 +103,9 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
-                                <div class="card-title">
-                                    <h4>รายงานเปรียบเทียบงบประมาณ</h4>
-                                </div>
+
+                                <h4>รายงานเปรียบเทียบงบประมาณ</h4>
+
                                 <?php
                                 include '../server/connectdb.php';
 
@@ -220,69 +273,93 @@
                                 $usedRowspan = [];
                                 ?>
                                 <div class="table-responsive">
-                                    <table id="reportTable" class="table table-bordered table-hover">
+                                    <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
+                                            <!-- แถวแรก: หัวข้อหลัก -->
                                             <tr>
-                                                <th colspan="6">รายการ</th>
+                                                <th rowspan="3">รายการ</th>
+                                                <th colspan="15">ปีงบประมาณ Budget Year</th>
+                                            </tr>
+                                            <!-- แถวที่สอง: หัวข้อย่อย -->
+                                            <tr>
                                                 <th colspan="5">เงินอุดหนุนจากรัฐ (FN06)</th>
                                                 <th colspan="5">เงินรายได้ (FN02)</th>
                                                 <th colspan="5">รวม</th>
                                             </tr>
+                                            <!-- แถวที่สาม: รายละเอียด -->
                                             <tr>
-                                                <th>Plan</th>
-                                                <th>Subplan</th>
-                                                <th>Project</th>
-                                                <th>ค่าใช้จ่าย</th>
-                                                <th>ประเภทรายจ่าย</th>
-                                                <th>รายการรายจ่าย</th>
                                                 <th>งบประมาณที่ได้รับจัดสรร</th>
                                                 <th>ผลการก่อหนี้ผูกพัน</th>
                                                 <th>ร้อยละผลการก่อหนี้ผูกพัน</th>
                                                 <th>ผลการใช้จ่าย</th>
                                                 <th>ร้อยละผลการใช้จ่าย</th>
+
                                                 <th>งบประมาณที่ได้รับจัดสรร</th>
                                                 <th>ผลการก่อหนี้ผูกพัน</th>
                                                 <th>ร้อยละผลการก่อหนี้ผูกพัน</th>
                                                 <th>ผลการใช้จ่าย</th>
                                                 <th>ร้อยละผลการใช้จ่าย</th>
+
                                                 <th>งบประมาณที่ได้รับจัดสรร</th>
                                                 <th>ผลการก่อหนี้ผูกพัน</th>
-                                                <th>จำนวน(รวมจัดสรร68-รวม67)</th>
+                                                <th>ร้อยละผลการก่อหนี้ผูกพัน</th>
                                                 <th>ผลการใช้จ่าย</th>
                                                 <th>ร้อยละผลการใช้จ่าย</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($mergedData as $row) : ?>
-                                                <?php
-                                                // กำหนด Key เพื่อเช็คว่า Row นี้ต้อง merge หรือไม่
-                                                $key = $row['Plan'] . '|' . $row['Sub_Plan'] . '|' . $row['Project'] . '|' . $row['Type'] . '|' . $row['Sub_Type'];
-
-                                                // ตรวจสอบว่าเคยใช้ rowspan ไปแล้วหรือยัง
-                                                $showRowspan = !isset($usedRowspan[$key]);
-                                                if ($showRowspan) {
-                                                    $usedRowspan[$key] = true;
-                                                }
-                                                ?>
+                                            <?php foreach ($mergedData as $row): ?>
                                                 <tr>
-                                                    <?php if ($showRowspan) : ?>
-                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Plan'] ?></td>
-                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Sub_Plan'] ?></td>
-                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Project'] ?></td>
-                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Type'] ?></td>
-                                                        <td rowspan="<?= $rowspanData[$key] ?>"><?= $row['Sub_Type'] ?></td>
-                                                    <?php endif; ?>
-                                                    <td><?= $row['KKU_Item_Name'] ?></td>
-                                                    <td><?= $row['Allocated_FN06'] ?></td>
-                                                    <td><?= $row['Commitments_FN06'] ?></td>
+
+                                                    <td style="text-align: left;">
+                                                        <?php
+                                                        static $prevRow = null; // เก็บค่าของแถวก่อนหน้า
+                                                    
+                                                        if ($prevRow === null || $prevRow['Plan'] !== $row['Plan']) {
+                                                            echo "<strong>{$row['Plan']}</strong><br>";
+                                                        }
+
+                                                        if ($prevRow === null || $prevRow['Sub_Plan'] !== $row['Sub_Plan']) {
+                                                            echo "<strong>" . str_repeat('&nbsp;', 4) . "{$row['Sub_Plan']}</strong><br>";
+                                                        }
+
+                                                        if ($prevRow === null || $prevRow['Project'] !== $row['Project']) {
+                                                            echo "<strong>" . str_repeat('&nbsp;', 8) . "{$row['Project']}</strong><br>";
+                                                        }
+
+                                                        if ($prevRow === null || $prevRow['Type'] !== $row['Type']) {
+                                                            echo "<strong>" . str_repeat('&nbsp;', 12) . "{$row['Type']}</strong><br>";
+                                                        }
+
+                                                        if ($prevRow === null || $prevRow['Sub_Type'] !== $row['Sub_Type']) {
+                                                            echo "<strong>" . str_repeat('&nbsp;', 16) . "{$row['Sub_Type']}</strong><br>";
+                                                        }
+
+                                                        // อัปเดตค่าของ $prevRow เพื่อใช้ตรวจสอบแถวถัดไป
+                                                        $prevRow = $row;
+                                                        ?>
+
+                                                        <strong><?= str_repeat('&nbsp;', 20) ?><?= $row['KKU_Item_Name'] ?></strong>
+                                                    </td>
+
+
+
+
+                                                    <!-- เงินอุดหนุนจากรัฐ (FN06) -->
+                                                    <td><?= number_format($row['Allocated_FN06'], 2) ?></td>
+                                                    <td><?= number_format($row['Commitments_FN06'], 2) ?></td>
                                                     <td><?= number_format($row['Commitment_Percent_FN06'], 2) ?>%</td>
-                                                    <td><?= $row['Expenditures_FN06'] ?></td>
+                                                    <td><?= number_format($row['Expenditures_FN06'], 2) ?></td>
                                                     <td><?= number_format($row['Expenditures_Percent_FN06'], 2) ?>%</td>
-                                                    <td><?= $row['Allocated_FN02'] ?></td>
-                                                    <td><?= $row['Commitments_FN02'] ?></td>
+
+                                                    <!-- เงินรายได้ (FN02) -->
+                                                    <td><?= number_format($row['Allocated_FN02'], 2) ?></td>
+                                                    <td><?= number_format($row['Commitments_FN02'], 2) ?></td>
                                                     <td><?= number_format($row['Commitment_Percent_FN02'], 2) ?>%</td>
-                                                    <td><?= $row['Expenditures_FN02'] ?></td>
+                                                    <td><?= number_format($row['Expenditures_FN02'], 2) ?></td>
                                                     <td><?= number_format($row['Expenditures_Percent_FN02'], 2) ?>%</td>
+
+                                                    <!-- รวม -->
                                                     <td><?= number_format($row['Total_Allocated'], 2) ?></td>
                                                     <td><?= number_format($row['Total_Commitments'], 2) ?></td>
                                                     <td><?= number_format($row['Total_Commitments_Percent'], 2) ?>%</td>
@@ -293,9 +370,12 @@
                                         </tbody>
                                     </table>
                                 </div>
+
+
+
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
+                                <button onclick="exportXLSX()" class="btn btn-success m-t-15">Export XLSX</button>
                             </div>
                         </div>
 
@@ -371,37 +451,97 @@
             // บันทึกไฟล์ PDF
             doc.save('รายงาน.pdf');
         }
-
-        function exportXLS() {
-            const rows = [];
+        function exportXLSX() {
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
+            const rows = [];
+            const merges = [];
+            const rowSpans = {};
+
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const row = table.rows[rowIndex];
+                const cells = [];
+                let colIndex = 0;
+
+                for (let cell of row.cells) {
+                    // ตรวจสอบว่ามี rowspan ค้างอยู่หรือไม่
+                    while (rowSpans[colIndex] && rowSpans[colIndex][0] === rowIndex) {
+                        cells.push(null);
+                        rowSpans[colIndex].shift();
+                        colIndex++;
+                    }
+
+                    // ดึงข้อความจากเซลล์
+                    const value = cell.innerText.trim();
+                    cells.push(value);
+
+                    // ✅ จัดการ colspan ให้เติมช่องว่าง (เพื่อไม่ให้ข้อมูลหาย)
+                    for (let i = 1; i < cell.colSpan; i++) {
+                        cells.push(null);
+                    }
+
+                    // ✅ ตรวจสอบ colspan และ rowspan เพื่อกำหนด merge cell
+                    if (cell.colSpan > 1 || cell.rowSpan > 1) {
+                        merges.push({
+                            s: { r: rowIndex, c: colIndex }, // เริ่มต้น
+                            e: { r: rowIndex + (cell.rowSpan - 1), c: colIndex + (cell.colSpan - 1) } // สิ้นสุด
+                        });
+                    }
+
+                    // ✅ จัดการ rowspan (เก็บตำแหน่งเซลล์ที่ถูก merge)
+                    if (cell.rowSpan > 1) {
+                        for (let i = 1; i < cell.rowSpan; i++) {
+                            if (!rowSpans[colIndex]) {
+                                rowSpans[colIndex] = [];
+                            }
+                            rowSpans[colIndex].push(rowIndex + i);
+                        }
+                    }
+
+                    colIndex += cell.colSpan; // ขยับ index ตาม colspan
+                }
+
                 rows.push(cells);
             }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
+            const XLSX = window.XLSX;
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // ✅ กำหนด Merge Cell
+            ws['!merges'] = merges;
+
+            // ✅ จัดตำแหน่งข้อความให้อยู่กลาง
+            Object.keys(ws).forEach(cell => {
+                if (cell[0] !== '!') { // ข้ามคีย์พิเศษเช่น !merges
+                    ws[cell].s = { alignment: { horizontal: "center", vertical: "center" } };
+                }
             });
+
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // ✅ ดาวน์โหลดไฟล์ Excel
+            const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = 'รายงาน.xlsx';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
+
+
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
     <!-- Custom script -->
     <script src="../js/custom.min.js"></script>
+    <!-- โหลดไลบรารี xlsx จาก CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
 </body>
 
 </html>
