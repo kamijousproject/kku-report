@@ -2,76 +2,76 @@
 <html lang="en">
 <?php include('../component/header.php'); ?>
 <style>
-    #reportTable th:nth-child(1),
-    #reportTable td:nth-child(1) {
-        width: 300px;
-        /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
-    }
+#reportTable th:nth-child(1),
+#reportTable td:nth-child(1) {
+    width: 300px;
+    /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
+}
 
-    #reportTable th,
-    #reportTable td {
-        text-align: center;
-        /* จัดข้อความให้อยู่ตรงกลาง */
-        vertical-align: middle;
-        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-        white-space: nowrap;
-        /* ป้องกันข้อความตัดบรรทัด */
-    }
+#reportTable th,
+#reportTable td {
+    text-align: center;
+    /* จัดข้อความให้อยู่ตรงกลาง */
+    vertical-align: middle;
+    /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+    white-space: nowrap;
+    /* ป้องกันข้อความตัดบรรทัด */
+}
 
-    .wide-column {
-        min-width: 250px;
-        /* ปรับขนาด column ให้กว้างขึ้น */
-        word-break: break-word;
-        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
-        white-space: pre-line;
-        /* รักษารูปแบบการขึ้นบรรทัด */
-        vertical-align: top;
-        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
-        padding: 10px;
-        /* เพิ่มช่องว่างด้านใน */
-    }
+.wide-column {
+    min-width: 250px;
+    /* ปรับขนาด column ให้กว้างขึ้น */
+    word-break: break-word;
+    /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
+    white-space: pre-line;
+    /* รักษารูปแบบการขึ้นบรรทัด */
+    vertical-align: top;
+    /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
+    padding: 10px;
+    /* เพิ่มช่องว่างด้านใน */
+}
 
-    .wide-column div {
-        margin-bottom: 5px;
-        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
-    }
+.wide-column div {
+    margin-bottom: 5px;
+    /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+}
 
-    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        /* ลบช่องว่างระหว่างเซลล์ */
-    }
+/* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    /* ลบช่องว่างระหว่างเซลล์ */
+}
 
-    /* ทำให้หัวตารางติดอยู่กับด้านบน */
-    th {
-        position: sticky;
-        /* ทำให้ header ติดอยู่กับด้านบน */
-        top: 0;
-        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
-        background-color: #fff;
-        /* กำหนดพื้นหลังให้กับหัวตาราง */
-        z-index: 2;
-        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        /* เพิ่มเงาให้หัวตาราง */
-        padding: 8px;
-    }
+/* ทำให้หัวตารางติดอยู่กับด้านบน */
+th {
+    position: sticky;
+    /* ทำให้ header ติดอยู่กับด้านบน */
+    top: 0;
+    /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
+    background-color: #fff;
+    /* กำหนดพื้นหลังให้กับหัวตาราง */
+    z-index: 2;
+    /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    /* เพิ่มเงาให้หัวตาราง */
+    padding: 8px;
+}
 
-    /* เพิ่มเงาให้กับแถวหัวตาราง */
-    th,
-    td {
-        border: 1px solid #ddd;
-        /* เพิ่มขอบให้เซลล์ */
-    }
+/* เพิ่มเงาให้กับแถวหัวตาราง */
+th,
+td {
+    border: 1px solid #ddd;
+    /* เพิ่มขอบให้เซลล์ */
+}
 
-    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
-    .table-responsive {
-        max-height: 60vh;
-        /* กำหนดความสูงของตาราง */
-        overflow-y: auto;
-        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
-    }
+/* ทำให้ข้อมูลในตารางเลื่อนได้ */
+.table-responsive {
+    max-height: 60vh;
+    /* กำหนดความสูงของตาราง */
+    overflow-y: auto;
+    /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
+}
 </style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
@@ -137,7 +137,9 @@
                                                 bpa.FUNDS_AVAILABLE_PERCENTAGE,
                                                 bpa.COMMITMENTS,
                                                 bpa.OBLIGATIONS,
-                                                f.Alias_Default AS Faculty_Name,
+                                                f.Alias_Default AS Alias_Default,
+                                                f.Parent AS Faculty_Sub,
+                                                f.Faculty AS Faculty_Main,
                                                 p.plan_name AS Plan_Name,
                                                 sp.sub_plan_name AS Sub_Plan_Name,
                                                 pr.project_name AS Project_Name
@@ -236,7 +238,12 @@
                                         'Project' => $fn06['Project'],
                                         'Type' => $fn06['type'],
                                         'Sub_Type' => $fn06['sub_type'],
+                                        'Plan_Name' => $fn06['Plan_Name'],
+                                        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'],
+                                        'Project_Name' => $fn06['Project_Name'],
                                         'KKU_Item_Name' => $fn06['KKU_Item_Name'],
+                                        'Alias_Default' => $fn06['Alias_Default'], // ✅ เพิ่มข้อมูล Faculty
+                                        'Faculty_Sub' => $fn06['Faculty_Sub'],
                                         'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
                                         'Commitments_FN06' => $commitment_FN06,
                                         'Commitment_Percent_FN06' => $commitment_percent_FN06,
@@ -277,17 +284,46 @@
                                         <thead>
                                             <!-- แถวแรก: หัวข้อหลัก -->
                                             <tr>
-                                                <th rowspan="3">รายการ</th>
-                                                <th colspan="15">ปีงบประมาณ Budget Year</th>
+                                                <th rowspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1">ปีงบประมาณ Budget Year</th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
                                             </tr>
                                             <!-- แถวที่สอง: หัวข้อย่อย -->
                                             <tr>
-                                                <th colspan="5">เงินอุดหนุนจากรัฐ (FN06)</th>
-                                                <th colspan="5">เงินรายได้ (FN02)</th>
-                                                <th colspan="5">รวม</th>
+                                                <th rowspan="1">รายการ</th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1">เงินอุดหนุนจากรัฐ (FN06)</th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1">เงินรายได้ (FN02)</th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1">รวม</th>
+                                                <th colspan="1"></th>
+                                                <th colspan="1"></th>
+
                                             </tr>
                                             <!-- แถวที่สาม: รายละเอียด -->
                                             <tr>
+                                                <th rowspan="1"></th>
                                                 <th>งบประมาณที่ได้รับจัดสรร</th>
                                                 <th>ผลการก่อหนี้ผูกพัน</th>
                                                 <th>ร้อยละผลการก่อหนี้ผูกพัน</th>
@@ -309,63 +345,89 @@
                                         </thead>
                                         <tbody>
                                             <?php foreach ($mergedData as $row): ?>
-                                                <tr>
+                                            <tr>
 
-                                                    <td style="text-align: left;">
-                                                        <?php
+                                                <td style="text-align: left;">
+                                                    <?php
                                                         static $prevRow = null; // เก็บค่าของแถวก่อนหน้า
                                                     
+                                                        // ลบตัวเลข, เครื่องหมาย '-', และช่องว่างข้างหน้าออกจาก Alias_Default
+                                                        $facultyName = preg_replace('/^[\d\s\-]+/', '', $row['Alias_Default']);
+                                                        if ($prevRow === null || $prevRow['Alias_Default'] !== $row['Alias_Default']) {
+                                                            echo "<strong>{$facultyName}</strong><br>";
+                                                        }
+
                                                         if ($prevRow === null || $prevRow['Plan'] !== $row['Plan']) {
-                                                            echo "<strong>{$row['Plan']}</strong><br>";
+                                                            echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Plan']} : {$row['Plan_Name']}</strong><br>";
                                                         }
 
                                                         if ($prevRow === null || $prevRow['Sub_Plan'] !== $row['Sub_Plan']) {
-                                                            echo "<strong>" . str_repeat('&nbsp;', 4) . "{$row['Sub_Plan']}</strong><br>";
+                                                            // ลบข้อมูลในวงเล็บออกจาก Sub_Plan_Name
+                                                            $subPlanName = preg_replace('/\([^\)]*\)/', '', $row['Sub_Plan_Name']);
+
+                                                            // ลบตัวหนังสือและ _ จาก Sub_Plan
+                                                            $subPlan = preg_replace('/[a-zA-Z_]+/', '', $row['Sub_Plan']);
+
+                                                            echo "<strong>" . str_repeat('&nbsp;', 10) . "{$subPlan} : {$subPlanName}</strong><br>";
                                                         }
+
 
                                                         if ($prevRow === null || $prevRow['Project'] !== $row['Project']) {
-                                                            echo "<strong>" . str_repeat('&nbsp;', 8) . "{$row['Project']}</strong><br>";
+                                                            // แก้ไข Project_Name ให้มีช่องว่างหลังเครื่องหมาย :
+                                                            $projectName = preg_replace('/(\d+):(\S)/', '$1 : $2', $row['Project_Name']);
+                                                            echo "<strong>" . str_repeat('&nbsp;', 15) . "{$projectName}</strong><br>";
                                                         }
+                                                        
+
 
                                                         if ($prevRow === null || $prevRow['Type'] !== $row['Type']) {
-                                                            echo "<strong>" . str_repeat('&nbsp;', 12) . "{$row['Type']}</strong><br>";
+                                                            echo "<strong>" . str_repeat('&nbsp;', 20) . "{$row['Type']}</strong><br>";
                                                         }
 
                                                         if ($prevRow === null || $prevRow['Sub_Type'] !== $row['Sub_Type']) {
-                                                            echo "<strong>" . str_repeat('&nbsp;', 16) . "{$row['Sub_Type']}</strong><br>";
+                                                            echo "<strong>" . str_repeat('&nbsp;', 25) . "{$row['Sub_Type']}</strong><br>";
                                                         }
 
                                                         // อัปเดตค่าของ $prevRow เพื่อใช้ตรวจสอบแถวถัดไป
                                                         $prevRow = $row;
                                                         ?>
+                                                    <strong><?= str_repeat('&nbsp;', 30) ?><?= $row['KKU_Item_Name'] ?></strong>
+                                                </td>
 
-                                                        <strong><?= str_repeat('&nbsp;', 20) ?><?= $row['KKU_Item_Name'] ?></strong>
-                                                    </td>
+                                                <td><?= str_replace(",", "", number_format($row['Allocated_FN06'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Commitments_FN06'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Commitment_Percent_FN06'], 2)) ?>%
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Expenditures_FN06'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Expenditures_Percent_FN06'], 2)) ?>
+                                                </td>
 
+                                                <td><?= str_replace(",", "", number_format($row['Allocated_FN02'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Commitments_FN02'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Commitment_Percent_FN02'], 2)) ?>%
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Expenditures_FN02'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Expenditures_Percent_FN02'], 2)) ?>
+                                                </td>
 
+                                                <td><?= str_replace(",", "", number_format($row['Total_Allocated'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Total_Commitments'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Total_Commitments_Percent'], 2)) ?>%
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Total_Expenditures'], 2)) ?>
+                                                </td>
+                                                <td><?= str_replace(",", "", number_format($row['Total_Expenditures_Percent'], 2)) ?>
+                                                </td>
 
-
-                                                    <!-- เงินอุดหนุนจากรัฐ (FN06) -->
-                                                    <td><?= number_format($row['Allocated_FN06'], 2) ?></td>
-                                                    <td><?= number_format($row['Commitments_FN06'], 2) ?></td>
-                                                    <td><?= number_format($row['Commitment_Percent_FN06'], 2) ?>%</td>
-                                                    <td><?= number_format($row['Expenditures_FN06'], 2) ?></td>
-                                                    <td><?= number_format($row['Expenditures_Percent_FN06'], 2) ?>%</td>
-
-                                                    <!-- เงินรายได้ (FN02) -->
-                                                    <td><?= number_format($row['Allocated_FN02'], 2) ?></td>
-                                                    <td><?= number_format($row['Commitments_FN02'], 2) ?></td>
-                                                    <td><?= number_format($row['Commitment_Percent_FN02'], 2) ?>%</td>
-                                                    <td><?= number_format($row['Expenditures_FN02'], 2) ?></td>
-                                                    <td><?= number_format($row['Expenditures_Percent_FN02'], 2) ?>%</td>
-
-                                                    <!-- รวม -->
-                                                    <td><?= number_format($row['Total_Allocated'], 2) ?></td>
-                                                    <td><?= number_format($row['Total_Commitments'], 2) ?></td>
-                                                    <td><?= number_format($row['Total_Commitments_Percent'], 2) ?>%</td>
-                                                    <td><?= number_format($row['Total_Expenditures'], 2) ?></td>
-                                                    <td><?= number_format($row['Total_Expenditures_Percent'], 2) ?>%</td>
-                                                </tr>
+                                            </tr>
                                             <?php endforeach; ?>
                                         </tbody>
                                     </table>
@@ -390,149 +452,163 @@
         </div>
     </div>
     <script>
-        function exportCSV() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
-            }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+    function exportCSV() {
+        const rows = [];
+        const table = document.getElementById('reportTable');
 
-        function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+        for (let row of table.rows) {
+            const cells = Array.from(row.cells).map(cell => {
+                let text = cell.innerText.trim();
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
+                // เช็คว่าเป็นตัวเลข float (ไม่มี , ในหน้าเว็บ)
+                if (!isNaN(text) && text !== "") {
+                    text = `"${parseFloat(text).toLocaleString("en-US", { minimumFractionDigits: 2 })}"`;
+                }
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
+                return text;
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            rows.push(cells.join(",")); // ใช้ , เป็นตัวคั่น CSV
         }
-        function exportXLSX() {
-            const table = document.getElementById('reportTable');
-            const rows = [];
-            const merges = [];
-            const rowSpans = {};
 
-            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-                const row = table.rows[rowIndex];
-                const cells = [];
-                let colIndex = 0;
+        const csvContent = "\uFEFF" + rows.join("\n"); // ป้องกัน Encoding เพี้ยน
+        const blob = new Blob([csvContent], {
+            type: 'text/csv;charset=utf-8;'
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'รายงาน.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
-                for (let cell of row.cells) {
-                    // ตรวจสอบว่ามี rowspan ค้างอยู่หรือไม่
-                    while (rowSpans[colIndex] && rowSpans[colIndex][0] === rowIndex) {
-                        cells.push(null);
-                        rowSpans[colIndex].shift();
-                        colIndex++;
-                    }
+    function exportPDF() {
+        const {
+            jsPDF
+        } = window.jspdf;
+        const doc = new jsPDF('landscape');
 
-                    // ดึงข้อความจากเซลล์
-                    const value = cell.innerText.trim();
-                    cells.push(value);
+        // เพิ่มฟอนต์ภาษาไทย
+        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+        doc.setFont("THSarabun");
 
-                    // ✅ จัดการ colspan ให้เติมช่องว่าง (เพื่อไม่ให้ข้อมูลหาย)
-                    for (let i = 1; i < cell.colSpan; i++) {
-                        cells.push(null);
-                    }
+        // ตั้งค่าฟอนต์และข้อความ
+        doc.setFontSize(12);
+        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
 
-                    // ✅ ตรวจสอบ colspan และ rowspan เพื่อกำหนด merge cell
-                    if (cell.colSpan > 1 || cell.rowSpan > 1) {
-                        merges.push({
-                            s: { r: rowIndex, c: colIndex }, // เริ่มต้น
-                            e: { r: rowIndex + (cell.rowSpan - 1), c: colIndex + (cell.colSpan - 1) } // สิ้นสุด
-                        });
-                    }
+        // ใช้ autoTable สำหรับสร้างตาราง
+        doc.autoTable({
+            html: '#reportTable',
+            startY: 20,
+            styles: {
+                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
+                fontSize: 10,
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            bodyStyles: {
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            headStyles: {
+                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
+                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+        });
 
-                    // ✅ จัดการ rowspan (เก็บตำแหน่งเซลล์ที่ถูก merge)
-                    if (cell.rowSpan > 1) {
-                        for (let i = 1; i < cell.rowSpan; i++) {
-                            if (!rowSpans[colIndex]) {
-                                rowSpans[colIndex] = [];
+        // บันทึกไฟล์ PDF
+        doc.save('รายงาน.pdf');
+    }
+
+    function exportXLSX() {
+        const table = document.getElementById('reportTable');
+        const rows = [];
+        const merges = [];
+        const rowSpans = {}; // เก็บค่า rowspan
+        const colSpans = {}; // เก็บค่า colspan
+
+        for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+            const row = table.rows[rowIndex];
+            const cells = [];
+            let colIndex = 0;
+
+            for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+                let cell = row.cells[cellIndex];
+                let cellText = cell.innerText.trim();
+
+                // ตรวจสอบว่ามี rowspan หรือ colspan หรือไม่
+                let rowspan = cell.rowSpan || 1;
+                let colspan = cell.colSpan || 1;
+
+                // หากเป็นเซลล์ที่เคยถูก Merge ข้ามมา ให้ข้ามไป
+                while (rowSpans[`${rowIndex},${colIndex}`]) {
+                    cells.push(""); // ใส่ค่าว่างแทน Merge
+                    colIndex++;
+                }
+
+                // เพิ่มค่าลงไปในแถว
+                cells.push(cellText);
+
+                // ถ้ามี colspan หรือ rowspan
+                if (rowspan > 1 || colspan > 1) {
+                    merges.push({
+                        s: {
+                            r: rowIndex,
+                            c: colIndex
+                        }, // จุดเริ่มต้นของ Merge
+                        e: {
+                            r: rowIndex + rowspan - 1,
+                            c: colIndex + colspan - 1
+                        } // จุดสิ้นสุดของ Merge
+                    });
+
+                    // บันทึกตำแหน่งเซลล์ที่ถูก Merge เพื่อกันการซ้ำ
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            if (r !== 0 || c !== 0) {
+                                rowSpans[`${rowIndex + r},${colIndex + c}`] = true;
                             }
-                            rowSpans[colIndex].push(rowIndex + i);
                         }
                     }
-
-                    colIndex += cell.colSpan; // ขยับ index ตาม colspan
                 }
 
-                rows.push(cells);
+                colIndex++;
             }
-
-            const XLSX = window.XLSX;
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-
-            // ✅ กำหนด Merge Cell
-            ws['!merges'] = merges;
-
-            // ✅ จัดตำแหน่งข้อความให้อยู่กลาง
-            Object.keys(ws).forEach(cell => {
-                if (cell[0] !== '!') { // ข้ามคีย์พิเศษเช่น !merges
-                    ws[cell].s = { alignment: { horizontal: "center", vertical: "center" } };
-                }
-            });
-
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-            // ✅ ดาวน์โหลดไฟล์ Excel
-            const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'รายงาน.xlsx';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            rows.push(cells);
         }
 
+        // สร้างไฟล์ Excel
+        const XLSX = window.XLSX;
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(rows);
 
+        // ✅ เพิ่ม Merge Cells
+        ws['!merges'] = merges;
+
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+        // ✅ ดาวน์โหลดไฟล์ Excel
+        const excelBuffer = XLSX.write(wb, {
+            bookType: 'xlsx',
+            type: 'array'
+        });
+        const blob = new Blob([excelBuffer], {
+            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'รายงาน.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
