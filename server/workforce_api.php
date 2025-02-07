@@ -1010,8 +1010,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ELSE Personnel_Type END AS Personnel_Type
                         FROM t2
                         )
-                        SELECT* FROM t3
-                        where f.faculty ='".$slt."'";
+                        SELECT t3.*,f2.parent FROM t3
+                        LEFT JOIN Faculty f2
+                        ON f2.Faculty=t3.faculty
+                        where f2.parent ='".$slt."'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -1035,12 +1037,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
                 $slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "SELECT faculty,All_PositionTypes,POSITION,Employment_Type,Contract_Type
+                $sql = "SELECT w.faculty,All_PositionTypes,POSITION,Employment_Type,Contract_Type
                         ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND Fund_FT='เงินงบประมาณ' then 'พนักงานมหาวิทยาลัยงบประมาณเงินงบประมาณ'
                         when Personnel_Type='พนักงานมหาวิทยาลัย' AND Fund_FT='เงินรายได้' then 'พนักงานมหาวิทยาลัยงบประมาณเงินรายได้'
                         ELSE Personnel_Type END AS Personnel_Type
-                        FROM workforce_new_position_request
-                        where f.faculty ='".$slt."'";
+                        FROM workforce_new_position_request w
+                        LEFT JOIN Faculty f2
+                        ON f2.Faculty=w.faculty COLLATE utf8mb4_general_ci
+                        where f2.parent ='".$slt."'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);

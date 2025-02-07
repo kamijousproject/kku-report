@@ -67,72 +67,72 @@
                                         <tbody>
                                             <!-- ข้อมูลกลุ่ม 1 -->
                                             <tr>
-                                                <td style="text-align: left;">1. พนักงานมหาวิทยาลัยงบประมาณเงินรายได้ Personnel_Type</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td style="text-align: left;">1. พนักงานมหาวิทยาลัยงบประมาณเงินรายได้</td>
+                                                <td id="type1"></td>
+                                                <td id="type1_new"></td>
+                                                <td id="type1_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิชาการ All_PositionTypes</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิชาการ</td>
+                                                <td id="academic1"></td>
+                                                <td id="academic1_new"></td>
+                                                <td id="academic1_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิจัย All_PositionTypes</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิจัย</td>
+                                                <td id="research1"></td>
+                                                <td id="research1_new"></td>
+                                                <td id="research1_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทสนับสนุน All_PositionTypes</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทสนับสนุน</td>
+                                                <td id="support1"></td>
+                                                <td id="support1_new"></td>
+                                                <td id="support1_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ระยะสั้น Contract Type</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ระยะสั้น</td>
+                                                <td id="period"></td>
+                                                <td id="period_new"></td>
+                                                <td id="period_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ชาวต่างประเทศ Employment Type</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ชาวต่างประเทศ</td>
+                                                <td id="emp1"></td>
+                                                <td id="emp1_new"></td>
+                                                <td id="emp1_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ผู้เกษียณอายุราชการ Employment Type</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ผู้เกษียณอายุราชการ</td>
+                                                <td id="emp2"></td>
+                                                <td id="emp2_new"></td>
+                                                <td id="emp2_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ผู้ปฏิบัติงานในมหาวิทยาลัย Employment Type</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ผู้ปฏิบัติงานในมหาวิทยาลัย</td>
+                                                <td id="emp3"></td>
+                                                <td id="emp3_new"></td>
+                                                <td id="emp3_sum"></td>
                                             </tr>
 
                                             <!-- ข้อมูลกลุ่ม 2 -->
                                             <tr>
-                                                <td style="text-align: left;">2. ลูกจ้างของมหาวิทยาลัย Personnel_Type</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td style="text-align: left;">2. ลูกจ้างของมหาวิทยาลัย</td>
+                                                <td id="type2"></td>
+                                                <td id="type2_new"></td>
+                                                <td id="type2_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td style="text-align: left;" class="sub-row">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิจัย All_PositionTypes</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td style="text-align: left;" class="sub-row">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิจัย</td>
+                                                <td id="research2"></td>
+                                                <td id="research2_new"></td>
+                                                <td id="research2_sum"></td>
                                             </tr>
                                             <tr>
-                                                <td style="text-align: left;" class="sub-row">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทสนับสนุน All_PositionTypes</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td style="text-align: left;" class="sub-row">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทสนับสนุน</td>
+                                                <td id="support2"></td>
+                                                <td id="support2_new"></td>
+                                                <td id="support2_sum"></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -189,6 +189,17 @@
             var categoryDropdown = document.getElementById("category");
             var categoryText = categoryDropdown.options[categoryDropdown.selectedIndex].text;
             document.getElementById("faculty").textContent=categoryText;
+            var Sumresearch=0;
+            var Sumresearch2=0;
+            var Sumacademic=0;
+            var Sumsupport=0;
+            var Sumsupport2=0;
+            var SumshortTerm=0;
+            var Sumemp1=0;
+            var Sumemp2=0;
+            var Sumemp3=0;
+            var Sumtype1=0;
+            var Sumtype2=0;
             $.ajax({
                 type: "POST",
                 url: "../server/workforce_api.php",
@@ -199,38 +210,85 @@
                 dataType: "json",
                 success: function(response) {
                     var research=0;
+                    var research2=0;
                     var academic=0;
                     var support=0;
+                    var support2=0;
                     var shortTerm=0;
                     var emp1=0;
                     var emp2=0;
                     var emp3=0;
+                    var type1=0;
+                    var type2=0;
                     response.wf.forEach((row, index) => {
                         if(row.Personnel_Type=="พนักงานมหาวิทยาลัยงบประมาณเงินรายได้")
                         {
+                            type1+=1;
+                            Sumtype1+=1;
                             if(row.All_PositionTypes=="วิชาการ")
                             {
                                 academic+=1;
+                                Sumacademic+=1;
                             }
                             if(row.All_PositionTypes=="วิจัย")
                             {
                                 research+=1;
+                                Sumresearch+=1;
                             }
                             if(row.All_PositionTypes=="สนับสนุน")
                             {
                                 support+=1;
+                                Sumsupport+=1;
                             }
                             if(row.Contract_Type=="สัญญาระยะสั้น")
                             {
                                 shortTerm+=1;
+                                SumshortTerm+=1;
+                            }
+                            if(row.Employment_Type=="ชาวต่างประเทศ")
+                            {
+                                emp1+=1;
+                                Sumemp1+=1;
+                            }
+                            if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
+                            {
+                                emp2+=1;
+                                Sumemp2+=1;
+                            }
+                            if(row.Employment_Type=="ผู้ปฏิบัติงานในมหาวิทยาลัย")
+                            {
+                                emp3+=1;
+                                Sumemp3+=1;
                             }
                         }
                         else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
                         {
-
+                            type2+=1;
+                            Sumtype2+=1;
+                            if(row.All_PositionTypes=="วิจัย")
+                            {
+                                research2+=1;
+                                Sumresearch2+=1;
+                            }
+                            if(row.All_PositionTypes=="สนับสนุน")
+                            {
+                                support2+=1;
+                                Sumsupport2+=1;
+                            }
                         }
                         else{}
                     });
+                    document.getElementById("research1").innerText=research;
+                    document.getElementById("research2").innerText=research2;
+                    document.getElementById("academic1").innerText=academic;
+                    document.getElementById("support1").innerText=support;
+                    document.getElementById("support2").innerText=support2;
+                    document.getElementById("period").innerText=shortTerm;
+                    document.getElementById("emp1").innerText=emp1;
+                    document.getElementById("emp2").innerText=emp2;
+                    document.getElementById("emp3").innerText=emp3;
+                    document.getElementById("type1").innerText=type1;
+                    document.getElementById("type2").innerText=type2;
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -246,24 +304,103 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    
+                    var research=0;
+                    var research2=0;
+                    var academic=0;
+                    var support=0;
+                    var support2=0;
+                    var shortTerm=0;
+                    var emp1=0;
+                    var emp2=0;
+                    var emp3=0;
+                    var type1=0;
+                    var type2=0;
                     response.wf.forEach((row, index) => {
                         if(row.Personnel_Type=="พนักงานมหาวิทยาลัยงบประมาณเงินรายได้")
                         {
-                            
+                            type1+=1;
+                            Sumtype1+=1;
+                            if(row.All_PositionTypes=="วิชาการ")
+                            {
+                                academic+=1;
+                                Sumacademic+=1;
+                            }
+                            if(row.All_PositionTypes=="วิจัย")
+                            {
+                                research+=1;
+                                Sumresearch+=1;
+                            }
+                            if(row.All_PositionTypes=="สนับสนุน")
+                            {
+                                support+=1;
+                                Sumsupport+=1;
+                            }
+                            if(row.Contract_Type=="สัญญาระยะสั้น")
+                            {
+                                shortTerm+=1;
+                                SumshortTerm+=1;
+                            }
+                            if(row.Employment_Type=="ชาวต่างประเทศ")
+                            {
+                                emp1+=1;
+                                Sumemp1+=1;
+                            }
+                            if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
+                            {
+                                emp2+=1;
+                                Sumemp2+=1;
+                            }
+                            if(row.Employment_Type=="ผู้ปฏิบัติงานในมหาวิทยาลัย")
+                            {
+                                emp3+=1;
+                                Sumemp3+=1;
+                            }
                         }
                         else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
                         {
-
+                            type2+=1;
+                            Sumtype2+=1;
+                            if(row.All_PositionTypes=="วิจัย")
+                            {
+                                research2+=1;
+                                Sumresearch2+=1;
+                            }
+                            if(row.All_PositionTypes=="สนับสนุน")
+                            {
+                                support2+=1;
+                                Sumsupport2+=1;
+                            }
                         }
                         else{}
                     });
+                    document.getElementById("research1_new").innerText=research;
+                    document.getElementById("research2_new").innerText=research2;
+                    document.getElementById("academic1_new").innerText=academic;
+                    document.getElementById("support1_new").innerText=support;
+                    document.getElementById("support2_new").innerText=support2;
+                    document.getElementById("period_new").innerText=shortTerm;
+                    document.getElementById("emp1_new").innerText=emp1;
+                    document.getElementById("emp2_new").innerText=emp2;
+                    document.getElementById("emp3_new").innerText=emp3;
+                    document.getElementById("type1_new").innerText=type1;
+                    document.getElementById("type2_new").innerText=type2;
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
             });
+            document.getElementById("research1_sum").innerText=Sumresearch;
+            document.getElementById("research2_sum").innerText=Sumresearch2;
+            document.getElementById("academic1_sum").innerText=Sumacademic;
+            document.getElementById("support1_sum").innerText=Sumsupport;
+            document.getElementById("support2_sum").innerText=Sumsupport2;
+            document.getElementById("period_sum").innerText=SumshortTerm;
+            document.getElementById("emp1_sum").innerText=Sumemp1;
+            document.getElementById("emp2_sum").innerText=Sumemp2;
+            document.getElementById("emp3_sum").innerText=Sumemp3;
+            document.getElementById("type1_sum").innerText=Sumtype1;
+            document.getElementById("type2_sum").innerText=Sumtype2;
         }
         function exportCSV() {
             const rows = [];
