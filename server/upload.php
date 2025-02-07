@@ -33,6 +33,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         "budget_planning_project_kpi" => __DIR__ . "/budget_planing/insert_budget_planning_project_kpi.py",
         "budget_planning_sub_plan_kpi_progress" => __DIR__ . "/budget_planing/insert_budget_planning_sub_plan_kpi_progress.py",
         "budget_planning_subplan_kpi" => __DIR__ . "/budget_planing/insert_budget_planning_subplan_kpi.py",
+
+        "workforce_4year_plan" => __DIR__ . "/workforce/insert_workforce_4year_plan.py",
+        "workforce_current_position_request" => __DIR__ . "/workforce/insert_workforce_current_position_request.py",
+        "workforce_current_positions_allocation" => __DIR__ . "/workforce/insert_workforce_current_positions_allocation.py",
+        "workforce_new_positions_allocation" => __DIR__ . "/workforce/insert_workforce_new_positions_allocation.py",
+        "workforce_new_position_request" => __DIR__ . "/workforce/workforce_new_position_request.py",
+
+        "planning_faculty_action_plan" => __DIR__ . "/planning/insert_planning_faculty_action_plan.py",
+        "planning_faculty_okr_progress" => __DIR__ . "/planning/insert_planning_faculty_okr_progress.py",
+        "planning_faculty_project_progress" => __DIR__ . "/planning/insert_planning_faculty_project_progress.py",
+        "planning_faculty_revised_action_plan" => __DIR__ . "/planning/insert_planning_faculty_revised_action_plan.py",
+        "planning_faculty_strategic_plan" => __DIR__ . "/planning/insert_planning_faculty_strategic_plan.py",
+        "planning_kku_action_plan" => __DIR__ . "/planning/insert_planning_kku_action_plan.py",
+        "planning_kku_okr_progress" => __DIR__ . "/planning/insert_planning_kku_okr_progress.py",
+        "planning_kku_project_progress" => __DIR__ . "/planning/insert_planning_kku_project_progress.py",
+        "planning_kku_revised_action_plan" => __DIR__ . "/planning/insert_planning_kku_revised_action_plan.py",
+        "planning_kku_strategic_plan" => __DIR__ . "/planning/insert_planning_kku_strategic_plan.py",
     ];
 
     // ตรวจสอบว่า script มีอยู่จริง

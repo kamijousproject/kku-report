@@ -61,22 +61,27 @@
                                                 <option value="budget_planning_project_kpi">Budget planning project kpi</option>
                                                 <option value="budget_planning_sub_plan_kpi_progress">Budget planning sub plan KPI progress</option>
                                                 <option value="budget_planning_subplan_kpi">Budget planning subplan KPI</option>
-                                                <!-- สามารถเพิ่มหมวดหมู่และไฟล์เพิ่มเติมได้ -->
                                             </optgroup>
                                             <optgroup label="Planning">
-                                                <option value="planning_faculty_action_plan">planning faculty action plan</option>
-                                                <option value="planning_faculty_okr_progress">Allocated annual budget plan</option>
-                                                <option value="planning_faculty_project_progress">Annual budget plan</option>
-                                                <option value="planning_faculty_revised_action_plan">Disbursement budget plan annual release</option>
-                                                <option value="planning_faculty_strategic_plan">Budget planning project KPI progress</option>
-                                                <option value="planning_kku_action_plan">Budget planning project kpi</option>
-                                                <option value="planning_kku_okr_progress">Budget planning sub plan KPI progress</option>
-                                                <option value="planning_kku_project_progress">Budget planning subplan KPI</option>
-                                                <option value="planning_kku_revised_action_plan">Budget planning subplan KPI</option>
-                                                <option value="planning_kku_strategic_plan">Budget planning subplan KPI</option>
-                                                <!-- สามารถเพิ่มหมวดหมู่และไฟล์เพิ่มเติมได้ -->
+                                                <option value="planning_faculty_action_plan">Planning faculty action plan</option>
+                                                <option value="planning_faculty_okr_progress">Planning faculty okr progress</option>
+                                                <option value="planning_faculty_project_progress">Planning faculty project progress</option>
+                                                <option value="planning_faculty_revised_action_plan">Planning faculty revised action plan</option>
+                                                <option value="planning_faculty_strategic_plan">Planning faculty strategic plan</option>
+                                                <option value="planning_kku_action_plan">Planning kku action plan</option>
+                                                <option value="planning_kku_okr_progress">Planning kku okr progress</option>
+                                                <option value="planning_kku_project_progress">Planning kku project progress</option>
+                                                <option value="planning_kku_revised_action_plan">Planning kku revised action plan</option>
+                                                <option value="planning_kku_strategic_plan">Planning kku strategic plan</option>
                                             </optgroup>
-                                            <!-- เพิ่มหมวดหมู่อื่น ๆ ตามต้องการ -->
+                                            <optgroup label="Workforce">
+                                                <option value="workforce_4year_plan">Workforce 4year plan</option>
+                                                <option value="workforce_current_position_request">Workforce current position request</option>
+                                                <option value="workforce_current_positions_allocation">Workforce current positions allocation</option>
+                                                <option value="workforce_new_positions_allocation">Workforce new positions allocation</option>
+                                                <option value="workforce_new_position_request">Workforce new position request</option>
+
+                                            </optgroup>
                                         </select>
                                         <br>
 
