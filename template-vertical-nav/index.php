@@ -63,6 +63,19 @@
                                                 <option value="budget_planning_subplan_kpi">Budget planning subplan KPI</option>
                                                 <!-- สามารถเพิ่มหมวดหมู่และไฟล์เพิ่มเติมได้ -->
                                             </optgroup>
+                                            <optgroup label="Planning">
+                                                <option value="planning_faculty_action_plan">planning faculty action plan</option>
+                                                <option value="planning_faculty_okr_progress">Allocated annual budget plan</option>
+                                                <option value="planning_faculty_project_progress">Annual budget plan</option>
+                                                <option value="planning_faculty_revised_action_plan">Disbursement budget plan annual release</option>
+                                                <option value="planning_faculty_strategic_plan">Budget planning project KPI progress</option>
+                                                <option value="planning_kku_action_plan">Budget planning project kpi</option>
+                                                <option value="planning_kku_okr_progress">Budget planning sub plan KPI progress</option>
+                                                <option value="planning_kku_project_progress">Budget planning subplan KPI</option>
+                                                <option value="planning_kku_revised_action_plan">Budget planning subplan KPI</option>
+                                                <option value="planning_kku_strategic_plan">Budget planning subplan KPI</option>
+                                                <!-- สามารถเพิ่มหมวดหมู่และไฟล์เพิ่มเติมได้ -->
+                                            </optgroup>
                                             <!-- เพิ่มหมวดหมู่อื่น ๆ ตามต้องการ -->
                                         </select>
                                         <br>

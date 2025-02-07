@@ -17,8 +17,14 @@ str_username = 'root'
 if len(sys.argv) < 2:
     print("Error: No CSV file provided.")
     sys.exit(1)
-    
+
 file_path = sys.argv[1]
+
+# ย้อนกลับไป 1 path
+file_path = os.path.abspath(os.path.join(file_path, os.pardir))
+
+# รวม path กับชื่อไฟล์เดิม เพื่อให้ได้ path ของไฟล์ CSV ที่ถูกต้อง
+file_path = os.path.join(file_path, os.path.basename(sys.argv[1]))
 
 # อ่านไฟล์ CSV
 try:

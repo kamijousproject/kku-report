@@ -1,10 +1,23 @@
+import sys
 import pymysql
 import pandas as pd
 import os
 
-# Current directory and file path
-current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, '68FA24_20250125.csv')
+# # Current directory and file path
+# current_dir = os.path.dirname(__file__)
+# file_path = os.path.join(current_dir, '68FA24_20250125.csv')
+
+if len(sys.argv) < 2:
+    print("Error: No CSV file provided.")
+    sys.exit(1)
+
+file_path = sys.argv[1]
+
+# ย้อนกลับไป 1 path
+file_path = os.path.abspath(os.path.join(file_path, os.pardir))
+
+# รวม path กับชื่อไฟล์เดิม เพื่อให้ได้ path ของไฟล์ CSV ที่ถูกต้อง
+file_path = os.path.join(file_path, os.path.basename(sys.argv[1]))
 
 # Database connection information
 str_hosting = '110.164.146.250'

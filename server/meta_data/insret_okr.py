@@ -1,10 +1,23 @@
 import os
+import sys
 import pandas as pd
 import pymysql
 
 # กำหนดพาธไฟล์ CSV
-current_dir = os.path.dirname(__file__)
-file_path = os.path.join(current_dir, 'warissarac_ExportedMetadata_OKR.csv')
+# current_dir = os.path.dirname(__file__)
+# file_path = os.path.join(current_dir, 'warissarac_ExportedMetadata_OKR.csv')
+
+if len(sys.argv) < 2:
+    print("Error: No CSV file provided.")
+    sys.exit(1)
+
+file_path = sys.argv[1]
+
+# ย้อนกลับไป 1 path
+file_path = os.path.abspath(os.path.join(file_path, os.pardir))
+
+# รวม path กับชื่อไฟล์เดิม เพื่อให้ได้ path ของไฟล์ CSV ที่ถูกต้อง
+file_path = os.path.join(file_path, os.path.basename(sys.argv[1]))
 
 # โหลดไฟล์ CSV โดยใช้ , เป็นตัวคั่น
 df = pd.read_csv(file_path, encoding='utf-8', delimiter=',')

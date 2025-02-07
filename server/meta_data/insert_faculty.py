@@ -1,9 +1,23 @@
+import os
+import sys
 import pandas as pd
 import mysql.connector
 
 # อ่าน CSV ไฟล์
-csv_file = "C:/xampp/htdocs/kku-report/server/meta_data/Faculty.csv"
-df = pd.read_csv(csv_file)
+# csv_file = "C:/xampp/htdocs/kku-report/server/meta_data/Faculty.csv"
+# df = pd.read_csv(csv_file)
+
+if len(sys.argv) < 2:
+    print("Error: No CSV file provided.")
+    sys.exit(1)
+
+file_path = sys.argv[1]
+
+# ย้อนกลับไป 1 path
+file_path = os.path.abspath(os.path.join(file_path, os.pardir))
+
+# รวม path กับชื่อไฟล์เดิม เพื่อให้ได้ path ของไฟล์ CSV ที่ถูกต้อง
+df = os.path.join(file_path, os.path.basename(sys.argv[1]))
 
 # ลบช่องว่างออกจากชื่อคอลัมน์
 df.columns = df.columns.str.strip()

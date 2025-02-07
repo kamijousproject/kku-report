@@ -1,4 +1,5 @@
 import os
+import sys
 import pandas as pd
 import pymysql
 
@@ -8,18 +9,22 @@ str_database = 'epm_report'
 str_username = 'root'
 str_password = 'TDyutdYdyudRTYDsEFOPI'
 
-
-# def clean_ksp_name(name):
-#     """ลบรหัสออกจากชื่อ โดยใช้เว้นวรรคเป็นตัวแบ่ง และตรวจสอบ NaN"""
-#     if pd.isna(name):
-#         return ""
-#     return ' '.join(name.split(' ')[1:]) if ' ' in name else name
-
-
 # กำหนด path ของไฟล์ CSV
-current_dir = os.path.dirname(__file__)
-file_path = os.path.join(
-    current_dir, 'warissarac_ExportedMetadata_Strategic Project.csv')
+# current_dir = os.path.dirname(__file__)
+# file_path = os.path.join(
+#     current_dir, 'warissarac_ExportedMetadata_Strategic Project.csv')
+
+if len(sys.argv) < 2:
+    print("Error: No CSV file provided.")
+    sys.exit(1)
+
+file_path = sys.argv[1]
+
+# ย้อนกลับไป 1 path
+file_path = os.path.abspath(os.path.join(file_path, os.pardir))
+
+# รวม path กับชื่อไฟล์เดิม เพื่อให้ได้ path ของไฟล์ CSV ที่ถูกต้อง
+file_path = os.path.join(file_path, os.path.basename(sys.argv[1]))
 
 # อ่านข้อมูลจาก CSV พร้อมตรวจสอบชื่อคอลัมน์
 try:
