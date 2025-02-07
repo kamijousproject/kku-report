@@ -897,7 +897,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         WHERE parent LIKE 'Faculty-%' AND parent!='Faculty-00'
                         GROUP BY parent)
                         ,t1 AS (
-                        SELECT f2.Alias_Default,f.Parent
+                        SELECT f2.Alias_Default,f.Parent,f2.faculty
                         FROM f
                         LEFT JOIN Faculty f2
                         ON f.Parent=f2.Faculty)
@@ -971,6 +971,76 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         SELECT * FROM t7
                         order BY  t7.Alias_Default,t7.code";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "kku_wf_staff-requests_current":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                $slt = $_POST["slt"];
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH t1 AS (
+                        SELECT faculty,Position_Number
+                        FROM workforce_current_position_request)
+                        , t2 AS (
+                        SELECT t.*,a.Personnel_Type,a.All_PositionTypes,a.Position,a.Employment_Type,a.Contract_Type,a2.fund_ft
+                        FROM t1 t
+                        LEFT JOIN actual_data_1 a
+                        ON t.Position_Number=a.Position_Number
+                        LEFT JOIN actual_data_2 a2
+                        ON t.Position_Number=a2.position_number)
+                        , t3 AS (
+                        SELECT faculty,Position_Number,All_PositionTypes,POSITION,Employment_Type,Contract_Type
+                        ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND fund_ft='เงินรายได้' then 'พนักงานมหาวิทยาลัยงบประมาณเงินรายได้'
+                        ELSE Personnel_Type END AS Personnel_Type
+                        FROM t2
+                        )
+                        SELECT* FROM t3
+                        where f.faculty ='".$slt."'";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "kku_wf_staff-requests_new":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                $slt = $_POST["slt"];
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT faculty,All_PositionTypes,POSITION,Employment_Type,Contract_Type
+                        ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND Fund_FT='เงินงบประมาณ' then 'พนักงานมหาวิทยาลัยงบประมาณเงินงบประมาณ'
+                        when Personnel_Type='พนักงานมหาวิทยาลัย' AND Fund_FT='เงินรายได้' then 'พนักงานมหาวิทยาลัยงบประมาณเงินรายได้'
+                        ELSE Personnel_Type END AS Personnel_Type
+                        FROM workforce_new_position_request
+                        where f.faculty ='".$slt."'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);

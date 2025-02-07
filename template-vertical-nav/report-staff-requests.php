@@ -33,37 +33,106 @@
                                 <div class="card-title">
                                     <h4>รายงานสรุปคำขออนุมัติกรอบอัตรากำลัง ประจำปีงบประมาณ แยกตามประเภทบุคลากร</h4>
                                 </div>
+                                <label for="category">เลือกส่วนงาน:</label>
+                                <select name="category" id="category" onchange="fetchData()">
+                                    <option value="">-- Loading Categories --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
+                                            <!-- แถวที่ 1 -->
                                             <tr>
-                                                <th colspan="2">ส่วนงาน / หน่วยงาน</th>
-                                                <th colspan="2">ผ่านการพิจารณาประชุมส่วนงาน / หน่วยงาน ครั้งที่</th>
-                                                <th colspan="2">ประเภทบุคลากร</th>
+                                                <th colspan="4">ส่วนงาน/หน่วยงาน</th>
+                                            </tr>
+                                            <!-- แถวที่ 2 -->
+                                            <tr>
+                                                <th>ส่วนงาน / หน่วยงาน</th>
+                                                <th colspan="3" style="background-color: white;" id="faculty"></th>
+                                            </tr>
+                                            <!-- แถวที่ 3 -->
+                                            <tr>
+                                                <th >ผ่านมติที่ประชุมส่วนงาน / หน่วยงาน ครั้งที่</th>
+                                                <th style="background-color: white;" ></th>
+                                                <th >ณ วันที่</th>
+                                                <th style="background-color: white;"></th>
+                                            </tr>
+                                            <!-- แถวที่ 4 -->
+                                            <tr>
+                                                <th>ประเภทบุคลากร</th>
                                                 <th>อัตราเดิม</th>
                                                 <th>อัตราใหม่</th>
-                                                <th>ณ วันที่</th>
                                                 <th>รวม (อัตรา)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <!-- ข้อมูลกลุ่ม 1 -->
                                             <tr>
-                                                <td colspan="2">คณะวิทยาศาสตร์</td>
-                                                <td colspan="2">ครั้งที่ 1/2567</td>
-                                                <td colspan="2">พนักงานมหาวิทยาลัย ประเภทเงินรายได้</td>
-                                                <td>10</td>
-                                                <td>12</td>
-                                                <td>01/01/2567</td>
-                                                <td>22</td>
+                                                <td style="text-align: left;">1. พนักงานมหาวิทยาลัยงบประมาณเงินรายได้ Personnel_Type</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
                                             </tr>
                                             <tr>
-                                                <td colspan="2">คณะวิศวกรรมศาสตร์</td>
-                                                <td colspan="2">ครั้งที่ 1/2567</td>
-                                                <td colspan="2">ลูกจ้างของมหาวิทยาลัย</td>
-                                                <td>5</td>
-                                                <td>6</td>
-                                                <td>01/01/2567</td>
-                                                <td>11</td>
+                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิชาการ All_PositionTypes</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิจัย All_PositionTypes</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทสนับสนุน All_PositionTypes</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td class="sub-row" style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;- ระยะสั้น Contract Type</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ชาวต่างประเทศ Employment Type</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ผู้เกษียณอายุราชการ Employment Type</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: left;">&nbsp;&nbsp;&nbsp;&nbsp;ประเภทการจ้าง ผู้ปฏิบัติงานในมหาวิทยาลัย Employment Type</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+
+                                            <!-- ข้อมูลกลุ่ม 2 -->
+                                            <tr>
+                                                <td style="text-align: left;">2. ลูกจ้างของมหาวิทยาลัย Personnel_Type</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: left;" class="sub-row">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทวิจัย All_PositionTypes</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
+                                            </tr>
+                                            <tr>
+                                                <td style="text-align: left;" class="sub-row">&nbsp;&nbsp;&nbsp;&nbsp;- ประเภทสนับสนุน All_PositionTypes</td>
+                                                <td></td>
+                                                <td></td>
+                                                <td></td>
                                             </tr>
                                         </tbody>
                                     </table>
@@ -86,6 +155,116 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'list-faculty'
+                },
+                dataType: "json",
+                success: function(response) {
+                    let dropdown = document.getElementById("category");
+                    dropdown.innerHTML = '<option value="">-- Select --</option>';
+                    response.wf.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category.faculty;
+                        option.textContent = category.Alias_Default;
+                        dropdown.appendChild(option);
+                    });
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+        function fetchData() {
+            let category = document.getElementById("category").value;
+            let resultDiv = document.getElementById("result");
+            var categoryDropdown = document.getElementById("category");
+            var categoryText = categoryDropdown.options[categoryDropdown.selectedIndex].text;
+            document.getElementById("faculty").textContent=categoryText;
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_staff-requests_current',
+                    'slt':category
+                },
+                dataType: "json",
+                success: function(response) {
+                    var research=0;
+                    var academic=0;
+                    var support=0;
+                    var shortTerm=0;
+                    var emp1=0;
+                    var emp2=0;
+                    var emp3=0;
+                    response.wf.forEach((row, index) => {
+                        if(row.Personnel_Type=="พนักงานมหาวิทยาลัยงบประมาณเงินรายได้")
+                        {
+                            if(row.All_PositionTypes=="วิชาการ")
+                            {
+                                academic+=1;
+                            }
+                            if(row.All_PositionTypes=="วิจัย")
+                            {
+                                research+=1;
+                            }
+                            if(row.All_PositionTypes=="สนับสนุน")
+                            {
+                                support+=1;
+                            }
+                            if(row.Contract_Type=="สัญญาระยะสั้น")
+                            {
+                                shortTerm+=1;
+                            }
+                        }
+                        else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
+                        {
+
+                        }
+                        else{}
+                    });
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_staff-requests_new',
+                    'slt':category
+                },
+                dataType: "json",
+                success: function(response) {
+                    
+                    response.wf.forEach((row, index) => {
+                        if(row.Personnel_Type=="พนักงานมหาวิทยาลัยงบประมาณเงินรายได้")
+                        {
+                            
+                        }
+                        else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
+                        {
+
+                        }
+                        else{}
+                    });
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
