@@ -1,3 +1,233 @@
+<?php
+include '../server/connectdb.php';
+
+$db = new Database();
+$conn = $db->connect();
+
+// ฟังก์ชันดึงข้อมูล
+function fetchBudgetData($conn, $fund)
+{
+    $query = "SELECT DISTINCT
+        ksp.ksp_name,
+	    project.project_name,
+	    bpanbp.Account,
+	    bpanbp.Fund,
+	    bpanbp.Faculty,
+	    bpanbp.Plan,
+	    bpanbp.Sub_Plan,
+	    bpanbp.Project,
+	    bpanbp.KKU_Item_Name,
+	    bpanbp.Allocated_Total_Amount_Quantity,
+	    bpa.TOTAL_BUDGET,
+	    bpa.TOTAL_CONSUMPTION,
+	    bpa.EXPENDITURES,
+	    bpa.COMMITMENTS,
+	    bpa.OBLIGATIONS,
+	    f.Alias_Default AS Faculty_Name,
+	    p.plan_name AS Plan_Name,
+	    sp.sub_plan_name AS Sub_Plan_Name,
+	    pr.project_name AS Project_Name
+FROM
+	budget_planning_allocated_annual_budget_plan bpanbp
+	LEFT JOIN budget_planning_actual bpa ON bpanbp.Faculty = bpa.FACULTY
+	AND bpanbp.Plan = bpa.PLAN
+	AND bpanbp.Sub_Plan = bpa.SUBPLAN
+	AND bpanbp.Project = bpa.PROJECT
+	AND bpanbp.Fund = bpa.FUND
+	LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.Faculty = bpabp.Faculty
+	AND bpanbp.Plan = bpabp.Plan
+	AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+	AND bpanbp.Project = bpabp.Project
+	AND bpanbp.Fund = bpabp.Fund
+	LEFT JOIN budget_planning_project_kpi bppk ON bpanbp.Project = bppk.Project
+	LEFT JOIN project ON bpanbp.Project = project.project_id
+	LEFT JOIN ksp ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
+	LEFT JOIN account acc ON bpanbp.Account = acc.account
+	LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
+	LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
+	LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
+	LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
+                                            WHERE
+                                                bpanbp.Fund = :fund";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':fund', $fund);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$resultsFN02 = fetchBudgetData($conn, 'FN02');
+$resultsFN06 = fetchBudgetData($conn, 'FN06');
+
+echo "<pre>";
+// print_r($resultsFN02);
+// print_r($resultsFN06);
+echo "</pre>";
+
+
+$mergedData = [];
+
+foreach ($resultsFN06 as $fn06) {
+    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
+        return (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
+            (string) ($fn06['Sub_Plan'] ?? '') === (string) ($fn02['Sub_Plan'] ?? '') &&
+            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '') &&
+            (string) ($fn06['Account'] ?? '') === (string) ($fn02['ACCOUNT'] ?? '');
+    });
+
+
+    $fn02 = reset($fn02Match);
+
+    // ✅ ตรวจสอบและกำหนดค่าเริ่มต้นเพื่อป้องกัน Warning
+    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
+    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
+
+    $commitment_percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
+        ? (($commitment_FN06 - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
+        : 0;
+
+    $commitment_percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
+        ? (($commitment_FN02 - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
+        : 0;
+
+    $Expenditures_Percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
+        ? (($fn06['EXPENDITURES'] - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
+        : 0;
+
+    $Expenditures_Percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
+        ? (($fn02['EXPENDITURES'] - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
+        : 0;
+
+    // ✅ คำนวณค่า Total
+    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
+    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
+    $Total_Commitments_Percent = $commitment_percent_FN06 + $commitment_percent_FN02;
+    $Total_Expenditures = ($fn06['EXPENDITURES'] ?? 0) + ($fn02['EXPENDITURES'] ?? 0);
+    $Total_Expenditures_Percent = $Expenditures_Percent_FN06 + $Expenditures_Percent_FN02;
+
+    // ✅ เพิ่มข้อมูลลงใน mergedData พร้อมป้องกัน Undefined Index
+    $mergedData[] = [
+        'Plan' => $fn06['Plan'] ?? '',
+        'ksp_name' => $fn06['ksp_name'] ?? '',
+        'Sub_Plan' => $fn06['Sub_Plan'] ?? '',
+        'Project' => $fn06['Project'] ?? '',
+        'Plan_Name' => $fn06['Plan_Name'] ?? '',
+        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'] ?? '',
+        'Project_Name' => $fn06['Project_Name'] ?? '',
+        'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
+        'Faculty_Name' => $fn06['Faculty_Name'] ?? '', // ✅ เพิ่มข้อมูล Faculty
+        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN06' => $commitment_FN06,
+        'Commitment_Percent_FN06' => $commitment_percent_FN06,
+        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
+        'Expenditures_Percent_FN06' => $Expenditures_Percent_FN06,
+        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN02' => $commitment_FN02,
+        'Commitment_Percent_FN02' => $commitment_percent_FN02,
+        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
+        'Expenditures_Percent_FN02' => $Expenditures_Percent_FN02,
+        'Total_Allocated' => $Total_Allocated,
+        'Total_Commitments' => $Total_Commitments,
+        'Total_Commitments_Percent' => $Total_Commitments_Percent,
+        'Total_Expenditures' => $Total_Expenditures,
+        'Total_Expenditures_Percent' => $Total_Expenditures_Percent,
+    ];
+}
+
+
+// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
+$rowspanData = [];
+
+// วนลูปเพื่อคำนวณว่าข้อมูลไหนต้อง merge
+// foreach ($mergedData as $row) {
+//     $type = $row['Type'] ?? '';
+//     $subType = $row['Sub_Type'] ?? '';
+
+//     $key = $row['Plan'] . '|' . $row['Sub_Plan'] . '|' . $row['Project'] . '|' . $type . '|' . $subType;
+
+//     if (!isset($rowspanData[$key])) {
+//         $rowspanData[$key] = 0;
+//     }
+//     $rowspanData[$key]++;
+// }
+
+
+// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
+$usedRowspan = [];
+?>
+
+<style>
+    #reportTable th:nth-child(1),
+    #reportTable td:nth-child(1) {
+        width: 300px;
+        /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
+    }
+
+    #reportTable th,
+    #reportTable td {
+        text-align: center;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: middle;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
+
+    .wide-column {
+        min-width: 250px;
+        /* ปรับขนาด column ให้กว้างขึ้น */
+        word-break: break-word;
+        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
+        white-space: pre-line;
+        /* รักษารูปแบบการขึ้นบรรทัด */
+        vertical-align: top;
+        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
+        padding: 10px;
+        /* เพิ่มช่องว่างด้านใน */
+    }
+
+    .wide-column div {
+        margin-bottom: 5px;
+        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+    }
+
+    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        /* ลบช่องว่างระหว่างเซลล์ */
+    }
+
+    /* ทำให้หัวตารางติดอยู่กับด้านบน */
+    th {
+        position: sticky;
+        /* ทำให้ header ติดอยู่กับด้านบน */
+        top: 0;
+        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
+        background-color: #fff;
+        /* กำหนดพื้นหลังให้กับหัวตาราง */
+        z-index: 2;
+        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* เพิ่มเงาให้หัวตาราง */
+        padding: 8px;
+    }
+
+    /* เพิ่มเงาให้กับแถวหัวตาราง */
+    th,
+    td {
+        border: 1px solid #ddd;
+        /* เพิ่มขอบให้เซลล์ */
+    }
+
+    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
+    .table-responsive {
+        max-height: 60vh;
+        /* กำหนดความสูงของตาราง */
+        overflow-y: auto;
+        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
+    }
+</style>
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
@@ -81,94 +311,40 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>Annual Budget Plan/Midyear Plan</td>
-                                                <td>10,000</td>
-                                                <td>8,000</td>
-                                                <td>5,000</td>
-                                                <td>4,500</td>
-                                                <td>3,000</td>
-                                                <td>8,000</td>
-                                                <td>5,000</td>
-                                                <td>4,500</td>
-                                                <td>3,000</td>
-                                                <td>2,500</td>
-                                                <td>12,000</td>
-                                                <td>10,000</td>
-                                                <td>6,000</td>
-                                                <td>5,000</td>
-                                                <td>4,000</td>
-                                                <td>3,500</td>
-                                                <td>4,000</td>
-                                                <td>3,500</td>
-                                                <td>14,000</td>
-                                                <td>12,000</td>
-                                                <td>7,000</td>
-                                                <td>6,500</td>
-                                                <td>5,000</td>
-                                                <td>4,500</td>
-                                                <td>+4,000</td>
-                                                <td>5%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>FreeText</td>
-                                                <td>7,000</td>
-                                                <td>6,000</td>
-                                                <td>3,500</td>
-                                                <td>3,000</td>
-                                                <td>2,000</td>
-                                                <td>1,800</td>
-                                                <td>9,000</td>
-                                                <td>3,000</td>
-                                                <td>2,000</td>
-                                                <td>1,800</td>
-                                                <td>9,000</td>
-                                                <td>7,500</td>
-                                                <td>4,000</td>
-                                                <td>3,500</td>
-                                                <td>4,500</td>
-                                                <td>4,000</td>
-                                                <td>3,000</td>
-                                                <td>2,800</td>
-                                                <td>11,000</td>
-                                                <td>8,000</td>
-                                                <td>5,500</td>
-                                                <td>5,000</td>
-                                                <td>4,000</td>
-                                                <td>3,500</td>
-                                                <td>+2,500</td>
-                                                <td>3.5%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>Total_Amount_Quantity</td>
-                                                <td>20,000</td>
-                                                <td>18,000</td>
-                                                <td>10,000</td>
-                                                <td>9,500</td>
-                                                <td>6,000</td>
-                                                <td>5,500</td>
-                                                <td>22,000</td>
-                                                <td>9,500</td>
-                                                <td>6,000</td>
-                                                <td>5,500</td>
-                                                <td>22,000</td>
-                                                <td>20,000</td>
-                                                <td>12,000</td>
-                                                <td>11,000</td>
-                                                <td>7,500</td>
-                                                <td>7,000</td>
-                                                <td>4,000</td>
-                                                <td>3,500</td>
-                                                <td>26,000</td>
-                                                <td>24,000</td>
-                                                <td>14,000</td>
-                                                <td>13,500</td>
-                                                <td>9,000</td>
-                                                <td>8,500</td>
-                                                <td>+6,000</td>
-                                                <td>8%</td>
-                                            </tr>
+                                            <?php
+                                            foreach ($mergedData as $row) {
+                                                echo "<tr>";
+                                                echo "<td style='text-align: left;'>";
+
+                                                // แสดงข้อมูล ksp_name
+                                                echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['ksp_name']} : {$row['ksp_name']}</strong><br>";
+
+                                                // แสดงข้อมูล Sub_Plan
+                                                $subPlanName = preg_replace('/\([^\)]*\)/', '', $row['Sub_Plan_Name']); // ลบข้อมูลในวงเล็บ
+                                                $subPlan = preg_replace('/[a-zA-Z_]+/', '', $row['Sub_Plan']); // ลบตัวหนังสือและ _ จาก Sub_Plan
+                                                echo "<strong>" . str_repeat('&nbsp;', 10) . "{$subPlan} : {$subPlanName}</strong><br>";
+
+                                                // แสดงข้อมูล Project
+                                                $projectName = preg_replace('/(\d+):(\S)/', '$1 : $2', $row['Project_Name']); // แก้ไข Project_Name
+                                                echo "<strong>" . str_repeat('&nbsp;', 15) . "{$projectName}</strong><br>";
+
+                                                // แสดงข้อมูล KKU_Item_Name
+                                                echo "<strong>" . str_repeat('&nbsp;', 30) . "{$row['KKU_Item_Name']}</strong>";
+                                                echo "</td>";
+
+                                                // แสดงข้อมูลในตารางตามที่ต้องการ (จำนวน Allocated, Expenditures)
+                                                echo "<td>" . number_format($row['Allocated_FN06'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Expenditures_FN06'], 2) . "</td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td>" . number_format($row['Allocated_FN02'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Expenditures_FN02'], 2) . "</td>";
+
+                                                echo "</tr>";
+                                            }
+                                            ?>
                                         </tbody>
+
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
