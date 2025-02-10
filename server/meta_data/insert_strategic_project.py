@@ -82,6 +82,7 @@ try:
 
         # Commit การเปลี่ยนแปลง
         connection.commit()
-        print("Insert data successfully!")
+        # print("Insert data successfully!")
+        print("SUCCESS")
 finally:
     connection.close()

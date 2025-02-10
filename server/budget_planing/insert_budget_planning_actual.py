@@ -93,7 +93,8 @@ try:
                 None if pd.isna(x) else x for x in row))
 
         conn.commit()
-        print("Insert data completed successfully!")
+        # print("Insert data completed successfully!")
+        print("SUCCESS")
 
 finally:
     conn.close()

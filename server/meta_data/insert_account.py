@@ -91,7 +91,8 @@ try:
         '''
         cursor.execute(insert_query, (row['account'], row['alias_default']))
     conn.commit()
-    print("Data inserted successfully into account table.")
+    # print("Data inserted successfully into account table.")
+    print("SUCCESS")
 except Exception as e:
     print(f"Error inserting data: {e}")
 finally:

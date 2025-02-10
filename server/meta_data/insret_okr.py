@@ -65,4 +65,5 @@ def insert_data_to_db(df):
 # เรียกใช้ฟังก์ชัน Insert
 insert_data_to_db(df)
 
-print("Data inserted successfully!")
+# print("Data inserted successfully!")
+print("SUCCESS")

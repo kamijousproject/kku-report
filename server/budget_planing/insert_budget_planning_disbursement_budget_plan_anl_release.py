@@ -116,7 +116,8 @@ try:
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into budget_planning_disbursement_budget_plan_anl_release table.")
+    # print("Data inserted successfully into budget_planning_disbursement_budget_plan_anl_release table.")
+    print("SUCCESS")
 
 except Exception as e:
     print(f"Error: {e}")

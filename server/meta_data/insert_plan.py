@@ -88,7 +88,8 @@ try:
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into plan table.")
+    # print("Data inserted successfully into plan table.")
+    print("SUCCESS")
 
 except Exception as e:
     print(f"Error: {e}")

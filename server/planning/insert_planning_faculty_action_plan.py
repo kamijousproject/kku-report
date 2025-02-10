@@ -128,4 +128,5 @@ try:
 finally:
     connection.close()
 
-print("Data inserted successfully!")
+# print("Data inserted successfully!")
+print("SUCCESS")

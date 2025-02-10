@@ -66,4 +66,5 @@ conn.commit()
 cursor.close()
 conn.close()
 
-print("✅ Insert Data สำเร็จ!")
+# print("✅ Insert Data สำเร็จ!")
+print("SUCCESS")

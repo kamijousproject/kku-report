@@ -62,7 +62,8 @@ if "Pillar" in df.columns and "Alias: Default" in df.columns:
                 cursor.execute(sql, (row["Pillar"], row["Alias: Default"]))
 
         connection.commit()
-        print("Data inserted successfully!")
+        # print("Data inserted successfully!")
+        print("SUCCESS")
 
     except Exception as e:
         print("Error:", e)

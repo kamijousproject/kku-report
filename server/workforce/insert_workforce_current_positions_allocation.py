@@ -97,8 +97,8 @@ try:
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into workforce_current_positions_allocation table.")
-
+    # print("Data inserted successfully into workforce_current_positions_allocation table.")
+    print("SUCCESS")
 except Exception as e:
     print(f"Error: {e}")
 
