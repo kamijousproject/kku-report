@@ -9,6 +9,8 @@ function fetchBudgetData($conn, $fund)
 {
     $query = "SELECT DISTINCT
         ksp.ksp_name,
+        acc.type,
+        acc.sub_type,
 	    project.project_name,
 	    bpanbp.Account,
 	    bpanbp.Fund,
@@ -42,7 +44,7 @@ FROM
 	LEFT JOIN budget_planning_project_kpi bppk ON bpanbp.Project = bppk.Project
 	LEFT JOIN project ON bpanbp.Project = project.project_id
 	LEFT JOIN ksp ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
-	LEFT JOIN account acc ON bpanbp.Account = acc.account
+	INNER JOIN account acc ON bpanbp.Account = acc.account
 	LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
 	LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
 	LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
@@ -59,10 +61,9 @@ FROM
 $resultsFN02 = fetchBudgetData($conn, 'FN02');
 $resultsFN06 = fetchBudgetData($conn, 'FN06');
 
-echo "<pre>";
-// print_r($resultsFN02);
-// print_r($resultsFN06);
-echo "</pre>";
+
+
+
 
 
 $mergedData = [];
@@ -71,8 +72,7 @@ foreach ($resultsFN06 as $fn06) {
     $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
         return (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
             (string) ($fn06['Sub_Plan'] ?? '') === (string) ($fn02['Sub_Plan'] ?? '') &&
-            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '') &&
-            (string) ($fn06['Account'] ?? '') === (string) ($fn02['ACCOUNT'] ?? '');
+            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
     });
 
 
@@ -82,55 +82,31 @@ foreach ($resultsFN06 as $fn06) {
     $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
     $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
 
-    $commitment_percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-        ? (($commitment_FN06 - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
-        : 0;
 
-    $commitment_percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-        ? (($commitment_FN02 - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
-        : 0;
-
-    $Expenditures_Percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-        ? (($fn06['EXPENDITURES'] - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
-        : 0;
-
-    $Expenditures_Percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-        ? (($fn02['EXPENDITURES'] - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
-        : 0;
 
     // ✅ คำนวณค่า Total
+    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
+    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
     $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
     $Total_Commitments = $commitment_FN06 + $commitment_FN02;
-    $Total_Commitments_Percent = $commitment_percent_FN06 + $commitment_percent_FN02;
-    $Total_Expenditures = ($fn06['EXPENDITURES'] ?? 0) + ($fn02['EXPENDITURES'] ?? 0);
-    $Total_Expenditures_Percent = $Expenditures_Percent_FN06 + $Expenditures_Percent_FN02;
+
 
     // ✅ เพิ่มข้อมูลลงใน mergedData พร้อมป้องกัน Undefined Index
     $mergedData[] = [
         'Plan' => $fn06['Plan'] ?? '',
+        'Type' => $fn06['Type'] ?? '',  // ต้องตรงกับ 'Type' ที่อยู่ใน $mergedData
+        'Sub_Type' => $fn06['Sub_Type'] ?? '', // ต้องตรงกับ 'Sub_Type' ที่อยู่ใน $mergedData
         'ksp_name' => $fn06['ksp_name'] ?? '',
-        'Sub_Plan' => $fn06['Sub_Plan'] ?? '',
-        'Project' => $fn06['Project'] ?? '',
-        'Plan_Name' => $fn06['Plan_Name'] ?? '',
-        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'] ?? '',
         'Project_Name' => $fn06['Project_Name'] ?? '',
         'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
-        'Faculty_Name' => $fn06['Faculty_Name'] ?? '', // ✅ เพิ่มข้อมูล Faculty
         'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
         'Commitments_FN06' => $commitment_FN06,
-        'Commitment_Percent_FN06' => $commitment_percent_FN06,
         'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
-        'Expenditures_Percent_FN06' => $Expenditures_Percent_FN06,
         'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
         'Commitments_FN02' => $commitment_FN02,
-        'Commitment_Percent_FN02' => $commitment_percent_FN02,
         'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
-        'Expenditures_Percent_FN02' => $Expenditures_Percent_FN02,
         'Total_Allocated' => $Total_Allocated,
         'Total_Commitments' => $Total_Commitments,
-        'Total_Commitments_Percent' => $Total_Commitments_Percent,
-        'Total_Expenditures' => $Total_Expenditures,
-        'Total_Expenditures_Percent' => $Total_Expenditures_Percent,
     ];
 }
 
@@ -139,17 +115,10 @@ foreach ($resultsFN06 as $fn06) {
 $rowspanData = [];
 
 // วนลูปเพื่อคำนวณว่าข้อมูลไหนต้อง merge
-// foreach ($mergedData as $row) {
-//     $type = $row['Type'] ?? '';
-//     $subType = $row['Sub_Type'] ?? '';
-
-//     $key = $row['Plan'] . '|' . $row['Sub_Plan'] . '|' . $row['Project'] . '|' . $type . '|' . $subType;
-
-//     if (!isset($rowspanData[$key])) {
-//         $rowspanData[$key] = 0;
-//     }
-//     $rowspanData[$key]++;
-// }
+foreach ($mergedData as $row) {
+    $type = $row['Type'] ?? '';
+    $subType = $row['Sub_Type'] ?? '';
+}
 
 
 // ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
@@ -266,11 +235,13 @@ $usedRowspan = [];
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover">
                                         <thead>
+
+
                                             <tr>
                                                 <th rowspan="3">รายการ</th>
                                                 <th colspan="8">ปี 2566</th>
                                                 <th colspan="8">ปี 2567 (ปีปัจจุบัน)</th>
-                                                <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
+                                                <th colspan="4">ปี 2568 (ปีที่ขอตั้งงบ)</th>
                                                 <th rowspan="2" colspan="2">เพิ่ม/ลด</th>
                                             </tr>
                                             <tr>
@@ -284,10 +255,10 @@ $usedRowspan = [];
                                                 <th colspan="2">จำนวน</th>
                                                 <th colspan="2">รวม</th>
 
-                                                <th rowspan="2" colspan="2">เงินอุดหนุนจากรัฐ</th>
-                                                <th rowspan="2" colspan="2">เงินรายได้</th>
-                                                <th rowspan="2" colspan="2">เงินนอกงบประมาณ</th>
-                                                <th rowspan="2" colspan="2">รวม</th>
+                                                <th rowspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                <th rowspan="2">เงินรายได้</th>
+                                                <th rowspan="2">เงินนอกงบประมาณ</th>
+                                                <th rowspan="2">รวม</th>
                                             </tr>
                                             <tr>
                                                 <th>ประมาณการ</th>
@@ -312,34 +283,43 @@ $usedRowspan = [];
                                         </thead>
                                         <tbody>
                                             <?php
+
                                             foreach ($mergedData as $row) {
                                                 echo "<tr>";
                                                 echo "<td style='text-align: left;'>";
 
                                                 // แสดงข้อมูล ksp_name
-                                                echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['ksp_name']} : {$row['ksp_name']}</strong><br>";
+                                                echo "<strong>" . str_repeat('&nbsp;', 0) . "{$row['ksp_name']} : {$row['ksp_name']}</strong><br>";
 
-                                                // แสดงข้อมูล Sub_Plan
-                                                $subPlanName = preg_replace('/\([^\)]*\)/', '', $row['Sub_Plan_Name']); // ลบข้อมูลในวงเล็บ
-                                                $subPlan = preg_replace('/[a-zA-Z_]+/', '', $row['Sub_Plan']); // ลบตัวหนังสือและ _ จาก Sub_Plan
-                                                echo "<strong>" . str_repeat('&nbsp;', 10) . "{$subPlan} : {$subPlanName}</strong><br>";
 
-                                                // แสดงข้อมูล Project
-                                                $projectName = preg_replace('/(\d+):(\S)/', '$1 : $2', $row['Project_Name']); // แก้ไข Project_Name
-                                                echo "<strong>" . str_repeat('&nbsp;', 15) . "{$projectName}</strong><br>";
+                                                echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Type']}</strong>";
+                                                echo "<strong>" . str_repeat('&nbsp;', 10) . "{$row['Sub_Type']}</strong>";
 
                                                 // แสดงข้อมูล KKU_Item_Name
-                                                echo "<strong>" . str_repeat('&nbsp;', 30) . "{$row['KKU_Item_Name']}</strong>";
+                                                echo "<strong>" . str_repeat('&nbsp;', 15) . "{$row['KKU_Item_Name']}</strong>";
                                                 echo "</td>";
 
                                                 // แสดงข้อมูลในตารางตามที่ต้องการ (จำนวน Allocated, Expenditures)
-                                                echo "<td>" . number_format($row['Allocated_FN06'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Expenditures_FN06'], 2) . "</td>";
                                                 echo "<td></td>";
                                                 echo "<td></td>";
-                                                echo "<td>" . number_format($row['Allocated_FN02'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Expenditures_FN02'], 2) . "</td>";
-
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td></td>";
+                                                echo "<td>" . ($row['Allocated_FN06']) . "</td>";
+                                                echo "<td>" . ($row['Expenditures_FN02']) . "</td>";
+                                                echo "<td></td>";
+                                                echo "<td>" . ($Total_Allocated) . "</td>";
                                                 echo "</tr>";
                                             }
                                             ?>
@@ -368,11 +348,23 @@ $usedRowspan = [];
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
+
             for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
+                const cells = Array.from(row.cells).map(cell => {
+                    let text = cell.innerText.trim();
+
+                    // เช็คว่าเป็นตัวเลข float (ไม่มี , ในหน้าเว็บ)
+                    if (!isNaN(text) && text !== "") {
+                        text = `"${parseFloat(text).toLocaleString("en-US", { minimumFractionDigits: 2 })}"`;
+                    }
+
+                    return text;
+                });
+
+                rows.push(cells.join(",")); // ใช้ , เป็นตัวคั่น CSV
             }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
+
+            const csvContent = "\uFEFF" + rows.join("\n"); // ป้องกัน Encoding เพี้ยน
             const blob = new Blob([csvContent], {
                 type: 'text/csv;charset=utf-8;'
             });
@@ -380,7 +372,6 @@ $usedRowspan = [];
             const link = document.createElement('a');
             link.setAttribute('href', url);
             link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -427,36 +418,99 @@ $usedRowspan = [];
             doc.save('รายงาน.pdf');
         }
 
-        function exportXLS() {
-            const rows = [];
+        function exportXLSX() {
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
+            const rows = [];
+            const merges = [];
+            const rowSpans = {}; // เก็บค่า rowspan
+            const colSpans = {}; // เก็บค่า colspan
+
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const row = table.rows[rowIndex];
+                const cells = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+                    let cell = row.cells[cellIndex];
+                    let cellText = cell.innerText.trim();
+
+                    // ตรวจสอบว่ามี rowspan หรือ colspan หรือไม่
+                    let rowspan = cell.rowSpan || 1;
+                    let colspan = cell.colSpan || 1;
+
+                    // หากเป็นเซลล์ที่เคยถูก Merge ข้ามมา ให้ข้ามไป
+                    while (rowSpans[`${rowIndex},${colIndex}`]) {
+                        cells.push(""); // ใส่ค่าว่างแทน Merge
+                        colIndex++;
+                    }
+
+                    // เพิ่มค่าลงไปในแถว
+                    cells.push(cellText);
+
+                    // ถ้ามี colspan หรือ rowspan
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            }, // จุดเริ่มต้นของ Merge
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            } // จุดสิ้นสุดของ Merge
+                        });
+
+                        // บันทึกตำแหน่งเซลล์ที่ถูก Merge เพื่อกันการซ้ำ
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r !== 0 || c !== 0) {
+                                    rowSpans[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
+                        }
+                    }
+
+                    colIndex++;
+                }
                 rows.push(cells);
             }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
+            // สร้างไฟล์ Excel
+            const XLSX = window.XLSX;
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // ✅ เพิ่ม Merge Cells
+            ws['!merges'] = merges;
+
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // ✅ ดาวน์โหลดไฟล์ Excel
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xlsx',
+                type: 'array'
+            });
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = 'รายงาน.xlsx';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
     <!-- Custom script -->
     <script src="../js/custom.min.js"></script>
+    <!-- โหลดไลบรารี xlsx จาก CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
 </body>
 
 </html>
