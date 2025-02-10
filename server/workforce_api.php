@@ -1062,6 +1062,163 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "kku_wf_retirement-fiscal-year":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH act1 AS(
+                        SELECT Faculty
+                        ,Personnel_Type
+                        ,POSITION
+                        ,Job_Family
+                        ,Position_Number
+                        ,All_PositionTypes
+                        FROM actual_data_1
+                        WHERE Faculty!='00000' AND (Personnel_Type='ข้าราชการ'OR Personnel_Type='ลูกจ้างของมหาวิทยาลัย'OR Personnel_Type='ลูกจ้างประจำ'OR Personnel_Type='พนักงานมหาวิทยาลัย')) 
+                        ,t2 AS (
+                        SELECT distinct t1.*,act4.Retirement_Date,f2.Alias_Default
+                        FROM act1 t1
+                        LEFT JOIN actual_data_4 act4
+                        ON t1.Position_Number=act4.Position_Number
+                        LEFT JOIN Faculty f2
+                        ON f2.Faculty=t1.Faculty COLLATE utf8mb4_general_ci
+                        )
+                        ,t3 AS (
+                        SELECT distinct tt.*,a.fund_ft
+                        FROM t2 tt
+                        LEFT JOIN actual_data_2 a
+                        ON tt.Position_Number=a.position_number)
+                        ,t4 AS (
+                        SELECT Faculty,POSITION,Job_Family,Position_Number,All_PositionTypes,Retirement_Date,Alias_Default
+                        ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND fund_ft='เงินรายได้' then 'พนักงานมหาวิทยาลัยเงินรายได้'
+                        when Personnel_Type='พนักงานมหาวิทยาลัย' AND fund_ft='เงินงบประมาณ' then 'พนักงานมหาวิทยาลัยเงินงบประมาณ'
+                        ELSE Personnel_Type END AS Personnel_Type
+                        FROM t3)
+                        ,t5 AS (
+                        SELECT Faculty,POSITION,Job_Family,Position_Number,All_PositionTypes,Personnel_Type,Alias_Default
+                        ,case when Retirement_Date >= '2024-01-01' AND Retirement_Date <= '2024-12-31' then 'y1'
+                        when Retirement_Date >= '2025-01-01' AND Retirement_Date <= '2025-12-31' then 'y2'
+                        when Retirement_Date >= '2026-01-01' AND Retirement_Date <= '2026-12-31' then 'y3'
+                        when Retirement_Date >= '2027-01-01' AND Retirement_Date <= '2027-12-31' then 'y4'
+                        ELSE 'yy' END AS y
+                        FROM t4)
+                        ,t6 AS (
+                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,y,Personnel_Type,Alias_Default FROM t5 WHERE Y !='yy')
+                        ,t7 AS (
+                        SELECT *,COUNT(*) AS all_p FROM t6 GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,y,Personnel_Type,Alias_Default)
+                        ,t8 AS (
+                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,Alias_Default,y
+                        ,sum(case when Personnel_Type='ข้าราชการ' then all_p ELSE '0' END) AS p1
+                        ,sum(case when Personnel_Type='ลูกจ้างของมหาวิทยาลัย' then all_p ELSE '0' END) AS p5
+                        ,sum(case when Personnel_Type='ลูกจ้างประจำ' then all_p ELSE '0' END) AS p4
+                        ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินรายได้' then all_p ELSE '0' END) AS p3
+                        ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินงบประมาณ' then all_p ELSE '0' END) AS p2
+                        FROM t7 
+                        WHERE Y='y1'
+                        GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,Alias_Default,y)
+                        ,t9 AS (
+                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default
+                        ,sum(case when Personnel_Type='ข้าราชการ' then all_p ELSE '0' END) AS p1
+                        ,sum(case when Personnel_Type='ลูกจ้างของมหาวิทยาลัย' then all_p ELSE '0' END) AS p5
+                        ,sum(case when Personnel_Type='ลูกจ้างประจำ' then all_p ELSE '0' END) AS p4
+                        ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินรายได้' then all_p ELSE '0' END) AS p3
+                        ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินงบประมาณ' then all_p ELSE '0' END) AS p2
+                        FROM t7 
+                        WHERE Y='y2'
+                        GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default)
+                        ,t10 AS (
+                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default
+                        ,sum(case when Personnel_Type='ข้าราชการ' then all_p ELSE '0' END) AS p1
+                        ,sum(case when Personnel_Type='ลูกจ้างของมหาวิทยาลัย' then all_p ELSE '0' END) AS p5
+                        ,sum(case when Personnel_Type='ลูกจ้างประจำ' then all_p ELSE '0' END) AS p4
+                        ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินรายได้' then all_p ELSE '0' END) AS p3
+                        ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินงบประมาณ' then all_p ELSE '0' END) AS p2
+                        FROM t7 
+                        WHERE Y='y3'
+                        GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default)
+                        ,t11 AS (
+                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default
+                        ,sum(case when Personnel_Type='ข้าราชการ' then all_p ELSE '0' END) AS p1
+                        ,sum(case when Personnel_Type='ลูกจ้างของมหาวิทยาลัย' then all_p ELSE '0' END) AS p5
+                        ,sum(case when Personnel_Type='ลูกจ้างประจำ' then all_p ELSE '0' END) AS p4
+                        ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินรายได้' then all_p ELSE '0' END) AS p3
+                        ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินงบประมาณ' then all_p ELSE '0' END) AS p2
+                        FROM t7 
+                        WHERE Y='y4'
+                        GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default)
+                        ,t12 AS (
+                        SELECT t.*,tt.Alias_Default as Alias_Default_y2,tt.Faculty as Faculty_y2 , tt.POSITION as POSITION_y2,tt.Job_Family as Job_Family_y2
+                        ,tt.All_PositionTypes as All_PositionTypes_y2,tt.y AS y2,tt.p1 AS p1_y2,tt.p2 AS p2_y2,tt.p3 AS p3_y2,tt.p4 AS p4_y2,tt.p5 AS p5_y2
+                        FROM t8 t
+                        LEFT JOIN t9 tt
+                        ON t.Faculty = tt.Faculty 
+                        AND t.POSITION = tt.POSITION 
+                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        UNION
+                        SELECT t.*,tt.Alias_Default as Alias_Default_y2,tt.Faculty as Faculty_y2 , tt.POSITION as POSITION_y2,tt.Job_Family as Job_Family_y2
+                        ,tt.All_PositionTypes as All_PositionTypes_y2,tt.y AS y2,tt.p1 AS p1_y2,tt.p2 AS p2_y2,tt.p3 AS p3_y2,tt.p4 AS p4_y2,tt.p5 AS p5_y2
+                        FROM t8 t
+                        RIGHT JOIN t9 tt
+                        ON t.Faculty = tt.Faculty 
+                        AND t.POSITION = tt.POSITION 
+                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        WHERE t.Faculty IS NULL)
+                        ,t13 AS (
+                        SELECT t.*,tt.Alias_Default as Alias_Default_y3,tt.Faculty as Faculty_y3 , tt.POSITION as POSITION_y3,tt.Job_Family as Job_Family_y3
+                        ,tt.All_PositionTypes as All_PositionTypes_y3,tt.y AS y3,tt.p1 AS p1_y3,tt.p2 AS p2_y3,tt.p3 AS p3_y3,tt.p4 AS p4_y3,tt.p5 AS p5_y3
+                        FROM t12 t
+                        LEFT JOIN t10 tt
+                        ON t.Faculty = tt.Faculty 
+                        AND t.POSITION = tt.POSITION 
+                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        UNION
+                        SELECT t.*,tt.Alias_Default as Alias_Default_y3,tt.Faculty as Faculty_y3 , tt.POSITION as POSITION_y3,tt.Job_Family as Job_Family_y3
+                        ,tt.All_PositionTypes as All_PositionTypes_y3,tt.y AS y3,tt.p1 AS p1_y3,tt.p2 AS p2_y3,tt.p3 AS p3_y3,tt.p4 AS p4_y3,tt.p5 AS p5_y3
+                        FROM t12 t
+                        RIGHT JOIN t10 tt
+                        ON t.Faculty = tt.Faculty 
+                        AND t.POSITION = tt.POSITION 
+                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        WHERE t.Faculty IS NULL)
+                        ,t14 AS (
+                        SELECT t.*,tt.Alias_Default as Alias_Default_y4,tt.Faculty as Faculty_y4 , tt.POSITION as POSITION_y4,tt.Job_Family as Job_Family_y4
+                        ,tt.All_PositionTypes as All_PositionTypes_y4,tt.y AS y4,tt.p1 AS p1_y4,tt.p2 AS p2_y4,tt.p3 AS p3_y4,tt.p4 AS p4_y4,tt.p5 AS p5_y4
+                        FROM t13 t
+                        LEFT JOIN t11 tt
+                        ON t.Faculty = tt.Faculty 
+                        AND t.POSITION = tt.POSITION 
+                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        UNION
+                        SELECT t.*,tt.Alias_Default as Alias_Default_y4,tt.Faculty as Faculty_y4 , tt.POSITION as POSITION_y4,tt.Job_Family as Job_Family_y4
+                        ,tt.All_PositionTypes as All_PositionTypes_y4,tt.y AS y4,tt.p1 AS p1_y4,tt.p2 AS p2_y4,tt.p3 AS p3_y4,tt.p4 AS p4_y4,tt.p5 AS p5_y4
+                        FROM t13 t
+                        RIGHT JOIN t11 tt
+                        ON t.Faculty = tt.Faculty 
+                        AND t.POSITION = tt.POSITION 
+                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        WHERE t.Faculty IS NULL)
+
+
+                        SELECT * FROM t14
+                        ORDER BY t14.faculty,t14.y";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }
