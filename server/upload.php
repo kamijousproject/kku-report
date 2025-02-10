@@ -69,12 +69,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $command = "python $python_script " . escapeshellarg($target_file) . " 2>&1";
 
     $output = shell_exec($command);
+    $output = trim($output); // ตัดช่องว่างและ new line ออกจากข้อความ
 
-    if (strpos($output, 'Insert data completed successfully') !== false) {
+    // Debugging (เอาออกใน production)
+    // var_dump($output);
+    // die();
+
+    if ($output === "SUCCESS") {
         header("Location: ../template-vertical-nav/index.php?status=success");
         exit();
     } else {
-        header("Location: ../template-vertical-nav/index.php?status=error&message=" . urlencode(nl2br($output)));
+        header("Location: ../template-vertical-nav/index.php?status=error&message=" . urlencode($output));
         exit();
     }
 }
