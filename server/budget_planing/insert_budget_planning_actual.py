@@ -39,6 +39,11 @@ conn = pymysql.connect(**db_config)
 
 try:
     with conn.cursor() as cursor:
+        
+        truncate_query = "TRUNCATE TABLE budget_planning_actual;"
+        cursor.execute(truncate_query)
+        conn.commit()
+        
         # สร้างตารางถ้ายังไม่มี
         create_table_sql = """
         CREATE TABLE IF NOT EXISTS budget_planning_actual (

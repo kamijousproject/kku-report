@@ -61,6 +61,10 @@ try:
         charset='utf8mb4'
     )
     cursor = connection.cursor()
+    
+    truncate_query = "TRUNCATE TABLE planning_kku_action_plan;"
+    cursor.execute(truncate_query)
+    connection.commit()
 
     # เตรียมข้อมูลสำหรับการ INSERT
     for _, row in data.iterrows():

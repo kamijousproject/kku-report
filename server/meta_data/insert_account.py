@@ -63,6 +63,10 @@ try:
 except Exception as e:
     print(f"Error connecting to database: {e}")
     exit()
+    
+truncate_query = "TRUNCATE TABLE pilar;"
+cursor.execute(truncate_query)
+conn.commit()
 
 # ตรวจสอบและสร้างตารางหากไม่มีอยู่
 create_table_query = '''

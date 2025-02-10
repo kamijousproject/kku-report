@@ -61,6 +61,10 @@ try:
         autocommit=True
     )
     cursor = connection.cursor()
+    
+    truncate_query = "TRUNCATE TABLE plan;"
+    cursor.execute(truncate_query)
+    connection.commit()
 
     # สร้างตารางหากยังไม่มี
     create_table_query = '''

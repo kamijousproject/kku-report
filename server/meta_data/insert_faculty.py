@@ -44,6 +44,10 @@ conn = mysql.connector.connect(
 )
 cursor = conn.cursor()
 
+truncate_query = "TRUNCATE TABLE Faculty;"
+cursor.execute(truncate_query)
+conn.commit()
+
 # สร้างตาราง Faculty
 create_table_query = """
 CREATE TABLE IF NOT EXISTS Faculty (

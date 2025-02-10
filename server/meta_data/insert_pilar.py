@@ -54,6 +54,10 @@ if "Pillar" in df.columns and "Alias: Default" in df.columns:
 
     try:
         with connection.cursor() as cursor:
+            truncate_query = "TRUNCATE TABLE pilar;"
+            cursor.execute(truncate_query)
+            connection.commit()
+            
             for _, row in df_filtered.iterrows():
                 sql = """
                 INSERT INTO pilar (pilar_id, pilar_name) 

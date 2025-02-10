@@ -62,6 +62,10 @@ try:
         charset='utf8mb4'
     )
     cursor = connection.cursor()
+    
+    truncate_query = "TRUNCATE TABLE budget_planning_disbursement_budget_plan_anl_release;"
+    cursor.execute(truncate_query)
+    connection.commit()
 
     # สร้างตารางหากยังไม่มี
     create_table_query = '''

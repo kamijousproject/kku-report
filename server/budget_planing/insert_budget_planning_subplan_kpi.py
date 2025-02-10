@@ -57,7 +57,11 @@ try:
         charset='utf8mb4'
     )
     cursor = connection.cursor()
-
+    
+    truncate_query = "TRUNCATE TABLE budget_planning_subplan_kpi;"
+    cursor.execute(truncate_query)
+    connection.commit()
+    
     # เตรียมข้อมูลสำหรับการ INSERT
     for _, row in data.iterrows():
         insert_query = '''

@@ -74,6 +74,10 @@ try:
     )
     cursor = connection.cursor()
 
+    truncate_query = "TRUNCATE TABLE budget_planning_annual_budget_plan;"
+    cursor.execute(truncate_query)
+    connection.commit()
+
     # สร้างตารางหากยังไม่มี
     create_table_query = '''
     CREATE TABLE IF NOT EXISTS budget_planning_annual_budget_plan (
