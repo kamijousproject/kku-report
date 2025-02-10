@@ -63,6 +63,10 @@ try:
 except Exception as e:
     print(f"Error connecting to database: {e}")
     exit()
+    
+truncate_query = "TRUNCATE TABLE pilar;"
+cursor.execute(truncate_query)
+conn.commit()
 
 # ตรวจสอบและสร้างตารางหากไม่มีอยู่
 create_table_query = '''
@@ -91,7 +95,8 @@ try:
         '''
         cursor.execute(insert_query, (row['account'], row['alias_default']))
     conn.commit()
-    print("Data inserted successfully into account table.")
+    # print("Data inserted successfully into account table.")
+    print("SUCCESS")
 except Exception as e:
     print(f"Error inserting data: {e}")
 finally:

@@ -61,6 +61,10 @@ try:
         charset='utf8mb4'
     )
     cursor = connection.cursor()
+    
+    truncate_query = "TRUNCATE TABLE planning_kku_revised_action_plan;"
+    cursor.execute(truncate_query)
+    connection.commit()
 
     # เตรียมข้อมูลสำหรับการ INSERT
     for _, row in data.iterrows():
@@ -89,8 +93,8 @@ try:
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into planning_kku_revised_action_plan table.")
-
+    # print("Data inserted successfully into planning_kku_revised_action_plan table.")
+    print("SUCCESS")
 except Exception as e:
     print(f"Error: {e}")
 

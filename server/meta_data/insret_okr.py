@@ -54,6 +54,9 @@ def insert_data_to_db(df):
     )
     try:
         with connection.cursor() as cursor:
+            truncate_query = "TRUNCATE TABLE okr;"
+            cursor.execute(truncate_query)
+            connection.commit()
             for _, row in df.iterrows():
                 sql = "INSERT INTO okr (okr_id, okr_name) VALUES (%s, %s)"
                 cursor.execute(sql, (row['okr_id'], row['okr_name']))
@@ -65,4 +68,5 @@ def insert_data_to_db(df):
 # เรียกใช้ฟังก์ชัน Insert
 insert_data_to_db(df)
 
-print("Data inserted successfully!")
+# print("Data inserted successfully!")
+print("SUCCESS")

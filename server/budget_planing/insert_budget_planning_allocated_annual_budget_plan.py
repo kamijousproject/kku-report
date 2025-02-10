@@ -77,6 +77,10 @@ try:
     )
     cursor = connection.cursor()
 
+    truncate_query = "TRUNCATE TABLE budget_planning_allocated_annual_budget_plan;"
+    cursor.execute(truncate_query)
+    connection.commit()
+
     # สร้างตารางหากยังไม่มี
     create_table_query = '''
     CREATE TABLE IF NOT EXISTS budget_planning_allocated_annual_budget_plan (
@@ -158,7 +162,8 @@ try:
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into budget_planning_allocated_annual_budget_plan table.")
+    # print("Data inserted successfully into budget_planning_allocated_annual_budget_plan table.")
+    print("SUCCESS")
 
 except Exception as e:
     print(f"Error: {e}")

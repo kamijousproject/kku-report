@@ -70,6 +70,9 @@ connection = pymysql.connect(
 
 try:
     with connection.cursor() as cursor:
+        truncate_query = "TRUNCATE TABLE ksp;"
+        cursor.execute(truncate_query)
+        connection.commit()
         # สร้างคำสั่ง SQL สำหรับ INSERT
         sql = "INSERT INTO ksp (ksp_id, ksp_name) VALUES (%s, %s)"
 
@@ -82,6 +85,7 @@ try:
 
         # Commit การเปลี่ยนแปลง
         connection.commit()
-        print("Insert data successfully!")
+        # print("Insert data successfully!")
+        print("SUCCESS")
 finally:
     connection.close()

@@ -61,6 +61,10 @@ try:
         autocommit=True
     )
     cursor = connection.cursor()
+    
+    truncate_query = "TRUNCATE TABLE plan;"
+    cursor.execute(truncate_query)
+    connection.commit()
 
     # สร้างตารางหากยังไม่มี
     create_table_query = '''
@@ -88,7 +92,8 @@ try:
 
     # บันทึกข้อมูล
     connection.commit()
-    print("Data inserted successfully into plan table.")
+    # print("Data inserted successfully into plan table.")
+    print("SUCCESS")
 
 except Exception as e:
     print(f"Error: {e}")

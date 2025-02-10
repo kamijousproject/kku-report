@@ -35,6 +35,11 @@ connection = pymysql.connect(
 
 try:
     with connection.cursor() as cursor:
+        
+        truncate_query = "TRUNCATE TABLE planning_faculty_action_plan;"
+        cursor.execute(truncate_query)
+        connection.commit()
+        
         # Create the table if it does not exist
         create_table_query = """
         CREATE TABLE IF NOT EXISTS planning_faculty_action_plan (
@@ -128,4 +133,5 @@ try:
 finally:
     connection.close()
 
-print("Data inserted successfully!")
+# print("Data inserted successfully!")
+print("SUCCESS")

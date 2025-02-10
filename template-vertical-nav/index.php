@@ -80,7 +80,6 @@
                                                 <option value="workforce_current_positions_allocation">Workforce current positions allocation</option>
                                                 <option value="workforce_new_positions_allocation">Workforce new positions allocation</option>
                                                 <option value="workforce_new_position_request">Workforce new position request</option>
-
                                             </optgroup>
                                         </select>
                                         <br>
