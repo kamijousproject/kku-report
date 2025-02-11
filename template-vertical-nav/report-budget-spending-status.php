@@ -1,130 +1,3 @@
-<?php
-include '../server/connectdb.php';
-
-$db = new Database();
-$conn = $db->connect();
-
-// ฟังก์ชันดึงข้อมูล
-function fetchBudgetData($conn, $fund)
-{
-    $query = "SELECT DISTINCT
-        ksp.ksp_name,
-        acc.type,
-        acc.sub_type,
-	    project.project_name,
-	    bpanbp.Account,
-	    bpanbp.Fund,
-	    bpanbp.Faculty,
-	    bpanbp.Plan,
-	    bpanbp.Sub_Plan,
-	    bpanbp.Project,
-	    bpanbp.KKU_Item_Name,
-	    bpanbp.Allocated_Total_Amount_Quantity,
-	    bpa.TOTAL_BUDGET,
-	    bpa.TOTAL_CONSUMPTION,
-	    bpa.EXPENDITURES,
-	    bpa.COMMITMENTS,
-	    bpa.OBLIGATIONS,
-	    f.Alias_Default AS Faculty_Name,
-	    p.plan_name AS Plan_Name,
-	    sp.sub_plan_name AS Sub_Plan_Name,
-	    pr.project_name AS Project_Name
-FROM
-	budget_planning_allocated_annual_budget_plan bpanbp
-	LEFT JOIN budget_planning_actual bpa ON bpanbp.Faculty = bpa.FACULTY
-	AND bpanbp.Plan = bpa.PLAN
-	AND bpanbp.Sub_Plan = bpa.SUBPLAN
-	AND bpanbp.Project = bpa.PROJECT
-	AND bpanbp.Fund = bpa.FUND
-	LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.Faculty = bpabp.Faculty
-	AND bpanbp.Plan = bpabp.Plan
-	AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-	AND bpanbp.Project = bpabp.Project
-	AND bpanbp.Fund = bpabp.Fund
-	LEFT JOIN budget_planning_project_kpi bppk ON bpanbp.Project = bppk.Project
-	LEFT JOIN project ON bpanbp.Project = project.project_id
-	LEFT JOIN ksp ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
-	INNER JOIN account acc ON bpanbp.Account = acc.account
-	LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
-	LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
-	LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-	LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
-                                            WHERE
-                                                bpanbp.Fund = :fund";
-
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':fund', $fund);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-$resultsFN02 = fetchBudgetData($conn, 'FN02');
-$resultsFN06 = fetchBudgetData($conn, 'FN06');
-
-
-
-
-
-
-$mergedData = [];
-
-foreach ($resultsFN06 as $fn06) {
-    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
-        return (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
-            (string) ($fn06['Sub_Plan'] ?? '') === (string) ($fn02['Sub_Plan'] ?? '') &&
-            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
-    });
-
-
-    $fn02 = reset($fn02Match);
-
-    // ✅ ตรวจสอบและกำหนดค่าเริ่มต้นเพื่อป้องกัน Warning
-    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
-    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
-
-
-
-    // ✅ คำนวณค่า Total
-    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
-    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
-    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
-    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
-
-
-    // ✅ เพิ่มข้อมูลลงใน mergedData พร้อมป้องกัน Undefined Index
-    $mergedData[] = [
-        'Plan' => $fn06['Plan'] ?? '',
-        'Type' => $fn06['Type'] ?? '',  // ต้องตรงกับ 'Type' ที่อยู่ใน $mergedData
-        'Sub_Type' => $fn06['Sub_Type'] ?? '', // ต้องตรงกับ 'Sub_Type' ที่อยู่ใน $mergedData
-        'ksp_name' => $fn06['ksp_name'] ?? '',
-        'Project_Name' => $fn06['Project_Name'] ?? '',
-        'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
-        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN06' => $commitment_FN06,
-        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
-        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN02' => $commitment_FN02,
-        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
-        'Total_Allocated' => $Total_Allocated,
-        'Total_Commitments' => $Total_Commitments,
-    ];
-}
-
-
-// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
-$rowspanData = [];
-
-// วนลูปเพื่อคำนวณว่าข้อมูลไหนต้อง merge
-foreach ($mergedData as $row) {
-    $type = $row['Type'] ?? '';
-    $subType = $row['Sub_Type'] ?? '';
-}
-
-
-// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
-$usedRowspan = [];
-?>
-
 <style>
     #reportTable th:nth-child(1),
     #reportTable td:nth-child(1) {
@@ -197,6 +70,133 @@ $usedRowspan = [];
         /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
     }
 </style>
+
+<?php
+include '../server/connectdb.php';
+
+$db = new Database();
+$conn = $db->connect();
+
+// ฟังก์ชันดึงข้อมูล
+function fetchBudgetData($conn, $fund)
+{
+    $query = "SELECT DISTINCT
+ksp.ksp_id AS Ksp_id,
+        ksp.ksp_name AS Ksp_Name,
+        
+        acc.type,
+        acc.sub_type,
+        project.project_name,
+        bpanbp.Account,
+        bpanbp.Fund,
+        bpanbp.Faculty,
+        bpanbp.Plan,
+        bpanbp.Sub_Plan,
+        bpanbp.Project,
+        bpanbp.KKU_Item_Name,
+        bpanbp.Allocated_Total_Amount_Quantity,
+        bpa.FISCAL_YEAR,
+        bpa.TOTAL_BUDGET,
+        bpa.TOTAL_CONSUMPTION,
+        bpa.EXPENDITURES,
+        bpa.COMMITMENTS,
+        bpa.OBLIGATIONS,
+        f.Alias_Default AS Faculty_Name,
+        p.plan_name AS Plan_Name,
+        sp.sub_plan_name AS Sub_Plan_Name,
+        pr.project_name AS Project_Name
+FROM
+    budget_planning_allocated_annual_budget_plan bpanbp
+    LEFT JOIN budget_planning_actual bpa ON bpanbp.Faculty = bpa.FACULTY
+    AND bpanbp.Plan = bpa.PLAN
+    AND bpanbp.Sub_Plan = bpa.SUBPLAN
+    AND bpanbp.Project = bpa.PROJECT
+    AND bpanbp.Fund = bpa.FUND
+    LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.Faculty = bpabp.Faculty
+    AND bpanbp.Plan = bpabp.Plan
+    AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+    AND bpanbp.Project = bpabp.Project
+    AND bpanbp.Fund = bpabp.Fund
+    LEFT JOIN budget_planning_project_kpi bppk ON bpanbp.Project = bppk.Project
+    LEFT JOIN project ON bpanbp.Project = project.project_id
+    LEFT JOIN ksp ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
+    LEFT JOIN account acc ON bpanbp.Account = acc.account
+    LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
+    LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
+    LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
+    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
+                                            WHERE
+                                                bpanbp.Fund = :fund";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':fund', $fund);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$resultsFN02 = fetchBudgetData($conn, 'FN02');
+$resultsFN06 = fetchBudgetData($conn, 'FN06');
+
+$mergedData = [];
+
+foreach ($resultsFN06 as $fn06) {
+    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
+        return (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
+            (string) ($fn06['Sub_Plan'] ?? '') === (string) ($fn02['Sub_Plan'] ?? '') &&
+            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
+    });
+
+    $fn02 = reset($fn02Match);
+
+    // ✅ ตรวจสอบและกำหนดค่าเริ่มต้นเพื่อป้องกัน Warning
+    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
+    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
+
+    // ✅ คำนวณค่า Total
+    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
+    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
+
+    // ✅ เพิ่มข้อมูลลงใน mergedData พร้อมป้องกัน Undefined Index
+    $mergedData[] = [
+        'Ksp_id' => $fn06['Ksp_id'] ?? '-',
+        'Ksp_Name' => $fn06['Ksp_Name'] ?? '-',
+        'Plan' => $fn06['Plan'] ?? '',
+        'Type' => $fn06['type'] ?? '',
+        'Sub_Type' => $fn06['sub_type'] ?? '',
+        'Project_Name' => $fn06['Project_Name'] ?? '',
+        'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
+        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN06' => $commitment_FN06,
+        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
+        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN02' => $commitment_FN02,
+        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
+        'Total_Allocated' => $Total_Allocated,
+        'Total_Commitments' => $Total_Commitments,
+    ];
+}
+
+// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
+$rowspanData = [];
+
+foreach ($mergedData as $row) {
+    $type = $row['Type'] ?? '';
+    $subType = $row['Sub_Type'] ?? '';
+
+    // นับจำนวนแถวที่ต้อง merge
+    if (!isset($rowspanData[$type][$subType])) {
+        $rowspanData[$type][$subType] = 1;
+    } else {
+        $rowspanData[$type][$subType]++;
+    }
+}
+
+// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
+$usedRowspan = [];
+
+?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
@@ -230,20 +230,18 @@ $usedRowspan = [];
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รรายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
+                                    <h4>รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
                                 </div>
 
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover">
                                         <thead>
-
-
                                             <tr>
                                                 <th rowspan="3">รายการ</th>
                                                 <th colspan="8">ปี 2566</th>
                                                 <th colspan="8">ปี 2567 (ปีปัจจุบัน)</th>
                                                 <th colspan="4">ปี 2568 (ปีที่ขอตั้งงบ)</th>
-                                                <th colspan="6">ปี 2568 (ปีที่ขอตั้งงบ)</th>
+                                                <th colspan="4">ปี 2568 (ปีที่ขอตั้งงบ)</th>
                                                 <th rowspan="2" colspan="2">เพิ่ม/ลด</th>
                                             </tr>
                                             <tr>
@@ -281,95 +279,78 @@ $usedRowspan = [];
                                                 <th>จ่ายจริง</th>
                                                 <th>ประมาณการ</th>
                                                 <th>จ่ายจริง</th>
-                                                <th>ประมาณการ</th>
-                                                <th>จ่ายจริง</th>
+
                                                 <th>จำนวน</th>
                                                 <th>ร้อยละ</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
+                                            $previousKspId = null;
+                                            $previousKspName = null;
+                                            $previousType = null;
+                                            $previousSubType = null;
 
                                             foreach ($mergedData as $row) {
                                                 echo "<tr>";
                                                 echo "<td style='text-align: left;'>";
 
-                                                // แสดงข้อมูล ksp_name
-                                                echo "<strong>" . str_repeat('&nbsp;', 0) . "{$row['ksp_name']} : {$row['ksp_name']}</strong><br>";
+                                                // Display KSP name
+                                                if ($row['Ksp_id'] !== $previousKspId || $row['Ksp_Name'] !== $previousKspName) {
+                                                    echo "<strong>{$row['Ksp_id']} : " .
+                                                        (isset($row['Ksp_Name']) && !empty($row['Ksp_Name']) ? preg_replace('/_.*$/', '', $row['Ksp_Name']) : 'ไม่มีข้อมูล') .
+                                                        "</strong><br>";
+                                                    $previousKspId = $row['Ksp_id'];
+                                                    $previousKspName = $row['Ksp_Name'];
+                                                }
 
+                                                // Display Type and Sub-Type
+                                                if ($row['Type'] === $previousType && $row['Sub_Type'] === $previousSubType) {
+                                                    continue;
+                                                }
+                                                if (isset($row['Type']) && !empty($row['Type'])) {
+                                                    echo "<strong>" . str_repeat('&nbsp;', 5) . $row['Type'] . "</strong><br>";
+                                                }
+                                                if (isset($row['Sub_Type']) && !empty($row['Sub_Type'])) {
+                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . $row['Sub_Type'] . "</strong><br>";
+                                                }
 
-                                                echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Type']}</strong>";
-                                                echo "<strong>" . str_repeat('&nbsp;', 10) . "{$row['Sub_Type']}</strong>";
+                                                // Display KKU Item Name
+                                                echo "<strong>" . str_repeat('&nbsp;', 15) . (isset($row['KKU_Item_Name']) && !empty($row['KKU_Item_Name']) ? $row['KKU_Item_Name'] : 'ไม่มีข้อมูล') . "</strong>";
 
-                                                // แสดงข้อมูล KKU_Item_Name
-                                                echo "<strong>" . str_repeat('&nbsp;', 15) . "{$row['KKU_Item_Name']}</strong>";
                                                 echo "</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
 
-                                                // แสดงข้อมูลในตารางตามที่ต้องการ (จำนวน Allocated, Expenditures)
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td></td>";
-                                                echo "<td>" . ($row['Allocated_FN06']) . "</td>";
-                                                echo "<td>" . ($row['Expenditures_FN02']) . "</td>";
-                                                echo "<td></td>";
-                                                echo "<td>" . ($Total_Allocated) . "</td>";
+                                                // Display other columns with formatted numbers
+                                                echo "<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>";
+                                                echo "<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>";
+
+                                                // Display allocated and expenditures
+                                                echo "<td>" . (isset($row['Allocated_FN06']) ? number_format($row['Allocated_FN06'], 2) : '-') . "</td>";
+                                                echo "<td>" . (isset($row['Expenditures_FN02']) ? number_format($row['Expenditures_FN02'], 2) : '-') . "</td>";
+                                                echo "<td>" . number_format($Total_Allocated, 2) . "</td>";
                                                 echo "<td>" . number_format($row['Allocated_FN06'], 2) . "</td>";
                                                 echo "<td>" . number_format($row['Expenditures_FN06'], 2) . "</td>";
                                                 echo "<td>" . number_format($row['Allocated_FN02'], 2) . "</td>";
                                                 echo "<td>" . number_format($row['Expenditures_FN02'], 2) . "</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-
+                                                echo "<td>-</td><td>-</td><td>-</td>";
 
                                                 echo "</tr>";
                                             }
                                             ?>
                                         </tbody>
-
                                     </table>
                                 </div>
+
+                                <!-- Export buttons -->
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
 
                             </div>
                         </div>
-
                     </div>
                 </div>
+
             </div>
         </div>
         <div class="footer">
