@@ -108,6 +108,8 @@
                                 {
                                     $query = "SELECT
                                             acc.alias_default AS Account_Alias_Default, -- แก้ไข alias เพื่อหลีกเลี่ยงการซ้ำ
+                                            acc.type,
+                                            acc.sub_type,
                                             bpanbp.Service,
                                             bpanbp.Account,
                                             bpanbp.Faculty,
@@ -116,8 +118,7 @@
                                             bpanbp.Project,
                                             bpanbp.KKU_Item_Name,
                                             bpanbp.Allocated_Total_Amount_Quantity,
-                                            bpabp.Total_Amount_Quantity,
-                                            acc.type,
+                                            bpabp.Total_Amount_Quantity,                                            
                                             f.Alias_Default AS Faculty_Name, -- ใช้ alias ที่ไม่ซ้ำ
                                             p.plan_name AS Plan_Name,
                                             sp.sub_plan_name AS Sub_Plan_Name,
@@ -129,6 +130,7 @@
                                             LEFT JOIN plan p ON bpanbp.Plan = p.plan_id
                                             LEFT JOIN sub_plan sp ON bpanbp.Sub_Plan = sp.sub_plan_id
                                             LEFT JOIN project pr ON bpanbp.Project = pr.project_id;
+
                                             WHERE
                                                 bpanbp.Plan = bpabp.PLAN
                                                 AND bpanbp.Sub_Plan = bpabp.Sub_Plan
@@ -188,7 +190,6 @@
                                                 <td style="text-align: left; white-space: nowrap;">
                                                     <?php
 
-
                                                     // แสดง Plan และ Plan_Name
                                                     echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Plan']} : {$row['Plan_Name']}</strong><br>";
 
@@ -210,15 +211,15 @@
 
                                                 <!-- -------------- 67 -------------- -->
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $row['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                    0
                                                 </td>
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $fn08['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                    0
                                                 </td>
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $fn02['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                    0
                                                 </td>
-                                                <td style="vertical-align: bottom;"><?= $sum67 ?></td>
+                                                <td style="vertical-align: bottom;">0</td>
 
                                                 <!-- --  ---------- 68 -------------- -->
                                                 <td style="vertical-align: bottom;">
