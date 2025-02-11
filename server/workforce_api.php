@@ -571,18 +571,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM workforce_current_positions_allocation)
                         , NEW AS (
                         SELECT 'อัตราใหม่'AS TYPE 
-                        ,Personnel_Type
-                        ,Faculty
-                        ,All_PositionTypes
-                        ,POSITION 
+                        ,w1.Personnel_Type
+                        ,w1.Faculty
+                        ,w1.All_PositionTypes
+                        ,w1.POSITION 
                         ,NULL AS Position_Number
-                        ,Fund_FT
+                        ,w1.Fund_FT
                         ,NULL AS Salary_rate
-                        ,Govt_Fund
-                        ,Division_Revenue
-                        ,OOP_Central_Revenue
-                        ,University_Staff_Govt_Budget AS num
-                        FROM workforce_new_positions_allocation)
+                        ,w1.Govt_Fund
+                        ,w1.Division_Revenue
+                        ,w1.OOP_Central_Revenue
+                        ,(CAST(w1.University_Staff_Govt_Budget AS SIGNED)+w2.University_Staff_Rev_Budget+CAST(w2.University_Employees AS SIGNED)) AS num
+                        FROM workforce_new_positions_allocation w1
+                        LEFT JOIN workforce_new_positions_allocation_2 w2
+                        ON w1.Account=w2.Account COLLATE utf8mb4_general_ci AND w1.Scenario=w2.Scenario COLLATE utf8mb4_general_ci AND w1.Version=w2.Version COLLATE utf8mb4_general_ci
+                        AND w1.Faculty=w2.Faculty COLLATE utf8mb4_general_ci AND w1.NHR=w2.NHR COLLATE utf8mb4_general_ci AND w1.Personnel_Type=w2.Personnel_Type COLLATE utf8mb4_general_ci
+                        AND w1.All_PositionTypes=w2.All_PositionTypes COLLATE utf8mb4_general_ci AND w1.Position=w2.Position COLLATE utf8mb4_general_ci)
                         , all_data AS (
                         SELECT * FROM CURRENT
                         UNION ALL 
@@ -594,11 +598,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM Faculty
                         WHERE parent NOT LIKE '%BU%'
                         ) f ON ad1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-								LEFT JOIN (
+                        LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default,Parent 
                         FROM Faculty
                         ) p ON f.parent = p.Faculty COLLATE UTF8MB4_GENERAL_CI
-								)
+                        )
                         SELECT a.*
                         ,act1.Employment_Type
                         ,act1.Workers_Name_Surname
