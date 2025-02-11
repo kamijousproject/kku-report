@@ -378,7 +378,7 @@ $usedRowspan = [];
                                             
                                                 echo "<td>" . (isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : '-') . "</td>";
                                                 echo "<td>" . (isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : '-') . "</td>";
-                                                echo "<td>" . (isset($row['Allocated_FN06']) && $row['Allocated_FN06'] != 0 ? ($row['Allocated_FN06'] / $row['Allocated_FN06']) * 100 : '-') . "</td>";
+                                                echo "<td>" . (isset($row['Allocated_FN06']) && $row['Allocated_FN06'] != 0 ? ($row['Allocated_FN06'] / $row['Allocated_FN06']) * 100 . "%" : '-') . "</td>";
                                                 echo "<td>" . (isset($row['Reason']) ? $row['Reason'] : '-') . "</td>";
                                                 echo "</tr>";
 
