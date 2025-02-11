@@ -52,7 +52,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
+                                            <!-- <tr>
                                                 <th>1</th>
                                                 <td>คณะวิศวกรรมศาสตร์</td>
                                                 <td>5,000,000</td>
@@ -107,8 +107,11 @@
                                                 <td>6,800,000</td>
                                                 <td>900,000</td>
                                                 <td>51,600,000</td>
-                                            </tr>
+                                            </tr> -->
                                         </tbody>
+                                        <tfoot>
+                                           
+                                        </tfoot>
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
@@ -129,6 +132,94 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/budget_planing_api.php",
+                data: {
+                    'command': 'kku_wf_budget-revenue-summary'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.bgp);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    response.bgp.forEach((row, index) => {                   
+                        const tr = document.createElement('tr');
+                        var total = parseInt(row.a1)+parseInt(row.a2)+parseInt(row.a3)+parseInt(row.a4)
+                        +parseInt(row.a5)+parseInt(row.a6)+parseInt(row.a7)+parseInt(row.a8)+
+                        parseInt(row.a9);
+                        const columns = [
+                            { key: 'No', value: index+1 },
+                            { key: 'fac', value: row.Alias_Default },
+                            { key: 'a1', value: parseInt(row.a1).toLocaleString() },
+                            { key: 'a2', value: parseInt(row.a2).toLocaleString() },
+                            { key: 'a3', value: parseInt(row.a3).toLocaleString() },
+                            { key: 'a4', value: parseInt(row.a4).toLocaleString() },
+                            { key: 'a5', value: parseInt(row.a5).toLocaleString() },
+                            { key: 'a6', value: parseInt(row.a6).toLocaleString() },
+                            { key: 'a7', value: parseInt(row.a7).toLocaleString() },
+                            { key: 'a8', value: parseInt(row.a8).toLocaleString() },
+                            { key: 'a9', value: parseInt(row.a9).toLocaleString() },
+                            { key: 'total', value: total.toLocaleString() },                                                                    
+                        ];
+
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);    
+                        
+                    });
+                    calculateSum(); 
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+        function calculateSum() {
+        const table = document.querySelector('table');
+        const rows = table.querySelectorAll('tbody tr');
+        const footer = table.querySelector('tfoot');
+        const columns = rows[0].querySelectorAll('td').length;
+
+        // Create footer row
+        let footerRow = document.createElement('tr');
+        footerRow.innerHTML = '<td colspan="2">รวม</td>';
+
+        // Initialize sums for each column
+        let sums = new Array(columns - 2).fill(0);
+
+        // Calculate sums
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+                if (index >= 2) { // Skip the first two columns (e.g., "ส่วนงาน/หน่วยงาน")
+                    // Remove commas and convert to a number
+                    const value = parseFloat(cell.textContent.replace(/,/g, '')) || 0;
+                    sums[index - 2] += value;
+                }
+            });
+        });
+
+        // Add sums to the footer row
+        sums.forEach(sum => {
+            // Format the sum with commas
+            footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
+        });
+
+        // Add the footer row to the table
+        footer.appendChild(footerRow);
+    }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
