@@ -1,3 +1,53 @@
+<?php
+include '../server/connectdb.php';
+
+$db = new Database();
+$conn = $db->connect();
+
+function fetchBudgetData($conn, $fund)
+{
+    $query = "SELECT
+                                            acc.alias_default AS Account_Alias_Default, -- แก้ไข alias เพื่อหลีกเลี่ยงการซ้ำ
+                                            acc.type,
+                                            acc.sub_type,
+                                            bpanbp.Service,
+                                            bpanbp.Account,
+                                            bpanbp.Faculty,
+                                            bpanbp.Plan,
+                                            bpanbp.Sub_Plan,
+                                            bpanbp.Project,
+                                            bpanbp.KKU_Item_Name,
+                                            bpanbp.Allocated_Total_Amount_Quantity,
+                                            bpabp.Total_Amount_Quantity,                                            
+                                            f.Alias_Default AS Faculty_Name, -- ใช้ alias ที่ไม่ซ้ำ
+                                            p.plan_name AS Plan_Name,
+                                            sp.sub_plan_name AS Sub_Plan_Name,
+                                            pr.project_name AS Project_Name
+                                            FROM budget_planning_allocated_annual_budget_plan bpanbp
+                                            LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.Account = bpabp.Account -- ตรวจสอบให้แน่ใจว่า Account ตรงกัน
+                                            LEFT JOIN account acc ON bpanbp.Account = acc.account
+                                            LEFT JOIN Faculty f ON bpanbp.Faculty = f.Faculty
+                                            LEFT JOIN plan p ON bpanbp.Plan = p.plan_id
+                                            LEFT JOIN sub_plan sp ON bpanbp.Sub_Plan = sp.sub_plan_id
+                                            LEFT JOIN project pr ON bpanbp.Project = pr.project_id;
+
+                                            WHERE
+                                                bpanbp.Plan = bpabp.PLAN
+                                                AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+                                                AND bpanbp.Project = bpabp.PROJECT
+                                                AND bpabp.ACCOUNT = bpanbp.ACCOUNT
+                                                AND bpabp.Fund = :fund";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':fund', $fund);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+$resultsFN06 = fetchBudgetData($conn, 'FN06');
+$resultsFN08 = fetchBudgetData($conn, 'FN08');
+$resultsFN02 = fetchBudgetData($conn, 'FN02');
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
@@ -98,55 +148,7 @@
                                 <div class="card-title">
                                     <h4>รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</h4>
                                 </div>
-                                <?php
-                                include '../server/connectdb.php';
 
-                                $db = new Database();
-                                $conn = $db->connect();
-
-                                function fetchBudgetData($conn, $fund)
-                                {
-                                    $query = "SELECT
-                                            acc.alias_default AS Account_Alias_Default, -- แก้ไข alias เพื่อหลีกเลี่ยงการซ้ำ
-                                            acc.type,
-                                            acc.sub_type,
-                                            bpanbp.Service,
-                                            bpanbp.Account,
-                                            bpanbp.Faculty,
-                                            bpanbp.Plan,
-                                            bpanbp.Sub_Plan,
-                                            bpanbp.Project,
-                                            bpanbp.KKU_Item_Name,
-                                            bpanbp.Allocated_Total_Amount_Quantity,
-                                            bpabp.Total_Amount_Quantity,                                            
-                                            f.Alias_Default AS Faculty_Name, -- ใช้ alias ที่ไม่ซ้ำ
-                                            p.plan_name AS Plan_Name,
-                                            sp.sub_plan_name AS Sub_Plan_Name,
-                                            pr.project_name AS Project_Name
-                                            FROM budget_planning_allocated_annual_budget_plan bpanbp
-                                            LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.Account = bpabp.Account -- ตรวจสอบให้แน่ใจว่า Account ตรงกัน
-                                            LEFT JOIN account acc ON bpanbp.Account = acc.account
-                                            LEFT JOIN Faculty f ON bpanbp.Faculty = f.Faculty
-                                            LEFT JOIN plan p ON bpanbp.Plan = p.plan_id
-                                            LEFT JOIN sub_plan sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-                                            LEFT JOIN project pr ON bpanbp.Project = pr.project_id;
-
-                                            WHERE
-                                                bpanbp.Plan = bpabp.PLAN
-                                                AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-                                                AND bpanbp.Project = bpabp.PROJECT
-                                                AND bpabp.ACCOUNT = bpanbp.ACCOUNT
-                                                AND bpabp.Fund = :fund";
-
-                                    $stmt = $conn->prepare($query);
-                                    $stmt->bindParam(':fund', $fund);
-                                    $stmt->execute();
-                                    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                }
-                                $resultsFN06 = fetchBudgetData($conn, 'FN06');
-                                $resultsFN08 = fetchBudgetData($conn, 'FN08');
-                                $resultsFN02 = fetchBudgetData($conn, 'FN02');
-                                ?>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -209,41 +211,42 @@
 
 
 
-                                                <!-- -------------- 67 -------------- -->
-                                                <td style="vertical-align: bottom;">
-                                                    0
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    0
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    0
-                                                </td>
-                                                <td style="vertical-align: bottom;">0</td>
+                                                <td style="vertical-align: bottom;">-</td>
+                                                <td style="vertical-align: bottom;">-</td>
+                                                <td style="vertical-align: bottom;">-</td>
+                                                <td style="vertical-align: bottom;">-</td>
 
                                                 <!-- --  ---------- 68 -------------- -->
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $row['Total_Amount_Quanity'] ?? 0 ?>
+                                                    <?= $row['Total_Amount_Quanity'] ?? '-' ?>
                                                 </td>
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $row['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                    <?= $row['Allocated_Total_Amount_Quantity'] ?? '-' ?>
                                                 </td>
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $fn08['Total_Amount_Quanity'] ?? 0 ?>
+                                                    <?= $fn08['Total_Amount_Quanity'] ?? '-' ?>
                                                 </td>
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $fn08['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                    <?= $fn08['Allocated_Total_Amount_Quantity'] ?? '-' ?>
                                                 </td>
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $fn02['Total_Amount_Quanity'] ?? 0 ?>
+                                                    <?= $fn02['Total_Amount_Quanity'] ?? '-' ?>
                                                 </td>
                                                 <td style="vertical-align: bottom;">
-                                                    <?= $fn02['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                    <?= $fn02['Allocated_Total_Amount_Quantity'] ?? '-' ?>
                                                 </td>
-                                                <td style="vertical-align: bottom;"><?= $sum68Request ?></td>
-                                                <td style="vertical-align: bottom;"><?= $sum68Allocated ?></td>
-                                                <td style="vertical-align: bottom;"><?= $diff ?></td>
-                                                <td style="vertical-align: bottom;"><?= $percent ?>%</td>
+                                                <td style="vertical-align: bottom;">
+                                                    <?= $sum68Request ?: '-' ?>
+                                                </td>
+                                                <td style="vertical-align: bottom;">
+                                                    <?= $sum68Allocated ?: '-' ?>
+                                                </td>
+                                                <td style="vertical-align: bottom;">
+                                                    <?= $diff ?: '-' ?>
+                                                </td>
+                                                <td style="vertical-align: bottom;">
+                                                    <?= $percent ? $percent . '%' : '-' ?>
+                                                </td>
 
                                                 </tr>
                                             <?php endforeach; ?>

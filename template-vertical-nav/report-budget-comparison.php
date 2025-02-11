@@ -176,8 +176,8 @@
                             $resultsFN06 = fetchBudgetData($conn, 'FN06');
                             $resultsFN08 = fetchBudgetData($conn, 'FN08');
                             $resultsFN02 = fetchBudgetData($conn, 'FN02');
-                                                      
-                            
+
+
                             ?>
 
                             <div class="card-body">
@@ -274,34 +274,34 @@
                                                         <?= $row['Sub_plan_KPI_Target'] ?? 'ไม่มี ข้อมูล' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $row['Total_Amount_Quanity'] ?? 0 ?>
+                                                        <?= $row['Total_Amount_Quanity'] ?? '-' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $row['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                        <?= $row['Allocated_Total_Amount_Quantity'] ?? '-' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $fn08['Total_Amount_Quanity'] ?? 0 ?>
+                                                        <?= $fn08['Total_Amount_Quanity'] ?? '-' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $fn08['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                        <?= $fn08['Allocated_Total_Amount_Quantity'] ?? '-' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $fn02['Total_Amount_Quanity'] ?? 0 ?>
+                                                        <?= $fn02['Total_Amount_Quanity'] ?? '-' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $fn02['Allocated_Total_Amount_Quantity'] ?? 0 ?>
+                                                        <?= $fn02['Allocated_Total_Amount_Quantity'] ?? '-' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $sum68Allocated ?>
+                                                        <?= $sum68Allocated ?? '-' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $diff ?>
+                                                        <?= $diff ?? '-' ?>
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $percent ?>%
+                                                        <?= $percent ?? '-' ?>%
                                                     </td>
                                                     <td style="vertical-align: bottom;">
-                                                        <?= $row['Reason'] ?? 0 ?>
+                                                        <?= $row['Reason'] ?? '-' ?>
                                                     </td>
 
                                                 </tr>
