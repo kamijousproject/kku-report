@@ -1,179 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<?php include('../component/header.php');
-
-include '../server/connectdb.php';
-
-$db = new Database();
-$conn = $db->connect();
-
-// ฟังก์ชันดึงข้อมูล
-function fetchBudgetData($conn, $fund)
-{
-    $query = "SELECT DISTINCT
-                                                acc.sub_type,
-                                                acc.type,
-                                                bpanbp.Service,
-                                                bpa.SERVICE,
-                                                bpanbp.Account,
-                                                bpa.ACCOUNT,
-                                                bpanbp.Fund,
-                                                bpanbp.Faculty,
-                                                bpanbp.Plan,
-                                                bpanbp.Sub_Plan,
-                                                bpanbp.Project,
-                                                bpanbp.KKU_Item_Name,
-                                                bpanbp.Allocated_Total_Amount_Quantity,
-                                                bpa.TOTAL_BUDGET,
-                                                bpa.TOTAL_CONSUMPTION,
-                                                bpa.EXPENDITURES,
-                                                bpa.FUNDS_AVAILABLE_AMOUNT,
-                                                bpa.INITIAL_BUDGET,
-                                                bpa.FUNDS_AVAILABLE_PERCENTAGE,
-                                                bpa.COMMITMENTS,
-                                                bpa.OBLIGATIONS,
-                                                f.Alias_Default AS Alias_Default,
-                                                f.Parent AS Faculty_Sub,
-                                                f.Faculty AS Faculty_Main,
-                                                p.plan_name AS Plan_Name,
-                                                sp.sub_plan_name AS Sub_Plan_Name,
-                                                pr.project_name AS Project_Name
-                                            FROM
-                                                budget_planning_allocated_annual_budget_plan bpanbp
-                                                LEFT JOIN budget_planning_actual bpa 
-                                                ON bpanbp.Faculty = bpa.FACULTY 
-                                                AND bpanbp.Plan = bpa.PLAN
-                                                AND bpanbp.Sub_Plan = bpa.SUBPLAN
-                                                AND bpanbp.Project = bpa.PROJECT
-                                                AND bpanbp.Fund = bpa.FUND
-                                                LEFT JOIN account acc ON bpanbp.Account = acc.account
-                                                LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
-                                                LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
-                                                LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-                                                LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
-                                            WHERE
-                                                bpanbp.Fund = :fund";
-
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':fund', $fund);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-$resultsFN02 = fetchBudgetData($conn, 'FN02');
-$resultsFN06 = fetchBudgetData($conn, 'FN06');
-
-echo "<pre>";
-// print_r($resultsFN02);
-// print_r($resultsFN06);
-echo "</pre>";
-
-
-$mergedData = [];
-
-foreach ($resultsFN06 as $fn06) {
-    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
-        return (string) $fn06['Plan'] === (string) $fn02['Plan'] &&
-            (string) $fn06['Sub_Plan'] === (string) $fn02['Sub_Plan'] &&
-            (string) $fn06['Project'] === (string) $fn02['Project'] &&
-            (string) $fn06['Account'] === (string) $fn02['ACCOUNT'];
-    });
-
-    // ใช้แค่ตัวแรกที่ตรงกับ FN06
-    $fn02 = reset($fn02Match);
-
-    // ✅ กำหนดค่าเริ่มต้นให้ตัวแปร
-    $commitment_FN06 = 0;
-    $commitment_FN02 = 0;
-    $commitment_percent_FN06 = 0;
-    $commitment_percent_FN02 = 0;
-    $Expenditures_Percent_FN06 = 0;
-    $Expenditures_Percent_FN02 = 0;
-
-    // ✅ คำนวณค่าเริ่มต้นสำหรับ Total
-    $Total_Allocated = 0;
-    $Total_Commitments = 0;
-    $Total_Commitments_Percent = 0;
-    $Total_Expenditures = 0;
-    $Total_Expenditures_Percent = 0;
-
-    // ✅ ตรวจสอบว่ามีข้อมูล FN02 หรือไม่
-    if ($fn02) {
-        $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
-        $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
-
-        $commitment_percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-            ? (($commitment_FN06 - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
-            : 0;
-
-        $commitment_percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-            ? (($commitment_FN02 - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
-            : 0;
-
-        $Expenditures_Percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-            ? (($fn06['EXPENDITURES'] - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
-            : 0;
-
-        $Expenditures_Percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-            ? (($fn02['EXPENDITURES'] - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
-            : 0;
-    }
-
-    // ✅ คำนวณค่า Total
-    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
-    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
-    $Total_Commitments_Percent = $commitment_percent_FN06 + $commitment_percent_FN02;
-    $Total_Expenditures = ($fn06['EXPENDITURES'] ?? 0) + ($fn02['EXPENDITURES'] ?? 0);
-    $Total_Expenditures_Percent = $Expenditures_Percent_FN06 + $Expenditures_Percent_FN02;
-
-    // ✅ เพิ่มข้อมูลลงใน mergedData
-    $mergedData[] = [
-        'Plan' => $fn06['Plan'],
-        'Sub_Plan' => $fn06['Sub_Plan'],
-        'Project' => $fn06['Project'],
-        'Type' => $fn06['type'],
-        'Sub_Type' => $fn06['sub_type'],
-        'Plan_Name' => $fn06['Plan_Name'],
-        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'],
-        'Project_Name' => $fn06['Project_Name'],
-        'KKU_Item_Name' => $fn06['KKU_Item_Name'],
-        'Alias_Default' => $fn06['Alias_Default'], // ✅ เพิ่มข้อมูล Faculty
-        'Faculty_Sub' => $fn06['Faculty_Sub'],
-        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN06' => $commitment_FN06,
-        'Commitment_Percent_FN06' => $commitment_percent_FN06,
-        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
-        'Expenditures_Percent_FN06' => $Expenditures_Percent_FN06,
-        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN02' => $commitment_FN02,
-        'Commitment_Percent_FN02' => $commitment_percent_FN02,
-        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
-        'Expenditures_Percent_FN02' => $Expenditures_Percent_FN02,
-        'Total_Allocated' => $Total_Allocated,
-        'Total_Commitments' => $Total_Commitments,
-        'Total_Commitments_Percent' => $Total_Commitments_Percent,
-        'Total_Expenditures' => $Total_Expenditures,
-        'Total_Expenditures_Percent' => $Total_Expenditures_Percent,
-    ];
-}
-
-
-// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
-$rowspanData = [];
-
-// วนลูปเพื่อคำนวณว่าข้อมูลไหนต้อง merge
-foreach ($mergedData as $row) {
-    $type = $row['Type'] ?? '';
-    $subType = $row['Sub_Type'] ?? '';
-}
-
-
-// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
-$usedRowspan = [];
-
-
-?>
-
 <style>
     #reportTable th:nth-child(1),
     #reportTable td:nth-child(1) {
@@ -245,7 +69,189 @@ $usedRowspan = [];
         overflow-y: auto;
         /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
     }
+
+    .container-custom {
+        max-width: 1200px;
+        /* กำหนดค่าความกว้างสูงสุด */
+        width: 120%;
+        /* ใช้ 90% ของหน้าจอเพื่อให้ขนาดพอดี */
+        margin: 0 auto;
+        /* จัดให้อยู่ตรงกลาง */
+    }
+
+    @media (max-width: 768px) {
+        .container-custom {
+            width: 95%;
+            /* ขยายให้เต็มที่ขึ้นเมื่อเป็นหน้าจอเล็ก */
+        }
+
+        table {
+            font-size: 12px;
+            /* ลดขนาดตัวอักษรของตารางในหน้าจอเล็ก */
+        }
 </style>
+
+<?php
+include '../server/connectdb.php';
+
+$db = new Database();
+$conn = $db->connect();
+
+// ฟังก์ชันตัดตัวอักษรออกให้เหลือแค่ตัวเลข
+function extractNumericPart($string)
+{
+    // ใช้ regular expression เพื่อลบตัวอักษรออกจาก string และเหลือแค่ตัวเลข
+    return preg_replace('/\D/', '', $string);
+}
+
+// ฟังก์ชันเปรียบเทียบ Fund และ Sub_Plan โดยตัดตัวอักษรออกให้เหลือแค่ตัวเลข
+function compareSubPlanAndFund($subPlan1, $subPlan2, $fund1, $fund2)
+{
+    $subPlan1 = extractNumericPart($subPlan1);
+    $subPlan2 = extractNumericPart($subPlan2);
+    $fund1 = extractNumericPart($fund1);
+    $fund2 = extractNumericPart($fund2);
+
+    return $subPlan1 === $subPlan2 && $fund1 === $fund2;
+}
+
+// ฟังก์ชันดึงข้อมูล
+function fetchBudgetData($conn, $fund)
+{
+    $query = "SELECT DISTINCT
+    ksp.ksp_id AS Ksp_id,
+    ksp.ksp_name AS Ksp_Name,
+    
+    acc.type,
+    acc.sub_type,
+    project.project_name,
+    bpanbp.Account,
+    -- ปรับ Fund ของ bpanbp และ bpa ให้เหมือนกัน
+    REPLACE(bpanbp.Fund, 'FN', '') AS Fund, 
+    bpa.FUND,
+    bpanbp.Faculty,
+    bpanbp.Plan,
+    REPLACE(bpanbp.Sub_Plan, 'SP_', '') AS Sub_Plan,   
+    bpa.SUBPLAN,
+    bpanbp.Reason AS Reason,
+    bpanbp.Project,
+    bpanbp.KKU_Item_Name,
+    bpanbp.Allocated_Total_Amount_Quantity,
+    bpa.FISCAL_YEAR,
+    bpa.TOTAL_BUDGET,
+    bpa.TOTAL_CONSUMPTION,
+    bpa.EXPENDITURES,
+    bpa.COMMITMENTS,
+    bpa.OBLIGATIONS,
+    f.Alias_Default AS Faculty_Name,
+    p.plan_name AS Plan_Name,
+    sp.sub_plan_name AS Sub_Plan_Name,
+    pr.project_name AS Project_Name
+FROM
+    budget_planning_allocated_annual_budget_plan bpanbp
+    LEFT JOIN budget_planning_actual bpa ON 
+        -- เปรียบเทียบ Fund โดยใช้ REPLACE() หรือ SUBSTRING()
+        REPLACE(bpanbp.Fund, 'FN', '') = bpa.FUND
+        AND bpanbp.Faculty = bpa.FACULTY
+        AND bpanbp.Plan = bpa.PLAN
+        AND REPLACE(bpanbp.Sub_Plan, 'SP_', '') = bpa.SUBPLAN  -- เปรียบเทียบ Sub_Plan โดยลบ 'SP_'
+        AND bpanbp.Project = bpa.PROJECT
+    LEFT JOIN budget_planning_annual_budget_plan bpabp ON 
+        bpanbp.Faculty = bpabp.Faculty
+        AND bpanbp.Plan = bpabp.Plan
+        AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+        AND bpanbp.Project = bpabp.Project
+        AND bpanbp.Fund = bpabp.Fund
+    LEFT JOIN budget_planning_project_kpi bppk ON bpanbp.Project = bppk.Project
+    LEFT JOIN project ON bpanbp.Project = project.project_id
+    LEFT JOIN ksp ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
+    LEFT JOIN account acc ON bpanbp.Account = acc.account
+    LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
+    LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
+    LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
+    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id;
+
+    WHERE
+        bpanbp.Fund = :fund";
+
+    $stmt = $conn->prepare($query);
+    $stmt->bindParam(':fund', $fund);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+$resultsFN02 = fetchBudgetData($conn, 'FN02');
+$resultsFN06 = fetchBudgetData($conn, 'FN06');
+
+$mergedData = [];
+
+foreach ($resultsFN06 as $fn06) {
+    // ใช้ compareSubPlanAndFund() ในการเปรียบเทียบ Sub_Plan และ Fund
+    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
+        return compareSubPlanAndFund($fn06['Sub_Plan'], $fn02['Sub_Plan'], $fn06['Fund'], $fn02['Fund']) &&
+            (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
+            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
+    });
+
+    $fn02 = reset($fn02Match);
+
+    // ตรวจสอบและกำหนดค่าเริ่มต้นเพื่อป้องกัน Warning
+    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
+    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
+
+    // คำนวณค่า Total
+    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
+    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
+
+    // เพิ่มข้อมูลลงใน mergedData
+    $mergedData[] = [
+        'Ksp_id' => $fn06['Ksp_id'] ?? '-',
+        'Ksp_Name' => $fn06['Ksp_Name'] ?? '-',
+        'Plan' => $fn06['Plan'] ?? '',
+        'Sub_Plan' => $fn06['Sub_Plan'] ?? '',
+        'Reason' => $fn06['Reason'] ?? '',
+        'Plan_Name' => $fn06['Plan_Name'] ?? '',
+        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'] ?? '',
+        'Type' => $fn06['type'] ?? '',
+        'Sub_Type' => $fn06['sub_type'] ?? '',
+        'Project_Name' => $fn06['Project_Name'] ?? '',
+        'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
+        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN06' => $commitment_FN06,
+        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
+        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN02' => $commitment_FN02,
+        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
+        'Total_Allocated' => $Total_Allocated,
+        'Total_Commitments' => $Total_Commitments,
+    ];
+}
+
+// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
+$rowspanData = [];
+
+foreach ($mergedData as $row) {
+    $type = $row['Type'] ?? '';
+    $subType = $row['Sub_Type'] ?? '';
+
+    // นับจำนวนแถวที่ต้อง merge
+    if (!isset($rowspanData[$type][$subType])) {
+        $rowspanData[$type][$subType] = 1;
+    } else {
+        $rowspanData[$type][$subType]++;
+    }
+}
+
+// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
+$usedRowspan = [];
+
+?>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<?php include('../component/header.php'); ?>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -261,85 +267,132 @@ $usedRowspan = [];
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</h4>
+                        <h4>รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</li>
+                            <li class="breadcrumb-item active">รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</li>
                         </ol>
                     </div>
                 </div>
-                <div class="row">
+                <div class="row container-custom">
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</h4>
+                                    <h4>รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
                                 </div>
+
                                 <div class="table-responsive">
-                                    <table id="reportTable" class="table table-hover">
+                                    <table id="reportTable" class="table table-bordered table-hover">
                                         <thead>
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
-                                                <th rowspan="2">รายรับจริงปี 66</th>
+                                                <th rowspan="2">รายรับจริงปี 2566</th>
                                                 <th colspan="2">ปี 2567</th>
-                                                <th rowspan="2">ปี 2568</th>
+                                                <th rowspan="2">ปี 2568 (ปีที่ขอตั้งงบ)</th>
                                                 <th colspan="2">เพิ่ม/ลด</th>
-                                                <th rowspan="2">คำชี้แจง</th>
+                                                <th rowspan="2">คำชี้แจ้ง</th>
                                             </tr>
                                             <tr>
-                                                <th>ประมาณการ</th>
-                                                <th>จ่ายจริง</th>
+                                                <th>ประมาณการรายรับ</th>
+                                                <th>รายรับจริง</th>
                                                 <th>จำนวน</th>
                                                 <th>ร้อยละ</th>
+
+
+
                                             </tr>
+
                                         </thead>
-                                        <td style="text-align: left;">
+                                        <tbody>
                                             <?php
-                                            static $prevRow = null; // เก็บค่าของแถวก่อนหน้า
+
+
+                                            $lastRow = null; // เก็บค่าแถวล่าสุดในรูปแบบ JSON
+                                            $lastPlan = $lastSubPlan = $lastProjectName = $lastSubType = null; // ตัวแปรเก็บค่าเดิม
+                                            $totalAllocated = 0; // ตัวแปรเก็บผลรวมของ Allocated_FN06
+                                            $lastRowData = null; // ตัวแปรเก็บข้อมูลแถวก่อนหน้าเพื่อเปรียบเทียบ
+                                            foreach ($mergedData as $row) {
+                                                // สร้าง JSON เพื่อเปรียบเทียบว่าข้อมูลแถวนี้ซ้ำกับแถวก่อนหน้าหรือไม่
+                                                $currentRow = json_encode([
+                                                    'Plan' => $row['Plan'],
+                                                    'Sub_Plan' => $row['Sub_Plan'],
+                                                    'Project_Name' => $row['Project_Name'],
+                                                    'Sub_Type' => $row['Sub_Type'],
+                                                    'KKU_Item_Name' => $row['KKU_Item_Name']
+                                                ]);
+
+                                                // ถ้าข้อมูลทั้งหมดเหมือนกับแถวก่อนหน้า ให้เพิ่มค่า Allocated_FN06 เข้าไป
+                                                if ($currentRow === $lastRow) {
+                                                    $allocatedFN06Total += $row['Allocated_FN06']; // เพิ่มค่า Allocated_FN06 เข้าไป
+                                                    continue;
+                                                }
+
+                                                // อัปเดตค่าแถวล่าสุด
+                                                $lastRow = $currentRow;
+
+                                                // แสดงข้อมูล Plan, Sub_Plan, Project_Name, Sub_Type ในแถวเดียวกัน
+                                                echo "<tr>";
+                                                echo "<td style='text-align: left;'>";
+
+                                                // แสดง Plan หากไม่ซ้ำ
+                                                if ($row['Plan'] !== ($lastPlan ?? '')) {
+                                                    echo "<strong>" . $row['Plan'] . " : </strong>" . $row['Plan_Name'] . "<br>";
+                                                    $lastPlan = $row['Plan'];
+                                                }
+
+                                                // แสดง Sub_Plan หากไม่ซ้ำ
+                                                if ($row['Sub_Plan'] !== ($lastSubPlan ?? '')) {
+                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . $row['Sub_Plan'] . " : </strong>" . $row['Sub_Plan_Name'] . "<br>";
+                                                    $lastSubPlan = $row['Sub_Plan'];
+                                                }
+
+                                                // แสดง Project_Name หากไม่ซ้ำ
+                                                if (!empty($row['Project_Name']) && $row['Project_Name'] !== ($lastProjectName ?? '')) {
+                                                    echo "<strong>" . str_repeat('&nbsp;', 15) . $row['Project_Name'] . "</strong><br>";
+                                                    $lastProjectName = $row['Project_Name'];
+                                                }
+
+                                                // แสดง Sub_Type หากไม่ซ้ำ
+                                                if ($row['Sub_Type'] !== ($lastSubType ?? '')) {
+                                                    echo "<strong>" . str_repeat('&nbsp;', 20) . $row['Sub_Type'] . "</strong><br>";
+                                                    $lastSubType = $row['Sub_Type'];
+                                                }
+
+                                                echo "</td>";
+
+                                                // แสดงค่า KKU_Item_Name ในแถวถัดไป
+                                                echo "<tr><td style='text-align: left;'>";
+                                                echo "<strong>" . str_repeat('&nbsp;', 25) . ($row['KKU_Item_Name'] ?: 'ไม่มีข้อมูล') . "</strong>";
+                                                echo "</td>";
+                                                echo "<td>-</td>";
+                                                echo "<td>-</td>";
+                                                echo "<td>-</td>";
+                                                // แสดงค่าที่คำนวณ
                                             
 
-                                            if ($prevRow === null || $prevRow['Plan'] !== $row['Plan']) {
-                                                echo "<strong>" . str_repeat('&nbsp;', times: 0) . "{$row['Plan_Name']}</strong><br>";
+                                                // Display allocated and expenditures
+                                            
+                                                echo "<td>" . (isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : '-') . "</td>";
+                                                echo "<td>" . (isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : '-') . "</td>";
+                                                echo "<td>" . (isset($row['Allocated_FN06']) && $row['Allocated_FN06'] != 0 ? ($row['Allocated_FN06'] / $row['Allocated_FN06']) * 100 : '-') . "</td>";
+                                                echo "<td>" . (isset($row['Reason']) ? $row['Reason'] : '-') . "</td>";
+                                                echo "</tr>";
+
+                                                // รีเซ็ตค่าหลังจากแสดงแล้ว
+                                                $allocatedFN06Total = 0;  // รีเซ็ตผลรวม
                                             }
-
-                                            if ($prevRow === null || $prevRow['Sub_Plan'] !== $row['Sub_Plan']) {
-                                                // ลบข้อมูลในวงเล็บออกจาก Sub_Plan_Name
-                                                $subPlanName = preg_replace('/\([^\)]*\)/', '', $row['Sub_Plan_Name']);
-
-                                                // ลบตัวหนังสือและ _ จาก Sub_Plan
-                                                $subPlan = preg_replace('/[a-zA-Z_]+/', '', $row['Sub_Plan']);
-
-                                                echo "<strong>" . str_repeat('&nbsp;', 10) . "{$subPlanName}</strong><br>";
-                                            }
-
-
-                                            if ($prevRow === null || $prevRow['Project'] !== $row['Project']) {
-                                                // ดึงแค่ชื่อโปรเจ็กต์ โดยตัดตัวเลขก่อนเครื่องหมาย : ออก
-                                                $projectName = preg_replace('/^\d+:\s*/', '', $row['Project_Name']);
-                                                echo "<strong>" . str_repeat('&nbsp;', 15) . "{$projectName}</strong><br>";
-                                            }
-
-
-
-
-                                            if ($prevRow === null || $prevRow['Type'] !== $row['Type']) {
-                                                echo "<strong>" . str_repeat('&nbsp;', 20) . "{$row['Type']}</strong><br>";
-                                            }
-
-                                            if ($prevRow === null || $prevRow['Sub_Type'] !== $row['Sub_Type']) {
-                                                echo "<strong>" . str_repeat('&nbsp;', 25) . "{$row['Sub_Type']}</strong><br>";
-                                            }
-
-                                            // อัปเดตค่าของ $prevRow เพื่อใช้ตรวจสอบแถวถัดไป
-                                            $prevRow = $row;
                                             ?>
-                                            <strong><?= str_repeat('&nbsp;', 30) ?><?= $row['KKU_Item_Name'] ?></strong>
-                                        </td>
+
+
+                                        </tbody>
                                     </table>
                                 </div>
+
+                                <!-- Export buttons -->
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
@@ -348,6 +401,7 @@ $usedRowspan = [];
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
         <div class="footer">
