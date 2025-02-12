@@ -79,16 +79,15 @@
         /* จัดให้อยู่ตรงกลาง */
     }
 
-    @media (max-width: 768px) {
-        .container-custom {
-            width: 95%;
-            /* ขยายให้เต็มที่ขึ้นเมื่อเป็นหน้าจอเล็ก */
-        }
+    @media (max-width: 768px) .container-custom {
+        width: 95%;
+        /* ขยายให้เต็มที่ขึ้นเมื่อเป็นหน้าจอเล็ก */
+    }
 
-        table {
-            font-size: 12px;
-            /* ลดขนาดตัวอักษรของตารางในหน้าจอเล็ก */
-        }
+    table {
+        font-size: 12px;
+        /* ลดขนาดตัวอักษรของตารางในหน้าจอเล็ก */
+    }
 </style>
 
 <?php
@@ -121,7 +120,6 @@ function fetchBudgetData($conn, $fund)
     $query = "SELECT DISTINCT
     ksp.ksp_id AS Ksp_id,
     ksp.ksp_name AS Ksp_Name,
-    
     acc.type,
     acc.sub_type,
     project.project_name,
@@ -149,13 +147,11 @@ function fetchBudgetData($conn, $fund)
     pr.project_name AS Project_Name
 FROM
     budget_planning_allocated_annual_budget_plan bpanbp
-    LEFT JOIN budget_planning_actual bpa ON 
-        -- เปรียบเทียบ Fund โดยใช้ REPLACE() หรือ SUBSTRING()
-        REPLACE(bpanbp.Fund, 'FN', '') = bpa.FUND
-        AND bpanbp.Faculty = bpa.FACULTY
-        AND bpanbp.Plan = bpa.PLAN
-        AND REPLACE(bpanbp.Sub_Plan, 'SP_', '') = bpa.SUBPLAN  -- เปรียบเทียบ Sub_Plan โดยลบ 'SP_'
-        AND bpanbp.Project = bpa.PROJECT
+    LEFT JOIN budget_planning_actual bpa ON REPLACE(bpanbp.Fund, 'FN', '') = bpa.FUND
+    AND bpanbp.Plan = bpa.PLAN
+    AND bpanbp.Sub_Plan = bpa.SUBPLAN
+    AND bpanbp.Project = bpa.PROJECT
+    AND bpanbp.Fund = bpa.FUND
     LEFT JOIN budget_planning_annual_budget_plan bpabp ON 
         bpanbp.Faculty = bpabp.Faculty
         AND bpanbp.Plan = bpabp.Plan
@@ -170,10 +166,8 @@ FROM
     LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
     LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
     LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id;
-
     WHERE
         bpanbp.Fund = :fund";
-
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':fund', $fund);
     $stmt->execute();
@@ -301,16 +295,11 @@ $usedRowspan = [];
                                                 <th>รายรับจริง</th>
                                                 <th>จำนวน</th>
                                                 <th>ร้อยละ</th>
-
-
-
                                             </tr>
 
                                         </thead>
                                         <tbody>
                                             <?php
-
-
                                             $lastRow = null; // เก็บค่าแถวล่าสุดในรูปแบบ JSON
                                             $lastPlan = $lastSubPlan = $lastProjectName = $lastSubType = null; // ตัวแปรเก็บค่าเดิม
                                             $totalAllocated = 0; // ตัวแปรเก็บผลรวมของ Allocated_FN06
@@ -325,11 +314,7 @@ $usedRowspan = [];
                                                     'KKU_Item_Name' => $row['KKU_Item_Name']
                                                 ]);
 
-                                                // ถ้าข้อมูลทั้งหมดเหมือนกับแถวก่อนหน้า ให้เพิ่มค่า Allocated_FN06 เข้าไป
-                                                if ($currentRow === $lastRow) {
-                                                    $allocatedFN06Total += $row['Allocated_FN06']; // เพิ่มค่า Allocated_FN06 เข้าไป
-                                                    continue;
-                                                }
+
 
                                                 // อัปเดตค่าแถวล่าสุด
                                                 $lastRow = $currentRow;
@@ -371,8 +356,6 @@ $usedRowspan = [];
                                                 echo "<td>-</td>";
                                                 echo "<td>-</td>";
                                                 echo "<td>-</td>";
-                                                // แสดงค่าที่คำนวณ
-                                            
 
                                                 // Display allocated and expenditures
                                             
@@ -382,12 +365,9 @@ $usedRowspan = [];
                                                 echo "<td>" . (isset($row['Reason']) ? $row['Reason'] : '-') . "</td>";
                                                 echo "</tr>";
 
-                                                // รีเซ็ตค่าหลังจากแสดงแล้ว
-                                                $allocatedFN06Total = 0;  // รีเซ็ตผลรวม
+
                                             }
                                             ?>
-
-
                                         </tbody>
                                     </table>
                                 </div>
@@ -445,7 +425,7 @@ $usedRowspan = [];
 
         function exportPDF() {
             const {
-                jsPDF
+                jsPDFlo
             } = window.jspdf;
             const doc = new jsPDF('landscape');
 

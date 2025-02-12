@@ -77,11 +77,6 @@
         display: block;
     }
 </style>
-
-
-
-<!DOCTYPE html>
-<html lang="en">
 <?php
 include('../component/header.php');
 include '../server/connectdb.php';
@@ -89,91 +84,167 @@ include '../server/connectdb.php';
 $db = new Database();
 $conn = $db->connect();
 
-// ฟังก์ชันดึงข้อมูลจากฐานข้อมูล
+// ฟังก์ชันตัดตัวอักษรออกให้เหลือแค่ตัวเลข
+function extractNumericPart($string)
+{
+    return preg_replace('/\D/', '', $string);
+}
+
+// ฟังก์ชันเปรียบเทียบ Fund และ Sub_Plan โดยตัดตัวอักษรออกให้เหลือแค่ตัวเลข
+function compareSubPlanAndFund($subPlan1, $subPlan2, $fund1, $fund2)
+{
+    $subPlan1 = extractNumericPart($subPlan1);
+    $subPlan2 = extractNumericPart($subPlan2);
+    $fund1 = extractNumericPart($fund1);
+    $fund2 = extractNumericPart($fund2);
+
+    return $subPlan1 === $subPlan2 && $fund1 === $fund2;
+}
+
+// ฟังก์ชันดึงข้อมูล
 function fetchBudgetData($conn, $fund)
 {
     $query = "SELECT DISTINCT
-    bpanbp.KKU_Item_Name,
-    bpabp.Total_Amount_Quantity,
+    ksp.ksp_id AS Ksp_id,
+    ksp.ksp_name AS Ksp_Name,
+    
     acc.type,
-    acc.sub_type
-    FROM
+    acc.sub_type,
+    project.project_name,
+    bpanbp.Account,
+    bpanbp.Fund,  -- คืนค่าเดิม
+    CONCAT('FN', bpa.FUND) AS FUND,  -- เพิ่ม 'FN' นำหน้า
+    bpanbp.Faculty,
+    bpanbp.Plan,
+    bpanbp.Sub_Plan,  -- คืนค่าเดิม
+    CONCAT('SP_', bpa.SUBPLAN) AS SUBPLAN,  -- เพิ่ม 'SP_' นำหน้า
+    bpanbp.Reason AS Reason,
+    bpanbp.Project,
+    bpanbp.KKU_Item_Name,
+    bpanbp.Allocated_Total_Amount_Quantity,
+    bpa.FISCAL_YEAR,
+    bpa.TOTAL_BUDGET,
+    bpa.TOTAL_CONSUMPTION,
+    bpa.EXPENDITURES,
+    bpa.COMMITMENTS,
+    bpa.OBLIGATIONS,
+    f.Alias_Default AS Faculty_Name,
+    p.plan_name AS Plan_Name,
+    sp.sub_plan_name AS Sub_Plan_Name,
+    pr.project_name AS Project_Name
+FROM
     budget_planning_allocated_annual_budget_plan bpanbp
-    LEFT JOIN budget_planning_actual bpa ON bpanbp.Faculty = bpa.FACULTY
-    AND bpanbp.Plan = bpa.PLAN
-    AND bpanbp.Sub_Plan = bpa.SUBPLAN
-    AND bpanbp.Project = bpa.PROJECT
-    AND bpanbp.Fund = bpa.FUND
-    LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.Faculty = bpabp.Faculty
-    AND bpanbp.Plan = bpabp.Plan
-    AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-    AND bpanbp.Project = bpabp.Project
-    AND bpanbp.Fund = bpabp.Fund
+    LEFT JOIN budget_planning_actual bpa ON 
+        bpanbp.Fund = CONCAT('FN', bpa.FUND)  -- เปรียบเทียบแบบเพิ่ม 'FN' ให้ bpa.FUND
+        AND bpanbp.Faculty = bpa.FACULTY
+        AND bpanbp.Plan = bpa.PLAN
+        AND bpanbp.Sub_Plan = CONCAT('SP_', bpa.SUBPLAN)  -- เปรียบเทียบแบบเพิ่ม 'SP_' ให้ bpa.SUBPLAN
+        AND bpanbp.Project = bpa.PROJECT
+    LEFT JOIN budget_planning_annual_budget_plan bpabp ON 
+        bpanbp.Faculty = bpabp.Faculty
+        AND bpanbp.Plan = bpabp.Plan
+        AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+        AND bpanbp.Project = bpabp.Project
+        AND bpanbp.Fund = bpabp.Fund
+    LEFT JOIN budget_planning_project_kpi bppk ON bpanbp.Project = bppk.Project
+    LEFT JOIN project ON bpanbp.Project = project.project_id
+    LEFT JOIN ksp ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
+    LEFT JOIN account acc ON bpanbp.Account = acc.account
     LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
     LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
-    LEFT JOIN account acc ON bpanbp.Account = acc.account
     LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
-    WHERE
-    bpanbp.Fund = :fund";
+    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id;
 
+    WHERE bpanbp.Fund = :fund";
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':fund', $fund);
     $stmt->execute();
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-    return $results;
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// ดึงข้อมูล FN02 และ FN06
-$resultsFN02 = fetchBudgetData($conn, 'FN02') ?: [];
-$resultsFN06 = fetchBudgetData($conn, 'FN06') ?: [];
+// Fetch results for FN02, FN06, and FN08
+$resultsFN02 = fetchBudgetData($conn, 'FN02');
+$resultsFN06 = fetchBudgetData($conn, 'FN06');
+$resultsFN08 = fetchBudgetData($conn, 'FN08');
 
-// รวมข้อมูล FN02 และ FN06
 $mergedData = [];
 
-// คำนวณเพิ่ม/ลดจำนวน และเปอร์เซ็นต์การเพิ่ม/ลดตาม Plan, Type, Sub_Type, KKU_Item_Name
 foreach ($resultsFN06 as $fn06) {
+    // Matching FN02 and FN08 with FN06
+    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
+        return compareSubPlanAndFund($fn06['Sub_Plan'], $fn02['Sub_Plan'], $fn06['Fund'], $fn02['Fund']) &&
+            (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
+            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
+    });
+    $fn08Match = array_filter($resultsFN08, function ($fn08) use ($fn06) {
+        return compareSubPlanAndFund($fn06['Sub_Plan'], $fn08['Sub_Plan'], $fn06['Fund'], $fn08['Fund']) &&
+            (string) ($fn06['Plan'] ?? '') === (string) ($fn08['Plan'] ?? '') &&
+            (string) ($fn06['Project'] ?? '') === (string) ($fn08['Project'] ?? '');
+    });
 
+    $fn02 = reset($fn02Match);
+    $fn08 = reset($fn08Match);
 
-    // ถ้าไม่พบข้อมูลตรงกัน จะกำหนดให้ $fn02 เป็น array ว่าง
-    if (!empty($fn02Match)) {
-        $fn02 = reset($fn02Match); // ดึงข้อมูลตัวแรก
-    } else {
-        $fn02 = []; // ถ้าไม่พบข้อมูลตรงกันให้เป็น array ว่าง
-    }
+    // Handle Commitments and Expenditures
+    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
+    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
+    $commitment_FN08 = ($fn08['COMMITMENTS'] ?? 0) + ($fn08['OBLIGATIONS'] ?? 0);
 
-    // คำนวณผลรวม Total_Allocated
-    $Allocated_FN06 = $fn06['Total_Amount_Quantity'] ?? 0;
-    $Allocated_FN02 = $fn02['Total_Amount_Quantity'] ?? 0;
-    $Total_Allocated = $Allocated_FN06 + $Allocated_FN02;
+    // Calculate Total
+    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0);
+    $Total_Commitments = $commitment_FN06 + $commitment_FN02 + $commitment_FN08;
 
-    // คำนวณ เพิ่ม/ลด จำนวน
-    $Change_Amount = $Total_Allocated; // เปรียบเทียบ FN06 กับ FN02
-
-    // คำนวณ เพิ่ม/ลด จำนวน หารด้วย Total_Allocated * 100
-    $Percentage_Change = ($Total_Allocated != 0) ? ($Change_Amount / $Total_Allocated * 100) : 0;
-
-    // เพิ่มข้อมูลใน mergedData
     $mergedData[] = [
+        'Account' => $fn06['Account'] ?? '-',
+        'Ksp_id' => $fn06['Ksp_id'] ?? '-',
+        'Ksp_Name' => $fn06['Ksp_Name'] ?? '-',
         'Plan' => $fn06['Plan'] ?? '',
+        'Sub_Plan' => $fn06['Sub_Plan'] ?? '',
+        'Reason' => $fn06['Reason'] ?? '',
+        'Plan_Name' => $fn06['Plan_Name'] ?? '',
+        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'] ?? '',
         'Type' => $fn06['type'] ?? '',
         'Sub_Type' => $fn06['sub_type'] ?? '',
+        'Project_Name' => $fn06['Project_Name'] ?? '',
         'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
-        'Allocated_FN06' => $Allocated_FN06,
-        'Allocated_FN02' => $Allocated_FN02,
+        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN06' => $commitment_FN06,
+        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
+        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN02' => $commitment_FN02,
+        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
+        'Allocated_FN08' => $fn08['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN08' => $commitment_FN08,
+        'Expenditures_FN08' => $fn08['EXPENDITURES'] ?? 0,
         'Total_Allocated' => $Total_Allocated,
-        'Change_Amount' => $Change_Amount,
-        'Percentage_Change' => $Percentage_Change,
+        'Total_Commitments' => $Total_Commitments,
     ];
 }
 
-// ตอนนี้ $mergedData จะมีข้อมูลทั้งหมดที่คำนวณตามที่ต้องการ
+// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
+$rowspanData = [];
+
+foreach ($mergedData as $row) {
+    $type = $row['Type'] ?? '';
+    $subType = $row['Sub_Type'] ?? '';
+
+    if (!isset($rowspanData[$type][$subType])) {
+        $rowspanData[$type][$subType] = 1;
+    } else {
+        $rowspanData[$type][$subType]++;
+    }
+}
+
+// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
+$usedRowspan = [];
+
+// เริ่มสร้างตาราง HTML
 ?>
 
 
 
-
+<!DOCTYPE html>
+<html lang="en">
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -233,60 +304,88 @@ foreach ($resultsFN06 as $fn06) {
                                         <tbody>
                                             <?php
                                             // ตัวแปรเก็บค่าของแถวก่อนหน้า
+                                            $previousAccount = "";
                                             $previousType = "";
                                             $previousSubType = "";
-
+                                            $previousKKU_Item_Name = "";  // เก็บค่าของ KKU_Item_Name
+                                            
                                             // วนลูปแสดงข้อมูลที่รวมกัน
                                             foreach ($mergedData as $row) {
                                                 // คำนวณ Total_Allocated สำหรับแต่ละแถว
-                                                $Total_Allocated = ($row['Allocated_FN06'] ?? 0) + ($row['Allocated_FN02'] ?? 0);
+                                                $Allocated_FN06 = $row['Allocated_FN06'] ?? 0;
+                                                $Allocated_FN02 = $row['Allocated_FN02'] ?? 0;
+                                                $Allocated_FN08 = $row['Allocated_FN08'] ?? 0;
+                                                $Total_Allocated = $Allocated_FN06 + $Allocated_FN02 + $Allocated_FN08;  // เพิ่ม Allocated_FN08 ในการคำนวณ Total_Allocated
+                                                $Allocated_FN08Yead00 = 0;
+                                                $Total = $Total_Allocated - $Allocated_FN08Yead00;
+                                                // คำนวณ Percentage Change (เพิ่มหรือลด)
+                                                $Percentage_Change = 0;
+
+                                                // ตรวจสอบว่าค่า Allocated_FN02 เป็น 0 หรือไม่
+                                            
+                                                // คำนวณ Percentage Change (เพิ่มหรือลด)
+                                                if ($Allocated_FN08Yead00 == 0) {
+                                                    $Percentage_Change = 100; // กรณีที่ค่าเป็น 0 ให้ถือว่าเป็น 100%
+                                                } else {
+                                                    $Percentage_Change = (($Allocated_FN06 - $Allocated_FN08Yead00) / $Allocated_FN08Yead00) * 100;
+                                                }
 
                                                 echo "<tr>";
                                                 echo "<td style='text-align: left;'>";  // เริ่มต้น <td> สำหรับแสดงข้อมูล
                                             
+                                                // เช็คว่า Account ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
+                                                if ($row['Account'] != $previousAccount) {
+                                                    $previousAccount = $row['Account'];  // เก็บค่าปัจจุบันของ Account
+                                                }
+
                                                 // เช็คว่า Type ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
                                                 if ($row['Type'] != $previousType) {
                                                     echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Type']}</strong><br>";
-                                                } else {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 5) . "</strong>"; // ไม่แสดงค่า Type ถ้าค่าซ้ำ
+                                                    $previousType = $row['Type'];  // เก็บค่าปัจจุบันของ Type
                                                 }
 
                                                 // เช็คว่า Sub_Type ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
                                                 if ($row['Sub_Type'] != $previousSubType) {
                                                     echo "<strong>" . str_repeat('&nbsp;', 10) . "{$row['Sub_Type']}</strong><br>";
-                                                } else {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . "</strong>"; // ไม่แสดงค่า Sub_Type ถ้าค่าซ้ำ
+                                                    $previousSubType = $row['Sub_Type'];  // เก็บค่าปัจจุบันของ Sub_Type
                                                 }
 
-                                                // แสดงข้อมูล 'KKU_Item_Name'
-                                                echo "<strong>" . str_repeat('&nbsp;', 15) . implode(' ', array_slice(explode(' ', $row['KKU_Item_Name']), 0, 1)) . "</strong>";
+                                                // เช็คว่า KKU_Item_Name ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
 
+                                                    echo "<strong>" . str_repeat('&nbsp;', 15) . implode(' ', array_slice(explode(' ', $row['KKU_Item_Name']), 0, 1)) . "</strong>";
+
+
+
+                                                // แสดงข้อมูลเพิ่มเติมในแต่ละช่อง
+                                                echo "<td>0</td>";  // ปี 2567 เงินอุดหนุนจากรัฐ
+                                                echo "<td>0</td>";  // ปี 2567 เงินนอกงบประมาณ
+                                                echo "<td>0</td>";  // ปี 2567 เงินรายได้
+                                                echo "<td>0</td>";  // ปี 2567 รวม
                                                 echo "</td>";  // ปิด <td>
                                             
-                                                // แสดงข้อมูลเพิ่มเติมในแต่ละช่อง
-                                                echo "<td>0</td>";
-                                                echo "<td>0</td>";
-                                                echo "<td>0</td>";
-                                                echo "<td>0</td>";
-                                                echo "<td>" . ($row['Allocated_FN06'] ?? 0) . "</td>";  // แสดง Allocated_FN06
-                                                echo "<td>0</td>";
-                                                echo "<td>" . ($row['Allocated_FN02'] ?? 0) . "</td>";  // แสดง Allocated_FN02
-                                                echo "<td>" . sprintf("%.2f", $Total_Allocated) . "</td>";  // แสดง Total_Allocated 
-                                                echo "<td>" . sprintf("%.2f", $Total_Allocated) . "</td>";  // แสดง Total_Allocated 
-                                                echo "<td>" . sprintf("%.2f", $Percentage_Change) . "</td>";  // แสดง Percentage_Change 
-                                                echo "</tr>";  // ปิด <tr>
+                                                // แสดง Allocated_FN06, Allocated_FN08, Allocated_FN02
+                                                echo "<td>" . (isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : '-') . "</td>";
+                                                echo "<td>" . (isset($row['Allocated_FN08']) ? $row['Allocated_FN08'] : '-') . "</td>";
+                                                echo "<td>" . (isset($row['Allocated_FN02']) ? $row['Allocated_FN02'] : '-') . "</td>";
+
+                                                // แสดง Total_Allocated
+                                                echo "<td>" . $Total_Allocated . "</td>";  // ปี 2568 รวม
                                             
-                                                // อัพเดตค่าของ Type และ Sub_Type สำหรับแถวถัดไป
-                                                $previousType = $row['Type'];
-                                                $previousSubType = $row['Sub_Type'];
+                                                // แสดงเพิ่ม/ลด จำนวน
+                                                echo "<td>" . $Total . "</td>";
+                                                // แสดงเพิ่ม/ลด ร้อยละ
+                                                echo "<td>" . sprintf("%.2f", $Percentage_Change) . "%</td>";
+                                                // เพิ่ม/ลด ร้อยละ
+                                                echo "</tr>";  // ปิด <tr>
                                             }
                                             ?>
+
+
+
                                         </tbody>
-
-
-
                                     </table>
                                 </div>
+
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
