@@ -228,7 +228,7 @@
                                                 $sum68Allocated = ($row['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
                                                 $diff = $sum68Allocated - $sum67;
                                                 $percent = ($diff / max($sum67, 1)) * 100;
-                                                ?>
+                                            ?>
                                                 <tr>
                                                     <td style="text-align: left; white-space: nowrap;">
                                                         <?php

@@ -1,53 +1,3 @@
-<?php
-include '../server/connectdb.php';
-
-$db = new Database();
-$conn = $db->connect();
-
-function fetchBudgetData($conn, $fund)
-{
-    $query = "SELECT
-                                            acc.alias_default AS Account_Alias_Default, -- แก้ไข alias เพื่อหลีกเลี่ยงการซ้ำ
-                                            acc.type,
-                                            acc.sub_type,
-                                            bpanbp.Service,
-                                            bpanbp.Account,
-                                            bpanbp.Faculty,
-                                            bpanbp.Plan,
-                                            bpanbp.Sub_Plan,
-                                            bpanbp.Project,
-                                            bpanbp.KKU_Item_Name,
-                                            bpanbp.Allocated_Total_Amount_Quantity,
-                                            bpabp.Total_Amount_Quantity,                                            
-                                            f.Alias_Default AS Faculty_Name, -- ใช้ alias ที่ไม่ซ้ำ
-                                            p.plan_name AS Plan_Name,
-                                            sp.sub_plan_name AS Sub_Plan_Name,
-                                            pr.project_name AS Project_Name
-                                            FROM budget_planning_allocated_annual_budget_plan bpanbp
-                                            LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.Account = bpabp.Account -- ตรวจสอบให้แน่ใจว่า Account ตรงกัน
-                                            LEFT JOIN account acc ON bpanbp.Account = acc.account
-                                            LEFT JOIN Faculty f ON bpanbp.Faculty = f.Faculty
-                                            LEFT JOIN plan p ON bpanbp.Plan = p.plan_id
-                                            LEFT JOIN sub_plan sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-                                            LEFT JOIN project pr ON bpanbp.Project = pr.project_id;
-
-                                            WHERE
-                                                bpanbp.Plan = bpabp.PLAN
-                                                AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-                                                AND bpanbp.Project = bpabp.PROJECT
-                                                AND bpabp.ACCOUNT = bpanbp.ACCOUNT
-                                                AND bpabp.Fund = :fund";
-
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':fund', $fund);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-$resultsFN06 = fetchBudgetData($conn, 'FN06');
-$resultsFN08 = fetchBudgetData($conn, 'FN08');
-$resultsFN02 = fetchBudgetData($conn, 'FN02');
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
@@ -148,7 +98,60 @@ $resultsFN02 = fetchBudgetData($conn, 'FN02');
                                 <div class="card-title">
                                     <h4>รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</h4>
                                 </div>
+                                <?php
+                                include '../server/connectdb.php';
 
+                                $db = new Database();
+                                $conn = $db->connect();
+
+                                function fetchBudgetData($conn, $fund)
+                                {
+                                    $query = "SELECT
+                                                acc.alias_default AS Account_Alias_Default,
+                                                acc.type,
+                                                acc.sub_type,
+                                                bpanbp.Service,
+                                                bpanbp.Account,
+                                                bpanbp.Faculty,
+                                                bpanbp.Plan,
+                                                bpanbp.Sub_Plan,
+                                                bpanbp.Project,
+                                                bpanbp.KKU_Item_Name,
+                                                bpanbp.Allocated_Total_Amount_Quantity,
+                                                bpabp.Total_Amount_Quantity,
+                                                f.Alias_Default AS Faculty_Name,
+                                                p.plan_name AS Plan_Name,
+                                                sp.sub_plan_name AS Sub_Plan_Name,
+                                                pr.project_name AS Project_Name
+                                            FROM
+                                                budget_planning_allocated_annual_budget_plan bpanbp
+                                                LEFT JOIN budget_planning_annual_budget_plan bpabp 
+                                                    ON bpanbp.Account = bpabp.Account
+                                                    AND bpanbp.Plan = bpabp.Plan
+                                                    AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+                                                    AND bpanbp.Project = bpabp.Project
+                                                LEFT JOIN account acc 
+                                                    ON bpanbp.Account = acc.account
+                                                LEFT JOIN Faculty f 
+                                                    ON bpanbp.Faculty = f.Faculty
+                                                LEFT JOIN plan p 
+                                                    ON bpanbp.Plan = p.plan_id
+                                                LEFT JOIN sub_plan sp 
+                                                    ON bpanbp.Sub_Plan = sp.sub_plan_id
+                                                LEFT JOIN project pr 
+                                                    ON bpanbp.Project = pr.project_id
+                                            WHERE 
+                                                bpabp.Fund = :fund;";
+
+                                    $stmt = $conn->prepare($query);
+                                    $stmt->bindParam(':fund', $fund);
+                                    $stmt->execute();
+                                    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                }
+                                $resultsFN06 = fetchBudgetData($conn, 'FN06');
+                                $resultsFN08 = fetchBudgetData($conn, 'FN08');
+                                $resultsFN02 = fetchBudgetData($conn, 'FN02');
+                                ?>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -187,7 +190,7 @@ $resultsFN02 = fetchBudgetData($conn, 'FN02');
                                                 $diff = $sum67 - $sum68Allocated;
                                                 // $percent = $diff / $sum68Allocated * 100;
                                                 $percent = ($sum67 - $sum68Allocated) / $sum68Allocated * 100;
-                                                ?>
+                                            ?>
 
                                                 <td style="text-align: left; white-space: nowrap;">
                                                     <?php
