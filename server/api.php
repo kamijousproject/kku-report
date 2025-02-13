@@ -489,12 +489,58 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sqlPlan = "SELECT
+                /* $sqlPlan = "SELECT
                             f.Alias_Default AS fa_name,
                             pfsp.* 
                             FROM planning_faculty_strategic_plan AS pfsp
                             LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default FROM Faculty) AS f ON pfsp.Faculty = f.Faculty
-                            ORDER BY fa_name";
+                            ORDER BY fa_name"; */
+                $sqlPlan = "WITH t1 AS (
+                            SELECT Faculty,COUNT(*) AS count_okr
+                            FROM planning_faculty_strategic_plan
+                            GROUP BY Faculty)
+                            ,t2 AS (
+                            SELECT t.*,tt.KKU_Strategic_Plan_LOV,COUNT(*) AS count_st
+                            FROM t1 t
+                            LEFT JOIN planning_faculty_strategic_plan tt
+                            ON t.Faculty=tt.Faculty
+                            GROUP BY t.Faculty,t.count_okr,tt.KKU_Strategic_Plan_LOV)
+                            ,t3 AS (
+                            SELECT Faculty,count_okr
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI111' then count_st ELSE 0 END ) AS s1
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI112' then count_st ELSE 0 END ) AS s2
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI113' then count_st ELSE 0 END ) AS s3
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI114' then count_st ELSE 0 END ) AS s4
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI125' then count_st ELSE 0 END ) AS s5
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI126' then count_st ELSE 0 END ) AS s6
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI127' then count_st ELSE 0 END ) AS s7
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI128' then count_st ELSE 0 END ) AS s8
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI129' then count_st ELSE 0 END ) AS s9
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI1310' then count_st ELSE 0 END ) AS s10
+                            ,sum(case when  KKU_Strategic_Plan_LOV='F00_SI1311' then count_st ELSE 0 END ) AS s11
+                            FROM t2
+                            GROUP BY Faculty,count_okr)
+                            ,t4 AS (
+                            SELECT Faculty ,COUNT(*) AS dev_plan
+                            FROM planning_faculty_strategic_plan
+                            WHERE Dev_Plan_Proposed_to_Nomination_Co_LOV='สอดคล้อง'
+                            GROUP BY Faculty)
+                            ,t5 AS (
+                            SELECT Faculty ,COUNT(*) AS divis
+                            FROM planning_faculty_strategic_plan
+                            WHERE Division_Noteworthy_Plan_LOV='สอดคล้อง'
+                            GROUP BY Faculty)
+                            ,t6 AS (
+                            SELECT distinct t.*,tt.dev_plan,ttt.divis,f.Alias_Default
+                            FROM t3 t
+                            LEFT JOIN t4 tt
+                            ON t.faculty=tt.Faculty
+                            LEFT JOIN t5 ttt
+                            ON t.faculty=tt.Faculty
+                            LEFT JOIN Faculty f
+                            ON t.faculty = f.Faculty)
+
+                            SELECT * FROM t6";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);

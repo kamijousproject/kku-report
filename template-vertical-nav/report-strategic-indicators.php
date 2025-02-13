@@ -38,44 +38,30 @@
                                         <table id="reportTable" class="table table-hover">
                                             <thead>
                                                 <tr class="text-nowrap">
-                                                    <th>ลำดับ</th>
-                                                    <th>รหัส</th>
-                                                    <th>ส่วนงาน/หน่วยงาน</th>
-                                                    <th>จำนวนผลลัพธ์/ตัวชี้วัดทั้งหมด</th>
+                                                    <th rowspan="4">ลำดับ</th>
+                                                    <th rowspan="4">รหัส</th>
+                                                    <th rowspan="4">ส่วนงาน/หน่วยงาน</th>
+                                                    <th rowspan="4">จำนวนผลลัพธ์/ตัวชี้วัดทั้งหมด</th>
                                                     <th colspan="19">ความสอดคล้องของแผน</th>
                                                 </tr>
                                                 <tr class="text-nowrap">
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
                                                     <th colspan="13">แผนยุทธศาสตร์การบริหารมหาวิทยาลัยขอนแก่น</th>
                                                     <th colspan="2">แผนพัธกิจ</th>
                                                     <th colspan="2">แผนสรรหา</th>
                                                     <th colspan="2">แผนสร้างความโดดเด่น</th>
                                                 </tr>
                                                 <tr class="text-nowrap">
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>จำนวน</th>
-                                                    <th>ร้อยละ</th>
+                                                    <th rowspan="2">จำนวน</th>
+                                                    <th rowspan="2">ร้อยละ</th>
                                                     <th colspan="11">ยุทธศาสตร์</th>
-                                                    <th>จำนวน</th>
-                                                    <th>ร้อยละ</th>
-                                                    <th>จำนวน</th>
-                                                    <th>ร้อยละ</th>
-                                                    <th>จำนวน</th>
-                                                    <th>ร้อยละ</th>
+                                                    <th rowspan="2">จำนวน</th>
+                                                    <th rowspan="2">ร้อยละ</th>
+                                                    <th rowspan="2">จำนวน</th>
+                                                    <th rowspan="2">ร้อยละ</th>
+                                                    <th rowspan="2">จำนวน</th>
+                                                    <th rowspan="2">ร้อยละ</th>
                                                 </tr>
                                                 <tr class="text-nowrap">
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th>รวมจำนวนทั้งหมด</th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
                                                     <th>1</th>
                                                     <th>2</th>
                                                     <th>3</th>
@@ -87,12 +73,6 @@
                                                     <th>9</th>
                                                     <th>10</th>
                                                     <th>11</th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
-                                                    <th></th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -181,121 +161,45 @@
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-                    let previousFacultyCode = '';
-                    let previousFacultyName = '';
-                    let previousFacultyCount = '';
-                    let facultyCount = 1;
-                    response.plan.forEach(row => {
+                    response.plan.forEach((row, index) => {                   
                         const tr = document.createElement('tr');
+                        var sum1= parseInt(row.s1)+parseInt(row.s2)+parseInt(row.s3)+parseInt(row.s4)
+                        +parseInt(row.s5)+parseInt(row.s6)+parseInt(row.s7)+parseInt(row.s8)+parseInt(row.s9)
+                        +parseInt(row.s10)+parseInt(row.s11);
+                        const columns = [
+                            { key: 'No', value: index+1 },
+                            { key: 'fac_code', value: (row.Alias_Default).substring(0, 2) },
+                            { key: 'fac', value: row.Alias_Default },
+                            { key: 'count_okr', value: parseInt(row.count_okr).toLocaleString() },
+                            { key: 'sum1', value: parseInt(sum1).toLocaleString() },
+                            { key: 'avg1', value: ((parseInt(sum1)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },
+                            { key: 's1', value: parseInt(row.s1).toLocaleString() },
+                            { key: 's2', value: parseInt(row.s2).toLocaleString() },
+                            { key: 's3', value: parseInt(row.s3).toLocaleString() },
+                            { key: 's4', value: parseInt(row.s4).toLocaleString() },
+                            { key: 's5', value: parseInt(row.s5).toLocaleString() },
+                            { key: 's6', value: parseInt(row.s6).toLocaleString() },
+                            { key: 's7', value: parseInt(row.s7).toLocaleString() },
+                            { key: 's8', value: parseInt(row.s8).toLocaleString() },
+                            { key: 's9', value: parseInt(row.s9).toLocaleString() },
+                            { key: 's10', value: parseInt(row.s10).toLocaleString() },
+                            { key: 's11', value: parseInt(row.s11).toLocaleString() },
+                            { key: 'p1', value: "" },    
+                            { key: 'p1', value: "" },  
+                            { key: 'dev_plan', value: parseInt(row.dev_plan).toLocaleString() },  
+                            { key: 'avg2', value: ((parseInt(row.dev_plan)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },  
+                            { key: 'divis', value: parseInt(row.divis).toLocaleString() },  
+                            { key: 'avg3', value: ((parseInt(row.divis)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },                                                                  
+                        ];
 
-                        if (row.Faculty !== previousFacultyCode) {
-                            facultyCount++; // เพิ่มค่า count เมื่อ Faculty เปลี่ยน
-                        }
-
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td1 = document.createElement('td');
-                        td1.textContent = facultyCount === previousFacultyCount ? '' : facultyCount ;
-                        tr.appendChild(td1);
-
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.Faculty === previousFacultyCode ? '' : row.Faculty;
-                        tr.appendChild(td2);
-
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
-                        tr.appendChild(td3);
-
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.so_name;
-                        tr.appendChild(td4);
-
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.okr_name;
-                        tr.appendChild(td5);
-
-                        const td6 = document.createElement('td');
-                        td6.textContent = row.ksp_name;
-                        tr.appendChild(td6);
-
-                        const td7 = document.createElement('td');
-                        td7.textContent = null;
-                        tr.appendChild(td7);
-
-                        const td8 = document.createElement('td');
-                        td8.textContent = null;
-                        tr.appendChild(td8);
-
-                        const td9 = document.createElement('td');
-                        td9.textContent = null;
-                        tr.appendChild(td9);
-
-                        const td10 = document.createElement('td');
-                        td10.textContent = null;
-                        tr.appendChild(td10);
-
-                        const td11 = document.createElement('td');
-                        td11.textContent = null;
-                        tr.appendChild(td11);
-
-                        const td12 = document.createElement('td');
-                        td12.textContent = null;
-                        tr.appendChild(td12);
-
-                        const td13 = document.createElement('td');
-                        td13.textContent = null;
-                        tr.appendChild(td13);
-
-                        const td14 = document.createElement('td');
-                        td14.textContent = null;
-                        tr.appendChild(td14);
-
-                        const td15 = document.createElement('td');
-                        td15.textContent = null;
-                        tr.appendChild(td15);
-
-                        const td16 = document.createElement('td');
-                        td16.textContent = null;
-                        tr.appendChild(td16);
-
-                        const td17 = document.createElement('td');
-                        td17.textContent = null;
-                        tr.appendChild(td17);
-
-                        const td18 = document.createElement('td');
-                        td18.textContent = null;
-                        tr.appendChild(td18);
-
-
-                        const td19 = document.createElement('td');
-                        td19.textContent = null;
-                        tr.appendChild(td19);
-
-                        const td20 = document.createElement('td');
-                        td20.textContent = row.Dev_Plan_Proposed_to_Nomination_Co_LOV;
-                        tr.appendChild(td20);
-
-                        const td21 = document.createElement('td');
-                        td21.textContent = null;
-                        tr.appendChild(td21);
-
-                        const td22 = document.createElement('td');
-                        td22.textContent = row.Division_Noteworthy_Plan_LOV;
-                        tr.appendChild(td22);
-
-                        const td23 = document.createElement('td');
-                        td23.textContent = null;
-                        tr.appendChild(td23);
-
-                        tableBody.appendChild(tr);
-
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
-                        previousFacultyCode = row.Faculty;
-                        previousFacultyName = row.fa_name;
-                        previousFacultyCount = facultyCount;
+                        columns.forEach(col => {
+                            const td = document.createElement('td');
+                            td.textContent = col.value;
+                            tr.appendChild(td);
+                        });
+                        tableBody.appendChild(tr);    
+                        
                     });
-
-
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
