@@ -39,10 +39,7 @@
                                         <thead>
                                             <tr class="text-nowrap">
                                                 <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>เสาหลัก</th>
-                                                <th>ยุทธศาสตร์</th>
-                                                <th>กลยุทธ์</th>
-                                                <th>แผนงาน/โครงการ</th>
+                                                <th>เสาหลัก/ยุทธศาสตร์/กลยุทธ์</th>
                                                 <th>กรอบวงเงินงบประมาณ (บาท)</th>
                                                 <th>งบประมาณที่ได้รับการจัดสรร (บาท)</th>
                                                 <th>งบประมาณที่ใช้ (บาท)</th>
@@ -88,59 +85,20 @@
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-                    let previousFacultyName = '';
-                    let previousPilarName = '';
-                    let previousSiName = '';
-                    let previousSoName = '';
+                    var str='';
 
                     response.plan.forEach(row => {
-                        const tr = document.createElement('tr');
-
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td1 = document.createElement('td');
-                        td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
-                        tr.appendChild(td1);
-
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
-                        tr.appendChild(td2);
-
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.si_name === previousSiName ? '' : row.si_name;
-                        tr.appendChild(td3);
-
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.so_name === previousSoName ? '' : row.so_name;
-                        tr.appendChild(td4);
-
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.ksp_name;
-                        tr.appendChild(td5);
-
-                        const td6 = document.createElement('td');
-                        td6.textContent = row.budget;
-                        tr.appendChild(td6);
-
-                        const td7 = document.createElement('td');
-                        td7.textContent = row.Allocated_budget;
-                        tr.appendChild(td7);
-
-                        const td8 = document.createElement('td');
-                        td8.textContent = row.Actual_Spend_Amount;
-                        tr.appendChild(td8);
-
-
-                        tableBody.appendChild(tr);
-
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
-                        previousFacultyName = row.fa_name;
-                        previousPilarName = row.pilar_name;
-                        previousSiName = row.si_name;
-                        previousSoName = row.so_name;
+                        str+='<tr><td>'+row.Alias_Default+'</td>'+
+                                '<td nowrap style="text-align: left;">'+row.p+'<br/>'+
+                                '&nbsp;'.repeat(8)+row.si_name+'<br/>'+
+                                '&nbsp;'.repeat(16)+row.so_name+'<br/>'+
+                                '&nbsp;'.repeat(24)+row.sp_name+'</td>'+
+                                '<td>'+parseInt(row.Budget_Amount).toLocaleString()+'</td>'+
+                                '<td>'+parseInt(row.Allocated_budget).toLocaleString()+'</td>'+
+                                '<td>'+parseInt(row.Actual_Spend_Amount).toLocaleString()+'</td></tr>';
                     });
 
-
+                    tableBody.innerHTML =str;
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);

@@ -262,7 +262,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sqlPlan = "SELECT 
+                /* $sqlPlan = "SELECT 
                             pkpp.Faculty,
                             Faculty.Alias_Default AS fa_name,
                             CONCAT(
@@ -329,7 +329,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfpp.Strategic_Project)
                             LEFT JOIN planning_faculty_action_plan AS pfap ON TRIM(pfap.Strategic_Project) = TRIM(pfpp.Strategic_Project)
 
-                            ORDER BY fa_name, pilar_code, si_code, Strategic_Object, Strategic_Project";
+                            ORDER BY fa_name, pilar_code, si_code, Strategic_Object, Strategic_Project"; */
+                $sqlPlan = "WITH t1 AS(
+                            SELECT p.Strategic_Object AS so
+                            ,p.Strategic_Project AS sp
+                            ,p.Faculty
+                            ,p.Budget_Amount
+                            ,p2.parent AS si
+                            ,p2.pillar_name AS so_name 
+                            ,p3.pillar_name AS si_name
+                            ,p4.pillar_name AS p
+                            ,k.ksp_name AS sp_name
+                            ,COALESCE(pfp.Allocated_budget,'0.00') AS Allocated_budget
+                            ,COALESCE(pfp.Actual_Spend_Amount,'0.00') AS Actual_Spend_Amount
+                            ,f.Alias_Default
+                            FROM planning_faculty_action_plan p 
+                            LEFT JOIN pilars2 p2
+                            ON p.Strategic_Object=p2.pillar_id
+                            LEFT JOIN pilars2 p3
+                            ON p2.parent=p3.pillar_id
+                            LEFT JOIN pilars2 p4
+                            ON p3.parent=p4.pillar_id
+                            LEFT JOIN ksp k
+                            ON p.Strategic_Project=k.ksp_id
+                            LEFT JOIN planning_faculty_project_progress pfp
+                            ON p.Strategic_Object=pfp.Strategic_Object AND p.Strategic_Project=pfp.Strategic_Project AND p.faculty=pfp.Faculty
+                            LEFT JOIN Faculty f
+                            ON p.Faculty=f.Faculty)
+
+
+                            SELECT * FROM t1";   
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);

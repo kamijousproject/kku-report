@@ -142,7 +142,7 @@
                 type: "POST",
                 url: "../server/budget_planing_api.php",
                 data: {
-                    'command': 'kku_wf_budget-revenue-summary'
+                    'command': 'kku_bgp_budget-revenue-summary'
                 },
                 dataType: "json",
                 success: function(response) {
