@@ -100,7 +100,7 @@
                         <a href="report-department-strategic-issues.php">9.1.1.29.7-7 รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับ
                             ส่วนงาน/หน่วยงาน)</a>
                     </li>
-                    
+
                 </ul>
             </li>
             <li><a class="has-arrow" href="#" aria-expanded="false"><i class="mdi mdi-chart-areaspline"></i> <span
@@ -210,13 +210,13 @@
                         <a href="report-indicator-summary.php">9.1.3.30.7-10 รายงานสรุปรายการตัวชี้วัดแผน/ผลของแผนงานย่อย</a>
                     </li>
                     <li>
-                        <a href="report-project-summary.php">9.1.3.30.7-11 รายงานสรุปรายโครงการ</a>
+                        <a href="report-project-summary.php">9.1.1.29.7-8 รายงานสรุปรายโครงการ</a>
                     </li>
                     <li>
-                        <a href="report-budget-requests.php">9.1.3.30.7-12 รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ</a>
+                        <a href="report-budget-requests.php">9.1.1.29.7-9 รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ</a>
                     </li>
                     <li>
-                        <a href="report-reserve-funds.php">9.1.3.30.7-13 รายงานสรุปบัญชีทุนสำรองสะสม</a>
+                        <a href="report-reserve-funds.php">9.1.3.29.7-10 รายงานสรุปบัญชีทุนสำรองสะสม</a>
                     </li>
                 </ul>
             </li>
