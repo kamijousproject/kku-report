@@ -35,6 +35,59 @@
                                     <p>ส่วนงาน/หน่วยงาน: คณะบริหารธุรกิจ</p>
                                 </div>
                                 <div class="table-responsive">
+                                    <?php
+                                    // Include ไฟล์เชื่อมต่อฐานข้อมูล
+                                    include '../server/connectdb.php';
+
+                                    // สร้าง instance ของคลาส Database และเชื่อมต่อ
+                                    $database = new Database();
+                                    $conn = $database->connect();
+
+                                    $query = "SELECT
+                                                sub_p_kpi.Plan,
+                                                sub_p_kpi.Sub_Plan,
+                                                sub_p_kpi.Sub_plan_KPI_Target,
+                                                sub_p_kpi.UoM_for_Sub_plan_KPI,
+                                                sub_p_progress.Prog_Q1 AS Sub_Prog_Q1,
+                                                sub_p_progress.Prog_Q2 AS Sub_Prog_Q2,
+                                                sub_p_progress.Prog_Q3 AS Sub_Prog_Q3,
+                                                sub_p_progress.Prog_Q4 AS Sub_Prog_Q4,
+                                                p_kpi.Proj_KPI_Name,
+                                                p_kpi.Proj_KPI_Target,
+                                                p_kpi.UoM_for_Proj_KPI,
+                                                p_kpi_progress.Prog_Q1 AS Proj_Prog_Q1,
+                                                p_kpi_progress.Prog_Q2 AS Proj_Prog_Q2,
+                                                p_kpi_progress.Prog_Q3 AS Proj_Prog_Q3,
+                                                p_kpi_progress.Prog_Q4 AS Proj_Prog_Q4,
+                                                plan.plan_name,
+                                                sub_plan.sub_plan_name,
+                                                project.project_name
+                                            FROM budget_planning_annual_budget_plan AS annual_bp
+                                            LEFT JOIN budget_planning_subplan_kpi AS sub_p_kpi
+                                                ON annual_bp.Plan = sub_p_kpi.Plan
+                                                AND annual_bp.Sub_Plan = sub_p_kpi.Sub_Plan
+                                            LEFT JOIN budget_planning_sub_plan_kpi_progress AS sub_p_progress
+                                                ON sub_p_kpi.Plan = sub_p_progress.Plan
+                                                AND sub_p_kpi.Sub_Plan = sub_p_progress.Sub_Plan
+                                            LEFT JOIN budget_planning_project_kpi AS p_kpi
+                                                ON annual_bp.Project = p_kpi.Project
+                                            LEFT JOIN budget_planning_project_kpi_progress AS p_kpi_progress
+                                                ON p_kpi.Project = p_kpi_progress.Project
+                                            LEFT JOIN plan 
+                                                ON annual_bp.Plan = plan.plan_id
+                                            LEFT JOIN sub_plan 
+                                                ON annual_bp.Sub_Plan = sub_plan.sub_plan_id
+                                            LEFT JOIN project 
+                                                ON annual_bp.Project = project.project_id";
+
+                                    // เตรียมและ execute คำสั่ง SQL
+                                    $stmt = $conn->prepare($query);
+                                    $stmt->execute();
+
+                                    // ดึงข้อมูล
+                                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    ?>
+
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
                                             <tr>
@@ -64,59 +117,39 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>แผนงาน (ผลผลิต) [Plan]</td>
-                                                <td>โครงการ</td>
-                                                <td>10</td>
-                                                <td>2</td>
-                                                <td>3</td>
-                                                <td>2</td>
-                                                <td>3</td>
-                                                <td>10</td>
-                                                <td>โครงการ</td>
-                                                <td>12</td>
-                                                <td>3</td>
-                                                <td>3</td>
-                                                <td>3</td>
-                                                <td>3</td>
-                                                <td>12</td>
-                                            </tr>
-                                            <tr>
-                                                <td>แผนงานย่อย (ผลผลิตย่อย/กิจกรรม) [Sub plan]</td>
-                                                <td>กิจกรรม</td>
-                                                <td>20</td>
-                                                <td>5</td>
-                                                <td>5</td>
-                                                <td>5</td>
-                                                <td>5</td>
-                                                <td>20</td>
-                                                <td>กิจกรรม</td>
-                                                <td>25</td>
-                                                <td>6</td>
-                                                <td>6</td>
-                                                <td>6</td>
-                                                <td>7</td>
-                                                <td>25</td>
-                                            </tr>
-                                            <tr>
-                                                <td>โครงการ/กิจกรรม [Project]</td>
-                                                <td>หน่วย</td>
-                                                <td>15</td>
-                                                <td>4</td>
-                                                <td>4</td>
-                                                <td>3</td>
-                                                <td>4</td>
-                                                <td>15</td>
-                                                <td>หน่วย</td>
-                                                <td>18</td>
-                                                <td>5</td>
-                                                <td>5</td>
-                                                <td>4</td>
-                                                <td>4</td>
-                                                <td>18</td>
-                                            </tr>
+                                            <?php foreach ($data as $row) { ?>
+                                                <tr>
+                                                    <!-- แสดงข้อมูลแผนงาน / แผนงานย่อย / โครงการในแถวเดียว -->
+                                                    <td>
+                                                        <?= "แผนงาน " . htmlspecialchars($row['plan_name']); ?><br>
+                                                        <?= "แผนงานย่อย " . htmlspecialchars($row['sub_plan_name']); ?><br>
+                                                        <?= "โครงการ " . htmlspecialchars($row['project_name']); ?>
+                                                    </td>
+                                                    <td><?= htmlspecialchars($row['UoM_for_Sub_plan_KPI']); ?></td>
+                                                    <td><?= htmlspecialchars($row['Sub_plan_KPI_Target']); ?></td>
+                                                    <td><?= htmlspecialchars($row['Sub_Prog_Q1']); ?></td>
+                                                    <td><?= htmlspecialchars($row['Sub_Prog_Q2']); ?></td>
+                                                    <td><?= htmlspecialchars($row['Sub_Prog_Q3']); ?></td>
+                                                    <td><?= htmlspecialchars($row['Sub_Prog_Q4']); ?></td>
+                                                    <td><?= htmlspecialchars($row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4']); ?></td>
+
+                                                    <!-- ปี 2568 (เป็นค่าว่าง) -->
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                </tr>
+                                            <?php } ?>
                                         </tbody>
                                     </table>
+
+                                    <?php
+                                    // ปิดการเชื่อมต่อฐานข้อมูล
+                                    $conn = null;
+                                    ?>
 
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
