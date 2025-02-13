@@ -38,24 +38,29 @@
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
                                             <tr>
-                                                <th rowspan="2">รายการ</th>
-                                                <th rowspan="2">หน่วยนับของตัวชี้วัด</th>
-                                                <th colspan="6">ปี 2567 (ปีก่อน)</th>
-                                                <th colspan="6">ปี 2568 (ปีปัจจุบัน)</th>
+                                                <th rowspan="3">รายการ</th>
+                                                <th colspan="7">ปี 2567 (ปีก่อน)</th>
+                                                <th colspan="7">ปี 2568 (ปีปัจจุบัน)</th>
                                             </tr>
                                             <tr>
-                                                <th>ค่าเป้าหมาย</th>
+                                                <th rowspan="2">หน่วยนับของตัวชี้วัด</th>
+                                                <th rowspan="2">ค่าเป้าหมาย</th>
+                                                <th colspan="4">ผลของตัวชี้วัด</th>
+                                                <th rowspan="2">ผลรวมของตัวชี้วัด</th>
+                                                <th rowspan="2">หน่วยนับของตัวชี้วัด</th>
+                                                <th rowspan="2">ค่าเป้าหมาย</th>
+                                                <th colspan="4">ผลของตัวชี้วัด</th>
+                                                <th rowspan="2">ผลรวมของตัวชี้วัด</th>
+                                            </tr>
+                                            <tr>
                                                 <th>ไตรมาสที่ 1</th>
                                                 <th>ไตรมาสที่ 2</th>
                                                 <th>ไตรมาสที่ 3</th>
                                                 <th>ไตรมาสที่ 4</th>
-                                                <th>ผลรวมของตัวชี้วัด</th>
-                                                <th>ค่าเป้าหมาย</th>
                                                 <th>ไตรมาสที่ 1</th>
                                                 <th>ไตรมาสที่ 2</th>
                                                 <th>ไตรมาสที่ 3</th>
                                                 <th>ไตรมาสที่ 4</th>
-                                                <th>ผลของตัวชี้วัด</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -68,6 +73,7 @@
                                                 <td>2</td>
                                                 <td>3</td>
                                                 <td>10</td>
+                                                <td>โครงการ</td>
                                                 <td>12</td>
                                                 <td>3</td>
                                                 <td>3</td>
@@ -84,6 +90,7 @@
                                                 <td>5</td>
                                                 <td>5</td>
                                                 <td>20</td>
+                                                <td>กิจกรรม</td>
                                                 <td>25</td>
                                                 <td>6</td>
                                                 <td>6</td>
@@ -100,6 +107,7 @@
                                                 <td>3</td>
                                                 <td>4</td>
                                                 <td>15</td>
+                                                <td>หน่วย</td>
                                                 <td>18</td>
                                                 <td>5</td>
                                                 <td>5</td>
@@ -109,6 +117,7 @@
                                             </tr>
                                         </tbody>
                                     </table>
+
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
