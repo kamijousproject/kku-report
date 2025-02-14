@@ -39,6 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         "workforce_current_positions_allocation" => __DIR__ . "/workforce/insert_workforce_current_positions_allocation.py",
         "workforce_new_positions_allocation" => __DIR__ . "/workforce/insert_workforce_new_positions_allocation.py",
         "workforce_new_position_request" => __DIR__ . "/workforce/workforce_new_position_request.py",
+        "workforce_hcm_actual" => __DIR__ . "/workforce/insert_hcm_actual.py",
 
         "planning_faculty_action_plan" => __DIR__ . "/planning/insert_planning_faculty_action_plan.py",
         "planning_faculty_okr_progress" => __DIR__ . "/planning/insert_planning_faculty_okr_progress.py",

@@ -33,14 +33,56 @@
                                 <div class="card-title">
                                     <h4>รายงานสรุปรายโครงการ</h4>
                                 </div>
+                                <?php
+                                // Include ไฟล์เชื่อมต่อฐานข้อมูล
+                                include '../server/connectdb.php';
+
+                                // สร้าง instance ของคลาส Database และเชื่อมต่อ
+                                $database = new Database();
+                                $conn = $database->connect();
+
+                                $query = "SELECT
+                                            b_actual.FISCAL_YEAR,
+                                            annual_bp.Budget_Management_Year,
+                                            annual_bp.Plan,
+                                            annual_bp.Sub_Plan,
+                                            annual_bp.Faculty,
+                                            annual_bp.Project,
+                                            annual_bp.Total_Amount_Quantity,
+                                            Faculty.Faculty,
+                                            Faculty.Alias_Default,
+                                            account.alias_default,
+                                            plan.plan_name,
+                                            sub_plan.sub_plan_name,
+                                            project.project_name,
+                                            account.parent
+                                        FROM
+                                            budget_planning_annual_budget_plan AS annual_bp
+                                            LEFT JOIN budget_planning_actual b_actual ON b_actual.PLAN = annual_bp.Plan
+                                            AND b_actual.SUBPLAN = REPLACE(annual_bp.Sub_Plan, 'SP_', '')
+                                            AND b_actual.PROJECT = annual_bp.Project
+                                            LEFT JOIN account ON account.`account` = annual_bp.`Account`
+                                            LEFT JOIN Faculty ON Faculty.Faculty = annual_bp.Faculty
+                                            
+                                            LEFT JOIN plan ON plan.plan_id = annual_bp.Plan
+                                            LEFT JOIN sub_plan ON sub_plan.sub_plan_id = annual_bp.Sub_Plan
+                                            LEFT JOIN project ON project.project_id = annual_bp.Project
+                                        WHERE
+                                            annual_bp.Scenario = 'Annual Budget Plan'
+                                            AND annual_bp.Fund = 'FN06'";
+
+                                // เตรียมและ execute คำสั่ง SQL
+                                $stmt = $conn->prepare($query);
+                                $stmt->execute();
+
+                                // ดึงข้อมูล
+                                $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                ?>
                                 <div class="info-section">
                                     <p>ปีบริหารงบประมาณ: .......................</p>
-                                    <p>ประเภทของงบประมาณ: .......................</p>
+                                    <p>ปีบริหารงบประมาณ: .......................</p>
+                                    <p>ประเภทงบประมาณ: .......................</p>
                                     <p>แหล่งเงิน: .......................</p>
-                                    <p>ส่วนงาน/หน่วยงาน: .......................</p>
-                                    <p>แผนงาน (ผลผลิต): .......................</p>
-                                    <p>แผนงานย่อย (ผลผลิตย่อย/กิจกรรม): .......................</p>
-                                    <p>โครงการ (Project): .......................</p>
                                 </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
@@ -99,7 +141,7 @@
                                                 <td>5000</td>
                                                 <td>6000</td>
                                                 <td>7000</td>
-                                                <td>8000</td>
+                                                <td>8000</td>   
                                                 <td>9000</td>
                                                 <td>1100</td>
                                                 <td>1200</td>

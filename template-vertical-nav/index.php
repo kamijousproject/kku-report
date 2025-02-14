@@ -75,6 +75,7 @@
                                                 <option value="planning_kku_strategic_plan">Planning kku strategic plan</option>
                                             </optgroup>
                                             <optgroup label="Workforce">
+                                                <option value="workforce_hcm_actual">Workforce HCM actual</option>
                                                 <option value="workforce_4year_plan">Workforce 4year plan</option>
                                                 <option value="workforce_current_position_request">Workforce current position request</option>
                                                 <option value="workforce_current_positions_allocation">Workforce current positions allocation</option>
