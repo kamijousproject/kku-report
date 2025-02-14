@@ -300,26 +300,9 @@ $usedRowspan = [];
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $lastRow = null; // เก็บค่าแถวล่าสุดในรูปแบบ JSON
                                             $lastPlan = $lastSubPlan = $lastProjectName = $lastSubType = null; // ตัวแปรเก็บค่าเดิม
-                                            $totalAllocated = 0; // ตัวแปรเก็บผลรวมของ Allocated_FN06
-                                            $lastRowData = null; // ตัวแปรเก็บข้อมูลแถวก่อนหน้าเพื่อเปรียบเทียบ
+                                            
                                             foreach ($mergedData as $row) {
-                                                // สร้าง JSON เพื่อเปรียบเทียบว่าข้อมูลแถวนี้ซ้ำกับแถวก่อนหน้าหรือไม่
-                                                $currentRow = json_encode([
-                                                    'Plan' => $row['Plan'],
-                                                    'Sub_Plan' => $row['Sub_Plan'],
-                                                    'Project_Name' => $row['Project_Name'],
-                                                    'Sub_Type' => $row['Sub_Type'],
-                                                    'KKU_Item_Name' => $row['KKU_Item_Name']
-                                                ]);
-
-
-
-                                                // อัปเดตค่าแถวล่าสุด
-                                                $lastRow = $currentRow;
-
-                                                // แสดงข้อมูล Plan, Sub_Plan, Project_Name, Sub_Type ในแถวเดียวกัน
                                                 echo "<tr>";
                                                 echo "<td style='text-align: left;'>";
 
@@ -346,28 +329,36 @@ $usedRowspan = [];
                                                     echo "<strong>" . str_repeat('&nbsp;', 20) . $row['Sub_Type'] . "</strong><br>";
                                                     $lastSubType = $row['Sub_Type'];
                                                 }
+                                                // เช็คว่า KKU_Item_Name ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
+                                                echo "<strong>" . str_repeat('&nbsp;', 30) . implode(' ', array_slice(explode(' ', $row['KKU_Item_Name']), 0, 1)) . "</strong>";
 
                                                 echo "</td>";
 
-                                                // แสดงค่า KKU_Item_Name ในแถวถัดไป
-                                                echo "<tr><td style='text-align: left;'>";
-                                                echo "<strong>" . str_repeat('&nbsp;', 25) . ($row['KKU_Item_Name'] ?: 'ไม่มีข้อมูล') . "</strong>";
-                                                echo "</td>";
+
+                                                // คอลัมน์ว่าง
                                                 echo "<td>-</td>";
                                                 echo "<td>-</td>";
                                                 echo "<td>-</td>";
 
-                                                // Display allocated and expenditures
-                                            
-                                                echo "<td>" . (isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : '-') . "</td>";
-                                                echo "<td>" . (isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : '-') . "</td>";
-                                                echo "<td>" . (isset($row['Allocated_FN06']) && $row['Allocated_FN06'] != 0 ? ($row['Allocated_FN06'] / $row['Allocated_FN06']) * 100 . "%" : '-') . "</td>";
-                                                echo "<td>" . (isset($row['Reason']) ? $row['Reason'] : '-') . "</td>";
+                                                // แสดง Allocated และคำนวณเปอร์เซ็นต์
+                                                $allocated = isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : null;
+                                                echo "<td>" . ($allocated !== null ? $allocated : '-') . "</td>";
+                                                echo "<td>" . ($allocated !== null ? $allocated : '-') . "</td>";
+
+                                                // คำนวณเปอร์เซ็นต์โดยป้องกันหารด้วยศูนย์
+                                                if ($allocated !== null && $allocated != 0) {
+                                                    echo "<td>" . number_format(($allocated / $allocated) * 100, 2) . "%</td>";
+                                                } else {
+                                                    echo "<td>-</td>";
+                                                }
+
+                                                // แสดงเหตุผล (Reason)
+                                                echo "<td>" . (!empty($row['Reason']) ? $row['Reason'] : '-') . "</td>";
+
                                                 echo "</tr>";
-
-
                                             }
                                             ?>
+
                                         </tbody>
                                     </table>
                                 </div>
