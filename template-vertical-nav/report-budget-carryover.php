@@ -358,10 +358,11 @@ $usedRowspan = [];
                                                     $previousSubType = $row['Sub_Type'];  // เก็บค่าปัจจุบันของ Sub_Type
                                                 }
 
-                                                // เช็คว่า KKU_Item_Name ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
 
-                                                    echo "<strong>" . str_repeat('&nbsp;', 15) . implode(' ', array_slice(explode(' ', $row['KKU_Item_Name']), 0, 1)) . "</strong>";
-
+                                                if ($row['KKU_Item_Name'] != $previousKKU_Item_Name) {
+                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . "{$row['KKU_Item_Name']}</strong><br>";
+                                                    $previousKKU_Item_Name = $row['KKU_Item_Name'];  // เก็บค่าปัจจุบันของ Sub_Type
+                                                }
 
 
                                                 // แสดงข้อมูลเพิ่มเติมในแต่ละช่อง
