@@ -509,7 +509,7 @@ td {
                         str15+='</td>';
                         str16+='</td>';
                         tableBody.innerHTML =str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16+'</tr>';
-                        //console.log(str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16+'</tr>');
+                        console.log(str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16+'</tr>');
                     });
                      
                 },

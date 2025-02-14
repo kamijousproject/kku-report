@@ -323,7 +323,96 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
                 echo json_encode($response);
             }
-            break;             
+            break;  
+        case "get_fiscal_year":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT DISTINCT Budget_Management_Year AS y FROM budget_planning_annual_budget_plan";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break; 
+        case "get_fund":
+            try {
+                $fyear = $_POST["fiscal_year"];
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT DISTINCT fund AS f 
+                        FROM budget_planning_annual_budget_plan 
+                        WHERE Budget_Management_Year=:fyear";
+                $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'fund' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break; 
+        case "get_faculty":
+            try {
+                $fyear = $_POST["fiscal_year"];
+                $fund = $_POST["fund"];
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT DISTINCT f.Alias_Default AS faculty 
+                        FROM budget_planning_annual_budget_plan b
+                        LEFT JOIN Faculty f
+                        ON b.Faculty = f.Faculty
+                        WHERE b.Budget_Management_Year = :fyear
+                        AND b.fund = :fund";
+
+                $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->bindParam(':fund', $fund, PDO::PARAM_STR);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'fac' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;           
         default:
             break;
     }

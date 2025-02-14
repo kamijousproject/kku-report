@@ -203,7 +203,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.bgp);
+                    //console.log(response.bgp);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า               
 
@@ -217,7 +217,7 @@
                     console.log(account);
                     console.log(sub_account); 
                     
-                    var str1=''; 
+                    /* var str1=''; 
                     var str2='';
                     var str3='';
                     var str4=''; 
@@ -239,57 +239,62 @@
                     var str20=''; 
                     var str21='';
                     var str22='';
-                    var str23='';
-                    f1.forEach((row1) => {  
-                        str1+='<tr><td>'+row1;
-                        str2+='<td>';
-                        str3+='<td>';
-                        str4+='<td>';
-                        str5+='<td>';
-                        str6+='<td>';
-                        str7+='<td>';
-                        str8+='<td>';
-                        str9+='<td>';
-                        str10+='<td>';
-                        str11+='<td>';
-                        str12+='<td>';
-                        str13+='<td>';
-                        str14+='<td>';
-                        str15+='<td>';
-                        str16+='<td>';
-                        str17+='<td>'; 
-                        str18+='<td>';
-                        str19+='<td>';
-                        str20+='<td>'; 
-                        str21+='<td>';
-                        str22+='<td>';
-                        str23+='<td>';
+                    var str23=''; */
+                    var html='';
+                    f1.forEach((row1) => { 
+                        console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+                        str1='<tr><td>'+row1;
+                        str2='<td>';
+                        str3='<td>';
+                        str4='<td>';
+                        str5='<td>';
+                        str6='<td>';
+                        str7='<td>';
+                        str8='<td>';
+                        str9='<td>';
+                        str10='<td>';
+                        str11='<td>';
+                        str12='<td>';
+                        str13='<td>';
+                        str14='<td>';
+                        str15='<td>';
+                        str16='<td>';
+                        str17='<td>'; 
+                        str18='<td>';
+                        str19='<td>';
+                        str20='<td>'; 
+                        str21='<td>';
+                        str22='<td>';
+                        str23='<td>';
                         f2.forEach((row2) => {
-                            str1+='<br/>'+'&nbsp;'.repeat(8)+row2;
-                            str2+='<br/>';
-                            str3+='<br/>';
-                            str4+='<br/>';
-                            str5+='<br/>';
-                            str6+='<br/>';
-                            str7+='<br/>';
-                            str8+='<br/>';
-                            str9+='<br/>';
-                            str10+='<br/>';
-                            str11+='<br/>';
-                            str12+='<br/>';
-                            str13+='<br/>';
-                            str14+='<br/>';
-                            str15+='<br/>';
-                            str16+='<br/>';
-                            str17+='<br/>'; 
-                            str18+='<br/>';
-                            str19+='<br/>';
-                            str20+='<br/>'; 
-                            str21+='<br/>';
-                            str22+='<br/>';
-                            str23+='<br/>';
+                            const pi= response.bgp.filter(item =>item.pillar_name === row2 && item.Alias_Default === row1);
+                            if(pi.length>0){
+                                str1+='<br/>'+'&nbsp;'.repeat(8)+row2;
+                                str2+='<br/>';
+                                str3+='<br/>';
+                                str4+='<br/>';
+                                str5+='<br/>';
+                                str6+='<br/>';
+                                str7+='<br/>';
+                                str8+='<br/>';
+                                str9+='<br/>';
+                                str10+='<br/>';
+                                str11+='<br/>';
+                                str12+='<br/>';
+                                str13+='<br/>';
+                                str14+='<br/>';
+                                str15+='<br/>';
+                                str16+='<br/>';
+                                str17+='<br/>'; 
+                                str18+='<br/>';
+                                str19+='<br/>';
+                                str20+='<br/>'; 
+                                str21+='<br/>';
+                                str22+='<br/>';
+                                str23+='<br/>';
+                            }
                             account.forEach((row6) => {
-                                const ac = response.bgp.filter(item =>item.type === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
+                                const ac = pi.filter(item =>item.type === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
                                 console.log(ac);
                                 const parseValue = (value) => {
                                         const number = parseFloat(value.replace(/,/g, ''));
@@ -337,7 +342,7 @@
                                         const number = parseFloat(value.replace(/,/g, ''));
                                         return isNaN(number) ? 0 : number;
                                     };
-                                    const sums = ac.reduce((acc, item) => {
+                                    const sums = sa.reduce((acc, item) => {
                                         return {
                                             t06: acc.t06 + parseValue(item.t06),
                                             t02: acc.t02 + parseValue(item.t02),
@@ -448,12 +453,12 @@
                         str20+='</td>'; 
                         str21+='</td>';
                         str22+='</td>';
-                        str23+='</td>';
-                        tableBody.innerHTML =str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15
-                        +str16+str17+str18+str19+str20+str21+str22+str23+'</tr>';
-                        //console.log(str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16+'</tr>');
+                        str23+='</td></tr>';
+                        
+                        html+=str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15
+                        +str16+str17+str18+str19+str20+str21+str22+str23;
                     });
-                     
+                    tableBody.innerHTML =html;
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
