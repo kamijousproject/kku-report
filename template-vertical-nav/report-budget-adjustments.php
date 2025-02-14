@@ -91,6 +91,7 @@
 </style>
 
 <?php
+include('../component/header.php');
 include '../server/connectdb.php';
 
 $db = new Database();
@@ -99,7 +100,6 @@ $conn = $db->connect();
 // ฟังก์ชันตัดตัวอักษรออกให้เหลือแค่ตัวเลข
 function extractNumericPart($string)
 {
-    // ใช้ regular expression เพื่อลบตัวอักษรออกจาก string และเหลือแค่ตัวเลข
     return preg_replace('/\D/', '', $string);
 }
 
@@ -124,12 +124,12 @@ function fetchBudgetData($conn, $fund)
     acc.sub_type,
     project.project_name,
     bpanbp.Account,
-    REPLACE(bpanbp.Fund, 'FN', '') AS Fund, 
-    bpa.FUND,
+    bpanbp.Fund,  -- คืนค่าเดิม
+    CONCAT('FN', bpa.FUND) AS FUND,  -- เพิ่ม 'FN' นำหน้า
     bpanbp.Faculty,
     bpanbp.Plan,
-    REPLACE(bpanbp.Sub_Plan, 'SP_', '') AS Sub_Plan,   
-    bpa.SUBPLAN,
+    bpanbp.Sub_Plan,  -- คืนค่าเดิม
+    CONCAT('SP_', bpa.SUBPLAN) AS SUBPLAN,  -- เพิ่ม 'SP_' นำหน้า
     bpanbp.Reason AS Reason,
     bpanbp.Project,
     bpanbp.KKU_Item_Name,
@@ -146,11 +146,12 @@ function fetchBudgetData($conn, $fund)
     pr.project_name AS Project_Name
 FROM
     budget_planning_allocated_annual_budget_plan bpanbp
-    LEFT JOIN budget_planning_actual bpa ON REPLACE(bpanbp.Fund, 'FN', '') = bpa.FUND
-    AND bpanbp.Plan = bpa.PLAN
-    AND bpanbp.Sub_Plan = bpa.SUBPLAN
-    AND bpanbp.Project = bpa.PROJECT
-    AND bpanbp.Fund = bpa.FUND
+    LEFT JOIN budget_planning_actual bpa ON 
+        bpanbp.Fund = CONCAT('FN', bpa.FUND)  -- เปรียบเทียบแบบเพิ่ม 'FN' ให้ bpa.FUND
+        AND bpanbp.Faculty = bpa.FACULTY
+        AND bpanbp.Plan = bpa.PLAN
+        AND bpanbp.Sub_Plan = CONCAT('SP_', bpa.SUBPLAN)  -- เปรียบเทียบแบบเพิ่ม 'SP_' ให้ bpa.SUBPLAN
+        AND bpanbp.Project = bpa.PROJECT
     LEFT JOIN budget_planning_annual_budget_plan bpabp ON 
         bpanbp.Faculty = bpabp.Faculty
         AND bpanbp.Plan = bpabp.Plan
@@ -164,47 +165,58 @@ FROM
     LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
     LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
     LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
-WHERE
-    bpanbp.Fund = :fund
-ORDER BY
-    p.plan_name ASC,   -- เรียงตาม Plan
-    sp.sub_plan_name ASC, -- เรียงตาม Sub_Plan
-    pr.project_name ASC, -- เรียงตาม Project_Name
-    acc.sub_type ASC,  -- เรียงตาม Sub_Type
-    bpanbp.KKU_Item_Name ASC";
+    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id;
 
+    WHERE CONCAT('FN', bpanbp.Fund) = :fund
+    ORDER BY
+    acc.type ASC,  -- เรียงตาม acc.type
+    acc.sub_type ASC,  -- เรียงตาม acc.sub_type
+    project.project_name ASC,  -- เรียงตาม project.project_name
+    bpanbp.Plan ASC,  -- เรียงตาม bpanbp.Plan
+    bpanbp.Sub_Plan ASC,  -- เรียงตาม bpanbp.Sub_Plan
+    bpanbp.Project ASC,  -- เรียงตาม bpanbp.Project
+    bpanbp.KKU_Item_Name ASC;  -- เรียงตาม bpanbp.KKU_Item_Name"
+    ;
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':fund', $fund);
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// Fetch results for FN02, FN06, and FN08
 $resultsFN02 = fetchBudgetData($conn, 'FN02');
 $resultsFN06 = fetchBudgetData($conn, 'FN06');
+$resultsFN08 = fetchBudgetData($conn, 'FN08');
 
 $mergedData = [];
 
 foreach ($resultsFN06 as $fn06) {
-    // ใช้ compareSubPlanAndFund() ในการเปรียบเทียบ Sub_Plan และ Fund
+    // Matching FN02 and FN08 with FN06
     $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
         return compareSubPlanAndFund($fn06['Sub_Plan'], $fn02['Sub_Plan'], $fn06['Fund'], $fn02['Fund']) &&
             (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
             (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
     });
+    $fn08Match = array_filter($resultsFN08, function ($fn08) use ($fn06) {
+        return compareSubPlanAndFund($fn06['Sub_Plan'], $fn08['Sub_Plan'], $fn06['Fund'], $fn08['Fund']) &&
+            (string) ($fn06['Plan'] ?? '') === (string) ($fn08['Plan'] ?? '') &&
+            (string) ($fn06['Project'] ?? '') === (string) ($fn08['Project'] ?? '');
+    });
 
     $fn02 = reset($fn02Match);
+    $fn08 = reset($fn08Match);
 
-    // ตรวจสอบและกำหนดค่าเริ่มต้นเพื่อป้องกัน Warning
+    // Handle Commitments and Expenditures
     $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
     $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
+    $commitment_FN08 = ($fn08['COMMITMENTS'] ?? 0) + ($fn08['OBLIGATIONS'] ?? 0);
 
-    // คำนวณค่า Total
-    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
-    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
+    // Calculate Total
+    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0);
+    $Total_Commitments = $commitment_FN06 + $commitment_FN02 + $commitment_FN08;
 
-    // เพิ่มข้อมูลลงใน mergedData
     $mergedData[] = [
+        'Account' => $fn06['Account'] ?? '-',
         'Ksp_id' => $fn06['Ksp_id'] ?? '-',
         'Ksp_Name' => $fn06['Ksp_Name'] ?? '-',
         'Plan' => $fn06['Plan'] ?? '',
@@ -222,6 +234,9 @@ foreach ($resultsFN06 as $fn06) {
         'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
         'Commitments_FN02' => $commitment_FN02,
         'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
+        'Allocated_FN08' => $fn08['Allocated_Total_Amount_Quantity'] ?? 0,
+        'Commitments_FN08' => $commitment_FN08,
+        'Expenditures_FN08' => $fn08['EXPENDITURES'] ?? 0,
         'Total_Allocated' => $Total_Allocated,
         'Total_Commitments' => $Total_Commitments,
     ];
@@ -234,7 +249,6 @@ foreach ($mergedData as $row) {
     $type = $row['Type'] ?? '';
     $subType = $row['Sub_Type'] ?? '';
 
-    // นับจำนวนแถวที่ต้อง merge
     if (!isset($rowspanData[$type][$subType])) {
         $rowspanData[$type][$subType] = 1;
     } else {
@@ -245,6 +259,7 @@ foreach ($mergedData as $row) {
 // ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
 $usedRowspan = [];
 
+// เริ่มสร้างตาราง HTML
 ?>
 
 
@@ -306,64 +321,70 @@ $usedRowspan = [];
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $lastPlan = $lastSubPlan = $lastProjectName = $lastSubType = null; // ตัวแปรเก็บค่าเดิม
+                                            $lastAccount = $lastPlan = $lastSubPlan = $lastProjectName = $lastSubType = null; // ตัวแปรเก็บค่าเดิม
                                             
                                             foreach ($mergedData as $row) {
-                                                echo "<tr>";
-                                                echo "<td style='text-align: left;'>";
+                                                // ตรวจสอบว่า Account มีเลข "4" นำหน้าหรือไม่
+                                                if (substr($row['Account'], 0, 1) == '4') {
+                                                    echo "<tr>";
+                                                    echo "<td style='text-align: left;'>";
 
-                                                // แสดง Plan หากไม่ซ้ำ
-                                                if ($row['Plan'] !== ($lastPlan ?? '')) {
-                                                    echo "<strong>" . $row['Plan'] . " : </strong>" . $row['Plan_Name'] . "<br>";
-                                                    $lastPlan = $row['Plan'];
-                                                }
+                                                    if ($row['Account'] !== ($lastAccount ?? '')) {
+                                                        $lastAccount = $row['Account'];
+                                                    }
+                                                    // แสดง Plan หากไม่ซ้ำ
+                                                    if ($row['Plan'] !== ($lastPlan ?? '')) {
+                                                        echo "<strong>" . $row['Plan'] . " : </strong>" . $row['Plan_Name'] . "<br>";
+                                                        $lastPlan = $row['Plan'];
+                                                    }
 
-                                                // แสดง Sub_Plan หากไม่ซ้ำ
-                                                if ($row['Sub_Plan'] !== ($lastSubPlan ?? '')) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . $row['Sub_Plan'] . " : </strong>" . $row['Sub_Plan_Name'] . "<br>";
-                                                    $lastSubPlan = $row['Sub_Plan'];
-                                                }
+                                                    // แสดง Sub_Plan หากไม่ซ้ำ
+                                                    if ($row['Sub_Plan'] !== ($lastSubPlan ?? '')) {
+                                                        echo "<strong>" . str_repeat('&nbsp;', 10) . $row['Sub_Plan'] . " : </strong>" . $row['Sub_Plan_Name'] . "<br>";
+                                                        $lastSubPlan = $row['Sub_Plan'];
+                                                    }
 
-                                                // แสดง Project_Name หากไม่ซ้ำ
-                                                if (!empty($row['Project_Name']) && $row['Project_Name'] !== ($lastProjectName ?? '')) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 15) . $row['Project_Name'] . "</strong><br>";
-                                                    $lastProjectName = $row['Project_Name'];
-                                                }
+                                                    // แสดง Project_Name หากไม่ซ้ำ
+                                                    if (!empty($row['Project_Name']) && $row['Project_Name'] !== ($lastProjectName ?? '')) {
+                                                        echo "<strong>" . str_repeat('&nbsp;', 15) . $row['Project_Name'] . "</strong><br>";
+                                                        $lastProjectName = $row['Project_Name'];
+                                                    }
 
-                                                // แสดง Sub_Type หากไม่ซ้ำ
-                                                if ($row['Sub_Type'] !== ($lastSubType ?? '')) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 20) . $row['Sub_Type'] . "</strong><br>";
-                                                    $lastSubType = $row['Sub_Type'];
-                                                }
-                                                // เช็คว่า KKU_Item_Name ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                echo "<strong>" . str_repeat('&nbsp;', 30) . implode(' ', array_slice(explode(' ', $row['KKU_Item_Name']), 0, 1)) . "</strong>";
+                                                    // แสดง Sub_Type หากไม่ซ้ำ
+                                                    if ($row['Sub_Type'] !== ($lastSubType ?? '')) {
+                                                        echo "<strong>" . str_repeat('&nbsp;', 20) . $row['Sub_Type'] . "</strong><br>";
+                                                        $lastSubType = $row['Sub_Type'];
+                                                    }
+                                                    // เช็คว่า KKU_Item_Name ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
+                                                    echo "<strong>" . str_repeat('&nbsp;', 30) . implode(' ', array_slice(explode(' ', $row['KKU_Item_Name']), 0, 1)) . "</strong>";
 
-                                                echo "</td>";
+                                                    echo "</td>";
 
-
-                                                // คอลัมน์ว่าง
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-                                                echo "<td>-</td>";
-
-                                                // แสดง Allocated และคำนวณเปอร์เซ็นต์
-                                                $allocated = isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : null;
-                                                echo "<td>" . ($allocated !== null ? $allocated : '-') . "</td>";
-                                                echo "<td>" . ($allocated !== null ? $allocated : '-') . "</td>";
-
-                                                // คำนวณเปอร์เซ็นต์โดยป้องกันหารด้วยศูนย์
-                                                if ($allocated !== null && $allocated != 0) {
-                                                    echo "<td>" . number_format(($allocated / $allocated) * 100, 2) . "%</td>";
-                                                } else {
+                                                    // คอลัมน์ว่าง
                                                     echo "<td>-</td>";
+                                                    echo "<td>-</td>";
+                                                    echo "<td>-</td>";
+
+                                                    // แสดง Allocated และคำนวณเปอร์เซ็นต์
+                                                    $allocated = isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : null;
+                                                    echo "<td>" . ($allocated !== null ? $allocated : '-') . "</td>";
+                                                    echo "<td>" . ($allocated !== null ? $allocated : '-') . "</td>";
+
+                                                    // คำนวณเปอร์เซ็นต์โดยป้องกันหารด้วยศูนย์
+                                                    if ($allocated !== null && $allocated != 0) {
+                                                        echo "<td>" . number_format(($allocated / $allocated) * 100, 2) . "%</td>";
+                                                    } else {
+                                                        echo "<td>-</td>";
+                                                    }
+
+                                                    // แสดงเหตุผล (Reason)
+                                                    echo "<td>" . (!empty($row['Reason']) ? $row['Reason'] : '-') . "</td>";
+
+                                                    echo "</tr>";
                                                 }
-
-                                                // แสดงเหตุผล (Reason)
-                                                echo "<td>" . (!empty($row['Reason']) ? $row['Reason'] : '-') . "</td>";
-
-                                                echo "</tr>";
                                             }
                                             ?>
+
 
                                         </tbody>
                                     </table>
