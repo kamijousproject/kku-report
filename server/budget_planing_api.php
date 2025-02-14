@@ -230,6 +230,99 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
                 echo json_encode($response);
             }
+            break; 
+        case "kku_bgp_project-activities":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH t1 AS (
+                        SELECT p.Faculty
+                        ,p.Plan
+                        ,p.Sub_Plan
+                        ,p.Project
+                        ,p.Fund
+                        ,sum(p.Total_Amount_Quantity) AS Total_Amount_Quantity
+                        ,b.Proj_KPI_Name
+                        ,sum(b.Proj_KPI_Target) AS Proj_KPI_Target
+                        ,b.UoM_for_Proj_KPI
+                        ,b.Objective
+                        ,b.Project_Output
+                        ,b.Project_Outcome
+                        ,b.Project_Impact
+                        ,b.KKU_Strategic_Plan_LOV
+                        ,b.OKRs_LOV
+                        ,b.Principles_of_good_governance
+                        ,b.SDGs
+                        FROM budget_planning_annual_budget_plan p
+                        LEFT JOIN budget_planning_project_kpi b
+                        ON p.Faculty=b.Faculty AND p.Project=b.Project
+                        GROUP BY p.Faculty
+                        ,p.Plan
+                        ,p.Sub_Plan
+                        ,p.Project
+                        ,p.Fund
+                        ,b.Proj_KPI_Name
+                        ,b.UoM_for_Proj_KPI
+                        ,b.Objective
+                        ,b.Project_Output
+                        ,b.Project_Outcome
+                        ,b.Project_Impact
+                        ,b.KKU_Strategic_Plan_LOV
+                        ,b.OKRs_LOV
+                        ,b.Principles_of_good_governance
+                        ,b.SDGs)
+                        ,t2 AS (
+                        SELECT t.* ,f.Alias_Default
+                        FROM t1 t
+                        LEFT JOIN Faculty f
+                        ON t.faculty=f.Faculty)
+                        ,t3 AS (
+                        SELECT tt.*,pl.plan_name
+                        FROM t2 tt
+                        LEFT JOIN plan pl
+                        ON tt.plan=pl.plan_id)
+                        ,t4 AS (
+                        SELECT tt.*,s.sub_plan_name
+                        FROM t3 tt
+                        LEFT JOIN sub_plan s
+                        ON tt.sub_plan=s.sub_plan_id)
+                        ,t5 AS (
+                        SELECT tt.*,pr.project_name
+                        FROM t4 tt
+                        LEFT JOIN project pr
+                        ON tt.project=pr.project_id)
+                        ,t6 AS (
+                        SELECT tt.*,pil.pillar_name
+                        FROM t5 tt
+                        LEFT JOIN pilars2 pil
+                        ON tt.KKU_Strategic_Plan_LOV=pil.pillar_id)
+                        ,t7 AS (
+                        SELECT tt.*,ok.okr_name
+                        FROM t6 tt
+                        LEFT JOIN okr ok
+                        ON tt.OKRs_LOV=ok.okr_id)
+
+                        SELECT DISTINCT * FROM t7
+                        ORDER BY Faculty,fund,plan,sub_plan,project,KKU_Strategic_Plan_LOV,OKRs_LOV";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
             break;             
         default:
             break;

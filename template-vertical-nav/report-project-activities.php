@@ -43,7 +43,7 @@
                                                 <th rowspan="2">โครงการ/กิจกรรม</th>
                                                 <th rowspan="2">แหล่งงบประมาณ</th>
                                                 <th rowspan="2">งบประมาณ</th>
-                                                <th colspan="2">KPI For Project</th>
+                                                <th colspan="3">KPI For Project</th>
                                                 <th rowspan="2">วัตถุประสงค์</th>
                                                 <th rowspan="2">ผลผลิต</th>
                                                 <th rowspan="2">ผลลัพธ์</th>
@@ -52,50 +52,16 @@
                                             </tr>
                                             <tr>
                                                 <th>KPI Name For Project</th>
+                                                <th>ค่าเป้าหมาย</th>
                                                 <th>KPI Unit For Project</th>
-                                                <th>ประเด็นยุทธศาสตร์ / ทิศทาง Mission</th>
+                                                <th>ประเด็นยุทธศาสตร์ / พันธกิจ Mission </th>
                                                 <th>OKRs</th>
                                                 <th>Good Governance</th>
                                                 <th>SDGs</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>ส่วนงาน A</td>
-                                                <td>แผนงาน A</td>
-                                                <td>แผนงานย่อย A1</td>
-                                                <td>โครงการ A1.1</td>
-                                                <td>งบประมาณแผ่นดิน</td>
-                                                <td>1,000,000</td>
-                                                <td>เพิ่มจำนวนผู้เข้าถึง</td>
-                                                <td>หน่วย</td>
-                                                <td>สนับสนุนการศึกษา</td>
-                                                <td>100 ราย</td>
-                                                <td>ผลสัมฤทธิ์สูงขึ้น</td>
-                                                <td>ผลกระทบเชิงบวกต่อชุมชน</td>
-                                                <td>การศึกษา</td>
-                                                <td>เพิ่มโอกาส</td>
-                                                <td>ความโปร่งใส</td>
-                                                <td>เป้าหมายที่ 4</td>
-                                            </tr>
-                                            <tr>
-                                                <td>ส่วนงาน B</td>
-                                                <td>แผนงาน B</td>
-                                                <td>แผนงานย่อย B1</td>
-                                                <td>โครงการ B1.1</td>
-                                                <td>งบประมาณอื่นๆ</td>
-                                                <td>500,000</td>
-                                                <td>ลดความเหลื่อมล้ำ</td>
-                                                <td>ร้อยละ</td>
-                                                <td>สนับสนุนการพัฒนา</td>
-                                                <td>50 ราย</td>
-                                                <td>ผลสัมฤทธิ์เพิ่มขึ้น</td>
-                                                <td>ผลกระทบระดับประเทศ</td>
-                                                <td>สุขภาพ</td>
-                                                <td>ปรับปรุงระบบ</td>
-                                                <td>ธรรมาภิบาล</td>
-                                                <td>เป้าหมายที่ 3</td>
-                                            </tr>
+                                            
                                         </tbody>
                                     </table>
                                 </div>
@@ -117,6 +83,65 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/budget_planing_api.php",
+                data: {
+                    'command': 'kku_bgp_project-activities'
+                },
+                dataType: "json",
+                success: function(response) {
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+
+                        response.bgp.forEach((row, index) => {                   
+                            const tr = document.createElement('tr');
+
+                            const columns = [
+                                { key: 'Alias_Default', value: row.Alias_Default },
+                                { key: 'Plan_Name', value: row.plan_name },
+                                { key: 'Sub_Plan_Name', value: row.sub_plan_name },
+                                { key: 'Project_Name', value: row.project_name },
+                                { key: 'Fund', value: row.Fund },
+                                { key: 'Total_Amount_Quantity', value: row.Total_Amount_Quantity },
+                                { key: 'Proj_KPI_Name', value: row.Proj_KPI_Name },
+                                { key: 'Proj_KPI_Target', value: row.Proj_KPI_Target },
+                                { key: 'UoM_for_Proj_KPI', value: row.UoM_for_Proj_KPI },
+                                { key: 'Objective', value: row.Objective },
+                                { key: 'Project_Output', value: row.Project_Output },
+                                { key: 'Project_Outcome', value: row.Project_Outcome },
+                                { key: 'Project_Impact', value: row.Project_Impact },
+                                { key: 'Pillar_Name', value: row.pillar_name },
+                                { key: 'OKR_Name', value: row.okr_name },
+                                { key: 'Principles_of_Good_Governance', value: row.Principles_of_good_governance },
+                                { key: 'SDGs', value: row.SDGs }
+                            ];
+
+
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+
+
+                            tableBody.appendChild(tr);
+                            
+                        });
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
