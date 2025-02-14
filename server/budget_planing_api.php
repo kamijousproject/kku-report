@@ -170,7 +170,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
                 echo json_encode($response);
             }
-            break;              
+            break;   
+        case "kku_bgp_budget-spending-status":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH t1 AS (
+                        SELECT b.Faculty
+                        ,sum(case when b.Fund='FN06' then b.Total_Amount_Quantity ELSE 0 END) AS t06
+                        ,sum(case when b.Fund='FN02' then b.Total_Amount_Quantity ELSE 0 END) AS t02
+                        ,sum(case when b.Fund='FN08' then b.Total_Amount_Quantity ELSE 0 END) AS t08
+                        ,b.Account
+                        ,b.KKU_Item_Name
+                        ,b.Budget_Management_Year
+                        ,b2.KKU_Strategic_Plan_LOV
+                        ,p.pillar_name
+                        ,a.`type`
+                        ,a.sub_type
+                        ,a.id AS p_id
+                        ,f.Alias_Default
+                        FROM budget_planning_annual_budget_plan b
+                        LEFT JOIN budget_planning_project_kpi b2
+                        ON b.Faculty=b2.Faculty AND b.Project=b2.Project
+                        LEFT JOIN pilars2 p
+                        ON b2.KKU_Strategic_Plan_LOV=p.pillar_id
+                        LEFT JOIN account a
+                        ON b.Account=a.account
+                        LEFT JOIN Faculty f
+                        ON b.Faculty=f.Faculty
+                        GROUP BY b.Faculty
+                        ,b.Account
+                        ,b.KKU_Item_Name
+                        ,b.Budget_Management_Year
+                        ,b2.KKU_Strategic_Plan_LOV
+                        ,p.pillar_name
+                        ,a.`type`
+                        ,a.sub_type
+                        ,a.id
+                        ,f.Alias_Default)
+
+                        SELECT distinct * FROM t1
+                        ORDER BY Faculty,KKU_Strategic_Plan_LOV,p_id";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;             
         default:
             break;
     }

@@ -5,11 +5,18 @@
         /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
     }
 
-    #reportTable th,
-    #reportTable td {
+    #reportTable th{
         text-align: center;
         /* จัดข้อความให้อยู่ตรงกลาง */
         vertical-align: middle;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
+    #reportTable td {
+        text-align: left;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: top;
         /* จัดให้อยู่ตรงกลางในแนวตั้ง */
         white-space: nowrap;
         /* ป้องกันข้อความตัดบรรทัด */
@@ -71,130 +78,6 @@
     }
 </style>
 
-<?php
-include '../server/connectdb.php';
-
-$db = new Database();
-$conn = $db->connect();
-
-// ฟังก์ชันดึงข้อมูล
-function fetchBudgetData($conn, $fund)
-{
-    $query = "SELECT DISTINCT
-ksp.ksp_id AS Ksp_id,
-        ksp.ksp_name AS Ksp_Name,
-        
-        acc.type,
-        acc.sub_type,
-        project.project_name,
-        bpanbp.Account,
-        bpanbp.Fund,
-        bpanbp.Faculty,
-        bpanbp.Plan,
-        bpanbp.Sub_Plan,
-        bpanbp.Project,
-        bpanbp.KKU_Item_Name,
-        bpanbp.Allocated_Total_Amount_Quantity,
-        bpa.FISCAL_YEAR,
-        bpa.TOTAL_BUDGET,
-        bpa.TOTAL_CONSUMPTION,
-        bpa.EXPENDITURES,
-        bpa.COMMITMENTS,
-        bpa.OBLIGATIONS,
-        f.Alias_Default AS Faculty_Name,
-        p.plan_name AS Plan_Name,
-        sp.sub_plan_name AS Sub_Plan_Name,
-        pr.project_name AS Project_Name
-FROM
-    budget_planning_allocated_annual_budget_plan bpanbp
-    LEFT JOIN budget_planning_actual bpa ON bpanbp.Faculty = bpa.FACULTY
-    AND bpanbp.Plan = bpa.PLAN
-    AND bpanbp.Sub_Plan = bpa.SUBPLAN
-    AND bpanbp.Project = bpa.PROJECT
-    AND bpanbp.Fund = bpa.FUND
-    LEFT JOIN budget_planning_annual_budget_plan bpabp ON bpanbp.Faculty = bpabp.Faculty
-    AND bpanbp.Plan = bpabp.Plan
-    AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-    AND bpanbp.Project = bpabp.Project
-    AND bpanbp.Fund = bpabp.Fund
-    LEFT JOIN budget_planning_project_kpi bppk ON bpanbp.Project = bppk.Project
-    LEFT JOIN project ON bpanbp.Project = project.project_id
-    LEFT JOIN ksp ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
-    LEFT JOIN account acc ON bpanbp.Account = acc.account
-    LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
-    LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
-    LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
-                                            WHERE
-                                                bpanbp.Fund = :fund";
-
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':fund', $fund);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-$resultsFN02 = fetchBudgetData($conn, 'FN02');
-$resultsFN06 = fetchBudgetData($conn, 'FN06');
-
-$mergedData = [];
-
-foreach ($resultsFN06 as $fn06) {
-    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
-        return (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
-            (string) ($fn06['Sub_Plan'] ?? '') === (string) ($fn02['Sub_Plan'] ?? '') &&
-            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
-    });
-
-    $fn02 = reset($fn02Match);
-
-    // ✅ ตรวจสอบและกำหนดค่าเริ่มต้นเพื่อป้องกัน Warning
-    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
-    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
-
-    // ✅ คำนวณค่า Total
-    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
-    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
-
-    // ✅ เพิ่มข้อมูลลงใน mergedData พร้อมป้องกัน Undefined Index
-    $mergedData[] = [
-        'Ksp_id' => $fn06['Ksp_id'] ?? '-',
-        'Ksp_Name' => $fn06['Ksp_Name'] ?? '-',
-        'Plan' => $fn06['Plan'] ?? '',
-        'Type' => $fn06['type'] ?? '',
-        'Sub_Type' => $fn06['sub_type'] ?? '',
-        'Project_Name' => $fn06['Project_Name'] ?? '',
-        'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
-        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN06' => $commitment_FN06,
-        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
-        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN02' => $commitment_FN02,
-        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
-        'Total_Allocated' => $Total_Allocated,
-        'Total_Commitments' => $Total_Commitments,
-    ];
-}
-
-// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
-$rowspanData = [];
-
-foreach ($mergedData as $row) {
-    $type = $row['Type'] ?? '';
-    $subType = $row['Sub_Type'] ?? '';
-
-    // นับจำนวนแถวที่ต้อง merge
-    if (!isset($rowspanData[$type][$subType])) {
-        $rowspanData[$type][$subType] = 1;
-    } else {
-        $rowspanData[$type][$subType]++;
-    }
-}
-
-// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
-$usedRowspan = [];
-
-?>
 
 
 <!DOCTYPE html>
@@ -241,14 +124,13 @@ $usedRowspan = [];
                                                 <th colspan="8">ปี 2566</th>
                                                 <th colspan="8">ปี 2567 (ปีปัจจุบัน)</th>
                                                 <th colspan="4">ปี 2568 (ปีที่ขอตั้งงบ)</th>
-                                                <th colspan="4">ปี 2568 (ปีที่ขอตั้งงบ)</th>
                                                 <th rowspan="2" colspan="2">เพิ่ม/ลด</th>
                                             </tr>
                                             <tr>
                                                 <th colspan="2">เงินอุดหนุนจากรัฐ (FN06)</th>
                                                 <th colspan="2">เงินนอกงบประมาณ (FN08)</th>
                                                 <th colspan="2">เงินรายได้ (FN02)</th>
-                                                <th rowspan="2" colspan="2">รวม</th>
+                                                <th colspan="2">รวม</th>
 
                                                 <th colspan="2">เงินอุดหนุนจากรัฐ</th>
                                                 <th colspan="2">เงินนอกงบประมาณ</th>
@@ -259,12 +141,10 @@ $usedRowspan = [];
                                                 <th rowspan="2">เงินรายได้</th>
                                                 <th rowspan="2">เงินนอกงบประมาณ</th>
                                                 <th rowspan="2">รวม</th>
-                                                <th rowspan="2">เงินอุดหนุนจากรัฐ</th>
-                                                <th rowspan="2">เงินรายได้</th>
-                                                <th rowspan="2">เงินนอกงบประมาณ</th>
-                                                <th rowspan="2">รวม</th>
                                             </tr>
                                             <tr>
+                                                <th>ประมาณการ</th>
+                                                <th>จ่ายจริง</th>
                                                 <th>ประมาณการ</th>
                                                 <th>จ่ายจริง</th>
                                                 <th>ประมาณการ</th>
@@ -285,58 +165,7 @@ $usedRowspan = [];
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php
-                                            $previousKspId = null;
-                                            $previousKspName = null;
-                                            $previousType = null;
-                                            $previousSubType = null;
-
-                                            foreach ($mergedData as $row) {
-                                                echo "<tr>";
-                                                echo "<td style='text-align: left;'>";
-
-                                                // Display KSP name
-                                                if ($row['Ksp_id'] !== $previousKspId || $row['Ksp_Name'] !== $previousKspName) {
-                                                    echo "<strong>{$row['Ksp_id']} : " .
-                                                        (isset($row['Ksp_Name']) && !empty($row['Ksp_Name']) ? preg_replace('/_.*$/', '', $row['Ksp_Name']) : 'ไม่มีข้อมูล') .
-                                                        "</strong><br>";
-                                                    $previousKspId = $row['Ksp_id'];
-                                                    $previousKspName = $row['Ksp_Name'];
-                                                }
-
-                                                // Display Type and Sub-Type
-                                                if ($row['Type'] === $previousType && $row['Sub_Type'] === $previousSubType) {
-                                                    continue;
-                                                }
-                                                if (isset($row['Type']) && !empty($row['Type'])) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 5) . $row['Type'] . "</strong><br>";
-                                                }
-                                                if (isset($row['Sub_Type']) && !empty($row['Sub_Type'])) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . $row['Sub_Type'] . "</strong><br>";
-                                                }
-
-                                                // Display KKU Item Name
-                                                echo "<strong>" . str_repeat('&nbsp;', 15) . (isset($row['KKU_Item_Name']) && !empty($row['KKU_Item_Name']) ? $row['KKU_Item_Name'] : 'ไม่มีข้อมูล') . "</strong>";
-
-                                                echo "</td>";
-
-                                                // Display other columns with formatted numbers
-                                                echo "<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>";
-                                                echo "<td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>";
-
-                                                // Display allocated and expenditures
-                                                echo "<td>" . (isset($row['Allocated_FN06']) ? number_format($row['Allocated_FN06'], 2) : '-') . "</td>";
-                                                echo "<td>" . (isset($row['Expenditures_FN02']) ? number_format($row['Expenditures_FN02'], 2) : '-') . "</td>";
-                                                echo "<td>" . number_format($Total_Allocated, 2) . "</td>";
-                                                echo "<td>" . number_format($row['Allocated_FN06'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Expenditures_FN06'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Allocated_FN02'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Expenditures_FN02'], 2) . "</td>";
-                                                echo "<td>-</td><td>-</td><td>-</td>";
-
-                                                echo "</tr>";
-                                            }
-                                            ?>
+                                            
                                         </tbody>
                                     </table>
                                 </div>
@@ -360,6 +189,278 @@ $usedRowspan = [];
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            laodData();
+            
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/budget_planing_api.php",
+                data: {
+                    'command': 'kku_bgp_budget-spending-status'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log(response.bgp);
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า               
+
+                    const f1 = [...new Set(response.bgp.map(item => item.Alias_Default))];
+                    const f2 = [...new Set(response.bgp.map(item => item.pillar_name))];
+                    const account = [...new Set(response.bgp.map(item => item.type))];
+                    const sub_account = [...new Set(response.bgp.map(item => item.sub_type))];
+
+                    console.log(f1);
+                    console.log(f2);
+                    console.log(account);
+                    console.log(sub_account); 
+                    
+                    var str1=''; 
+                    var str2='';
+                    var str3='';
+                    var str4=''; 
+                    var str5='';
+                    var str6='';
+                    var str7='';
+                    var str8='';
+                    var str9='';
+                    var str10='';
+                    var str11='';
+                    var str12='';
+                    var str13='';
+                    var str14='';
+                    var str15='';
+                    var str16='';
+                    var str17=''; 
+                    var str18='';
+                    var str19='';
+                    var str20=''; 
+                    var str21='';
+                    var str22='';
+                    var str23='';
+                    f1.forEach((row1) => {  
+                        str1+='<tr><td>'+row1;
+                        str2+='<td>';
+                        str3+='<td>';
+                        str4+='<td>';
+                        str5+='<td>';
+                        str6+='<td>';
+                        str7+='<td>';
+                        str8+='<td>';
+                        str9+='<td>';
+                        str10+='<td>';
+                        str11+='<td>';
+                        str12+='<td>';
+                        str13+='<td>';
+                        str14+='<td>';
+                        str15+='<td>';
+                        str16+='<td>';
+                        str17+='<td>'; 
+                        str18+='<td>';
+                        str19+='<td>';
+                        str20+='<td>'; 
+                        str21+='<td>';
+                        str22+='<td>';
+                        str23+='<td>';
+                        f2.forEach((row2) => {
+                            str1+='<br/>'+'&nbsp;'.repeat(8)+row2;
+                            str2+='<br/>';
+                            str3+='<br/>';
+                            str4+='<br/>';
+                            str5+='<br/>';
+                            str6+='<br/>';
+                            str7+='<br/>';
+                            str8+='<br/>';
+                            str9+='<br/>';
+                            str10+='<br/>';
+                            str11+='<br/>';
+                            str12+='<br/>';
+                            str13+='<br/>';
+                            str14+='<br/>';
+                            str15+='<br/>';
+                            str16+='<br/>';
+                            str17+='<br/>'; 
+                            str18+='<br/>';
+                            str19+='<br/>';
+                            str20+='<br/>'; 
+                            str21+='<br/>';
+                            str22+='<br/>';
+                            str23+='<br/>';
+                            account.forEach((row6) => {
+                                const ac = response.bgp.filter(item =>item.type === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
+                                console.log(ac);
+                                const parseValue = (value) => {
+                                        const number = parseFloat(value.replace(/,/g, ''));
+                                        return isNaN(number) ? 0 : number;
+                                    };
+                                const sums = ac.reduce((acc, item) => {
+                                        return {
+                                            t06: acc.t06 + parseValue(item.t06),
+                                            t02: acc.t02 + parseValue(item.t02),
+                                            t08: acc.t08 + parseValue(item.t08),
+                                        };
+                                    }, {
+                                        t06: 0, t02: 0, t08: 0
+                                    });
+                                if(ac.length>0){
+                                    var sum=sums.t06+sums.t08+sums.t02;
+                                    str1+='<br/>'+'&nbsp;'.repeat(16)+row6;
+                                    str2+='<br/>0';
+                                    str3+='<br/>0';
+                                    str4+='<br/>0';
+                                    str5+='<br/>0';
+                                    str6+='<br/>0';
+                                    str7+='<br/>0';
+                                    str8+='<br/>0';
+                                    str9+='<br/>0';
+                                    str10+='<br/>0';
+                                    str11+='<br/>0';
+                                    str12+='<br/>0';
+                                    str13+='<br/>0';
+                                    str14+='<br/>0';
+                                    str15+='<br/>0';
+                                    str16+='<br/>0';
+                                    str17+='<br/>0'; 
+                                    str18+='<br/>'+sums.t06.toLocaleString();
+                                    str19+='<br/>'+sums.t08.toLocaleString();
+                                    str20+='<br/>'+sums.t02.toLocaleString(); 
+                                    str21+='<br/>'+sum.toLocaleString();
+                                    str22+='<br/>'+(sum).toLocaleString();
+                                    str23+='<br/>';
+                                }   
+                                sub_account.forEach((row7) => {
+                                    const sa = ac.filter(item =>item.sub_type === row7 &&item.type === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
+                                    //console.log(sa);
+                                    const parseValue = (value) => {
+                                        const number = parseFloat(value.replace(/,/g, ''));
+                                        return isNaN(number) ? 0 : number;
+                                    };
+                                    const sums = ac.reduce((acc, item) => {
+                                        return {
+                                            t06: acc.t06 + parseValue(item.t06),
+                                            t02: acc.t02 + parseValue(item.t02),
+                                            t08: acc.t08 + parseValue(item.t08),
+                                        };
+                                    }, {
+                                        t06: 0, t02: 0, t08: 0
+                                    });
+                                    if(sa.length>0){
+                                        var sum=sums.t06+sums.t08+sums.t02;
+                                        str1+='<br/>'+'&nbsp;'.repeat(24)+row7;
+                                        str2+='<br/>0';
+                                        str3+='<br/>0';
+                                        str4+='<br/>0';
+                                        str5+='<br/>0';
+                                        str6+='<br/>0';
+                                        str7+='<br/>0';
+                                        str8+='<br/>0';
+                                        str9+='<br/>0';
+                                        str10+='<br/>0';
+                                        str11+='<br/>0';
+                                        str12+='<br/>0';
+                                        str13+='<br/>0';
+                                        str14+='<br/>0';
+                                        str15+='<br/>0';
+                                        str16+='<br/>0';
+                                        str17+='<br/>0'; 
+                                        str18+='<br/>'+sums.t06.toLocaleString();
+                                        str19+='<br/>'+sums.t08.toLocaleString();
+                                        str20+='<br/>'+sums.t02.toLocaleString(); 
+                                        str21+='<br/>'+sum.toLocaleString();
+                                        str22+='<br/>'+(sum).toLocaleString();
+                                        str23+='<br/>';
+                                    }
+                                    sa.forEach((row8) => {
+                                        const parseValue = (value) => {
+                                        const number = parseFloat(value.replace(/,/g, ''));
+                                        return isNaN(number) ? 0 : number;
+                                    };
+                                    //console.log(row8);
+                                    /* const sums = row8.reduce((acc, item) => {
+                                            return {
+                                                a2: acc.a2 + parseValue(item.a2),
+                                                c2: acc.c2 + parseValue(item.c2),
+                                                o2: acc.o2 + parseValue(item.o2),
+                                                e2: acc.e2 + parseValue(item.e2),
+                                                a6: acc.a6 + parseValue(item.a6),
+                                                c6: acc.c6 + parseValue(item.c6),
+                                                o6: acc.o6 + parseValue(item.o6),
+                                                e6: acc.e6 + parseValue(item.e6)
+                                            };
+                                        }, {
+                                            a2: 0, c2: 0, o2: 0, e2: 0,
+                                            a6: 0, c6: 0, o6: 0, e6: 0
+                                        }); */
+                                        if(row8.KKU_Item_Name!=""){
+                                            var sum=parseInt(row8.t06)+parseInt(row8.t08)+parseInt(row8.t02);
+                                            str1+='<br/>'+'&nbsp;'.repeat(32)+row8.KKU_Item_Name;
+                                            str2+='<br/>0';
+                                            str3+='<br/>0';
+                                            str4+='<br/>0';
+                                            str5+='<br/>0';
+                                            str6+='<br/>0';
+                                            str7+='<br/>0';
+                                            str8+='<br/>0';
+                                            str9+='<br/>0';
+                                            str10+='<br/>0';
+                                            str11+='<br/>0';
+                                            str12+='<br/>0';
+                                            str13+='<br/>0';
+                                            str14+='<br/>0';
+                                            str15+='<br/>0';
+                                            str16+='<br/>0';
+                                            str17+='<br/>0'; 
+                                            str18+='<br/>'+parseInt(row8.t06).toLocaleString();
+                                            str19+='<br/>'+parseInt(row8.t08).toLocaleString();
+                                            str20+='<br/>'+parseInt(row8.t02).toLocaleString(); 
+                                            str21+='<br/>'+sum.toLocaleString();
+                                            str22+='<br/>'+(sum).toLocaleString();
+                                            str23+='<br/>';
+                                        }
+                                    });
+                                    
+                                });
+                            });  
+                        //});      
+                        });
+                                         
+                        str1+='</td>';
+                        str2+='</td>';
+                        str3+='</td>';
+                        str4+='</td>';
+                        str5+='</td>';
+                        str6+='</td>';
+                        str7+='</td>';
+                        str8+='</td>';
+                        str9+='</td>';
+                        str10+='</td>';
+                        str11+='</td>';
+                        str12+='</td>';
+                        str13+='</td>';
+                        str14+='</td>';
+                        str15+='</td>';
+                        str16+='</td>';
+                        str17+='</td>'; 
+                        str18+='</td>';
+                        str19+='</td>';
+                        str20+='</td>'; 
+                        str21+='</td>';
+                        str22+='</td>';
+                        str23+='</td>';
+                        tableBody.innerHTML =str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15
+                        +str16+str17+str18+str19+str20+str21+str22+str23+'</tr>';
+                        //console.log(str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16+'</tr>');
+                    });
+                     
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
