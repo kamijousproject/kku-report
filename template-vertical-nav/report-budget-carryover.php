@@ -107,7 +107,6 @@ function fetchBudgetData($conn, $fund)
     $query = "SELECT DISTINCT
     ksp.ksp_id AS Ksp_id,
     ksp.ksp_name AS Ksp_Name,
-    
     acc.type,
     acc.sub_type,
     project.project_name,
@@ -155,7 +154,16 @@ FROM
     LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
     LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id;
 
-    WHERE bpanbp.Fund = :fund";
+    WHERE CONCAT('FN', bpanbp.Fund) = :fund
+    ORDER BY
+    acc.type ASC,  -- เรียงตาม acc.type
+    acc.sub_type ASC,  -- เรียงตาม acc.sub_type
+    project.project_name ASC,  -- เรียงตาม project.project_name
+    bpanbp.Plan ASC,  -- เรียงตาม bpanbp.Plan
+    bpanbp.Sub_Plan ASC,  -- เรียงตาม bpanbp.Sub_Plan
+    bpanbp.Project ASC,  -- เรียงตาม bpanbp.Project
+    bpanbp.KKU_Item_Name ASC;  -- เรียงตาม bpanbp.KKU_Item_Name"
+    ;
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':fund', $fund);
     $stmt->execute();

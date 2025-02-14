@@ -124,7 +124,6 @@ function fetchBudgetData($conn, $fund)
     acc.sub_type,
     project.project_name,
     bpanbp.Account,
-    -- ปรับ Fund ของ bpanbp และ bpa ให้เหมือนกัน
     REPLACE(bpanbp.Fund, 'FN', '') AS Fund, 
     bpa.FUND,
     bpanbp.Faculty,
@@ -165,9 +164,16 @@ FROM
     LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
     LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
     LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id;
-    WHERE
-        bpanbp.Fund = :fund";
+    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
+WHERE
+    bpanbp.Fund = :fund
+ORDER BY
+    p.plan_name ASC,   -- เรียงตาม Plan
+    sp.sub_plan_name ASC, -- เรียงตาม Sub_Plan
+    pr.project_name ASC, -- เรียงตาม Project_Name
+    acc.sub_type ASC,  -- เรียงตาม Sub_Type
+    bpanbp.KKU_Item_Name ASC";
+
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':fund', $fund);
     $stmt->execute();
