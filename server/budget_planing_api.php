@@ -277,7 +277,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT t.* ,f.Alias_Default
                         FROM t1 t
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
-                        ON t.faculty=f.faculty
+                        ON t.faculty=f.faculty)
                         ,t3 AS (
                         SELECT tt.*,pl.plan_name
                         FROM t2 tt

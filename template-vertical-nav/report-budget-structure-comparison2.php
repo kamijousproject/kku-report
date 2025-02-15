@@ -160,7 +160,7 @@ td {
 
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                <button onclick="exportXLSX()" class="btn btn-success m-t-15">Export XLSX</button>
+                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLSX</button>
                             </div>
                         </div>
 
@@ -174,6 +174,7 @@ td {
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
             laodData();
@@ -209,7 +210,7 @@ td {
                     console.log(account);
                     console.log(sub_account); */ 
                     
-                    var str1=''; 
+                    /* var str1=''; 
                     var str2='';
                     var str3='';
                     var str4=''; 
@@ -224,24 +225,25 @@ td {
                     var str13='';
                     var str14='';
                     var str15='';
-                    var str16='';
+                    var str16=''; */
+                    var html='';
                     f1.forEach((row1) => {  
-                        str1+='<tr><td>'+row1;
-                        str2+='<td>';
-                        str3+='<td>';
-                        str4+='<td>';
-                        str5+='<td>';
-                        str6+='<td>';
-                        str7+='<td>';
-                        str8+='<td>';
-                        str9+='<td>';
-                        str10+='<td>';
-                        str11+='<td>';
-                        str12+='<td>';
-                        str13+='<td>';
-                        str14+='<td>';
-                        str15+='<td>';
-                        str16+='<td>';
+                        str1='<tr><td>'+row1;
+                        str2='<td>';
+                        str3='<td>';
+                        str4='<td>';
+                        str5='<td>';
+                        str6='<td>';
+                        str7='<td>';
+                        str8='<td>';
+                        str9='<td>';
+                        str10='<td>';
+                        str11='<td>';
+                        str12='<td>';
+                        str13='<td>';
+                        str14='<td>';
+                        str15='<td>';
+                        str16='<td>';
                         
                         f2.forEach((row2) => {
                             str1+='<br/>'+'&nbsp;'.repeat(8)+row2;
@@ -507,11 +509,11 @@ td {
                         str13+='</td>';
                         str14+='</td>';
                         str15+='</td>';
-                        str16+='</td>';
-                        tableBody.innerHTML =str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16+'</tr>';
-                        console.log(str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16+'</tr>');
+                        str16+='</td></tr>';
+                        html+=str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16;
+                        //console.log(str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15+str16+'</tr>');
                     });
-                     
+                    tableBody.innerHTML =html;
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -520,35 +522,71 @@ td {
             });
         }
     function exportCSV() {
-        const rows = [];
         const table = document.getElementById('reportTable');
+        const csvRows = [];
 
-        for (let row of table.rows) {
-            const cells = Array.from(row.cells).map(cell => {
-                let text = cell.innerText.trim();
+        // วนลูปทีละ <tr>
+        for (const row of table.rows) {
+            // เก็บบรรทัดย่อยของแต่ละเซลล์
+            const cellLines = [];
+            let maxSubLine = 1;
 
-                // เช็คว่าเป็นตัวเลข float (ไม่มี , ในหน้าเว็บ)
-                if (!isNaN(text) && text !== "") {
-                    text = `"${parseFloat(text).toLocaleString("en-US", { minimumFractionDigits: 2 })}"`;
+            // วนลูปทีละเซลล์ <td>/<th>
+            for (const cell of row.cells) {
+                let html = cell.innerHTML;
+
+                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                html = html.replace(/(&nbsp;)+/g, (match) => {
+                    const count = match.match(/&nbsp;/g).length;
+                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                });
+
+                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                html = html.replace(/<br\s*\/?>/gi, '\n');
+
+                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                // html = html.replace(/<\/?[^>]+>/g, '');
+
+                // 4) แยกเป็น array บรรทัดย่อย
+                const lines = html.split('\n').map(x => x.trimEnd());
+                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                if (lines.length > maxSubLine) {
+                    maxSubLine = lines.length;
                 }
 
-                return text;
-            });
+                cellLines.push(lines);
+            }
 
-            rows.push(cells.join(",")); // ใช้ , เป็นตัวคั่น CSV
+            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+            for (let i = 0; i < maxSubLine; i++) {
+                const rowData = [];
+
+                // วนลูปแต่ละเซลล์
+                for (const lines of cellLines) {
+                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                    // Escape double quotes
+                    text = text.replace(/"/g, '""');
+                    // ครอบด้วย ""
+                    text = `"${text}"`;
+                    rowData.push(text);
+                }
+
+                csvRows.push(rowData.join(','));
+            }
         }
 
-        const csvContent = "\uFEFF" + rows.join("\n"); // ป้องกัน Encoding เพี้ยน
-        const blob = new Blob([csvContent], {
-            type: 'text/csv;charset=utf-8;'
-        });
+        // รวมเป็น CSV + BOM
+        const csvContent = "\uFEFF" + csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'รายงาน.csv');
+        link.href = url;
+        link.download = 'report.csv';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 
     function exportPDF() {
@@ -592,89 +630,165 @@ td {
         doc.save('รายงาน.pdf');
     }
 
-    function exportXLSX() {
+    function exportXLS() {
         const table = document.getElementById('reportTable');
-        const rows = [];
-        const merges = [];
-        const rowSpans = {}; // เก็บค่า rowspan
-        const colSpans = {}; // เก็บค่า colspan
 
-        for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-            const row = table.rows[rowIndex];
-            const cells = [];
-            let colIndex = 0;
+        // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+        // จะสร้าง aoa ของ thead + merges array
+        const { theadRows, theadMerges } = parseThead(table.tHead);
 
-            for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
-                let cell = row.cells[cellIndex];
-                let cellText = cell.innerText.trim();
+        // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
+        const tbodyRows = parseTbody(table.tBodies[0]);
 
-                // ตรวจสอบว่ามี rowspan หรือ colspan หรือไม่
-                let rowspan = cell.rowSpan || 1;
-                let colspan = cell.colSpan || 1;
+        // รวม rows ทั้งหมด: thead + tbody
+        const allRows = [...theadRows, ...tbodyRows];
 
-                // หากเป็นเซลล์ที่เคยถูก Merge ข้ามมา ให้ข้ามไป
-                while (rowSpans[`${rowIndex},${colIndex}`]) {
-                    cells.push(""); // ใส่ค่าว่างแทน Merge
-                    colIndex++;
-                }
-
-                // เพิ่มค่าลงไปในแถว
-                cells.push(cellText);
-
-                // ถ้ามี colspan หรือ rowspan
-                if (rowspan > 1 || colspan > 1) {
-                    merges.push({
-                        s: {
-                            r: rowIndex,
-                            c: colIndex
-                        }, // จุดเริ่มต้นของ Merge
-                        e: {
-                            r: rowIndex + rowspan - 1,
-                            c: colIndex + colspan - 1
-                        } // จุดสิ้นสุดของ Merge
-                    });
-
-                    // บันทึกตำแหน่งเซลล์ที่ถูก Merge เพื่อกันการซ้ำ
-                    for (let r = 0; r < rowspan; r++) {
-                        for (let c = 0; c < colspan; c++) {
-                            if (r !== 0 || c !== 0) {
-                                rowSpans[`${rowIndex + r},${colIndex + c}`] = true;
-                            }
-                        }
-                    }
-                }
-
-                colIndex++;
-            }
-            rows.push(cells);
-        }
-
-        // สร้างไฟล์ Excel
-        const XLSX = window.XLSX;
+        // สร้าง Workbook + Worksheet
         const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(rows);
+        const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-        // ✅ เพิ่ม Merge Cells
-        ws['!merges'] = merges;
+        // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+        // สังเกตว่า thead อยู่แถวบนสุดของ allRows (index เริ่มจาก 0 ตาม parseThead)
+        ws['!merges'] = theadMerges;
 
+        // เพิ่ม worksheet ลงใน workbook
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
-        // ✅ ดาวน์โหลดไฟล์ Excel
+        // เขียนไฟล์เป็น .xls (BIFF8)
         const excelBuffer = XLSX.write(wb, {
-            bookType: 'xlsx',
+            bookType: 'xls',
             type: 'array'
         });
-        const blob = new Blob([excelBuffer], {
-            type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-        });
+
+        // สร้าง Blob + ดาวน์โหลด
+        const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'รายงาน.xlsx';
+        link.download = 'report.xls';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
+        }
+
+        /**
+         * -----------------------
+         * 1) parseThead: รองรับ merge
+         * -----------------------
+         * - ใช้ skipMap จัดการ colSpan/rowSpan
+         * - ไม่แยก <br/> เป็นแถวใหม่ (โดยทั่วไป header ไม่ต้องแตกแถว)
+         * - ถ้า thead มีหลาย <tr> ก็จะได้หลาย row
+         * - return: { theadRows: [][] , theadMerges: [] }
+         */
+        function parseThead(thead) {
+        const theadRows = [];
+        const theadMerges = [];
+
+        if (!thead) {
+            return { theadRows, theadMerges };
+        }
+
+        // Map กันการเขียนทับ merge
+        const skipMap = {};
+
+        for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+            const tr = thead.rows[rowIndex];
+            const rowData = [];
+            let colIndex = 0;
+
+            for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+            // ข้ามเซลล์ที่ถูก merge ครอบไว้
+            while (skipMap[`${rowIndex},${colIndex}`]) {
+                rowData[colIndex] = "";
+                colIndex++;
+            }
+
+            const cell = tr.cells[cellIndex];
+            // ไม่แยก <br/> → แค่แทน &nbsp; เป็น space
+            let text = cell.innerHTML
+                .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // &nbsp; => spaces
+                .replace(/<br\s*\/?>/gi, ' ') // ถ้ามี <br/> ใน thead ก็เปลี่ยนเป็นช่องว่าง (ไม่แตกแถว)
+                .replace(/<\/?[^>]+>/g, '')   // ลบ tag อื่น ถ้าเหลือ
+                .trim();
+
+            rowData[colIndex] = text;
+
+            // ดู rowSpan/colSpan
+            const rowspan = cell.rowSpan || 1;
+            const colspan = cell.colSpan || 1;
+
+            if (rowspan > 1 || colspan > 1) {
+                // Push merges object
+                theadMerges.push({
+                s: { r: rowIndex, c: colIndex },
+                e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                });
+
+                // Mark skipMap
+                for (let r = 0; r < rowspan; r++) {
+                for (let c = 0; c < colspan; c++) {
+                    if (r === 0 && c === 0) continue;
+                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                }
+                }
+            }
+            colIndex++;
+            }
+            theadRows.push(rowData);
+        }
+
+        return { theadRows, theadMerges };
+    }
+
+    /**
+     * -----------------------
+     * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+     * -----------------------
+     * - ไม่ทำ merge (ตัวอย่าง) เพื่อความง่าย
+     * - ถ้าใน tbody มี colSpan/rowSpan ต้องประยุกต์ skipMap ต่อเอง
+     */
+    function parseTbody(tbody) {
+        const rows = [];
+
+        if (!tbody) return rows;
+
+        for (const tr of tbody.rows) {
+            // เก็บ sub-lines ของแต่ละเซลล์
+            const cellLines = [];
+            let maxSubLine = 1;
+
+            for (const cell of tr.cells) {
+            // (a) แปลง &nbsp; → space ตามจำนวน
+            // (b) แปลง <br/> → \n เพื่อนำไป split เป็นหลายบรรทัด
+            let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
+                const count = match.match(/&nbsp;/g).length;
+                return ' '.repeat(count);
+            });
+            html = html.replace(/<br\s*\/?>/gi, '\n');
+
+            // (c) ลบแท็กอื่น ๆ (ถ้าต้องการ)
+            html = html.replace(/<\/?[^>]+>/g, '');
+
+            // (d) split ด้วย \n → ได้หลาย sub-lines
+            const lines = html.split('\n').map(x => x.trimEnd());
+            if (lines.length > maxSubLine) {
+                maxSubLine = lines.length;
+            }
+            cellLines.push(lines);
+            }
+
+            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+            for (let i = 0; i < maxSubLine; i++) {
+            const rowData = [];
+            for (const lines of cellLines) {
+                rowData.push(lines[i] || ''); // ถ้าไม่มีบรรทัด => ใส่ว่าง
+            }
+            rows.push(rowData);
+            }
+        }
+
+        return rows;
     }
     </script>
     <!-- Common JS -->

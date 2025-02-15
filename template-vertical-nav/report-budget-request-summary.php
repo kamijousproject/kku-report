@@ -96,6 +96,7 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
 
@@ -307,24 +308,71 @@
         });
     });
     function exportCSV() {
-        const rows = [];
         const table = document.getElementById('reportTable');
-        for (let row of table.rows) {
-            const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-            rows.push(cells.join(","));
+        const csvRows = [];
+
+        // วนลูปทีละ <tr>
+        for (const row of table.rows) {
+            // เก็บบรรทัดย่อยของแต่ละเซลล์
+            const cellLines = [];
+            let maxSubLine = 1;
+
+            // วนลูปทีละเซลล์ <td>/<th>
+            for (const cell of row.cells) {
+                let html = cell.innerHTML;
+
+                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                html = html.replace(/(&nbsp;)+/g, (match) => {
+                    const count = match.match(/&nbsp;/g).length;
+                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                });
+
+                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                html = html.replace(/<br\s*\/?>/gi, '\n');
+
+                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                // html = html.replace(/<\/?[^>]+>/g, '');
+
+                // 4) แยกเป็น array บรรทัดย่อย
+                const lines = html.split('\n').map(x => x.trimEnd());
+                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                if (lines.length > maxSubLine) {
+                    maxSubLine = lines.length;
+                }
+
+                cellLines.push(lines);
+            }
+
+            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+            for (let i = 0; i < maxSubLine; i++) {
+                const rowData = [];
+
+                // วนลูปแต่ละเซลล์
+                for (const lines of cellLines) {
+                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                    // Escape double quotes
+                    text = text.replace(/"/g, '""');
+                    // ครอบด้วย ""
+                    text = `"${text}"`;
+                    rowData.push(text);
+                }
+
+                csvRows.push(rowData.join(','));
+            }
         }
-        const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-        const blob = new Blob([csvContent], {
-            type: 'text/csv;charset=utf-8;'
-        });
+
+        // รวมเป็น CSV + BOM
+        const csvContent = "\uFEFF" + csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'รายงาน.csv');
-        link.style.visibility = 'hidden';
+        link.href = url;
+        link.download = 'report.csv';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     }
 
     function exportPDF() {
@@ -369,30 +417,102 @@
     }
 
     function exportXLS() {
-        const rows = [];
-        const table = document.getElementById('reportTable');
-        for (let row of table.rows) {
-            const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-            rows.push(cells);
-        }
-        let xlsContent = "<table>";
-        rows.forEach(row => {
-            xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-        });
-        xlsContent += "</table>";
+            const table = document.getElementById('reportTable');
 
-        const blob = new Blob([xlsContent], {
-            type: 'application/vnd.ms-excel'
-        });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'รายงาน.xls');
-        link.style.visibility = 'hidden';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
+            // เก็บข้อมูลแต่ละแถวเป็น Array ของ Array
+            const rows = [];
+            // เก็บ Merge (colSpan/rowSpan) ในรูปแบบ SheetJS
+            const merges = {};
+
+            // ใช้ object เก็บว่าส่วนใดถูก merge ไปแล้ว เพื่อเลี่ยงการซ้ำซ้อน
+            // key = "rowIndex,colIndex" => true/false
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const tr = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    // ข้ามเซลล์ที่อยู่ในพื้นที่ merge แล้ว
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData.push(""); 
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    // เอา innerText หรือจะใช้ innerHTML แปลงเองก็ได้
+                    let cellText = cell.innerText.trim();
+
+                    // ใส่ข้อมูลลงใน Array
+                    rowData[colIndex] = cellText;
+                    
+                    // ตรวจสอบ colSpan / rowSpan
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ถ้ามีการ Merge จริง (มากกว่า 1)
+                    if (rowspan > 1 || colspan > 1) {
+                        // สร้าง object merge ตามรูปแบบ SheetJS
+                        const mergeRef = {
+                            s: { r: rowIndex, c: colIndex },                 // จุดเริ่ม (start)
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดจบ (end)
+                        };
+
+                        // เก็บลง merges (รูปแบบเก่าคือ ws['!merges'] = [])
+                        // แต่ต้องรอใส่หลังสร้าง Worksheet ด้วย SheetJS
+                        // จึงบันทึกชั่วคราวใน merges พร้อม index
+                        const mergeKey = `merge_${rowIndex}_${colIndex}`;
+                        merges[mergeKey] = mergeRef;
+
+                        // Mark skipMap กันซ้ำ
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (!(r === 0 && c === 0)) {
+                                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
+                        }
+                    }
+
+                    colIndex++;
+                }
+                rows.push(rowData);
+            }
+
+            // สร้าง Workbook
+            const wb = XLSX.utils.book_new();
+            // แปลง Array เป็น Worksheet
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // ใส่ merges เข้า Worksheet (Array)
+            ws['!merges'] = Object.values(merges);
+
+            // เพิ่มชีทใน Workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์เป็น XLS (BIFF8)
+            // ใช้ { bookType: 'xls', type: 'array' } เพื่อได้ Buffer Array
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xls',
+                type: 'array'
+            });
+
+            // สร้าง Blob เป็นไฟล์ XLS
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.ms-excel'
+            });
+
+            // ดาวน์โหลดไฟล์
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.xls'; // ชื่อไฟล์ .xls
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
 </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
