@@ -412,7 +412,91 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
                 echo json_encode($response);
             }
-            break;           
+            break;   
+        case "kku_bgp_project-requests":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                $fyear = $_POST["fiscal_year"];
+                $fund = $_POST["fund"];
+                $faculty = $_POST["faculty"];
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH t1 AS (
+                        SELECT b.*,f.Alias_Default
+                        FROM budget_planning_annual_budget_plan b
+                        LEFT JOIN Faculty f
+                        ON b.faculty=f.faculty
+                        WHERE b.Budget_Management_Year= :fyear AND b.fund= :fund AND f.Alias_Default= :faculty)
+                        ,t1_1 AS (
+                        SELECT t.faculty
+                        ,t.fund
+                        ,t.plan
+                        ,t.sub_plan
+                        ,t.project
+                        ,t.Alias_Default
+                        ,sum(case when a.type='1.ค่าใช้จ่ายบุคลากร' then t.Total_Amount_Quantity ELSE 0 END) AS a1
+                        ,sum(case when a.type='2.ค่าใช้จ่ายดำเนินงาน' then t.Total_Amount_Quantity ELSE 0 END) AS a2
+                        ,sum(case when a.type='3.ค่าใช้จ่ายลงทุน' then t.Total_Amount_Quantity ELSE 0 END) AS a3
+                        ,sum(case when a.type='4.ค่าใช้จ่ายเงินอุดหนุนดำเนินงาน' then t.Total_Amount_Quantity ELSE 0 END) AS a4
+                        ,sum(case when a.type='5.ค่าใช้จ่ายอื่น' then t.Total_Amount_Quantity ELSE 0 END) AS a5
+                        ,SUM(t.Q1_Spending_Plan) AS q1
+                        ,SUM(t.Q2_Spending_Plan) AS q2
+                        ,SUM(t.Q3_Spending_Plan) AS q3
+                        ,SUM(t.Q4_Spending_Plan) AS q4
+                        FROM t1 t
+                        LEFT JOIN account a
+                        ON t.account=a.account
+                        GROUP BY t.faculty
+                        ,t.fund
+                        ,t.plan
+                        ,t.sub_plan
+                        ,t.project
+                        ,t.Alias_Default)
+                        ,t2 AS (
+                        SELECT t.*,pr.project_name
+                        FROM t1_1 t
+                        LEFT JOIN project pr
+                        ON t.project=pr.project_id)
+                        ,t3 AS (
+                        SELECT t.*,p.pillar_name,ok.okr_name
+                        FROM t2 t
+                        LEFT JOIN budget_planning_project_kpi b2
+                        ON t.project=b2.Project AND t.faculty = b2.Faculty
+                        LEFT JOIN pilars2 p
+                        ON b2.KKU_Strategic_Plan_LOV=p.pillar_id
+                        LEFT JOIN okr ok
+                        ON b2.OKRs_LOV=ok.okr_id)
+                        ,t4 AS (
+                        SELECT t.*,pl.plan_name,sp.sub_plan_name
+                        FROM t3 t
+                        LEFT JOIN plan pl
+                        ON t.plan=pl.plan_id
+                        LEFT JOIN sub_plan sp
+                        on t.sub_plan=sp.sub_plan_id)
+
+                        SELECT * FROM t4
+                        ORDER BY project";
+                $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->bindParam(':fund', $fund, PDO::PARAM_STR);
+                $cmd->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;          
         default:
             break;
     }

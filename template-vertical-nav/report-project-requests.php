@@ -88,42 +88,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>โครงการ A</td>
-                                                <td>ยุทธศาสตร์ 1</td>
-                                                <td>OKR 1</td>
-                                                <td>ผลผลิต A</td>
-                                                <td>กิจกรรมย่อย A1</td>
-                                                <td>1,000,000</td>
-                                                <td>500,000</td>
-                                                <td>300,000</td>
-                                                <td>200,000</td>
-                                                <td>100,000</td>
-                                                <td>2,100,000</td>
-                                                <td>500,000</td>
-                                                <td>500,000</td>
-                                                <td>600,000</td>
-                                                <td>500,000</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>โครงการ B</td>
-                                                <td>ยุทธศาสตร์ 2</td>
-                                                <td>OKR 2</td>
-                                                <td>ผลผลิต B</td>
-                                                <td>กิจกรรมย่อย B1</td>
-                                                <td>800,000</td>
-                                                <td>400,000</td>
-                                                <td>200,000</td>
-                                                <td>300,000</td>
-                                                <td>100,000</td>
-                                                <td>1,800,000</td>
-                                                <td>400,000</td>
-                                                <td>500,000</td>
-                                                <td>500,000</td>
-                                                <td>400,000</td>
-                                            </tr>
+                                            
                                         </tbody>
                                     </table>
                                 </div>
@@ -252,45 +217,57 @@
 
             $('#submitBtn').click(function() {
                 let year = $('#dropdown1').val();
-                let fund = $('#dropdown2').val();
-                let faculty = $('#dropdown3').val();
-
+                let fund = $('#dropdown3').val();
+                let faculty = $('#dropdown4').val();
+                console.log(year);
+                console.log(fund);
+                console.log(faculty);
                 $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
                 data: {
-                    'command': 'kku_bgp_project-activities'
+                    'command': 'kku_bgp_project-requests',
+                    'fiscal_year': year,
+                    'fund': fund,
+                    'faculty': faculty
                 },
                 dataType: "json",
                 success: function(response) {
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-
+                        console.log(response.bgp);
                         response.bgp.forEach((row, index) => {                   
                             const tr = document.createElement('tr');
 
                             const columns = [
-                                { key: 'Alias_Default', value: row.Alias_Default },
-                                { key: 'Plan_Name', value: row.plan_name },
-                                { key: 'Sub_Plan_Name', value: row.sub_plan_name },
-                                { key: 'Project_Name', value: row.project_name },
-                                { key: 'Fund', value: row.Fund },
-                                { key: 'Total_Amount_Quantity', value: row.Total_Amount_Quantity },
-                                { key: 'Proj_KPI_Name', value: row.Proj_KPI_Name },
-                                { key: 'Proj_KPI_Target', value: row.Proj_KPI_Target },
-                                { key: 'UoM_for_Proj_KPI', value: row.UoM_for_Proj_KPI },
-                                { key: 'Objective', value: row.Objective },
-                                { key: 'Project_Output', value: row.Project_Output },
-                                { key: 'Project_Outcome', value: row.Project_Outcome },
-                                { key: 'Project_Impact', value: row.Project_Impact },
-                                { key: 'Pillar_Name', value: row.pillar_name },
-                                { key: 'OKR_Name', value: row.okr_name },
-                                { key: 'Principles_of_Good_Governance', value: row.Principles_of_good_governance },
-                                { key: 'SDGs', value: row.SDGs }
-                            ];
+                            { key: 'No', value: index + 1 },
+                            //{ key: 'Alias_Default', value: row.Alias_Default },
+                            //{ key: 'Faculty', value: row.faculty },
+                            //{ key: 'Project', value: row.project },
+                            { key: 'Project_Name', value: row.project_name },
+                            { key: 'KKU_Strategic_Plan_LOV', value: row.pillar_name },
+                            { key: 'OKRs_LOV', value: row.okr_name },
+                            //{ key: 'Fund', value: row.fund },
+                            //{ key: 'Plan', value: row.plan },
+                            { key: 'Plan_Name', value: row.plan_name },
+                            //{ key: 'Sub_Plan', value: row.sub_plan },
+                            { key: 'Sub_Plan_Name', value: row.sub_plan_name },   
+                            
 
-
+                            // ค่าใช้จ่ายแต่ละประเภท
+                            { key: 'Personnel_Expenses', value: parseInt(row.a1).toLocaleString() }, // ค่าใช้จ่ายบุคลากร
+                            { key: 'Operating_Expenses', value: parseInt(row.a2).toLocaleString() }, // ค่าใช้จ่ายดำเนินงาน
+                            { key: 'Investment_Expenses', value: parseInt(row.a3).toLocaleString() }, // ค่าใช้จ่ายลงทุน
+                            { key: 'Subsidy_Operating_Expenses', value: parseInt(row.a4).toLocaleString() }, // ค่าใช้จ่ายเงินอุดหนุนดำเนินงาน
+                            { key: 'Other_Expenses', value: parseInt(row.a5).toLocaleString() }, // ค่าใช้จ่ายอื่น
+                            { key: 'sum', value: (parseInt(row.a1)+parseInt(row.a2)+parseInt(row.a3)+parseInt(row.a4)+parseInt(row.a5)).toLocaleString() }, 
+                            // แผนการใช้จ่ายรายไตรมาส
+                            { key: 'Q1_Spending_Plan', value: parseInt(row.q1).toLocaleString() },
+                            { key: 'Q2_Spending_Plan', value: parseInt(row.q2).toLocaleString() },
+                            { key: 'Q3_Spending_Plan', value: parseInt(row.q3).toLocaleString() },
+                            { key: 'Q4_Spending_Plan', value: parseInt(row.q4).toLocaleString() }
+                        ];
                             columns.forEach(col => {
                                 const td = document.createElement('td');
                                 td.textContent = col.value;
