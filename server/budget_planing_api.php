@@ -92,8 +92,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,t2 AS (
                         SELECT b.*,f.parent,f.Alias_Default AS f2
                         FROM budget_planning_allocated_annual_budget_plan b
-                        LEFT JOIN Faculty f
-                        ON b.Faculty=f.Faculty
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                        ON b.faculty=f.faculty
                         WHERE f.parent NOT LIKE '%BU%' AND b.fund IN ('FN06','FN02'))
                         ,t2_1 AS (
                         SELECT t.*,tt.alias_default AS account_name,tt.type,tt.sub_type
@@ -198,8 +198,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON b2.KKU_Strategic_Plan_LOV=p.pillar_id
                         LEFT JOIN account a
                         ON b.Account=a.account
-                        LEFT JOIN Faculty f
-                        ON b.Faculty=f.Faculty
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                        ON b.faculty=f.faculty
                         GROUP BY b.Faculty
                         ,b.Account
                         ,b.KKU_Item_Name
@@ -276,8 +276,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,t2 AS (
                         SELECT t.* ,f.Alias_Default
                         FROM t1 t
-                        LEFT JOIN Faculty f
-                        ON t.faculty=f.Faculty)
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                        ON t.faculty=f.faculty
                         ,t3 AS (
                         SELECT tt.*,pl.plan_name
                         FROM t2 tt
@@ -388,8 +388,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "SELECT DISTINCT f.Alias_Default AS faculty 
                         FROM budget_planning_annual_budget_plan b
-                        LEFT JOIN Faculty f
-                        ON b.Faculty = f.Faculty
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                        ON b.faculty=f.faculty
                         WHERE b.Budget_Management_Year = :fyear
                         AND b.fund = :fund";
 
@@ -413,6 +413,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;   
+        case "get_faculty_2":
+            try {
+                $fyear = $_POST["fiscal_year"];
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT DISTINCT f.Alias_Default AS faculty 
+                        FROM budget_planning_annual_budget_plan b
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                        ON b.faculty=f.faculty
+                        WHERE b.Budget_Management_Year = :fyear";
+
+                $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'fac' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break; 
         case "kku_bgp_project-requests":
             try {
                 $db = new Database();
@@ -424,7 +456,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql = "WITH t1 AS (
                         SELECT b.*,f.Alias_Default
                         FROM budget_planning_annual_budget_plan b
-                        LEFT JOIN Faculty f
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
                         WHERE b.Budget_Management_Year= :fyear AND b.fund= :fund AND f.Alias_Default= :faculty)
                         ,t1_1 AS (
@@ -497,6 +529,104 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;          
+        case "kku_bgp_budget-request-summary-revenue":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                $fyear = $_POST["fiscal_year"];
+                $faculty = $_POST["faculty"];
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH t1 AS(
+                SELECT TYPE 
+                FROM account 
+                WHERE id < (SELECT id FROM account WHERE account = 'Expenses') AND TYPE is not null
+                GROUP BY TYPE)
+                ,t2 AS (
+                SELECT b.Total_Amount_Quantity,a.`type`,f.Alias_Default
+                FROM budget_planning_annual_budget_plan b
+                LEFT JOIN account a
+                ON b.account=a.account
+                LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                ON b.faculty=f.faculty
+                where b.Budget_Management_Year=:fyear and f.Alias_Default=:faculty)
+                ,t3 AS (
+                SELECT t.type
+                ,COALESCE(SUM(Total_Amount_Quantity),0) AS Total_Amount_Quantity
+                FROM t1 t
+                LEFT JOIN t2 tt
+                ON t.type=tt.type
+                GROUP BY t.type)
+
+                SELECT * FROM t3";
+                $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;  
+        case "kku_bgp_budget-request-summary-expense":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                $fyear = $_POST["fiscal_year"];
+                $faculty = $_POST["faculty"];
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH t1 AS(
+                SELECT TYPE 
+                FROM account 
+                WHERE id > (SELECT id FROM account WHERE account = 'Expenses') AND TYPE is not null
+                GROUP BY TYPE)
+                ,t2 AS (
+                SELECT b.Total_Amount_Quantity,a.`type`,f.Alias_Default
+                FROM budget_planning_annual_budget_plan b
+                LEFT JOIN account a
+                ON b.account=a.account
+                LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                ON b.faculty=f.faculty
+                where b.Budget_Management_Year=:fyear and f.Alias_Default=:faculty)
+                ,t3 AS (
+                SELECT t.type
+                ,COALESCE(SUM(Total_Amount_Quantity),0) AS Total_Amount_Quantity
+                FROM t1 t
+                LEFT JOIN t2 tt
+                ON t.type=tt.type
+                GROUP BY t.type)
+
+                SELECT * FROM t3";
+                $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         default:
             break;
     }
