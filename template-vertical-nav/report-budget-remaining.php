@@ -506,11 +506,11 @@ if (isset($_POST['search'])) {
                                             <thead>
                                                 <tr>
                                                     <th colspan="22" style="text-align: center;">
-                                                        รายงานสรุปยอดงบประมาณคงเหลือ</th>
+                                                        รายงานสรุปยอดงบประมาณคงเหลือ
+                                                    </th>
                                                 </tr>
                                                 <tr>
-                                                    <th colspan="22" style="text-align: left;">
-                                                        แสดงข้อมูล:
+                                                    <th colspan="22" style="text-align: left; white-space: pre-wrap;">
                                                         <br> ปีบริหารงบประมาณ: <?php echo $fiscal_year; ?>
                                                         <br> ประเภทงบประมาณ: <?php echo $scenario; ?>
                                                         <br> แหล่งเงิน: <?php echo $fund; ?>
@@ -521,6 +521,7 @@ if (isset($_POST['search'])) {
                                                     </th>
                                                 </tr>
                                             </thead>
+
                                             <thead>
                                                 <tr>
                                                     <th rowspan="2">คำใช้จ่าย</th>
@@ -558,14 +559,12 @@ if (isset($_POST['search'])) {
                                                 // วนลูปข้อมูลเพื่อนำมาจัดกลุ่ม
                                                 foreach ($data as $row) {
                                                     $key = $row['sub_type']; // ใช้ sub_type เป็น key สำหรับการ grouping
-                                        
                                                     if (!isset($groupedData[$key])) {
                                                         // ถ้ายังไม่มี ให้สร้างแถวใหม่
                                                         $groupedData[$key] = $row;
                                                     } else {
                                                         // ถ้ามีแล้ว ให้รวมค่าของฟิลด์ตัวเลข
                                                         $groupedData[$key]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
-                                                        $groupedData[$key]['BUDGET_ADJUSTMENTS'] += $row['BUDGET_ADJUSTMENTS'];
                                                         $groupedData[$key]['BUDGET_ADJUSTMENTS'] += $row['BUDGET_ADJUSTMENTS'];
                                                         $groupedData[$key]['Remaining_Unapproved_Budget'] += $row['Remaining_Unapproved_Budget'];
                                                         $groupedData[$key]['Budget_Commitments'] += $row['Budget_Commitments'];
@@ -574,10 +573,11 @@ if (isset($_POST['search'])) {
                                                         $groupedData[$key]['EXPENDITURES'] += $row['EXPENDITURES'];
                                                         $groupedData[$key]['EXPENDITURES_Total'] += $row['EXPENDITURES_Total'];
 
-                                                        // สำหรับเปอร์เซ็นต์ ควรคำนวณค่าเฉลี่ยหรือลองเลือกวิธีที่เหมาะสม
+                                                        // คำนวณค่าเฉลี่ยของเปอร์เซ็นต์
                                                         $groupedData[$key]['Allocated_Percentage'] = round(($groupedData[$key]['Allocated_Percentage'] + $row['Allocated_Percentage']) / 2, 2);
                                                         $groupedData[$key]['Allocated_Remaining_after_budget_commitment_Percentage'] = round(($groupedData[$key]['Allocated_Remaining_after_budget_commitment_Percentage'] + $row['Allocated_Remaining_after_budget_commitment_Percentage']) / 2, 2);
                                                         $groupedData[$key]['EXPENDITURES_Percentage'] = round(($groupedData[$key]['EXPENDITURES_Percentage'] + $row['EXPENDITURES_Percentage']) / 2, 2);
+                                                        $groupedData[$key]['EXPENDITURES_Total_Percentage'] = round(($groupedData[$key]['EXPENDITURES_Total_Percentage'] + $row['EXPENDITURES_Total_Percentage']) / 2, 2);
                                                     }
                                                 }
 
@@ -623,8 +623,8 @@ if (isset($_POST['search'])) {
                                                             <td><?php echo $row['EXPENDITURES']; ?></td>
                                                             <td><?php echo $row['EXPENDITURES_Percentage']; ?>%</td>
                                                             <td><?php echo $row['EXPENDITURES_Total']; ?></td>
-                                                            <td>0</td>
-                                                            <td>0</td>
+                                                            <td><?php echo $row['EXPENDITURES_Total_Percentage']; ?>%</td>
+
                                                             <td>0</td>
                                                             <td>0</td>
                                                             <td>0</td>
@@ -649,17 +649,17 @@ if (isset($_POST['search'])) {
                                     </div>
                                 <?php endif; ?>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
-                        <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                        <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
+                                <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
+                                <button onclick="exportXLSX()" class="btn btn-success m-t-15">Export XLSX</button>
                             </div>
-                        
 
+
+                        </div>
                     </div>
                 </div>
-            </div>
 
+            </div>
         </div>
-    </div>
     </div>
 
     <div class="footer">
@@ -672,11 +672,23 @@ if (isset($_POST['search'])) {
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
+
             for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
+                const cells = Array.from(row.cells).map(cell => {
+                    let text = cell.innerText.trim();
+
+                    // เช็คว่าเป็นตัวเลข float (ไม่มี , ในหน้าเว็บ)
+                    if (!isNaN(text) && text !== "") {
+                        text = `"${parseFloat(text).toLocaleString("en-US", { minimumFractionDigits: 2 })}"`;
+                    }
+
+                    return text;
+                });
+
+                rows.push(cells.join(",")); // ใช้ , เป็นตัวคั่น CSV
             }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
+
+            const csvContent = "\uFEFF" + rows.join("\n"); // ป้องกัน Encoding เพี้ยน
             const blob = new Blob([csvContent], {
                 type: 'text/csv;charset=utf-8;'
             });
@@ -684,7 +696,6 @@ if (isset($_POST['search'])) {
             const link = document.createElement('a');
             link.setAttribute('href', url);
             link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -731,36 +742,90 @@ if (isset($_POST['search'])) {
             doc.save('รายงาน.pdf');
         }
 
-        function exportXLS() {
-            const rows = [];
+        function exportXLSX() {
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
-            }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
+            const rows = [];
+            const merges = [];
+            const mergedCells = {}; // ใช้เก็บตำแหน่งเซลล์ที่ถูก merge
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const row = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0; // ควบคุม index ของคอลัมน์ใน Excel
+
+                for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+                    let cell = row.cells[cellIndex];
+
+                    // ตรวจสอบว่าตำแหน่งนี้ถูก Merge มาก่อนหรือไม่
+                    while (mergedCells[`${rowIndex},${colIndex}`]) {
+                        rowData.push(""); // เติมช่องว่างในตำแหน่งที่ถูก merge
+                        colIndex++;
+                    }
+
+                    let cellText = cell.innerText.trim();
+                    rowData.push(cellText);
+
+                    let rowspan = cell.rowSpan || 1;
+                    let colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: { r: rowIndex, c: colIndex }, // จุดเริ่มต้น
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดสิ้นสุด
+                        });
+
+                        // บันทึกว่าเซลล์เหล่านี้ถูก merge แล้ว
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r !== 0 || c !== 0) {
+                                    mergedCells[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
+                        }
+                    }
+
+                    colIndex += colspan;
+                }
+                rows.push(rowData);
+            }
+
+            // สร้างไฟล์ Excel
+            const XLSX = window.XLSX;
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // ✅ เพิ่ม Merge Cells
+            ws['!merges'] = merges;
+
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // ✅ ดาวน์โหลดไฟล์ Excel
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xlsx',
+                type: 'array'
+            });
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
             });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = 'รายงาน.xlsx';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
+
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
     <!-- Custom script -->
     <script src="../js/custom.min.js"></script>
+    <!-- โหลดไลบรารี xlsx จาก CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
 </body>
 
 </html>
