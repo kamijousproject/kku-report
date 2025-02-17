@@ -59,8 +59,10 @@
     th,
     td {
 
-        border: 2px solid #000; /* เพิ่มความหนาของเส้นขอบเซลล์ */
-        padding: 8px; /* เพิ่มช่องว่างภายในเซลล์ */
+        border: 2px solid #000;
+        /* เพิ่มความหนาของเส้นขอบเซลล์ */
+        padding: 8px;
+        /* เพิ่มช่องว่างภายในเซลล์ */
     }
 
     /* ทำให้ข้อมูลในตารางเลื่อนได้ */
@@ -87,15 +89,18 @@
 
     table {
         font-size: 12px;
-        
+
         /* ลดขนาดตัวอักษรของตารางในหน้าจอเล็ก */
-        border: 3px solid #000; /* กำหนดเส้นขอบของตารางให้หนาขึ้น */
+        border: 3px solid #000;
+        /* กำหนดเส้นขอบของตารางให้หนาขึ้น */
     }
+
     thead th {
-    border-bottom: 3px solid #000; /* ทำให้เส้นขอบของหัวตารางหนากว่า */
-    
-    
-}
+        border-bottom: 3px solid #000;
+        /* ทำให้เส้นขอบของหัวตารางหนากว่า */
+
+
+    }
 </style>
 
 <?php
@@ -382,273 +387,286 @@ if (isset($_POST['search'])) {
 
                                 <!-- ส่วนฟอร์มค้นหา -->
                                 <div class="info-section">
-        <form method="POST" action="">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label for="fiscal_year" class="form-label">เลือกปีบริหารงบประมาณ:</label>
-                    <select name="fiscal_year" id="fiscal_year" class="form-select form-select-sm">
-                        <option value="">-- เลือกปีบริหารงบประมาณ --</option>
-                        <?php foreach ($fiscal_years as $year): ?>
-                            <option value="<?php echo $year; ?>" <?php echo (isset($_POST['fiscal_year']) && $_POST['fiscal_year'] == $year) ? 'selected' : ''; ?>>
-                                <?php echo $year; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                    <form method="POST" action="">
+                                        <div class="row g-3">
+                                            <div class="col-md-6">
+                                                <label for="fiscal_year"
+                                                    class="form-label">เลือกปีบริหารงบประมาณ:</label>
+                                                <select name="fiscal_year" id="fiscal_year"
+                                                    class="form-select form-select-sm">
+                                                    <option value="">-- เลือกปีบริหารงบประมาณ --</option>
+                                                    <?php foreach ($fiscal_years as $year): ?>
+                                                        <option value="<?php echo $year; ?>" <?php echo (isset($_POST['fiscal_year']) && $_POST['fiscal_year'] == $year) ? 'selected' : ''; ?>>
+                                                            <?php echo $year; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
 
-                <div class="col-md-6">
-                    <label for="scenario" class="form-label">เลือกประเภทงบประมาณ:</label>
-                    <select name="scenario" id="scenario" class="form-select form-select-sm">
-                        <option value="">-- เลือกประเภทงบประมาณ --</option>
-                        <?php foreach ($scenarios as $item): ?>
-                            <option value="<?php echo $item; ?>" <?php echo (isset($_POST['scenario']) && $_POST['scenario'] == $item) ? 'selected' : ''; ?>>
-                                <?php echo $item; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                            <div class="col-md-6">
+                                                <label for="scenario" class="form-label">เลือกประเภทงบประมาณ:</label>
+                                                <select name="scenario" id="scenario"
+                                                    class="form-select form-select-sm">
+                                                    <option value="">-- เลือกประเภทงบประมาณ --</option>
+                                                    <?php foreach ($scenarios as $item): ?>
+                                                        <option value="<?php echo $item; ?>" <?php echo (isset($_POST['scenario']) && $_POST['scenario'] == $item) ? 'selected' : ''; ?>>
+                                                            <?php echo $item; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
 
-                <div class="col-md-6">
-                    <label for="fund" class="form-label">เลือกแหล่งเงิน:</label>
-                    <select name="fund" id="fund" class="form-select form-select-sm">
-                        <option value="">-- เลือกแหล่งเงิน --</option>
-                        <?php foreach ($funds as $item): ?>
-                            <option value="<?php echo $item; ?>" <?php echo (isset($_POST['fund']) && $_POST['fund'] == $item) ? 'selected' : ''; ?>>
-                                <?php echo $item; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                            <div class="col-md-6">
+                                                <label for="fund" class="form-label">เลือกแหล่งเงิน:</label>
+                                                <select name="fund" id="fund" class="form-select form-select-sm">
+                                                    <option value="">-- เลือกแหล่งเงิน --</option>
+                                                    <?php foreach ($funds as $item): ?>
+                                                        <option value="<?php echo $item; ?>" <?php echo (isset($_POST['fund']) && $_POST['fund'] == $item) ? 'selected' : ''; ?>>
+                                                            <?php echo $item; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
 
-                <div class="col-md-6">
-                    <label for="faculty_alias" class="form-label">เลือกส่วนงาน/หน่วยงาน:</label>
-                    <select name="faculty_alias" id="faculty_alias" class="form-select form-select-sm">
-                        <option value="">-- เลือกส่วนงาน/หน่วยงาน --</option>
-                        <?php foreach ($faculty_aliases as $item): ?>
-                            <option value="<?php echo $item; ?>" <?php echo (isset($_POST['faculty_alias']) && $_POST['faculty_alias'] == $item) ? 'selected' : ''; ?>>
-                                <?php echo $item; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                            <div class="col-md-6">
+                                                <label for="faculty_alias"
+                                                    class="form-label">เลือกส่วนงาน/หน่วยงาน:</label>
+                                                <select name="faculty_alias" id="faculty_alias"
+                                                    class="form-select form-select-sm">
+                                                    <option value="">-- เลือกส่วนงาน/หน่วยงาน --</option>
+                                                    <?php foreach ($faculty_aliases as $item): ?>
+                                                        <option value="<?php echo $item; ?>" <?php echo (isset($_POST['faculty_alias']) && $_POST['faculty_alias'] == $item) ? 'selected' : ''; ?>>
+                                                            <?php echo $item; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
 
-                <div class="col-md-6">
-                    <label for="plan_name" class="form-label">เลือกแผนงาน:</label>
-                    <select name="plan_name" id="plan_name" class="form-select form-select-sm">
-                        <option value="">-- เลือกแผนงาน --</option>
-                        <?php foreach ($plan_names as $item): ?>
-                            <option value="<?php echo $item; ?>" <?php echo (isset($_POST['plan_name']) && $_POST['plan_name'] == $item) ? 'selected' : ''; ?>>
-                                <?php echo $item; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                            <div class="col-md-6">
+                                                <label for="plan_name" class="form-label">เลือกแผนงาน:</label>
+                                                <select name="plan_name" id="plan_name"
+                                                    class="form-select form-select-sm">
+                                                    <option value="">-- เลือกแผนงาน --</option>
+                                                    <?php foreach ($plan_names as $item): ?>
+                                                        <option value="<?php echo $item; ?>" <?php echo (isset($_POST['plan_name']) && $_POST['plan_name'] == $item) ? 'selected' : ''; ?>>
+                                                            <?php echo $item; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
 
-                <div class="col-md-6">
-                    <label for="sub_plan_name" class="form-label">เลือกแผนงานย่อย:</label>
-                    <select name="sub_plan_name" id="sub_plan_name" class="form-select form-select-sm">
-                        <option value="">-- เลือกแผนงานย่อย --</option>
-                        <?php foreach ($sub_plan_names as $item): ?>
-                            <option value="<?php echo $item; ?>" <?php echo (isset($_POST['sub_plan_name']) && $_POST['sub_plan_name'] == $item) ? 'selected' : ''; ?>>
-                                <?php echo $item; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                            <div class="col-md-6">
+                                                <label for="sub_plan_name" class="form-label">เลือกแผนงานย่อย:</label>
+                                                <select name="sub_plan_name" id="sub_plan_name"
+                                                    class="form-select form-select-sm">
+                                                    <option value="">-- เลือกแผนงานย่อย --</option>
+                                                    <?php foreach ($sub_plan_names as $item): ?>
+                                                        <option value="<?php echo $item; ?>" <?php echo (isset($_POST['sub_plan_name']) && $_POST['sub_plan_name'] == $item) ? 'selected' : ''; ?>>
+                                                            <?php echo $item; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
 
-                <div class="col-md-6">
-                    <label for="project_name" class="form-label">เลือกโครงการ:</label>
-                    <select name="project_name" id="project_name" class="form-select form-select-sm">
-                        <option value="">-- เลือกโครงการ --</option>
-                        <?php foreach ($project_names as $item): ?>
-                            <option value="<?php echo $item; ?>" <?php echo (isset($_POST['project_name']) && $_POST['project_name'] == $item) ? 'selected' : ''; ?>>
-                                <?php echo $item; ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
+                                            <div class="col-md-6">
+                                                <label for="project_name" class="form-label">เลือกโครงการ:</label>
+                                                <select name="project_name" id="project_name"
+                                                    class="form-select form-select-sm">
+                                                    <option value="">-- เลือกโครงการ --</option>
+                                                    <?php foreach ($project_names as $item): ?>
+                                                        <option value="<?php echo $item; ?>" <?php echo (isset($_POST['project_name']) && $_POST['project_name'] == $item) ? 'selected' : ''; ?>>
+                                                            <?php echo $item; ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
 
-                <!-- ปุ่มค้นหาและรีเซ็ต -->
-                <div class="col-12 text-center mt-3">
-                    <button type="submit" name="search" class="btn btn-primary">ค้นหา</button>
-                    <button type="reset" class="btn btn-secondary" onclick="window.location.href=window.location.href;">รีเซ็ต</button>
-                </div>
-            </div>
-        </form>
+                                            <!-- ปุ่มค้นหาและรีเซ็ต -->
+                                            <div class="col-12 text-center mt-3">
+                                                <button type="submit" name="search"
+                                                    class="btn btn-primary">ค้นหา</button>
+                                                <button type="reset" class="btn btn-secondary"
+                                                    onclick="window.location.href=window.location.href;">รีเซ็ต</button>
+                                            </div>
+                                        </div>
+                                    </form>
 
-        <?php
-        // แสดงข้อความผิดพลาด (ถ้ามี)
-        if (isset($error_message)) {
-            echo '<p class="text-danger text-center mt-3">' . $error_message . '</p>';
-        }
-        ?>
-    </div>
+                                    <?php
+                                    // แสดงข้อความผิดพลาด (ถ้ามี)
+                                    if (isset($error_message)) {
+                                        echo '<p class="text-danger text-center mt-3">' . $error_message . '</p>';
+                                    }
+                                    ?>
+                                </div>
 
-<!-- แสดงตารางเฉพาะเมื่อมีการกดค้นหาและไม่มีข้อผิดพลาด -->
-<?php if (isset($_POST['search']) && !isset($error_message)): ?>
-    <div class="table-responsive">
-        <table id="reportTable" class="table table-bordered">
-            <thead>
-                <tr>
-                    <th colspan="22" style="text-align: center;">รายงานสรุปยอดงบประมาณคงเหลือ</th>
-                </tr>
-                <tr>
-                    <th colspan="22" style="text-align: left;">
-                        แสดงข้อมูล:
-                        <br> ปีบริหารงบประมาณ: <?php echo $fiscal_year; ?>
-                        <br> ประเภทงบประมาณ: <?php echo $scenario; ?>
-                        <br> แหล่งเงิน: <?php echo $fund; ?>
-                        <br> ส่วนงาน/หน่วยงาน: <?php echo $faculty_alias; ?>
-                        <br> แผนงาน (ผลผลิต): <?php echo $plan_name; ?>
-                        <br> แผนงานย่อย (ผลผลิตย่อย/กิจกรรม): <?php echo $sub_plan_name; ?>
-                        <br> โครงการ (Project): <?php echo $project_name; ?>
-                    </th>
-                </tr>
-            </thead>
-            <thead>
-                <tr>
-                    <th rowspan="2">คำใช้จ่าย</th>
-                    <th colspan="4">ยอดรวมงบประมาณ</th>
-                    <th colspan="8">เงินประจำงวด</th>
-                    <th colspan="2">ผูกพัน</th>
-                    <th colspan="2">ผูกพันงบประมาณตามข้อตกลง/สัญญา</th>
-                    <th rowspan="2">จำนวนงบประมาณเบิกจ่าย</th>
-                    <th rowspan="2">เบิกงบประมาณเกินส่งคืน</th>
-                </tr>
-                <tr>
-                    <th>จำนวนงบประมาณ</th>
-                    <th>จำนวนงบประมาณโอนเข้า</th>
-                    <th>จำนวนงบประมาณโอนออก</th>
-                    <th>คงเหลือไม่อนุมัติงวดเงิน</th>
-                    <th>ผูกพันงบประมาณ</th>
-                    <th>ร้อยละ</th>
-                    <th>คงเหลือหลังผูกพันงบประมาณ</th>
-                    <th>ร้อยละ</th>
-                    <th>เบิกจ่ายงบประมาณ</th>
-                    <th>ร้อยละ</th>
-                    <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
-                    <th>ร้อยละ</th>
-                    <th>จำนวนงบประมาณ</th>
-                    <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
-                    <th>จำนวนงบประมาณ</th>
-                    <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
-                </tr>
-            </thead>
-            <?php
-// ตรวจสอบว่ามีข้อมูลหรือไม่
-if (!empty($data)) {
-    $groupedData = [];
+                                <!-- แสดงตารางเฉพาะเมื่อมีการกดค้นหาและไม่มีข้อผิดพลาด -->
+                                <?php if (isset($_POST['search']) && !isset($error_message)): ?>
+                                    <div class="table-responsive">
+                                        <table id="reportTable" class="table table-bordered">
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="22" style="text-align: center;">
+                                                        รายงานสรุปยอดงบประมาณคงเหลือ</th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="22" style="text-align: left;">
+                                                        แสดงข้อมูล:
+                                                        <br> ปีบริหารงบประมาณ: <?php echo $fiscal_year; ?>
+                                                        <br> ประเภทงบประมาณ: <?php echo $scenario; ?>
+                                                        <br> แหล่งเงิน: <?php echo $fund; ?>
+                                                        <br> ส่วนงาน/หน่วยงาน: <?php echo $faculty_alias; ?>
+                                                        <br> แผนงาน (ผลผลิต): <?php echo $plan_name; ?>
+                                                        <br> แผนงานย่อย (ผลผลิตย่อย/กิจกรรม): <?php echo $sub_plan_name; ?>
+                                                        <br> โครงการ (Project): <?php echo $project_name; ?>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2">คำใช้จ่าย</th>
+                                                    <th colspan="4">ยอดรวมงบประมาณ</th>
+                                                    <th colspan="8">เงินประจำงวด</th>
+                                                    <th colspan="2">ผูกพัน</th>
+                                                    <th colspan="2">ผูกพันงบประมาณตามข้อตกลง/สัญญา</th>
+                                                    <th rowspan="2">จำนวนงบประมาณเบิกจ่าย</th>
+                                                    <th rowspan="2">เบิกงบประมาณเกินส่งคืน</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>จำนวนงบประมาณ</th>
+                                                    <th>จำนวนงบประมาณโอนเข้า</th>
+                                                    <th>จำนวนงบประมาณโอนออก</th>
+                                                    <th>คงเหลือไม่อนุมัติงวดเงิน</th>
+                                                    <th>ผูกพันงบประมาณ</th>
+                                                    <th>ร้อยละ</th>
+                                                    <th>คงเหลือหลังผูกพันงบประมาณ</th>
+                                                    <th>ร้อยละ</th>
+                                                    <th>เบิกจ่ายงบประมาณ</th>
+                                                    <th>ร้อยละ</th>
+                                                    <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
+                                                    <th>ร้อยละ</th>
+                                                    <th>จำนวนงบประมาณ</th>
+                                                    <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
+                                                    <th>จำนวนงบประมาณ</th>
+                                                    <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
+                                                </tr>
+                                            </thead>
+                                            <?php
+                                            // ตรวจสอบว่ามีข้อมูลหรือไม่
+                                            if (!empty($data)) {
+                                                $groupedData = [];
 
-    // วนลูปข้อมูลเพื่อนำมาจัดกลุ่ม
-    foreach ($data as $row) {
-        $key = $row['sub_type']; // ใช้ sub_type เป็น key สำหรับการ grouping
+                                                // วนลูปข้อมูลเพื่อนำมาจัดกลุ่ม
+                                                foreach ($data as $row) {
+                                                    $key = $row['sub_type']; // ใช้ sub_type เป็น key สำหรับการ grouping
+                                        
+                                                    if (!isset($groupedData[$key])) {
+                                                        // ถ้ายังไม่มี ให้สร้างแถวใหม่
+                                                        $groupedData[$key] = $row;
+                                                    } else {
+                                                        // ถ้ามีแล้ว ให้รวมค่าของฟิลด์ตัวเลข
+                                                        $groupedData[$key]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
+                                                        $groupedData[$key]['BUDGET_ADJUSTMENTS'] += $row['BUDGET_ADJUSTMENTS'];
+                                                        $groupedData[$key]['BUDGET_ADJUSTMENTS'] += $row['BUDGET_ADJUSTMENTS'];
+                                                        $groupedData[$key]['Remaining_Unapproved_Budget'] += $row['Remaining_Unapproved_Budget'];
+                                                        $groupedData[$key]['Budget_Commitments'] += $row['Budget_Commitments'];
+                                                        $groupedData[$key]['Allocated_Percentage'] += $row['Allocated_Percentage'];
+                                                        $groupedData[$key]['Remaining_after_budget_commitment'] += $row['Remaining_after_budget_commitment'];
+                                                        $groupedData[$key]['EXPENDITURES'] += $row['EXPENDITURES'];
+                                                        $groupedData[$key]['EXPENDITURES_Total'] += $row['EXPENDITURES_Total'];
 
-        if (!isset($groupedData[$key])) {
-            // ถ้ายังไม่มี ให้สร้างแถวใหม่
-            $groupedData[$key] = $row;
-        } else {
-            // ถ้ามีแล้ว ให้รวมค่าของฟิลด์ตัวเลข
-            $groupedData[$key]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
-            $groupedData[$key]['BUDGET_ADJUSTMENTS'] += $row['BUDGET_ADJUSTMENTS'];
-            $groupedData[$key]['BUDGET_ADJUSTMENTS'] += $row['BUDGET_ADJUSTMENTS'];
-            $groupedData[$key]['Remaining_Unapproved_Budget'] += $row['Remaining_Unapproved_Budget'];
-            $groupedData[$key]['Budget_Commitments'] += $row['Budget_Commitments'];
-            $groupedData[$key]['Allocated_Percentage'] += $row['Allocated_Percentage'];
-            $groupedData[$key]['Remaining_after_budget_commitment'] += $row['Remaining_after_budget_commitment'];
-            $groupedData[$key]['EXPENDITURES'] += $row['EXPENDITURES'];
-            $groupedData[$key]['EXPENDITURES_Total'] += $row['EXPENDITURES_Total'];
+                                                        // สำหรับเปอร์เซ็นต์ ควรคำนวณค่าเฉลี่ยหรือลองเลือกวิธีที่เหมาะสม
+                                                        $groupedData[$key]['Allocated_Percentage'] = round(($groupedData[$key]['Allocated_Percentage'] + $row['Allocated_Percentage']) / 2, 2);
+                                                        $groupedData[$key]['Allocated_Remaining_after_budget_commitment_Percentage'] = round(($groupedData[$key]['Allocated_Remaining_after_budget_commitment_Percentage'] + $row['Allocated_Remaining_after_budget_commitment_Percentage']) / 2, 2);
+                                                        $groupedData[$key]['EXPENDITURES_Percentage'] = round(($groupedData[$key]['EXPENDITURES_Percentage'] + $row['EXPENDITURES_Percentage']) / 2, 2);
+                                                    }
+                                                }
 
-            // สำหรับเปอร์เซ็นต์ ควรคำนวณค่าเฉลี่ยหรือลองเลือกวิธีที่เหมาะสม
-            $groupedData[$key]['Allocated_Percentage'] = round(($groupedData[$key]['Allocated_Percentage'] + $row['Allocated_Percentage']) / 2, 2);
-            $groupedData[$key]['Allocated_Remaining_after_budget_commitment_Percentage'] = round(($groupedData[$key]['Allocated_Remaining_after_budget_commitment_Percentage'] + $row['Allocated_Remaining_after_budget_commitment_Percentage']) / 2, 2);
-            $groupedData[$key]['EXPENDITURES_Percentage'] = round(($groupedData[$key]['EXPENDITURES_Percentage'] + $row['EXPENDITURES_Percentage']) / 2, 2);
-        }
-    }
+                                                // เปลี่ยนเป็น array ที่สามารถวนลูปได้
+                                                $groupedData = array_values($groupedData);
+                                            } else {
+                                                $groupedData = [];
+                                            }
+                                            ?>
 
-    // เปลี่ยนเป็น array ที่สามารถวนลูปได้
-    $groupedData = array_values($groupedData);
-} else {
-    $groupedData = [];
-}
-?>
+                                            <tbody>
+                                                <?php
+                                                // เรียงลำดับ type และ sub_type
+                                                usort($groupedData, function ($a, $b) {
+                                                    $typeCompare = strcmp($a['type'], $b['type']); // เปรียบเทียบ type
+                                                    if ($typeCompare === 0) {
+                                                        return strcmp($a['sub_type'], $b['sub_type']); // ถ้า type เท่ากัน ให้เรียงตาม sub_type
+                                                    }
+                                                    return $typeCompare;
+                                                });
 
-<tbody>
-<?php
-// เรียงลำดับ type และ sub_type
-usort($groupedData, function ($a, $b) {
-    $typeCompare = strcmp($a['type'], $b['type']); // เปรียบเทียบ type
-    if ($typeCompare === 0) {
-        return strcmp($a['sub_type'], $b['sub_type']); // ถ้า type เท่ากัน ให้เรียงตาม sub_type
-    }
-    return $typeCompare;
-});
+                                                $prevType = null; // เก็บค่า type ก่อนหน้า
+                                                ?>
 
-$prevType = null; // เก็บค่า type ก่อนหน้า
-?>
-
-<?php if (!empty($groupedData)): ?>
-    <?php foreach ($groupedData as $row): ?>
-        <tr>
-            <td>
-                <?php if ($prevType !== $row['type']): ?>
-                    <?php echo $row['type']; ?> <br>
-                <?php endif; ?>
-                <?php echo $row['sub_type']; ?>
-            </td>
-            <td><?php echo $row['Allocated_Total_Amount_Quantity']; ?></td>
-            <td><?php echo $row['BUDGET_ADJUSTMENTS']; ?></td>
-            <td><?php echo $row['BUDGET_ADJUSTMENTS']; ?></td>
-            <td><?php echo $row['Remaining_Unapproved_Budget']; ?></td>
-            <td><?php echo $row['Budget_Commitments']; ?></td>
-            <td><?php echo $row['Allocated_Percentage']; ?>%</td>
-            <td><?php echo $row['Remaining_after_budget_commitment']; ?></td>
-            <td><?php echo $row['Allocated_Remaining_after_budget_commitment_Percentage']; ?>%</td>
-            <td><?php echo $row['EXPENDITURES']; ?></td>
-            <td><?php echo $row['EXPENDITURES_Percentage']; ?>%</td>
-            <td><?php echo $row['EXPENDITURES_Total']; ?></td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-            <td>0</td>
-            <td><?php echo $row['EXPENDITURES']; ?></td>
-            <td>0</td>
-        </tr>
-        <?php $prevType = $row['type']; // อัปเดตค่า type ที่แสดงล่าสุด ?>
-    <?php endforeach; ?>
-<?php else: ?>
-    <tr>
-        <td colspan="22" style="text-align: center; color: red;">
-            ไม่มีข้อมูลที่ตรงกับเงื่อนไขที่เลือก
-        </td>
-    </tr>
-<?php endif; ?>
+                                                <?php if (!empty($groupedData)): ?>
+                                                    <?php foreach ($groupedData as $row): ?>
+                                                        <tr>
+                                                            <td>
+                                                                <?php if ($prevType !== $row['type']): ?>
+                                                                    <?php echo $row['type']; ?> <br>
+                                                                <?php endif; ?>
+                                                                <?php echo $row['sub_type']; ?>
+                                                            </td>
+                                                            <td><?php echo $row['Allocated_Total_Amount_Quantity']; ?></td>
+                                                            <td><?php echo $row['BUDGET_ADJUSTMENTS']; ?></td>
+                                                            <td><?php echo $row['BUDGET_ADJUSTMENTS']; ?></td>
+                                                            <td><?php echo $row['Remaining_Unapproved_Budget']; ?></td>
+                                                            <td><?php echo $row['Budget_Commitments']; ?></td>
+                                                            <td><?php echo $row['Allocated_Percentage']; ?>%</td>
+                                                            <td><?php echo $row['Remaining_after_budget_commitment']; ?></td>
+                                                            <td><?php echo $row['Allocated_Remaining_after_budget_commitment_Percentage']; ?>%
+                                                            </td>
+                                                            <td><?php echo $row['EXPENDITURES']; ?></td>
+                                                            <td><?php echo $row['EXPENDITURES_Percentage']; ?>%</td>
+                                                            <td><?php echo $row['EXPENDITURES_Total']; ?></td>
+                                                            <td>0</td>
+                                                            <td>0</td>
+                                                            <td>0</td>
+                                                            <td>0</td>
+                                                            <td>0</td>
+                                                            <td>0</td>
+                                                            <td><?php echo $row['EXPENDITURES']; ?></td>
+                                                            <td>0</td>
+                                                        </tr>
+                                                        <?php $prevType = $row['type']; // อัปเดตค่า type ที่แสดงล่าสุด ?>
+                                                    <?php endforeach; ?>
+                                                <?php else: ?>
+                                                    <tr>
+                                                        <td colspan="22" style="text-align: center; color: red;">
+                                                            ไม่มีข้อมูลที่ตรงกับเงื่อนไขที่เลือก
+                                                        </td>
+                                                    </tr>
+                                                <?php endif; ?>
 
 
-</tbody>
+                                            </tbody>
 
-        </table>
-    </div>
-<?php endif; ?>
-
-                               
+                                        </table>
+                                    </div>
+                                <?php endif; ?>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
-                                <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
-
+                        <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
+                        <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
                             </div>
-                        </div>
+                        
 
                     </div>
                 </div>
             </div>
+
         </div>
-        <div class="footer">
-            <div class="copyright">
-                <p>Copyright &copy; <a href="#">KKU</a> 2025</p>
-            </div>
+    </div>
+    </div>
+
+    <div class="footer">
+        <div class="copyright">
+            <p>Copyright &copy; <a href="#">KKU</a> 2025</p>
         </div>
+    </div>
     </div>
     <script>
         function exportCSV() {
