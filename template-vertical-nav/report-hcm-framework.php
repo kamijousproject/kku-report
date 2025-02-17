@@ -427,7 +427,7 @@ $totalPages = ceil($totalRows / $limit);
 
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
+                                <button onclick="exportXLSX()" class="btn btn-success m-t-15">Export XLSX</button>
 
                             </div>
                         </div>
@@ -443,98 +443,163 @@ $totalPages = ceil($totalRows / $limit);
         </div>
     </div>
     <script>
-        function exportCSV() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
+    function exportCSV() {
+        const rows = [];
+        const table = document.getElementById('reportTable');
+
+        for (let row of table.rows) {
+            const cells = Array.from(row.cells).map(cell => {
+                let text = cell.innerText.trim();
+
+                // เช็คว่าเป็นตัวเลข float (ไม่มี , ในหน้าเว็บ)
+                if (!isNaN(text) && text !== "") {
+                    text = `"${parseFloat(text).toLocaleString("en-US", { minimumFractionDigits: 2 })}"`;
+                }
+
+                return text;
+            });
+
+            rows.push(cells.join(",")); // ใช้ , เป็นตัวคั่น CSV
+        }
+
+        const csvContent = "\uFEFF" + rows.join("\n"); // ป้องกัน Encoding เพี้ยน
+        const blob = new Blob([csvContent], {
+            type: 'text/csv;charset=utf-8;'
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'รายงาน.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportPDF() {
+        const {
+            jsPDF
+        } = window.jspdf;
+        const doc = new jsPDF('landscape');
+
+        // เพิ่มฟอนต์ภาษาไทย
+        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+        doc.setFont("THSarabun");
+
+        // ตั้งค่าฟอนต์และข้อความ
+        doc.setFontSize(12);
+        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+
+        // ใช้ autoTable สำหรับสร้างตาราง
+        doc.autoTable({
+            html: '#reportTable',
+            startY: 20,
+            styles: {
+                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
+                fontSize: 10,
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            bodyStyles: {
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            headStyles: {
+                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
+                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+        });
+
+        // บันทึกไฟล์ PDF
+        doc.save('รายงาน.pdf');
+    }
+
+    function exportXLSX() {
+    const table = document.getElementById('reportTable');
+    const rows = [];
+    const merges = [];
+    const mergedCells = {}; // ใช้เก็บตำแหน่งเซลล์ที่ถูก merge
+
+    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+        const row = table.rows[rowIndex];
+        const rowData = [];
+        let colIndex = 0; // ควบคุม index ของคอลัมน์ใน Excel
+
+        for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+            let cell = row.cells[cellIndex];
+
+            // ตรวจสอบว่าตำแหน่งนี้ถูก Merge มาก่อนหรือไม่
+            while (mergedCells[`${rowIndex},${colIndex}`]) {
+                rowData.push(""); // เติมช่องว่างในตำแหน่งที่ถูก merge
+                colIndex++;
             }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
 
-        function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            let cellText = cell.innerText.trim();
+            rowData.push(cellText);
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
+            let rowspan = cell.rowSpan || 1;
+            let colspan = cell.colSpan || 1;
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+            if (rowspan > 1 || colspan > 1) {
+                merges.push({
+                    s: { r: rowIndex, c: colIndex }, // จุดเริ่มต้น
+                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดสิ้นสุด
+                });
 
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-            });
-
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
-        }
-
-        function exportXLS() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
+                // บันทึกว่าเซลล์เหล่านี้ถูก merge แล้ว
+                for (let r = 0; r < rowspan; r++) {
+                    for (let c = 0; c < colspan; c++) {
+                        if (r !== 0 || c !== 0) {
+                            mergedCells[`${rowIndex + r},${colIndex + c}`] = true;
+                        }
+                    }
+                }
             }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            colIndex += colspan;
         }
+        rows.push(rowData);
+    }
+
+    // สร้างไฟล์ Excel
+    const XLSX = window.XLSX;
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // ✅ เพิ่ม Merge Cells
+    ws['!merges'] = merges;
+
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+    // ✅ ดาวน์โหลดไฟล์ Excel
+    const excelBuffer = XLSX.write(wb, {
+        bookType: 'xlsx',
+        type: 'array'
+    });
+    const blob = new Blob([excelBuffer], {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'รายงาน.xlsx';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
     <!-- Custom script -->
     <script src="../js/custom.min.js"></script>
+    <!-- โหลดไลบรารี xlsx จาก CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+
 </body>
 
 </html>
