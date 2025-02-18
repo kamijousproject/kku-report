@@ -422,6 +422,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         case "get_faculty_2":
             try {
                 $fyear = $_POST["fiscal_year"];
+                $scenario = $_POST["scenario"];
                 $db = new Database();
                 $conn = $db->connect();
 
@@ -430,6 +431,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM budget_planning_annual_budget_plan b
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
+                        WHERE b.Budget_Management_Year = :fyear and b.scenario=:scenario";
+
+                $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'fac' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break; 
+        case "get_scenario":
+            try {
+                $fyear = $_POST["fiscal_year"];
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT DISTINCT scenario
+                        FROM budget_planning_annual_budget_plan b                   
                         WHERE b.Budget_Management_Year = :fyear";
 
                 $cmd = $conn->prepare($sql);
@@ -541,6 +573,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
                 $fyear = $_POST["fiscal_year"];
                 $faculty = $_POST["faculty"];
+                $scenario = $_POST["scenario"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS(
                 SELECT TYPE 
@@ -554,7 +587,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ON b.account=a.account
                 LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                 ON b.faculty=f.faculty
-                where b.Budget_Management_Year=:fyear and f.Alias_Default=:faculty)
+                where b.Budget_Management_Year=:fyear and b.scenario=:scenario and f.Alias_Default=:faculty)
                 ,t3 AS (
                 SELECT t.type
                 ,COALESCE(SUM(Total_Amount_Quantity),0) AS Total_Amount_Quantity
@@ -567,6 +600,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $cmd = $conn->prepare($sql);
                 $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
                 $cmd->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+                $cmd->bindParam(':scenario', $scenario, PDO::PARAM_STR);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
@@ -590,6 +624,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
                 $fyear = $_POST["fiscal_year"];
                 $faculty = $_POST["faculty"];
+                $scenario = $_POST["scenario"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS(
                 SELECT TYPE 
@@ -603,7 +638,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ON b.account=a.account
                 LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                 ON b.faculty=f.faculty
-                where b.Budget_Management_Year=:fyear and f.Alias_Default=:faculty)
+                where b.Budget_Management_Year=:fyear and b.scenario=:scenario and f.Alias_Default=:faculty)
                 ,t3 AS (
                 SELECT t.type
                 ,COALESCE(SUM(Total_Amount_Quantity),0) AS Total_Amount_Quantity
@@ -616,6 +651,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $cmd = $conn->prepare($sql);
                 $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
                 $cmd->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+                $cmd->bindParam(':scenario', $scenario, PDO::PARAM_STR);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
 

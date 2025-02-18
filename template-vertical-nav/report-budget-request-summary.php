@@ -63,6 +63,9 @@
                                     <!-- Submit Button -->
                                     <button id="submitBtn" disabled>Submit</button>
                                     <table id="reportTable" class="table table-bordered">
+                                    <div class="card-title">
+                                        <h6>รายงานสรุปรายรับรายจ่าย</h6>
+                                    </div>
                                         <thead>
                                             
                                             <tr>
@@ -98,8 +101,10 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        let y = "";
+        let f = "";
         $(document).ready(function() {
-
+            
             $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
@@ -129,8 +134,40 @@
                     type: "POST",
                     url: "../server/budget_planing_api.php",
                     data: {
-                        'command': 'get_faculty_2',
+                        'command': 'get_scenario',
                         'fiscal_year': year
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        console.log(response);
+                        response.fac.forEach((row) =>{
+                            $('#dropdown2').append('<option value="'+row.scenario+'">'+row.scenario+'</option>').prop('disabled', false);
+                            
+                        });   
+                    }
+                    ,
+                    error: function(jqXHR, exception) {
+                        console.error("Error: " + exception);
+                        responseError(jqXHR, exception);
+                    }
+                });
+            });
+
+
+            $('#dropdown2').change(function() {
+                let year = $('#dropdown1').val();
+                let scenario = $(this).val();
+                $('#dropdown4').html('<option value="">เลือกส่วนงาน/หน่วยงาน</option>').prop('disabled', true);
+                $('#submitBtn').prop('disabled', true);
+
+                if (scenario) {
+                    $.ajax({
+                    type: "POST",
+                    url: "../server/budget_planing_api.php",
+                    data: {
+                        'command': 'get_faculty_2',
+                        'fiscal_year': year,
+                        'scenario':scenario
                     },
                     dataType: "json",
                     success: function(response) {
@@ -146,23 +183,6 @@
                         responseError(jqXHR, exception);
                     }
                 });
-            });
-
-
-            $('#dropdown2').change(function() {
-                let subcategoryId = $(this).val();
-                $('#dropdown3').html('<option value="">Select Item</option>').prop('disabled', true);
-                $('#submitBtn').prop('disabled', true);
-
-                if (subcategoryId) {
-                    $.ajax({
-                        url: 'query.php',
-                        type: 'POST',
-                        data: { action: 'getItems', subcategory_id: subcategoryId },
-                        success: function(response) {
-                            $('#dropdown3').html(response).prop('disabled', false);
-                        }
-                    });
                 }
             });
 
@@ -177,13 +197,17 @@
 
             $('#submitBtn').click(function() {
                 let year = $('#dropdown1').val();
+                let scenario = $('#dropdown2').val();
                 let faculty = $('#dropdown4').val();
+                y=$('#dropdown1').find('option:selected').text();;
+                f=$('#dropdown4').find('option:selected').text();;
                 $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
                 data: {
                     'command': 'kku_bgp_budget-request-summary-revenue',
                     'fiscal_year': year,
+                    'scenario':scenario,
                     'faculty': faculty
                 },
                 dataType: "json",
@@ -208,13 +232,22 @@
                     }
                     
                     var tr =document.createElement('tr');
-                    var td = document.createElement('td');
-                    td.setAttribute('colspan', '3');
+                    var td = document.createElement('td');                   
                     td.textContent = "รายรับ"; // เพิ่มข้อความภายในเซลล์
-                    td.style.textAlign = "center";
+                    tr.appendChild(td);
+                    revenue.appendChild(tr);
+                    
+                    var td = document.createElement('td');                   
+                    td.textContent = total.toLocaleString(); // เพิ่มข้อความภายในเซลล์
+                    tr.appendChild(td);
+                    revenue.appendChild(tr);
+
+                    var td = document.createElement('td');                   
+                    td.textContent = "100"; // เพิ่มข้อความภายในเซลล์
                     tr.appendChild(td);
                     revenue.appendChild(tr);
                     //console.log(response.bgp);
+                    
                     response.bgp.forEach((row, index) => {                   
                         const tr = document.createElement('tr');
 
@@ -248,6 +281,7 @@
                 data: {
                     'command': 'kku_bgp_budget-request-summary-expense',
                     'fiscal_year': year,
+                    'scenario':scenario,
                     'faculty': faculty
                 },
                 dataType: "json",
@@ -273,9 +307,17 @@
                     
                     var tr =document.createElement('tr');
                     var td = document.createElement('td');
-                    td.setAttribute('colspan', '3');
                     td.textContent = "รายจ่าย"; // เพิ่มข้อความภายในเซลล์
-                    td.style.textAlign = "center";
+                    tr.appendChild(td);
+                    revenue.appendChild(tr);
+
+                    var td = document.createElement('td');
+                    td.textContent = total.toLocaleString();; // เพิ่มข้อความภายในเซลล์
+                    tr.appendChild(td);
+                    revenue.appendChild(tr);
+
+                    var td = document.createElement('td');
+                    td.textContent = "100"; // เพิ่มข้อความภายในเซลล์
                     tr.appendChild(td);
                     revenue.appendChild(tr);
                     //console.log(response.bgp);
@@ -306,6 +348,7 @@
                 }
             });
         });
+        
     });
     function exportCSV() {
         const table = document.getElementById('reportTable');
@@ -386,14 +429,31 @@
         doc.addFont("THSarabun.ttf", "THSarabun", "normal");
         doc.setFont("THSarabun");
 
+        let yPos = 10;
         // ตั้งค่าฟอนต์และข้อความ
-        doc.setFontSize(12);
-        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+        doc.setFontSize(14);
+        let lines = doc.splitTextToSize("รายงานสรุปรายรับรายจ่าย", 300); // กำหนดความกว้างของแต่ละบรรทัด
+        doc.text(lines, 10, yPos);
+        yPos += 10;
+
+        doc.setFontSize(10);
+        // กลับไปใช้ตัวอักษรปกติ
+        doc.setFont("THSarabun", "normal");
+        lines = doc.splitTextToSize("ปีบริหารงบประมาณ: " + y, 100); // กำหนดความกว้างของแต่ละบรรทัด
+        doc.text(lines, 10, yPos);
+        yPos+=10;
+        lines = doc.splitTextToSize("ประเภทงบประมาณ: ", 100); // กำหนดความกว้างของแต่ละบรรทัด
+        doc.text(lines, 10, yPos);
+        yPos+=10;
+        lines = doc.splitTextToSize("ส่วนงาน/หน่วยงาน: "+ f, 400); // กำหนดความกว้างของแต่ละบรรทัด
+        doc.text(lines, 10, yPos);
+        yPos+=10;
+
 
         // ใช้ autoTable สำหรับสร้างตาราง
         doc.autoTable({
             html: '#reportTable',
-            startY: 20,
+            startY: yPos,
             styles: {
                 font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
                 fontSize: 10,
@@ -417,102 +477,111 @@
     }
 
     function exportXLS() {
-            const table = document.getElementById('reportTable');
+        const table = document.getElementById('reportTable');
 
-            // เก็บข้อมูลแต่ละแถวเป็น Array ของ Array
-            const rows = [];
-            // เก็บ Merge (colSpan/rowSpan) ในรูปแบบ SheetJS
-            const merges = {};
+        // เพิ่ม header เป็นแถวแรก
+        const headers = [
+            ["ปีบริหารงบประมาณ: "+y, "", "", ""],
+            ["ประเภทงบประมาณ:", "", "", ""],
+            ["ส่วนงาน/หน่วยงาน: "+ f, "", "", ""],
+            []  // แถวว่างเป็นตัวแบ่ง
+        ];
 
-            // ใช้ object เก็บว่าส่วนใดถูก merge ไปแล้ว เพื่อเลี่ยงการซ้ำซ้อน
-            // key = "rowIndex,colIndex" => true/false
-            const skipMap = {};
+        // เก็บข้อมูลแต่ละแถวเป็น Array ของ Array
+        const rows = headers; // เริ่มต้นด้วย headers
+        // เก็บ Merge (colSpan/rowSpan) ในรูปแบบ SheetJS
+        const merges = {};
 
-            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-                const tr = table.rows[rowIndex];
-                const rowData = [];
-                let colIndex = 0;
+        // ใช้ object เก็บว่าส่วนใดถูก merge ไปแล้ว เพื่อเลี่ยงการซ้ำซ้อน
+        // key = "rowIndex,colIndex" => true/false
+        const skipMap = {};
 
-                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-                    // ข้ามเซลล์ที่อยู่ในพื้นที่ merge แล้ว
-                    while (skipMap[`${rowIndex},${colIndex}`]) {
-                        rowData.push(""); 
-                        colIndex++;
-                    }
+        for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+            const tr = table.rows[rowIndex];
+            const rowData = [];
+            let colIndex = 0;
 
-                    const cell = tr.cells[cellIndex];
-                    // เอา innerText หรือจะใช้ innerHTML แปลงเองก็ได้
-                    let cellText = cell.innerText.trim();
+            for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                // ข้ามเซลล์ที่อยู่ในพื้นที่ merge แล้ว
+                while (skipMap[`${rowIndex + headers.length},${colIndex}`]) {
+                    rowData.push(""); 
+                    colIndex++;
+                }
 
-                    // ใส่ข้อมูลลงใน Array
-                    rowData[colIndex] = cellText;
-                    
-                    // ตรวจสอบ colSpan / rowSpan
-                    const rowspan = cell.rowSpan || 1;
-                    const colspan = cell.colSpan || 1;
+                const cell = tr.cells[cellIndex];
+                // เอา innerText หรือจะใช้ innerHTML แปลงเองก็ได้
+                let cellText = cell.innerText.trim();
 
-                    // ถ้ามีการ Merge จริง (มากกว่า 1)
-                    if (rowspan > 1 || colspan > 1) {
-                        // สร้าง object merge ตามรูปแบบ SheetJS
-                        const mergeRef = {
-                            s: { r: rowIndex, c: colIndex },                 // จุดเริ่ม (start)
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดจบ (end)
-                        };
+                // ใส่ข้อมูลลงใน Array
+                rowData[colIndex] = cellText;
+                
+                // ตรวจสอบ colSpan / rowSpan
+                const rowspan = cell.rowSpan || 1;
+                const colspan = cell.colSpan || 1;
 
-                        // เก็บลง merges (รูปแบบเก่าคือ ws['!merges'] = [])
-                        // แต่ต้องรอใส่หลังสร้าง Worksheet ด้วย SheetJS
-                        // จึงบันทึกชั่วคราวใน merges พร้อม index
-                        const mergeKey = `merge_${rowIndex}_${colIndex}`;
-                        merges[mergeKey] = mergeRef;
+                // ถ้ามีการ Merge จริง (มากกว่า 1)
+                if (rowspan > 1 || colspan > 1) {
+                    // สร้าง object merge ตามรูปแบบ SheetJS
+                    // โดยเพิ่ม offset ของ headers
+                    const mergeRef = {
+                        s: { r: rowIndex + headers.length, c: colIndex },                 // จุดเริ่ม (start)
+                        e: { r: rowIndex + headers.length + rowspan - 1, c: colIndex + colspan - 1 } // จุดจบ (end)
+                    };
 
-                        // Mark skipMap กันซ้ำ
-                        for (let r = 0; r < rowspan; r++) {
-                            for (let c = 0; c < colspan; c++) {
-                                if (!(r === 0 && c === 0)) {
-                                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
-                                }
+                    // เก็บลง merges (รูปแบบเก่าคือ ws['!merges'] = [])
+                    // แต่ต้องรอใส่หลังสร้าง Worksheet ด้วย SheetJS
+                    // จึงบันทึกชั่วคราวใน merges พร้อม index
+                    const mergeKey = `merge_${rowIndex + headers.length}_${colIndex}`;
+                    merges[mergeKey] = mergeRef;
+
+                    // Mark skipMap กันซ้ำ โดยเพิ่ม offset ของ headers
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            if (!(r === 0 && c === 0)) {
+                                skipMap[`${rowIndex + headers.length + r},${colIndex + c}`] = true;
                             }
                         }
                     }
-
-                    colIndex++;
                 }
-                rows.push(rowData);
+
+                colIndex++;
             }
-
-            // สร้าง Workbook
-            const wb = XLSX.utils.book_new();
-            // แปลง Array เป็น Worksheet
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-
-            // ใส่ merges เข้า Worksheet (Array)
-            ws['!merges'] = Object.values(merges);
-
-            // เพิ่มชีทใน Workbook
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-            // เขียนไฟล์เป็น XLS (BIFF8)
-            // ใช้ { bookType: 'xls', type: 'array' } เพื่อได้ Buffer Array
-            const excelBuffer = XLSX.write(wb, {
-                bookType: 'xls',
-                type: 'array'
-            });
-
-            // สร้าง Blob เป็นไฟล์ XLS
-            const blob = new Blob([excelBuffer], {
-                type: 'application/vnd.ms-excel'
-            });
-
-            // ดาวน์โหลดไฟล์
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'report.xls'; // ชื่อไฟล์ .xls
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            rows.push(rowData);
         }
+
+        // สร้าง Workbook
+        const wb = XLSX.utils.book_new();
+        // แปลง Array เป็น Worksheet
+        const ws = XLSX.utils.aoa_to_sheet(rows);
+
+        // ใส่ merges เข้า Worksheet (Array)
+        ws['!merges'] = Object.values(merges);
+
+        // เพิ่มชีทใน Workbook
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+        // เขียนไฟล์เป็น XLS (BIFF8)
+        // ใช้ { bookType: 'xls', type: 'array' } เพื่อได้ Buffer Array
+        const excelBuffer = XLSX.write(wb, {
+            bookType: 'xls',
+            type: 'array'
+        });
+
+        // สร้าง Blob เป็นไฟล์ XLS
+        const blob = new Blob([excelBuffer], {
+            type: 'application/vnd.ms-excel'
+        });
+
+        // ดาวน์โหลดไฟล์
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'report.xls'; // ชื่อไฟล์ .xls
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
