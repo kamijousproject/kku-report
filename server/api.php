@@ -683,6 +683,64 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+
+
+            case "report-project-summary":
+                try {
+                    $db = new Database();
+                    $conn = $db->connect();
+    
+                    // เชื่อมต่อฐานข้อมูล
+                    $sqlPlan = "SELECT
+                                    b_actual.FISCAL_YEAR,
+                                    annual_bp.Budget_Management_Year,
+                                    annual_bp.Plan,
+                                    annual_bp.Sub_Plan,
+                                    annual_bp.Faculty,
+                                    annual_bp.Project,
+                                    annual_bp.Total_Amount_Quantity,
+                                    f.Alias_Default AS faculty_name,
+                                    account.alias_default,
+                                    plan.plan_name,
+                                    sub_plan.sub_plan_name,
+                                    project.project_name,
+                                    account.parent
+                                FROM
+                                    budget_planning_annual_budget_plan AS annual_bp
+                                    LEFT JOIN (SELECT DISTINCT Faculty,fund,plan,subplan,project,account,service,fiscal_year from budget_planning_actual) b_actual 
+                                    ON b_actual.PLAN = annual_bp.Plan
+                                    AND annual_bp.faculty=b_actual.FACULTY
+                                    AND b_actual.SUBPLAN = REPLACE(annual_bp.Sub_Plan, 'SP_', '')
+                                    AND b_actual.PROJECT = annual_bp.Project
+                                    AND annual_bp.account=b_actual.account
+                                    AND b_actual.fund=REPLACE(annual_bp.fund, 'FN', '')
+                                    AND b_actual.service=REPLACE(annual_bp.service, 'SR_', '')
+                                    LEFT JOIN account ON account.account = annual_bp.Account
+                                    LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'FACULTY%') f ON f.Faculty = annual_bp.Faculty
+                                    LEFT JOIN plan ON plan.plan_id = annual_bp.Plan
+                                    LEFT JOIN sub_plan ON sub_plan.sub_plan_id = annual_bp.Sub_Plan
+                                    LEFT JOIN project ON project.project_id = annual_bp.Project
+                                WHERE
+                                    annual_bp.Scenario = 'Annual Budget Plan'
+                                    AND annual_bp.Fund = 'FN06'
+                                ORDER BY Faculty, plan, sub_plan, Project";
+                    $stmtPlan = $conn->prepare($sqlPlan);
+                    $stmtPlan->execute();
+                    $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                    $conn = null;
+    
+                    $response = array(
+                        'plan' => $plan
+                    );
+                    echo json_encode($response);
+                } catch (PDOException $e) {
+                    $response = array(
+                        'status' => 'error',
+                        'message' => 'Database error: ' . $e->getMessage()
+                    );
+                    echo json_encode($response);
+                }
+                break;
         default:
             break;
     }

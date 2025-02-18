@@ -34,92 +34,7 @@
                                     <h4>รายงานสรุปรายโครงการ</h4>
                                 </div>
 
-                                <?php
-                                // Include ไฟล์เชื่อมต่อฐานข้อมูล
-                                include '../server/connectdb.php';
 
-                                // สร้าง instance ของคลาส Database และเชื่อมต่อ
-                                $database = new Database();
-                                $conn = $database->connect();
-
-                                // Query เพื่อดึงข้อมูลตามเงื่อนไขที่กำหนด
-                                $query = "SELECT
-                                            b_actual.FISCAL_YEAR,
-                                            annual_bp.Budget_Management_Year,
-                                            annual_bp.Plan,
-                                            annual_bp.Sub_Plan,
-                                            annual_bp.Faculty,
-                                            annual_bp.Project,
-                                            annual_bp.Total_Amount_Quantity,
-                                            f.Alias_Default AS faculty_name,
-                                            account.alias_default,
-                                            plan.plan_name,
-                                            sub_plan.sub_plan_name,
-                                            project.project_name,
-                                            account.parent
-                                        FROM
-                                            budget_planning_annual_budget_plan AS annual_bp
-                                            LEFT JOIN (SELECT DISTINCT Faculty,fund,plan,subplan,project,account,service,fiscal_year from budget_planning_actual) b_actual 
-                                            ON b_actual.PLAN = annual_bp.Plan
-                                            AND annual_bp.faculty=b_actual.FACULTY
-                                            AND b_actual.SUBPLAN = REPLACE(annual_bp.Sub_Plan, 'SP_', '')
-                                            AND b_actual.PROJECT = annual_bp.Project
-                                            AND annual_bp.account=b_actual.account
-                                            AND b_actual.fund=REPLACE(annual_bp.fund, 'FN', '')
-                                            AND b_actual.service=REPLACE(annual_bp.service, 'SR_', '')
-                                            LEFT JOIN account ON account.account = annual_bp.Account
-                                            LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'FACULTY%') f ON f.Faculty = annual_bp.Faculty
-                                            LEFT JOIN plan ON plan.plan_id = annual_bp.Plan
-                                            LEFT JOIN sub_plan ON sub_plan.sub_plan_id = annual_bp.Sub_Plan
-                                            LEFT JOIN project ON project.project_id = annual_bp.Project
-                                        WHERE
-                                            annual_bp.Scenario = 'Annual Budget Plan'
-                                            AND annual_bp.Fund = 'FN06'";
-
-                                // เตรียมและ execute คำสั่ง SQL
-                                $stmt = $conn->prepare($query);
-                                $stmt->execute();
-
-                                // ดึงข้อมูล
-                                $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                                // จัดกลุ่มข้อมูลตามโครงการและประเภทค่าใช้จ่าย
-                                $reportData = [];
-                                foreach ($data as $row) {
-                                    $project = $row['project_name'];
-                                    $parent = $row['parent'];
-                                    $amount = $row['Total_Amount_Quantity'];
-
-                                    if (!isset($reportData[$project])) {
-                                        $reportData[$project] = array_fill_keys([
-                                            '5101010000',
-                                            '5101020000',
-                                            '5101030000',
-                                            '5101040000',
-                                            '5101040100',
-                                            '5101040200',
-                                            '5101040300',
-                                            '5101040400',
-                                            '5101040500',
-                                            '5101040600',
-                                            '5101040700',
-                                            '5203010000',
-                                            '5203020000',
-                                            '5203030000',
-                                            '5203040000',
-                                            '5201000000',
-                                            '5202000000',
-                                            '12070........',
-                                            '12060........',
-                                            '1205000000',
-                                            '5401000000',
-                                            '5500000000'
-                                        ], 0);
-                                    }
-
-                                    $reportData[$project][$parent] = $amount;
-                                }
-                                ?>
                                 <div class="info-section">
                                     <p>ปีบริหารงบประมาณ: .......................</p>
                                     <p>ปีบริหารงบประมาณ: .......................</p>
@@ -129,71 +44,43 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
-                                            <tr>
+                                            <tr class="">
                                                 <th rowspan="3">โครงการ/กิจกรรม</th>
                                                 <th colspan="22">งบประมาณ</th>
                                                 <th rowspan="3">รวมงบประมาณ</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="">
                                                 <th colspan="11">1. ค่าใช้จ่ายบุคลากร</th>
                                                 <th colspan="6">2. ค่าใช้จ่ายดำเนินงาน</th>
                                                 <th colspan="3">3. ค่าใช้จ่ายลงทุน</th>
-                                                <th rowspan="2">4. ค่าใช้จ่ายเงินอุดหนุนการดำเนินงาน</th>
-                                                <th rowspan="2">5. ค่าใช้จ่ายอื่น</th>
+                                                <th rowspan="2" value="">4. ค่าใช้จ่ายเงินอุดหนุนการดำเนินงาน</th>
+                                                <th rowspan="2" value="5500000000">5. ค่าใช้จ่ายอื่น</th>
                                             </tr>
-                                            <tr>
-                                                <th>1.1 เงินเดือนข้าราชการและลูกจ้างประจำ</th>
-                                                <th>1.2 ค่าจ้างพนักงานมหาวิทยาลัย</th>
-                                                <th>1.3 ค่าจ้างลูกจ้างมหาวิทยาลัย</th>
-                                                <th>1.4 เงินกองทุนสำรองเพื่อผลประโยชน์พนักงานและสวัสดิการผู้ปฏิบัติงานในมหาวิทยาลัยขอนแก่น</th>
-                                                <th>เงินสมทบประกันสังคมส่วนของนายจ้าง</th>
-                                                <th>เงินสมทบกองทุนสำรองเลี้ยงชีพของนายจ้าง</th>
-                                                <th>เงินชดเชยกรณีเลิกจ้าง</th>
-                                                <th>เงินสมทบกองทุนเงินทดแทน</th>
-                                                <th>สมทบกองทุนบำเหน็จบำนาญ(กบข.)</th>
-                                                <th>สมทบกองทุนสำรองเลี้ยงชีพ (กสจ.)</th>
-                                                <th>สวัสดิการอื่น ๆ</th>
-                                                <th>ค่าตอบแทน</th>
-                                                <th>ค่าใช้สอย</th>
-                                                <th>ค่าวัสดุ</th>
-                                                <th>ค่าสาธารณูปโภค</th>
-                                                <th>ค่าใช้จ่ายด้านการฝึกอบรม</th>
-                                                <th>ค่าใช้จ่ายเดินทาง</th>
-                                                <th>ค่าครุภัณฑ์</th>
-                                                <th>ค่าที่ดินและสิ่งก่อสร้าง</th>
-                                                <th>ค่าที่ดิน</th>
+                                            <tr class="">
+                                                <th value="5101010000">1.1 เงินเดือนข้าราชการและลูกจ้างประจำ</th>
+                                                <th value="5101020000">1.2 ค่าจ้างพนักงานมหาวิทยาลัย</th>
+                                                <th value="5101030000">1.3 ค่าจ้างลูกจ้างมหาวิทยาลัย</th>
+                                                <th value="5101040000">1.4 เงินกองทุนสำรองเพื่อผลประโยชน์พนักงานและสวัสดิการผู้ปฏิบัติงานในมหาวิทยาลัยขอนแก่น</th>
+                                                <th value="5101040100">เงินสมทบประกันสังคมส่วนของนายจ้าง</th>
+                                                <th value="5101040200">เงินสมทบกองทุนสำรองเลี้ยงชีพของนายจ้าง</th>
+                                                <th value="5101040300">เงินชดเชยกรณีเลิกจ้าง</th>
+                                                <th value="5101040400">เงินสมทบกองทุนเงินทดแทน</th>
+                                                <th value="5101040500">สมทบกองทุนบำเหน็จบำนาญ(กบข.)</th>
+                                                <th value="5101040600">สมทบกองทุนสำรองเลี้ยงชีพ (กสจ.)</th>
+                                                <th value="5101040700">สวัสดิการอื่น ๆ</th>
+                                                <th value="5203010000">ค่าตอบแทน</th>
+                                                <th value="5203020000">ค่าใช้สอย</th>
+                                                <th value="5203030000">ค่าวัสดุ</th>
+                                                <th value="5203040000">ค่าสาธารณูปโภค</th>
+                                                <th value="5201000000">ค่าใช้จ่ายด้านการฝึกอบรม</th>
+                                                <th value="5202000000">ค่าใช้จ่ายเดินทาง</th>
+                                                <th value="1207000000">ค่าครุภัณฑ์</th>
+                                                <th value="1206000000">ค่าที่ดินและสิ่งก่อสร้าง</th>
+                                                <th value="1205000000">ค่าที่ดิน</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($reportData as $project => $values): ?>
-                                                <tr>
-                                                    <td><?= htmlspecialchars($project) ?></td>
-                                                    <td><?= number_format($values['5101010000']) ?></td>
-                                                    <td><?= number_format($values['5101020000']) ?></td>
-                                                    <td><?= number_format($values['5101030000']) ?></td>
-                                                    <td><?= number_format($values['5101040000']) ?></td>
-                                                    <td><?= number_format($values['5101040100']) ?></td>
-                                                    <td><?= number_format($values['5101040200']) ?></td>
-                                                    <td><?= number_format($values['5101040300']) ?></td>
-                                                    <td><?= number_format($values['5101040400']) ?></td>
-                                                    <td><?= number_format($values['5101040500']) ?></td>
-                                                    <td><?= number_format($values['5101040600']) ?></td>
-                                                    <td><?= number_format($values['5101040700']) ?></td>
-                                                    <td><?= number_format($values['5203010000']) ?></td>
-                                                    <td><?= number_format($values['5203020000']) ?></td>
-                                                    <td><?= number_format($values['5203030000']) ?></td>
-                                                    <td><?= number_format($values['5203040000']) ?></td>
-                                                    <td><?= number_format($values['5201000000']) ?></td>
-                                                    <td><?= number_format($values['5202000000']) ?></td>
-                                                    <td><?= number_format($values['12070........']) ?></td>
-                                                    <td><?= number_format($values['12060........']) ?></td>
-                                                    <td><?= number_format($values['1205000000']) ?></td>
-                                                    <td><?= number_format($values['5401000000']) ?></td>
-                                                    <td><?= number_format($values['5500000000']) ?></td>
-                                                    <td><?= number_format(array_sum($values)) ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
-                                        </tbody>
+
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
@@ -214,6 +101,70 @@
         </div>
     </div>
     <script>
+        $(document).ready(function() {
+            loadData();
+        });
+
+        function loadData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'report-project-summary'
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log("API Response:", response.plan);
+
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                    // เลือกเฉพาะ <th> ที่มี attribute "value" เท่านั้น
+                    const headerCells = document.querySelectorAll("#reportTable thead th[value]");
+                    console.log("Valid header cells:", headerCells.length);
+
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
+
+                        // คอลัมน์แรก (ชื่อโครงการ)
+                        const td1 = document.createElement('td');
+                        td1.innerHTML = `${row.faculty_name}<br>${row.plan_name}<br>${row.sub_plan_name}<br>${row.project_name}`;
+                        tr.appendChild(td1);
+
+                        // ค้นหาคอลัมน์ที่ตรงกับ parent
+                        const parentValue = row.parent;
+                        let targetIndex = -1;
+                        headerCells.forEach((th, index) => {
+                            if (th.getAttribute("value") === parentValue) {
+                                targetIndex = index;
+                            }
+                        });
+
+                        console.log(`Matching column index for ${parentValue}: ${targetIndex}`);
+
+                        // สร้าง td ตามจำนวน <th> ที่มี value
+                        for (let i = 0; i < headerCells.length; i++) {
+                            const td = document.createElement('td');
+
+                            if (i === targetIndex) {
+                                td.textContent = row.Total_Amount_Quantity;
+                            } else {
+                                td.textContent = "-"; // ให้แสดง "-" เพื่อดูว่าคอลัมน์ตรงไหม
+                            }
+                            tr.appendChild(td);
+                        }
+
+                        tableBody.appendChild(tr);
+                    });
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+        }
+
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
