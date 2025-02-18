@@ -358,7 +358,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ON p.Faculty=f.Faculty)
 
 
-                            SELECT * FROM t1";   
+                            SELECT * FROM t1";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
@@ -685,13 +685,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             break;
 
 
-            case "report-project-summary":
-                try {
-                    $db = new Database();
-                    $conn = $db->connect();
-    
-                    // เชื่อมต่อฐานข้อมูล
-                    $sqlPlan = "SELECT
+        case "report-project-summary":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // รับค่าที่เลือกจาก Frontend
+                $scenario = isset($_POST['scenario']) ? $_POST['scenario'] : 'Annual Budget Plan';
+                $fund = isset($_POST['fund']) ? $_POST['fund'] : 'FN06';
+
+                // เชื่อมต่อฐานข้อมูล
+                $sqlPlan = "SELECT
                                     b_actual.FISCAL_YEAR,
                                     annual_bp.Budget_Management_Year,
                                     annual_bp.Plan,
@@ -709,7 +713,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     budget_planning_annual_budget_plan AS annual_bp
                                     LEFT JOIN (SELECT DISTINCT Faculty,fund,plan,subplan,project,account,service,fiscal_year from budget_planning_actual) b_actual 
                                     ON b_actual.PLAN = annual_bp.Plan
-                                    AND annual_bp.faculty=b_actual.FACULTY
+                                    AND annual_bp.faculty=b_actual.Faculty
                                     AND b_actual.SUBPLAN = REPLACE(annual_bp.Sub_Plan, 'SP_', '')
                                     AND b_actual.PROJECT = annual_bp.Project
                                     AND annual_bp.account=b_actual.account
@@ -721,27 +725,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     LEFT JOIN sub_plan ON sub_plan.sub_plan_id = annual_bp.Sub_Plan
                                     LEFT JOIN project ON project.project_id = annual_bp.Project
                                 WHERE
-                                    annual_bp.Scenario = 'Annual Budget Plan'
-                                    AND annual_bp.Fund = 'FN06'
+                                    annual_bp.Scenario = :scenario
+                                    AND annual_bp.Fund = :fund
                                 ORDER BY Faculty, plan, sub_plan, Project";
-                    $stmtPlan = $conn->prepare($sqlPlan);
-                    $stmtPlan->execute();
-                    $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
-                    $conn = null;
-    
-                    $response = array(
-                        'plan' => $plan
-                    );
-                    echo json_encode($response);
-                } catch (PDOException $e) {
-                    $response = array(
-                        'status' => 'error',
-                        'message' => 'Database error: ' . $e->getMessage()
-                    );
-                    echo json_encode($response);
-                }
-                break;
-        default:
+
+                $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+                $stmtPlan->bindParam(':fund', $fund, PDO::PARAM_STR);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
             break;
     }
 } else {

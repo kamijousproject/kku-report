@@ -33,14 +33,47 @@
                                 <div class="card-title">
                                     <h4>รายงานสรุปรายโครงการ</h4>
                                 </div>
+                                <div class="row">
+                                    <!-- ปีที่จัดสรรงบประมาณ -->
+                                    <div class="col-md-3">
+                                        <label for="allocationYearSelect">ปีที่จัดสรรงบประมาณ:</label>
+                                        <select id="allocationYearSelect" class="form-control">
+                                            <option value="FY25">FY25</option>
+                                        </select>
+                                    </div>
 
+                                    <!-- ปีบริหารงบประมาณ -->
+                                    <div class="col-md-2">
+                                        <label for="budgetYearSelect">ปีบริหารงบประมาณ:</label>
+                                        <select id="budgetYearSelect" class="form-control">
+                                            <option value="2568">2568</option>
+                                        </select>
+                                    </div>
+                                    <!-- Scenario -->
+                                    <div class="col-md-3">
+                                        <label for="scenarioSelect">ประเภทงบประมาณ:</label>
+                                        <select id="scenarioSelect" class="form-control">
+                                            <option value="Annual Budget Plan">Annual Budget Plan</option>
+                                            <option value="Mid Year1 Allocated Plan">Mid Year1 Allocated Plan</option>
+                                            <option value="Mid Year2 Allocated Plan">Mid Year2 Allocated Plan</option>
+                                        </select>
+                                    </div>
 
-                                <div class="info-section">
-                                    <p>ปีบริหารงบประมาณ: .......................</p>
-                                    <p>ปีบริหารงบประมาณ: .......................</p>
-                                    <p>ประเภทงบประมาณ: .......................</p>
-                                    <p>แหล่งเงิน: .......................</p>
+                                    <!-- Fund -->
+                                    <div class="col-md-3">
+                                        <label for="fundSelect">แหล่งเงิน:</label>
+                                        <select id="fundSelect" class="form-control">
+                                            <option value="FN02">FN02</option>
+                                            <option value="FN06" selected>FN06</option>
+                                        </select>
+                                    </div>
+
+                                    <!-- ปุ่มค้นหา -->
+                                    <div class="col-md-1 d-flex align-items-end">
+                                        <button onclick="loadData()" class="btn btn-info w-100">ค้นหา</button>
+                                    </div>
                                 </div>
+                                <br>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
@@ -106,11 +139,16 @@
         });
 
         function loadData() {
+            const scenario = document.getElementById("scenarioSelect").value;
+            const fund = document.getElementById("fundSelect").value;
+
             $.ajax({
                 type: "POST",
                 url: "../server/api.php",
                 data: {
-                    'command': 'report-project-summary'
+                    'command': 'report-project-summary',
+                    'scenario': scenario,
+                    'fund': fund
                 },
                 dataType: "json",
                 success: function(response) {
@@ -119,7 +157,6 @@
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-                    // เลือกเฉพาะ <th> ที่มี attribute "value" เท่านั้น
                     const headerCells = document.querySelectorAll("#reportTable thead th[value]");
                     console.log("Valid header cells:", headerCells.length);
 
@@ -131,30 +168,38 @@
                         td1.innerHTML = `${row.faculty_name}<br>${row.plan_name}<br>${row.sub_plan_name}<br>${row.project_name}`;
                         tr.appendChild(td1);
 
-                        // ค้นหาคอลัมน์ที่ตรงกับ parent
-                        const parentValue = row.parent;
-                        let targetIndex = -1;
-                        headerCells.forEach((th, index) => {
-                            if (th.getAttribute("value") === parentValue) {
-                                targetIndex = index;
-                            }
-                        });
-
-                        console.log(`Matching column index for ${parentValue}: ${targetIndex}`);
+                        let totalSum = 0; // ตัวแปรสำหรับเก็บผลรวมของแถวนี้
+                        let hasValue = false; // ตัวแปรตรวจสอบว่าแถวนี้มีค่าตัวเลขไหม
 
                         // สร้าง td ตามจำนวน <th> ที่มี value
-                        for (let i = 0; i < headerCells.length; i++) {
+                        headerCells.forEach(th => {
                             const td = document.createElement('td');
+                            const parentValue = th.getAttribute("value");
 
-                            if (i === targetIndex) {
-                                td.textContent = row.Total_Amount_Quantity;
+                            if (row.parent === parentValue) {
+                                const value = parseFloat(row.Total_Amount_Quantity) || 0; // แปลงเป็นตัวเลข
+                                td.textContent = value.toLocaleString(); // แสดงผลรูปแบบตัวเลข
+                                totalSum += value; // บวกค่าทั้งหมดเข้ากับผลรวม
+
+                                if (value > 0) {
+                                    hasValue = true; // ถ้ามีค่ามากกว่า 0 ถือว่าแถวนี้มีค่า
+                                }
                             } else {
-                                td.textContent = "-"; // ให้แสดง "-" เพื่อดูว่าคอลัมน์ตรงไหม
+                                td.textContent = "-"; // ให้แสดง "-" ถ้าไม่มีค่า
                             }
-                            tr.appendChild(td);
-                        }
 
-                        tableBody.appendChild(tr);
+                            tr.appendChild(td);
+                        });
+
+                        // ✅ เพิ่มคอลัมน์ "รวมงบประมาณ" ที่ท้ายแถว
+                        const totalTd = document.createElement('td');
+                        totalTd.textContent = totalSum.toLocaleString(); // แสดงผลรวมเป็นตัวเลข format
+                        totalTd.style.fontWeight = "bold"; // ทำให้ตัวหนา
+                        tr.appendChild(totalTd);
+
+                        if (totalSum > 0 || hasValue) {
+                            tableBody.appendChild(tr); // ✅ เพิ่มแถวเฉพาะที่มีค่าตัวเลข
+                        }
                     });
                 },
                 error: function(jqXHR, exception) {
@@ -163,7 +208,6 @@
                 }
             });
         }
-
 
         function exportCSV() {
             const rows = [];
