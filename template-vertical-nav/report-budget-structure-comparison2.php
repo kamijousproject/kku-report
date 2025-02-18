@@ -25,60 +25,60 @@
     /* ป้องกันข้อความตัดบรรทัด */
 }
 
-.wide-column {
-    min-width: 250px;
-    /* ปรับขนาด column ให้กว้างขึ้น */
-    word-break: break-word;
-    /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
-    white-space: pre-line;
-    /* รักษารูปแบบการขึ้นบรรทัด */
-    vertical-align: top;
-    /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
-    padding: 10px;
-    /* เพิ่มช่องว่างด้านใน */
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
 }
 
-.wide-column div {
-    margin-bottom: 5px;
-    /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+.content-body {
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scrolling */
+    display: flex;
+    flex-direction: column;
 }
 
-/* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+.container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto; /* Scrollable content only inside table */
+    max-height: 60vh; /* Set a fixed height */
+    border: 1px solid #ccc;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
-    /* ลบช่องว่างระหว่างเซลล์ */
 }
 
-/* ทำให้หัวตารางติดอยู่กับด้านบน */
-th {
+thead tr:nth-child(1) th {
     position: sticky;
-    /* ทำให้ header ติดอยู่กับด้านบน */
     top: 0;
-    /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
-    background-color: #fff;
-    /* กำหนดพื้นหลังให้กับหัวตาราง */
-    z-index: 2;
-    /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    /* เพิ่มเงาให้หัวตาราง */
-    padding: 8px;
+    background: #f4f4f4;
+    z-index: 1000;
 }
 
-/* เพิ่มเงาให้กับแถวหัวตาราง */
-th,
-td {
-    border: 1px solid #ddd;
-    /* เพิ่มขอบให้เซลล์ */
+thead tr:nth-child(2) th {
+    position: sticky;
+    top: 45px; /* Adjust height based on previous row */
+    background: #f4f4f4;
+    z-index: 999;
 }
 
-/* ทำให้ข้อมูลในตารางเลื่อนได้ */
-.table-responsive {
-    max-height: 60vh;
-    /* กำหนดความสูงของตาราง */
-    overflow-y: auto;
-    /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
+thead tr:nth-child(3) th {
+    position: sticky;
+    top: 90px; /* Adjust height based on previous rows */
+    background: #f4f4f4;
+    z-index: 998;
 }
+
 </style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
@@ -228,81 +228,185 @@ td {
                     var str16=''; */
                     var html='';
                     f1.forEach((row1) => {  
+                        const fac = response.bgp.filter(item =>item.f1 === row1);
+                        //console.log(pro);
+                        const parseValue = (value) => {
+                            const number = parseFloat(value.replace(/,/g, ''));
+                            return isNaN(number) ? 0 : number;
+                        };
+                        const sums = fac.reduce((acc, item) => {
+                            return {
+                                a2: acc.a2 + parseValue(item.a2),
+                                c2: acc.c2 + parseValue(item.c2),
+                                o2: acc.o2 + parseValue(item.o2),
+                                e2: acc.e2 + parseValue(item.e2),
+                                a6: acc.a6 + parseValue(item.a6),
+                                c6: acc.c6 + parseValue(item.c6),
+                                o6: acc.o6 + parseValue(item.o6),
+                                e6: acc.e6 + parseValue(item.e6)
+                            };
+                        }, {
+                            a2: 0, c2: 0, o2: 0, e2: 0,
+                            a6: 0, c6: 0, o6: 0, e6: 0
+                        });
+                        var s4=Math.round((((sums.c6+sums.o6)*100)/(sums.a6))* 100) / 100 || 0;
+                        var s9=Math.round((((sums.c2+sums.o2)*100)/(sums.a2))* 100) / 100 || 0;
+                        var s6=Math.round(((sums.e6*100)/(sums.a6))* 100) / 100 || 0;
+                        var s10=Math.round(((sums.e2*100)/(sums.a2))* 100) / 100 || 0;
+                        var s3=(sums.c6+sums.o6);
+                        var s8=(sums.c2+sums.o2);
                         str1='<tr><td>'+row1;
-                        str2='<td>';
-                        str3='<td>';
-                        str4='<td>';
-                        str5='<td>';
-                        str6='<td>';
-                        str7='<td>';
-                        str8='<td>';
-                        str9='<td>';
-                        str10='<td>';
-                        str11='<td>';
-                        str12='<td>';
-                        str13='<td>';
-                        str14='<td>';
-                        str15='<td>';
-                        str16='<td>';
+                        str2='<td>'+sums.a6.toLocaleString();
+                        str3='<td>'+s3.toLocaleString();
+                        str4='<td>'+s4.toLocaleString();
+                        str5='<td>'+sums.e6.toLocaleString();
+                        str6='<td>'+s6.toLocaleString();
+                        str7='<td>'+sums.a2.toLocaleString();
+                        str8='<td>'+s8.toLocaleString();
+                        str9='<td>'+s9.toLocaleString();
+                        str10='<td>'+sums.e2.toLocaleString();
+                        str11='<td>'+s10.toLocaleString();
+                        str12='<td>'+(sums.a6+sums.a2).toLocaleString();
+                        str13='<td>'+(s3+s8).toLocaleString();
+                        str14='<td>'+(s4+s9).toLocaleString();
+                        str15='<td>'+(sums.e6+sums.e2).toLocaleString();
+                        str16='<td>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
                         
                         f2.forEach((row2) => {
+                            const fac2 = fac.filter(item =>item.f2 === row2 &&item.f1 === row1);
+                            //console.log(pro);
+                            const parseValue = (value) => {
+                                const number = parseFloat(value.replace(/,/g, ''));
+                                return isNaN(number) ? 0 : number;
+                            };
+                            const sums = fac2.reduce((acc, item) => {
+                                return {
+                                    a2: acc.a2 + parseValue(item.a2),
+                                    c2: acc.c2 + parseValue(item.c2),
+                                    o2: acc.o2 + parseValue(item.o2),
+                                    e2: acc.e2 + parseValue(item.e2),
+                                    a6: acc.a6 + parseValue(item.a6),
+                                    c6: acc.c6 + parseValue(item.c6),
+                                    o6: acc.o6 + parseValue(item.o6),
+                                    e6: acc.e6 + parseValue(item.e6)
+                                };
+                            }, {
+                                a2: 0, c2: 0, o2: 0, e2: 0,
+                                a6: 0, c6: 0, o6: 0, e6: 0
+                            });
+                            var s4=Math.round((((sums.c6+sums.o6)*100)/(sums.a6))* 100) / 100 || 0;
+                            var s9=Math.round((((sums.c2+sums.o2)*100)/(sums.a2))* 100) / 100 || 0;
+                            var s6=Math.round(((sums.e6*100)/(sums.a6))* 100) / 100 || 0;
+                            var s10=Math.round(((sums.e2*100)/(sums.a2))* 100) / 100 || 0;
+                            var s3=(sums.c6+sums.o6);
+                            var s8=(sums.c2+sums.o2);
                             str1+='<br/>'+'&nbsp;'.repeat(8)+row2;
-                            str2+='<br/>';
-                            str3+='<br/>';
-                            str4+='<br/>';
-                            str5+='<br/>';
-                            str6+='<br/>';
-                            str7+='<br/>';
-                            str8+='<br/>';
-                            str9+='<br/>';
-                            str10+='<br/>';
-                            str11+='<br/>';
-                            str12+='<br/>';
-                            str13+='<br/>';
-                            str14+='<br/>';
-                            str15+='<br/>';
-                            str16+='<br/>';
+                            str2+='<br/>'+sums.a6.toLocaleString();
+                            str3+='<br/>'+s3.toLocaleString();
+                            str4+='<br/>'+s4.toLocaleString();
+                            str5+='<br/>'+sums.e6.toLocaleString();
+                            str6+='<br/>'+s6.toLocaleString();
+                            str7+='<br/>'+sums.a2.toLocaleString();
+                            str8+='<br/>'+s8.toLocaleString();
+                            str9+='<br/>'+s9.toLocaleString();
+                            str10+='<br/>'+sums.e2.toLocaleString();
+                            str11+='<br/>'+s10.toLocaleString();
+                            str12+='<br/>'+(sums.a6+sums.a2).toLocaleString();
+                            str13+='<br/>'+(s3+s8).toLocaleString();
+                            str14+='<br/>'+(s4+s9).toLocaleString();
+                            str15+='<br/>'+(sums.e6+sums.e2).toLocaleString();
+                            str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
                             plan_name.forEach((row3) => {
                                 var p = response.bgp.filter(item => item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                                const parseValue = (value) => {
+                                const number = parseFloat(value.replace(/,/g, ''));
+                                    return isNaN(number) ? 0 : number;
+                                };
+                                const sums = p.reduce((acc, item) => {
+                                    return {
+                                        a2: acc.a2 + parseValue(item.a2),
+                                        c2: acc.c2 + parseValue(item.c2),
+                                        o2: acc.o2 + parseValue(item.o2),
+                                        e2: acc.e2 + parseValue(item.e2),
+                                        a6: acc.a6 + parseValue(item.a6),
+                                        c6: acc.c6 + parseValue(item.c6),
+                                        o6: acc.o6 + parseValue(item.o6),
+                                        e6: acc.e6 + parseValue(item.e6)
+                                    };
+                                }, {
+                                    a2: 0, c2: 0, o2: 0, e2: 0,
+                                    a6: 0, c6: 0, o6: 0, e6: 0
+                                });
                                 
                                 if(p.length>0){
+                                    var s4=Math.round((((sums.c6+sums.o6)*100)/(sums.a6))* 100) / 100 || 0;
+                                    var s9=Math.round((((sums.c2+sums.o2)*100)/(sums.a2))* 100) / 100 || 0;
+                                    var s6=Math.round(((sums.e6*100)/(sums.a6))* 100) / 100 || 0;
+                                    var s10=Math.round(((sums.e2*100)/(sums.a2))* 100) / 100 || 0;
+                                    var s3=(sums.c6+sums.o6);
+                                    var s8=(sums.c2+sums.o2);
                                     str1+='<br/>'+'&nbsp;'.repeat(16)+row3;
-                                    str2+='<br/>';
-                                    str3+='<br/>';
-                                    str4+='<br/>';
-                                    str5+='<br/>';
-                                    str6+='<br/>';
-                                    str7+='<br/>';
-                                    str8+='<br/>';
-                                    str9+='<br/>';
-                                    str10+='<br/>';
-                                    str11+='<br/>';
-                                    str12+='<br/>';
-                                    str13+='<br/>';
-                                    str14+='<br/>';
-                                    str15+='<br/>';
-                                    str16+='<br/>';
+                                    str2+='<br/>'+sums.a6.toLocaleString();
+                                    str3+='<br/>'+s3.toLocaleString();
+                                    str4+='<br/>'+s4.toLocaleString();
+                                    str5+='<br/>'+sums.e6.toLocaleString();
+                                    str6+='<br/>'+s6.toLocaleString();
+                                    str7+='<br/>'+sums.a2.toLocaleString();
+                                    str8+='<br/>'+s8.toLocaleString();
+                                    str9+='<br/>'+s9.toLocaleString();
+                                    str10+='<br/>'+sums.e2.toLocaleString();
+                                    str11+='<br/>'+s10.toLocaleString();
+                                    str12+='<br/>'+(sums.a6+sums.a2).toLocaleString();
+                                    str13+='<br/>'+(s3+s8).toLocaleString();
+                                    str14+='<br/>'+(s4+s9).toLocaleString();
+                                    str15+='<br/>'+(sums.e6+sums.e2).toLocaleString();
+                                    str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
                                 }
                                 sub_plan_name.forEach((row4) => {
                                     var sp = p.filter(item =>item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
                                     //console.log(sp);
+                                    const parseValue = (value) => {
+                                    const number = parseFloat(value.replace(/,/g, ''));
+                                        return isNaN(number) ? 0 : number;
+                                    };
+                                    const sums = sp.reduce((acc, item) => {
+                                        return {
+                                            a2: acc.a2 + parseValue(item.a2),
+                                            c2: acc.c2 + parseValue(item.c2),
+                                            o2: acc.o2 + parseValue(item.o2),
+                                            e2: acc.e2 + parseValue(item.e2),
+                                            a6: acc.a6 + parseValue(item.a6),
+                                            c6: acc.c6 + parseValue(item.c6),
+                                            o6: acc.o6 + parseValue(item.o6),
+                                            e6: acc.e6 + parseValue(item.e6)
+                                        };
+                                    }, {
+                                        a2: 0, c2: 0, o2: 0, e2: 0,
+                                        a6: 0, c6: 0, o6: 0, e6: 0
+                                    });
                                     if(sp.length>0){
+                                        var s4=Math.round((((sums.c6+sums.o6)*100)/(sums.a6))* 100) / 100 || 0;
+                                        var s9=Math.round((((sums.c2+sums.o2)*100)/(sums.a2))* 100) / 100 || 0;
+                                        var s6=Math.round(((sums.e6*100)/(sums.a6))* 100) / 100 || 0;
+                                        var s10=Math.round(((sums.e2*100)/(sums.a2))* 100) / 100 || 0;
+                                        var s3=(sums.c6+sums.o6);
+                                        var s8=(sums.c2+sums.o2);
                                         str1+='<br/>'+'&nbsp;'.repeat(24)+row4;
-                                        str2+='<br/>';
-                                        str3+='<br/>';
-                                        str4+='<br/>';
-                                        str5+='<br/>';
-                                        str6+='<br/>';
-                                        str7+='<br/>';
-                                        str8+='<br/>';
-                                        str9+='<br/>';
-                                        str10+='<br/>';
-                                        str11+='<br/>';
-                                        str12+='<br/>';
-                                        str13+='<br/>';
-                                        str14+='<br/>';
-                                        str15+='<br/>';
-                                        str16+='<br/>';
+                                        str2+='<br/>'+sums.a6.toLocaleString();
+                                        str3+='<br/>'+s3.toLocaleString();
+                                        str4+='<br/>'+s4.toLocaleString();
+                                        str5+='<br/>'+sums.e6.toLocaleString();
+                                        str6+='<br/>'+s6.toLocaleString();
+                                        str7+='<br/>'+sums.a2.toLocaleString();
+                                        str8+='<br/>'+s8.toLocaleString();
+                                        str9+='<br/>'+s9.toLocaleString();
+                                        str10+='<br/>'+sums.e2.toLocaleString();
+                                        str11+='<br/>'+s10.toLocaleString();
+                                        str12+='<br/>'+(sums.a6+sums.a2).toLocaleString();
+                                        str13+='<br/>'+(s3+s8).toLocaleString();
+                                        str14+='<br/>'+(s4+s9).toLocaleString();
+                                        str15+='<br/>'+(sums.e6+sums.e2).toLocaleString();
+                                        str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
                                     }                                   
                                     project_name.forEach((row5) => {
                                         const pro = sp.filter(item =>item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);

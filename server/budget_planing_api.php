@@ -88,7 +88,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         WHERE parent='Total KKU' AND Faculty !='Faculty-00')
                         ,t1_1 AS (
                         SELECT account,alias_default,TYPE,sub_type
-                        FROM account)
+                        FROM account
+                            where id > (SELECT id FROM account WHERE account = 'Expenses'))
                         ,t2 AS (
                         SELECT b.*,f.parent,f.Alias_Default AS f2
                         FROM budget_planning_allocated_annual_budget_plan b
@@ -99,9 +100,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT t.*,tt.alias_default AS account_name,tt.type,tt.sub_type
                         FROM t2 t
                         LEFT JOIN t1_1 tt
-                        ON t.account=tt.account)
+                        ON t.account=tt.account
+                            WHERE tt.alias_default IS NOT NULL )
                         ,t3 AS (
-                        SELECT t.faculty,t.fund,t.plan,t.sub_plan,t.KKU_Item_Name,t.type,t.sub_type,t.account
+                        SELECT t.faculty,t.fund,t.plan,t.sub_plan,t.KKU_Item_Name,t.type,t.sub_type,t.account,t.service
                         ,t.project
                         ,SUM(Allocated_Total_Amount_Quantity) AS Allocated_Total_Amount_Quantity
                         ,tt.Alias_Default AS f1
@@ -110,21 +112,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN t1 tt
                         ON t.parent=tt.faculty
                         GROUP BY t.faculty,t.fund,t.plan,t.sub_plan,t.KKU_Item_Name,t.type,t.sub_type,t.account
-                        ,t.project,tt.Alias_Default,t.f2)
+                        ,t.project,tt.Alias_Default,t.f2,t.service)
                         ,t4 AS (
-                        SELECT Faculty,fund,plan,subplan,project,account
+                        SELECT Faculty,fund,plan,subplan,project,account,service
                         ,SUM(COMMITMENTS) AS COMMITMENTS
                         ,SUM(OBLIGATIONS) AS OBLIGATIONS
                         ,SUM(EXPENDITURES) AS EXPENDITURES
                         FROM budget_planning_actual
-                        GROUP BY Faculty,fund,plan,subplan,project,account)
+                        GROUP BY Faculty,fund,plan,subplan,project,account,service)
                         ,t5 AS (
                         SELECT t.*,a.COMMITMENTS,a.OBLIGATIONS,a.EXPENDITURES
                         FROM t3 t
                         LEFT JOIN t4 a
-                        ON t.faculty=a.FACULTY AND t.fund= CONCAT('FN',a.Fund) AND t.plan=a.plan 
+                        ON t.faculty=a.FACULTY 
+                            AND t.fund= CONCAT('FN',a.Fund) 
+                            AND t.plan=a.plan 
                         AND t.sub_plan=CONCAT('SP_',a.SUBPLAN) 
-                        AND t.project=a.project AND t.account=a.account)
+                        AND t.project=a.project 
+                            AND t.account=a.account
+                            AND replace(t.service,'SR_','')=a.service)
                         , t6 AS (
                         SELECT Faculty,plan,sub_plan,project,f1,f2,KKU_Item_Name,type,sub_type
                         ,sum(case when fund='FN02' then COALESCE(Allocated_Total_Amount_Quantity,0) ELSE 0 END) AS a2

@@ -2,8 +2,6 @@
 <html lang="en">
 <?php include('../component/header.php'); ?>
 <style>     
-    
-
 #main-wrapper {
     display: flex;
     flex-direction: column;
