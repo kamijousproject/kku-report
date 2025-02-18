@@ -103,7 +103,7 @@ thead tr:nth-child(3) th {
                                     <thead>
                                         <tr>
                                             <th rowspan="3">ที่</th>
-                                            <th rowspan="3">ส่วนงาน/หน่วยงาน<br>(คณะ L.1 / สนอ L.3)</th>
+                                            <th rowspan="3">ส่วนงาน/หน่วยงาน</th>
                                             <th rowspan="3">ชื่อตำแหน่ง</th>
                                             <th rowspan="3">ประเภทตำแหน่ง</th>
                                             <th rowspan="3">Job Family</th>
@@ -157,6 +157,9 @@ thead tr:nth-child(3) th {
                                     <tbody>
                                         
                                     </tbody>
+                                    <tfoot>
+                                            
+                                    </tfoot>
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
@@ -234,7 +237,7 @@ thead tr:nth-child(3) th {
                             { key: 'No', value: index+1 },
                             { key: 'Faculty', value: row.Alias_Default??row.Alias_Default_y2??row.Alias_Default_y3??row.Alias_Default_y4 },                           
                             { key: 'Position', value: row.POSITION??row.POSITION_y2??row.POSITION_y3??row.POSITION_y4 },
-                            { key: 'personnel_type', value: row.All_PositionTypes??row.All_PositionTypes_y2??row.All_PositionTypes_y3??row.All_PositionTypes_y4 },  
+                            { key: 'personnel_type', value: row.all_position_types??row.all_position_types_y2??row.all_position_types_y3??row.all_position_types_y4 },  
                             { key: 'Job_Family', value: row.Job_Family??row.Job_Family_y2??row.Job_Family_y3??row.Job_Family_y4 },
                             { key: 'p1', value: row.p1?? 0 },                            
                             { key: 'p2', value: row.p2 ?? 0},
@@ -270,13 +273,46 @@ thead tr:nth-child(3) th {
                         });
                         tableBody.appendChild(tr);
                     });
-
+                    calculateSum();
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
             });
+        }
+        function calculateSum() {
+        const table = document.querySelector('table');
+        const rows = table.querySelectorAll('tbody tr');
+        const footer = table.querySelector('tfoot');
+        const columns = rows[0].querySelectorAll('td').length;
+
+        // สร้างแถว footer
+        let footerRow = document.createElement('tr');
+        footerRow.innerHTML = '<td colspan="5">รวมทั้งสิ้น</td>';
+
+        // เริ่มต้นผลรวมแต่ละคอลัมน์
+        let sums = new Array(columns - 5).fill(0); 
+
+        // คำนวณผลรวม
+        rows.forEach(row => {
+            const cells = row.querySelectorAll('td');
+            cells.forEach((cell, index) => {
+            if (index >= 5) { // "ส่วนงาน/หน่วยงาน"  
+                const value = cell.textContent.replace(/,/g, '');             
+                sums[index - 5] += parseFloat(value) || 0;
+            }
+            });
+        });
+
+        // เพิ่มผลรวมลงใน footer
+        sums.forEach(sum => {
+            footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
+        });
+
+        // เพิ่มแถว footer ลงในตาราง
+        footer.innerHTML='';
+        footer.append(footerRow);
         }
         function exportCSV() {
         const table = document.getElementById('reportTable');
