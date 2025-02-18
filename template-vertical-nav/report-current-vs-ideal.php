@@ -179,31 +179,82 @@ thead tr:nth-child(3) th {
                 success: function(response) {
                     
                     const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+tableBody.innerHTML = ''; // Clear old data
 
-                    response.wf.forEach((row, index) => {                   
-                        const tr = document.createElement('tr');
-                        var sym = parseInt(row.count_person) > parseInt(row.wf) 
-                                ? "+" + (parseInt(row.count_person) - parseInt(row.wf)) 
-                                : "-" + Math.abs(parseInt(row.count_person) - parseInt(row.wf));
+let prevAlias = null;
+let prevName = null;
+let aliasRowSpan = {};
+let nameRowSpan = {};
 
-                        const columns = [
-                            { key: 'No', value: index + 1 },
-                            { key: 'Alias_Default', value: row.Alias_Default },
-                            { key: 'name', value: row.name },
-                            { key: 'position', value: row.position },
-                            { key: 'c1', value: row.wf },
-                            { key: 'c2', value: row.count_person },
-                            { key: 'c3', value: sym },                            
-                        ];
+// **Step 1: Calculate Rowspan Counts Before Rendering**
+response.wf.forEach(row => {
+    let aliasKey = row.Alias_Default;
+    let nameKey = row.code;
 
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            tr.appendChild(td);
-                        });
-                        tableBody.appendChild(tr);     
-                    });
+    // Count occurrences for Alias_Default (Column 2)
+    if (!aliasRowSpan[aliasKey]) {
+        aliasRowSpan[aliasKey] = response.wf.filter(r => r.Alias_Default === aliasKey).length;
+    }
+
+    // Count occurrences for Name (Column 3), but only within the same Alias_Default
+    if (!nameRowSpan[nameKey]) {
+        nameRowSpan[nameKey] = response.wf.filter(r => r.Alias_Default === aliasKey && r.code === nameKey).length;
+    }
+});
+console.log(nameRowSpan);
+// **Step 2: Generate Table Rows**
+response.wf.forEach((row, index) => {                   
+    const tr = document.createElement('tr');
+    var sym = parseInt(row.count_person) > parseInt(row.wf) 
+        ? "+" + (parseInt(row.count_person) - parseInt(row.wf)) 
+        : "-" + Math.abs(parseInt(row.count_person) - parseInt(row.wf));
+
+    let currentAlias = row.Alias_Default;
+    let currentName = row.code;
+
+    // **Step 3: Always Add "No" Column (Index)**
+    const tdNo = document.createElement('td');
+    tdNo.textContent = index + 1;
+    tr.appendChild(tdNo);
+
+    // **Step 4: Create Table Cells with Rowspan Handling**
+    if (currentAlias !== prevAlias) {
+        const tdAlias = document.createElement('td');
+        tdAlias.textContent = currentAlias;
+        tdAlias.rowSpan = aliasRowSpan[currentAlias]; // Apply Rowspan
+        tr.appendChild(tdAlias);
+        prevAlias = currentAlias; // Update previous alias
+    }
+
+    if (currentName !== prevName) {
+        const tdName = document.createElement('td');
+        tdName.textContent = row.name;
+        tdName.rowSpan = nameRowSpan[currentName]; // Apply Rowspan
+        tr.appendChild(tdName);
+        prevName = currentName; // Update previous name
+    }
+
+    // **Step 5: Ensure Proper Column Order**
+    const tdPosition = document.createElement('td');
+    tdPosition.textContent = row.position;
+    tr.appendChild(tdPosition);
+
+    const tdC1 = document.createElement('td');
+    tdC1.textContent = row.wf;
+    tr.appendChild(tdC1);
+
+    const tdC2 = document.createElement('td');
+    tdC2.textContent = row.count_person;
+    tr.appendChild(tdC2);
+
+    const tdC3 = document.createElement('td');
+    tdC3.textContent = sym;
+    tr.appendChild(tdC3);
+
+    tableBody.appendChild(tr);
+});
+
+
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -293,7 +344,7 @@ thead tr:nth-child(3) th {
 
         // ตั้งค่าฟอนต์และข้อความ
         doc.setFontSize(12);
-        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+        doc.text("รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง", 10, 10);
 
         // ใช้ autoTable สำหรับสร้างตาราง
         doc.autoTable({

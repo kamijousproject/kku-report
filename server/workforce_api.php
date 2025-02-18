@@ -970,7 +970,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN Faculty f
                         ON a.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
                         WHERE f.parent ='".$slt."'
-                        GROUP BY a.faculty,a.POSITION,a.Job_Family,f.parent)
+                        GROUP BY a.POSITION,a.Job_Family,f.parent)
                         ,t7 AS (
                         SELECT t.*,COALESCE(tt.count_person,0) as count_person
                         FROM t5 t
