@@ -1,7 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>     
+    
 
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+.content-body {
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto; /* Scrollable content only inside table */
+    max-height: 60vh; /* Set a fixed height */
+    border: 1px solid #ccc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+thead tr:nth-child(1) th {
+    position: sticky;
+    top: 0;
+    background: #f4f4f4;
+    z-index: 1000;
+}
+
+thead tr:nth-child(2) th {
+    position: sticky;
+    top: 45px; /* Adjust height based on previous row */
+    background: #f4f4f4;
+    z-index: 999;
+}
+
+thead tr:nth-child(3) th {
+    position: sticky;
+    top: 105px; /* Adjust height based on previous rows */
+    background: #f4f4f4;
+    z-index: 998;
+}
+
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -31,8 +94,12 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายละเอียดงบประมาณและจำนวนอัตรากำลัง</h4>
+                                    <h4>รายงานกรอบอัตรากำลังตามงบประมาณประเภทต่างๆ</h4>
                                 </div>
+                                <label for="category">เลือกส่วนงาน:</label>
+                                <select name="category" id="category" onchange="fetchData()">
+                                    <option value="">-- Loading Categories --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -81,22 +148,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>หน่วยงาน A</td>
-                                                <td>10</td>
-                                                <td>1,000,000</td>
-                                                <td>15</td>
-                                                <td>1,500,000</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>หน่วยงาน B</td>
-                                                <td>8</td>
-                                                <td>800,000</td>
-                                                <td>12</td>
-                                                <td>1,200,000</td>
-                                            </tr>
+                                            
                                         </tbody>
                                         <tfoot>
                                             
@@ -120,6 +172,8 @@
             </div>
         </div>
     </div>
+</body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
             laodData();
@@ -131,7 +185,34 @@
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'kku_wf_budget-framework'
+                    'command': 'list-faculty'
+                },
+                dataType: "json",
+                success: function(response) {
+                    let dropdown = document.getElementById("category");
+                    dropdown.innerHTML = '<option value="">-- Select --</option>';
+                    response.wf.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category.Parent;
+                        option.textContent = category.Alias_Default;
+                        dropdown.appendChild(option);
+                    });
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
+            });
+            
+        }
+        function fetchData() {
+            let category = document.getElementById("category").value;
+            $.ajax({
+                type: "POST",
+                url: "../server/workforce_api.php",
+                data: {
+                    'command': 'kku_wf_budget-framework',
+                    'slt':category
                 },
                 dataType: "json",
                 success: function(response) {
@@ -148,35 +229,35 @@
                                 { key: 'No', value: index+1 },
                                 { key: 'Alias_Default', value: row.Alias_Default },
                                 
-                                { key: 'TYPE1_fund1_num', value: row.TYPE1_fund1_num },
-                                { key: 'TYPE1_fund1', value: row.TYPE1_fund1 },
+                                { key: 'TYPE1_fund1_num', value: (parseInt(row.TYPE1_fund1_num)).toLocaleString() },
+                                { key: 'TYPE1_fund1', value: (parseInt(row.TYPE1_fund1)).toLocaleString() },
                                 
-                                { key: 'TYPE1_fund2_num', value: row.TYPE1_fund2_num },
-                                { key: 'TYPE1_fund2', value: row.TYPE1_fund2 },
+                                { key: 'TYPE1_fund2_num', value: (parseInt(row.TYPE1_fund2_num)).toLocaleString() },
+                                { key: 'TYPE1_fund2', value: (parseInt(row.TYPE1_fund2)).toLocaleString() },
                                 
-                                { key: 'TYPE2_fund1_num', value: row.TYPE2_fund1_num },
-                                { key: 'TYPE2_fund1', value: row.TYPE2_fund1 },
+                                { key: 'TYPE2_fund1_num', value: (parseInt(row.TYPE2_fund1_num)).toLocaleString() },
+                                { key: 'TYPE2_fund1', value: (parseInt(row.TYPE2_fund1)).toLocaleString() },
                                 
-                                { key: 'TYPE2_fund2_num', value: row.TYPE2_fund2_num },
-                                { key: 'TYPE2_fund2', value: row.TYPE2_fund2 },
+                                { key: 'TYPE2_fund2_num', value: (parseInt(row.TYPE2_fund2_num)).toLocaleString() },
+                                { key: 'TYPE2_fund2', value: (parseInt(row.TYPE2_fund2)).toLocaleString() },
                                 
-                                { key: 'TYPE3_fund1_num', value: row.TYPE3_fund1_num },
-                                { key: 'TYPE3_fund1', value: row.TYPE3_fund1 },
+                                { key: 'TYPE3_fund1_num', value: (parseInt(row.TYPE3_fund1_num)).toLocaleString() },
+                                { key: 'TYPE3_fund1', value: (parseInt(row.TYPE3_fund1)).toLocaleString() },
                                 
-                                { key: 'TYPE3_fund2_num', value: row.TYPE3_fund2_num },
-                                { key: 'TYPE3_fund2', value: row.TYPE3_fund2 },
+                                { key: 'TYPE3_fund2_num', value: (parseInt(row.TYPE3_fund2_num)).toLocaleString() },
+                                { key: 'TYPE3_fund2', value: (parseInt(row.TYPE3_fund2)).toLocaleString() },
                                 
-                                { key: 'TYPE4_fund1_num', value: row.TYPE4_fund1_num },
-                                { key: 'TYPE4_fund1', value: row.TYPE4_fund1 },
+                                { key: 'TYPE4_fund1_num', value: (parseInt(row.TYPE4_fund1_num)).toLocaleString() },
+                                { key: 'TYPE4_fund1', value: (parseInt(row.TYPE4_fund1)).toLocaleString() },
                                 
-                                { key: 'TYPE4_fund2_num', value: row.TYPE4_fund2_num },
-                                { key: 'TYPE4_fund2', value: row.TYPE4_fund2 },
+                                { key: 'TYPE4_fund2_num', value: (parseInt(row.TYPE4_fund2_num)).toLocaleString() },
+                                { key: 'TYPE4_fund2', value: (parseInt(row.TYPE4_fund2)).toLocaleString() },
                                 
-                                { key: 'sum_fund1_num', value: parseInt(row.TYPE1_fund1_num)+parseInt(row.TYPE2_fund1_num)+parseInt(row.TYPE3_fund1_num)+parseInt(row.TYPE4_fund1_num) },
-                                { key: 'sum_fund1', value: parseInt(row.TYPE1_fund1)+parseInt(row.TYPE2_fund1)+parseInt(row.TYPE3_fund1)+parseInt(row.TYPE4_fund1) },
+                                { key: 'sum_fund1_num', value: (parseInt(row.TYPE1_fund1_num)+parseInt(row.TYPE2_fund1_num)+parseInt(row.TYPE3_fund1_num)+parseInt(row.TYPE4_fund1_num)).toLocaleString() },
+                                { key: 'sum_fund1', value: (parseInt(row.TYPE1_fund1)+parseInt(row.TYPE2_fund1)+parseInt(row.TYPE3_fund1)+parseInt(row.TYPE4_fund1)).toLocaleString() },
                                 
-                                { key: 'sum_fund2_num', value: parseInt(row.TYPE1_fund2_num)+parseInt(row.TYPE2_fund2_num)+parseInt(row.TYPE3_fund2_num)+parseInt(row.TYPE4_fund2_num)},
-                                { key: 'sum_fund2', value: parseInt(row.TYPE1_fund2)+parseInt(row.TYPE2_fund2)+parseInt(row.TYPE3_fund2)+parseInt(row.TYPE4_fund2) },
+                                { key: 'sum_fund2_num', value: (parseInt(row.TYPE1_fund2_num)+parseInt(row.TYPE2_fund2_num)+parseInt(row.TYPE3_fund2_num)+parseInt(row.TYPE4_fund2_num)).toLocaleString()},
+                                { key: 'sum_fund2', value: (parseInt(row.TYPE1_fund2)+parseInt(row.TYPE2_fund2)+parseInt(row.TYPE3_fund2)+parseInt(row.TYPE4_fund2)).toLocaleString() },
                             ];
 
                             columns.forEach(col => {
@@ -215,112 +296,231 @@
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             cells.forEach((cell, index) => {
-            if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
-                sums[index - 2] += parseFloat(cell.textContent) || 0;
+            if (index >= 2) { // "ส่วนงาน/หน่วยงาน"  
+                const value = cell.textContent.replace(/,/g, '');             
+                sums[index - 2] += parseFloat(value) || 0;
             }
             });
         });
 
         // เพิ่มผลรวมลงใน footer
         sums.forEach(sum => {
-            footerRow.innerHTML += `<td>${sum}</td>`;
+            footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
         });
 
         // เพิ่มแถว footer ลงในตาราง
-        footer.appendChild(footerRow);
+        footer.innerHTML='';
+        footer.append(footerRow);
         }
         function exportCSV() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
+        const table = document.getElementById('reportTable');
+        const csvRows = [];
+
+        // วนลูปทีละ <tr>
+        for (const row of table.rows) {
+            // เก็บบรรทัดย่อยของแต่ละเซลล์
+            const cellLines = [];
+            let maxSubLine = 1;
+
+            // วนลูปทีละเซลล์ <td>/<th>
+            for (const cell of row.cells) {
+                let html = cell.innerHTML;
+
+                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                html = html.replace(/(&nbsp;)+/g, (match) => {
+                    const count = match.match(/&nbsp;/g).length;
+                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                });
+
+                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                html = html.replace(/<br\s*\/?>/gi, '\n');
+
+                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                // html = html.replace(/<\/?[^>]+>/g, '');
+
+                // 4) แยกเป็น array บรรทัดย่อย
+                const lines = html.split('\n').map(x => x.trimEnd());
+                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                if (lines.length > maxSubLine) {
+                    maxSubLine = lines.length;
+                }
+
+                cellLines.push(lines);
             }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
 
-        function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+            for (let i = 0; i < maxSubLine; i++) {
+                const rowData = [];
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
+                // วนลูปแต่ละเซลล์
+                for (const lines of cellLines) {
+                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                    // Escape double quotes
+                    text = text.replace(/"/g, '""');
+                    // ครอบด้วย ""
+                    text = `"${text}"`;
+                    rowData.push(text);
+                }
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-            });
-
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
-        }
-
-        function exportXLS() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
+                csvRows.push(rowData.join(','));
             }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
-
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
+
+        // รวมเป็น CSV + BOM
+        const csvContent = "\uFEFF" + csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'report.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportPDF() {
+        const {
+            jsPDF
+        } = window.jspdf;
+        const doc = new jsPDF('landscape');
+
+        // เพิ่มฟอนต์ภาษาไทย
+        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+        doc.setFont("THSarabun");
+
+        // ตั้งค่าฟอนต์และข้อความ
+        doc.setFontSize(12);
+        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+
+        // ใช้ autoTable สำหรับสร้างตาราง
+        doc.autoTable({
+            html: '#reportTable',
+            startY: 20,
+            styles: {
+                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
+                fontSize: 10,
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            bodyStyles: {
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            headStyles: {
+                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
+                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+        });
+
+        // บันทึกไฟล์ PDF
+        doc.save('รายงาน.pdf');
+    }
+
+    function exportXLS() {
+    const table = document.getElementById('reportTable');
+
+    const rows = [];
+    const merges = {};
+    const skipMap = {};
+
+    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+        const tr = table.rows[rowIndex];
+        const rowData = [];
+        let colIndex = 0;
+
+        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+            while (skipMap[`${rowIndex},${colIndex}`]) {
+                rowData.push("");
+                colIndex++;
+            }
+
+            const cell = tr.cells[cellIndex];
+            let cellText = cell.innerText.trim();
+            rowData[colIndex] = cellText;
+
+            const rowspan = cell.rowSpan || 1;
+            const colspan = cell.colSpan || 1;
+
+            if (rowspan > 1 || colspan > 1) {
+                const mergeRef = {
+                    s: { r: rowIndex, c: colIndex },
+                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                };
+
+                const mergeKey = `merge_${rowIndex}_${colIndex}`;
+                merges[mergeKey] = mergeRef;
+
+                for (let r = 0; r < rowspan; r++) {
+                    for (let c = 0; c < colspan; c++) {
+                        if (!(r === 0 && c === 0)) {
+                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                        }
+                    }
+                }
+            }
+
+            colIndex++;
+        }
+        rows.push(rowData);
+    }
+
+    // Create Workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Apply merges
+    ws['!merges'] = Object.values(merges);
+
+    // Apply header styles to the first few rows (all header rows)
+    const totalHeaderRows = table.tHead.rows.length; // Get the number of header rows
+    for (let R = 0; R < totalHeaderRows; R++) {
+        for (let C = 0; C < rows[R].length; C++) {
+            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+
+            if (ws[cellRef]) {
+                ws[cellRef].s = {
+                    alignment: { horizontal: "center", vertical: "center" }, // Center text
+                    font: { bold: true, name: "Arial", sz: 12 }, // Bold + Font
+                    fill: { fgColor: { rgb: "FFFFCC" } }, // Light yellow background
+                    border: {
+                        top: { style: "thin", color: { rgb: "000000" } },
+                        bottom: { style: "thin", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "000000" } },
+                        right: { style: "thin", color: { rgb: "000000" } }
+                    }
+                };
+            }
+        }
+    }
+
+    // Append sheet and write file
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+    // Download file
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'report.xlsx'; // Change to .xlsx for proper styling support
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+
+
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
     <!-- Custom script -->
     <script src="../js/custom.min.js"></script>
-</body>
+
 
 </html>

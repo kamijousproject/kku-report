@@ -88,6 +88,27 @@
                     var str='';
 
                     response.plan.forEach(row => {
+                        const pro = sp.filter(item =>item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                        //console.log(pro);
+                        const parseValue = (value) => {
+                            const number = parseFloat(value.replace(/,/g, ''));
+                            return isNaN(number) ? 0 : number;
+                        };
+                        const sums = pro.reduce((acc, item) => {
+                                return {
+                                    a2: acc.a2 + parseValue(item.a2),
+                                    c2: acc.c2 + parseValue(item.c2),
+                                    o2: acc.o2 + parseValue(item.o2),
+                                    e2: acc.e2 + parseValue(item.e2),
+                                    a6: acc.a6 + parseValue(item.a6),
+                                    c6: acc.c6 + parseValue(item.c6),
+                                    o6: acc.o6 + parseValue(item.o6),
+                                    e6: acc.e6 + parseValue(item.e6)
+                                };
+                            }, {
+                                a2: 0, c2: 0, o2: 0, e2: 0,
+                                a6: 0, c6: 0, o6: 0, e6: 0
+                            });
                         str+='<tr><td>'+row.Alias_Default+'</td>'+
                                 '<td nowrap style="text-align: left;">'+row.p+'<br/>'+
                                 '&nbsp;'.repeat(8)+row.si_name+'<br/>'+

@@ -113,106 +113,110 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-
+                $slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH position_summary AS (
-                        SELECT 
-                            Faculty,
-                            'บริหาร' AS TYPE1,
-                            'วิชาการ' AS TYPE2,
-                            'วิจัย' AS TYPE3,
-                            'สนับสนุน' AS TYPE4,
-                            -- Type 1 (บริหาร) headcounts
-                            SUM(CASE WHEN All_PositionTypes = 'บริหาร' THEN Year_1_Headcount ELSE 0 END) AS TYPE1_year1,
-                            SUM(CASE WHEN All_PositionTypes = 'บริหาร' THEN Year_2_Headcount ELSE 0 END) AS TYPE1_year2,
-                            SUM(CASE WHEN All_PositionTypes = 'บริหาร' THEN Year_3_Headcount ELSE 0 END) AS TYPE1_year3,
-                            SUM(CASE WHEN All_PositionTypes = 'บริหาร' THEN Year_4_Headcount ELSE 0 END) AS TYPE1_year4,
-                            -- Type 2 (วิชาการ) headcounts
-                            SUM(CASE WHEN All_PositionTypes = 'วิชาการ' THEN Year_1_Headcount ELSE 0 END) AS TYPE2_year1,
-                            SUM(CASE WHEN All_PositionTypes = 'วิชาการ' THEN Year_2_Headcount ELSE 0 END) AS TYPE2_year2,
-                            SUM(CASE WHEN All_PositionTypes = 'วิชาการ' THEN Year_3_Headcount ELSE 0 END) AS TYPE2_year3,
-                            SUM(CASE WHEN All_PositionTypes = 'วิชาการ' THEN Year_4_Headcount ELSE 0 END) AS TYPE2_year4,
-                            -- Type 3 (วิจัย) headcounts
-                            SUM(CASE WHEN All_PositionTypes = 'วิจัย' THEN Year_1_Headcount ELSE 0 END) AS TYPE3_year1,
-                            SUM(CASE WHEN All_PositionTypes = 'วิจัย' THEN Year_2_Headcount ELSE 0 END) AS TYPE3_year2,
-                            SUM(CASE WHEN All_PositionTypes = 'วิจัย' THEN Year_3_Headcount ELSE 0 END) AS TYPE3_year3,
-                            SUM(CASE WHEN All_PositionTypes = 'วิจัย' THEN Year_4_Headcount ELSE 0 END) AS TYPE3_year4,
-                            -- Type 4 (สนับสนุน) headcounts
-                            SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_1_Headcount ELSE 0 END) AS TYPE4_year1,
-                            SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_2_Headcount ELSE 0 END) AS TYPE4_year2,
-                            SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_3_Headcount ELSE 0 END) AS TYPE4_year3,
-                            SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_4_Headcount ELSE 0 END) AS TYPE4_year4
-                        FROM workforce_4year_plan
-                        GROUP BY Faculty
-                    ),
+                            SELECT 
+                                w.Faculty,
+                                'บริหาร' AS TYPE1,
+                                'วิชาการ' AS TYPE2,
+                                'วิจัย' AS TYPE3,
+                                'สนับสนุน' AS TYPE4,
+                                -- Type 1 (บริหาร) headcounts
+                                SUM(CASE WHEN All_PositionTypes = 'บริหาร' THEN Year_1_Headcount ELSE 0 END) AS TYPE1_year1,
+                                SUM(CASE WHEN All_PositionTypes = 'บริหาร' THEN Year_2_Headcount ELSE 0 END) AS TYPE1_year2,
+                                SUM(CASE WHEN All_PositionTypes = 'บริหาร' THEN Year_3_Headcount ELSE 0 END) AS TYPE1_year3,
+                                SUM(CASE WHEN All_PositionTypes = 'บริหาร' THEN Year_4_Headcount ELSE 0 END) AS TYPE1_year4,
+                                -- Type 2 (วิชาการ) headcounts
+                                SUM(CASE WHEN All_PositionTypes = 'วิชาการ' THEN Year_1_Headcount ELSE 0 END) AS TYPE2_year1,
+                                SUM(CASE WHEN All_PositionTypes = 'วิชาการ' THEN Year_2_Headcount ELSE 0 END) AS TYPE2_year2,
+                                SUM(CASE WHEN All_PositionTypes = 'วิชาการ' THEN Year_3_Headcount ELSE 0 END) AS TYPE2_year3,
+                                SUM(CASE WHEN All_PositionTypes = 'วิชาการ' THEN Year_4_Headcount ELSE 0 END) AS TYPE2_year4,
+                                -- Type 3 (วิจัย) headcounts
+                                SUM(CASE WHEN All_PositionTypes = 'วิจัย' THEN Year_1_Headcount ELSE 0 END) AS TYPE3_year1,
+                                SUM(CASE WHEN All_PositionTypes = 'วิจัย' THEN Year_2_Headcount ELSE 0 END) AS TYPE3_year2,
+                                SUM(CASE WHEN All_PositionTypes = 'วิจัย' THEN Year_3_Headcount ELSE 0 END) AS TYPE3_year3,
+                                SUM(CASE WHEN All_PositionTypes = 'วิจัย' THEN Year_4_Headcount ELSE 0 END) AS TYPE3_year4,
+                                -- Type 4 (สนับสนุน) headcounts
+                                SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_1_Headcount ELSE 0 END) AS TYPE4_year1,
+                                SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_2_Headcount ELSE 0 END) AS TYPE4_year2,
+                                SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_3_Headcount ELSE 0 END) AS TYPE4_year3,
+                                SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_4_Headcount ELSE 0 END) AS TYPE4_year4
+                            FROM workforce_4year_plan w
+                            LEFT JOIN Faculty f
+                            ON w.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
+                            WHERE f.parent =:slt
+                            GROUP BY Faculty
+                        ),
 
-                    actual_counts AS (
-                        SELECT 
-                            Faculty,
-                            SUM(CASE WHEN All_Position_Types = 'บริหาร' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type1,
-                            SUM(CASE WHEN All_Position_Types = 'วิชาการ' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type2,
-                            SUM(CASE WHEN All_Position_Types = 'วิจัย' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type3,
-                            SUM(CASE WHEN All_Position_Types = 'สนับสนุน' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type4
-                        FROM (
+                        actual_counts AS (
                             SELECT 
                                 Faculty,
-                                All_Position_Types,
-                                COUNT(*) AS count_staff
-                            FROM actual_data_2
-                            WHERE All_Position_Types IS NOT NULL
-                            GROUP BY Faculty, All_Position_Types
-                        ) staff_counts
-                        GROUP BY Faculty
-                    )
+                                SUM(CASE WHEN All_Position_Types = 'บริหาร' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type1,
+                                SUM(CASE WHEN All_Position_Types = 'วิชาการ' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type2,
+                                SUM(CASE WHEN All_Position_Types = 'วิจัย' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type3,
+                                SUM(CASE WHEN All_Position_Types = 'สนับสนุน' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type4
+                            FROM (
+                                SELECT 
+                                    Faculty,
+                                    All_Position_Types,
+                                    COUNT(*) AS count_staff
+                                FROM workforce_hcm_actual
+                                WHERE All_Position_Types IS NOT NULL
+                                GROUP BY Faculty, All_Position_Types
+                            ) staff_counts
+                            GROUP BY Faculty
+                        )
 
-                    SELECT 
-                        ps.Faculty,
-                        ps.TYPE1,
-                        ps.TYPE2,
-                        ps.TYPE3,
-                        ps.TYPE4,
-                        -- Planned headcounts by type and year
-                        SUM(ps.TYPE1_year1) AS TYPE1_year1,
-                        SUM(ps.TYPE1_year2) AS TYPE1_year2,
-                        SUM(ps.TYPE1_year3) AS TYPE1_year3,
-                        SUM(ps.TYPE1_year4) AS TYPE1_year4,
-                        SUM(ps.TYPE2_year1) AS TYPE2_year1,
-                        SUM(ps.TYPE2_year2) AS TYPE2_year2,
-                        SUM(ps.TYPE2_year3) AS TYPE2_year3,
-                        SUM(ps.TYPE2_year4) AS TYPE2_year4,
-                        SUM(ps.TYPE3_year1) AS TYPE3_year1,
-                        SUM(ps.TYPE3_year2) AS TYPE3_year2,
-                        SUM(ps.TYPE3_year3) AS TYPE3_year3,
-                        SUM(ps.TYPE3_year4) AS TYPE3_year4,
-                        SUM(ps.TYPE4_year1) AS TYPE4_year1,
-                        SUM(ps.TYPE4_year2) AS TYPE4_year2,
-                        SUM(ps.TYPE4_year3) AS TYPE4_year3,
-                        SUM(ps.TYPE4_year4) AS TYPE4_year4,
-                        -- Actual counts
-                        ac.Actual_type1,
-                        ac.Actual_type2,
-                        ac.Actual_type3,
-                        ac.Actual_type4,
-                        f.Alias_Default
-                    FROM position_summary ps
-                    LEFT JOIN actual_counts ac ON ps.Faculty = ac.Faculty COLLATE utf8mb4_general_ci
-                    LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
-                        FROM Faculty
-                    ) f ON ps.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                    GROUP BY 
-                        ps.Faculty,
-                        ps.TYPE1,
-                        ps.TYPE2,
-                        ps.TYPE3,
-                        ps.TYPE4,
-                        f.Alias_Default,
-                        ac.Actual_type1,
-                        ac.Actual_type2,
-                        ac.Actual_type3,
-                        ac.Actual_type4
-                    ORDER BY ps.Faculty";
+                        SELECT 
+                            ps.Faculty,
+                            ps.TYPE1,
+                            ps.TYPE2,
+                            ps.TYPE3,
+                            ps.TYPE4,
+                            -- Planned headcounts by type and year
+                            SUM(ps.TYPE1_year1) AS TYPE1_year1,
+                            SUM(ps.TYPE1_year2) AS TYPE1_year2,
+                            SUM(ps.TYPE1_year3) AS TYPE1_year3,
+                            SUM(ps.TYPE1_year4) AS TYPE1_year4,
+                            SUM(ps.TYPE2_year1) AS TYPE2_year1,
+                            SUM(ps.TYPE2_year2) AS TYPE2_year2,
+                            SUM(ps.TYPE2_year3) AS TYPE2_year3,
+                            SUM(ps.TYPE2_year4) AS TYPE2_year4,
+                            SUM(ps.TYPE3_year1) AS TYPE3_year1,
+                            SUM(ps.TYPE3_year2) AS TYPE3_year2,
+                            SUM(ps.TYPE3_year3) AS TYPE3_year3,
+                            SUM(ps.TYPE3_year4) AS TYPE3_year4,
+                            SUM(ps.TYPE4_year1) AS TYPE4_year1,
+                            SUM(ps.TYPE4_year2) AS TYPE4_year2,
+                            SUM(ps.TYPE4_year3) AS TYPE4_year3,
+                            SUM(ps.TYPE4_year4) AS TYPE4_year4,
+                            -- Actual counts
+                            ac.Actual_type1,
+                            ac.Actual_type2,
+                            ac.Actual_type3,
+                            ac.Actual_type4,
+                            f.Alias_Default
+                        FROM position_summary ps
+                        LEFT JOIN actual_counts ac ON ps.Faculty = ac.Faculty COLLATE utf8mb4_general_ci
+                        LEFT JOIN (
+                            SELECT DISTINCT Faculty, Alias_Default 
+                            FROM Faculty
+                        ) f ON ps.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        GROUP BY 
+                            ps.Faculty,
+                            ps.TYPE1,
+                            ps.TYPE2,
+                            ps.TYPE3,
+                            ps.TYPE4,
+                            f.Alias_Default,
+                            ac.Actual_type1,
+                            ac.Actual_type2,
+                            ac.Actual_type3,
+                            ac.Actual_type4
+                        ORDER BY ps.Faculty";
                 $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -233,16 +237,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-
+                $slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "WITH actual_data_2 AS(
-                        SELECT Faculty
+                $sql = "WITH t1 AS(
+                        SELECT w.Faculty
                         ,all_position_types
                         ,sum(salary_rate) AS salary_rate
                         ,COUNT(*) AS num_position_types
                         ,fund_ft
-                        FROM actual_data_2
-                        WHERE all_position_types IS NOT NULL and (fund_ft ='เงินงบประมาณ' OR fund_ft='เงินรายได้') AND Faculty !='00000'
+                        FROM workforce_hcm_actual w
+                        LEFT JOIN Faculty f
+                        ON w.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
+                        WHERE all_position_types IS NOT NULL and (fund_ft ='เงินงบประมาณ' OR fund_ft='เงินรายได้') AND w.Faculty !='00000' AND f.parent =:slt
                         GROUP BY Faculty
                         ,all_position_types
                         ,fund_ft
@@ -266,16 +272,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when all_position_types='วิจัย' AND fund_ft='เงินรายได้' then num_position_types ELSE 0 END) AS TYPE3_fund2_num
                         ,sum(case when all_position_types='สนับสนุน' AND fund_ft='เงินงบประมาณ' then num_position_types ELSE 0 END) AS TYPE4_fund1_num
                         ,sum(case when all_position_types='สนับสนุน' AND fund_ft='เงินรายได้' then num_position_types ELSE 0 END) AS TYPE4_fund2_num
-                        FROM actual_data_2 ad
+                        FROM t1 ad
                         LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default 
                         FROM Faculty
                         ) f ON ad.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
                         GROUP BY f.Alias_Default
-                        ORDER BY f.Alias_Default
-
-                        ";
+                        ORDER BY f.Alias_Default ";
                 $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -439,26 +444,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-
+                $slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "SELECT distinct COALESCE(f.Alias_Default,act1.Faculty) AS faculty
                         ,act1.Personnel_Type
                         ,act1.Workers_Name_Surname
                         ,act1.`Position`
-                        ,act1.Position_Number
-                        ,act1.All_PositionTypes
+                        ,Replace(act1.Position_Number,'PN_','') AS Position_Number
+                        ,act1.all_position_types
                         ,act1.Job_Family
                         ,act4.Retirement_Date
-                        FROM actual_data_1 act1
-                        LEFT JOIN actual_data_4 act4
+                        FROM workforce_hcm_actual act1
+                        LEFT JOIN workforce_hcm_actual act4
                         ON act1.Position_Number=act4.Position_Number
-                        LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
-                        FROM Faculty
-                        ) f ON act1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        where act1.Faculty!='00000'
-                        ORDER BY COALESCE(f.Alias_Default,act1.Faculty)";
+                        LEFT JOIN Faculty f
+                        ON act1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        where act1.Faculty!='00000' and f.parent =:slt
+                        ORDER BY COALESCE(f.Alias_Default,act1.Faculty),act4.Retirement_Date,Replace(act1.Position_Number,'PN_','')";
                 $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -962,7 +966,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON t.name=tt.Job_Family COLLATE utf8mb4_general_ci AND t.position=tt.`Position` COLLATE utf8mb4_general_ci AND t.faculty=tt.parent COLLATE UTF8MB4_GENERAL_CI)
                         ,t6 AS (
                         SELECT a.POSITION,a.Job_Family,COUNT(*) AS count_person,f.parent
-                        FROM actual_data_1 a
+                        FROM workforce_hcm_actual a
                         LEFT JOIN Faculty f
                         ON a.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
                         WHERE f.parent ='".$slt."'
@@ -974,6 +978,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON t.name=tt.Job_Family COLLATE utf8mb4_general_ci AND t.position=tt.`POSITION` COLLATE utf8mb4_general_ci AND t.faculty=tt.parent COLLATE UTF8MB4_GENERAL_CI)
 
                         SELECT * FROM t7
+                        where (t7.count_person >0 or t7.wf!='0')
                         order BY  t7.Alias_Default,t7.code";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -1070,20 +1075,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
+                $slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH act1 AS(
-                        SELECT Faculty
+                        SELECT w.Faculty
                         ,Personnel_Type
                         ,POSITION
                         ,Job_Family
                         ,Position_Number
-                        ,All_PositionTypes
-                        FROM actual_data_1
-                        WHERE Faculty!='00000' AND (Personnel_Type='ข้าราชการ'OR Personnel_Type='ลูกจ้างของมหาวิทยาลัย'OR Personnel_Type='ลูกจ้างประจำ'OR Personnel_Type='พนักงานมหาวิทยาลัย')) 
+                        ,all_position_types
+                        FROM workforce_hcm_actual w
+                        LEFT JOIN Faculty f
+                            ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        WHERE w.Faculty!='00000' AND (Personnel_Type='ข้าราชการ'OR Personnel_Type='ลูกจ้างของมหาวิทยาลัย'OR Personnel_Type='ลูกจ้างประจำ'OR Personnel_Type='พนักงานมหาวิทยาลัย')and f.parent =:slt) 
                         ,t2 AS (
                         SELECT distinct t1.*,act4.Retirement_Date,f2.Alias_Default
                         FROM act1 t1
-                        LEFT JOIN actual_data_4 act4
+                        LEFT JOIN workforce_hcm_actual act4
                         ON t1.Position_Number=act4.Position_Number
                         LEFT JOIN Faculty f2
                         ON f2.Faculty=t1.Faculty COLLATE utf8mb4_general_ci
@@ -1091,28 +1099,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,t3 AS (
                         SELECT distinct tt.*,a.fund_ft
                         FROM t2 tt
-                        LEFT JOIN actual_data_2 a
+                        LEFT JOIN workforce_hcm_actual a
                         ON tt.Position_Number=a.position_number)
                         ,t4 AS (
-                        SELECT Faculty,POSITION,Job_Family,Position_Number,All_PositionTypes,Retirement_Date,Alias_Default
+                        SELECT Faculty,POSITION,Job_Family,Position_Number,all_position_types,Retirement_Date,Alias_Default
                         ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND fund_ft='เงินรายได้' then 'พนักงานมหาวิทยาลัยเงินรายได้'
                         when Personnel_Type='พนักงานมหาวิทยาลัย' AND fund_ft='เงินงบประมาณ' then 'พนักงานมหาวิทยาลัยเงินงบประมาณ'
                         ELSE Personnel_Type END AS Personnel_Type
                         FROM t3)
                         ,t5 AS (
-                        SELECT Faculty,POSITION,Job_Family,Position_Number,All_PositionTypes,Personnel_Type,Alias_Default
-                        ,case when Retirement_Date >= '2024-01-01' AND Retirement_Date <= '2024-12-31' then 'y1'
-                        when Retirement_Date >= '2025-01-01' AND Retirement_Date <= '2025-12-31' then 'y2'
-                        when Retirement_Date >= '2026-01-01' AND Retirement_Date <= '2026-12-31' then 'y3'
-                        when Retirement_Date >= '2027-01-01' AND Retirement_Date <= '2027-12-31' then 'y4'
-                        ELSE 'yy' END AS y
+                        SELECT Faculty,POSITION,Job_Family,Position_Number,all_position_types,Personnel_Type,Alias_Default
+                        ,CASE 
+                                WHEN STR_TO_DATE(CONCAT(SUBSTRING_INDEX(Retirement_Date, '-', 2), '-', 
+                                        CAST(SUBSTRING_INDEX(Retirement_Date, '-', -1) - 543 AS UNSIGNED)), '%d-%m-%Y') 
+                                    BETWEEN '2024-01-01' AND '2024-12-31' THEN 'y1'
+                                WHEN STR_TO_DATE(CONCAT(SUBSTRING_INDEX(Retirement_Date, '-', 2), '-', 
+                                        CAST(SUBSTRING_INDEX(Retirement_Date, '-', -1) - 543 AS UNSIGNED)), '%d-%m-%Y') 
+                                    BETWEEN '2025-01-01' AND '2025-12-31' THEN 'y2'
+                                WHEN STR_TO_DATE(CONCAT(SUBSTRING_INDEX(Retirement_Date, '-', 2), '-', 
+                                        CAST(SUBSTRING_INDEX(Retirement_Date, '-', -1) - 543 AS UNSIGNED)), '%d-%m-%Y') 
+                                    BETWEEN '2026-01-01' AND '2026-12-31' THEN 'y3'
+                                WHEN STR_TO_DATE(CONCAT(SUBSTRING_INDEX(Retirement_Date, '-', 2), '-', 
+                                        CAST(SUBSTRING_INDEX(Retirement_Date, '-', -1) - 543 AS UNSIGNED)), '%d-%m-%Y') 
+                                    BETWEEN '2027-01-01' AND '2027-12-31' THEN 'y4'
+                                ELSE 'yy' 
+                            END AS y
                         FROM t4)
                         ,t6 AS (
-                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,y,Personnel_Type,Alias_Default FROM t5 WHERE Y !='yy')
+                        SELECT Faculty,POSITION,Job_Family,all_position_types,y,Personnel_Type,Alias_Default FROM t5 WHERE Y !='yy')
                         ,t7 AS (
-                        SELECT *,COUNT(*) AS all_p FROM t6 GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,y,Personnel_Type,Alias_Default)
+                        SELECT *,COUNT(*) AS all_p FROM t6 GROUP BY Faculty,POSITION,Job_Family,all_position_types,y,Personnel_Type,Alias_Default)
                         ,t8 AS (
-                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,Alias_Default,y
+                        SELECT Faculty,POSITION,Job_Family,all_position_types,Alias_Default,y
                         ,sum(case when Personnel_Type='ข้าราชการ' then all_p ELSE '0' END) AS p1
                         ,sum(case when Personnel_Type='ลูกจ้างของมหาวิทยาลัย' then all_p ELSE '0' END) AS p5
                         ,sum(case when Personnel_Type='ลูกจ้างประจำ' then all_p ELSE '0' END) AS p4
@@ -1120,9 +1138,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินงบประมาณ' then all_p ELSE '0' END) AS p2
                         FROM t7 
                         WHERE Y='y1'
-                        GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,Alias_Default,y)
+                        GROUP BY Faculty,POSITION,Job_Family,all_position_types,Alias_Default,Y)
                         ,t9 AS (
-                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default
+                        SELECT Faculty,POSITION,Job_Family,all_position_types,y,Alias_Default
                         ,sum(case when Personnel_Type='ข้าราชการ' then all_p ELSE '0' END) AS p1
                         ,sum(case when Personnel_Type='ลูกจ้างของมหาวิทยาลัย' then all_p ELSE '0' END) AS p5
                         ,sum(case when Personnel_Type='ลูกจ้างประจำ' then all_p ELSE '0' END) AS p4
@@ -1130,9 +1148,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินงบประมาณ' then all_p ELSE '0' END) AS p2
                         FROM t7 
                         WHERE Y='y2'
-                        GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default)
+                        GROUP BY Faculty,POSITION,Job_Family,all_position_types,y,Alias_Default)
                         ,t10 AS (
-                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default
+                        SELECT Faculty,POSITION,Job_Family,all_position_types,y,Alias_Default
                         ,sum(case when Personnel_Type='ข้าราชการ' then all_p ELSE '0' END) AS p1
                         ,sum(case when Personnel_Type='ลูกจ้างของมหาวิทยาลัย' then all_p ELSE '0' END) AS p5
                         ,sum(case when Personnel_Type='ลูกจ้างประจำ' then all_p ELSE '0' END) AS p4
@@ -1140,9 +1158,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินงบประมาณ' then all_p ELSE '0' END) AS p2
                         FROM t7 
                         WHERE Y='y3'
-                        GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default)
+                        GROUP BY Faculty,POSITION,Job_Family,all_position_types,y,Alias_Default)
                         ,t11 AS (
-                        SELECT Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default
+                        SELECT Faculty,POSITION,Job_Family,all_position_types,y,Alias_Default
                         ,sum(case when Personnel_Type='ข้าราชการ' then all_p ELSE '0' END) AS p1
                         ,sum(case when Personnel_Type='ลูกจ้างของมหาวิทยาลัย' then all_p ELSE '0' END) AS p5
                         ,sum(case when Personnel_Type='ลูกจ้างประจำ' then all_p ELSE '0' END) AS p4
@@ -1150,63 +1168,64 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when Personnel_Type='พนักงานมหาวิทยาลัยเงินงบประมาณ' then all_p ELSE '0' END) AS p2
                         FROM t7 
                         WHERE Y='y4'
-                        GROUP BY Faculty,POSITION,Job_Family,All_PositionTypes,y,Alias_Default)
+                        GROUP BY Faculty,POSITION,Job_Family,all_position_types,y,Alias_Default)
                         ,t12 AS (
                         SELECT t.*,tt.Alias_Default as Alias_Default_y2,tt.Faculty as Faculty_y2 , tt.POSITION as POSITION_y2,tt.Job_Family as Job_Family_y2
-                        ,tt.All_PositionTypes as All_PositionTypes_y2,tt.y AS y2,tt.p1 AS p1_y2,tt.p2 AS p2_y2,tt.p3 AS p3_y2,tt.p4 AS p4_y2,tt.p5 AS p5_y2
+                        ,tt.all_position_types as all_position_types_y2,tt.y AS y2,tt.p1 AS p1_y2,tt.p2 AS p2_y2,tt.p3 AS p3_y2,tt.p4 AS p4_y2,tt.p5 AS p5_y2
                         FROM t8 t
                         LEFT JOIN t9 tt
                         ON t.Faculty = tt.Faculty 
                         AND t.POSITION = tt.POSITION 
-                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        AND t.all_position_types = tt.all_position_types 
                         UNION
                         SELECT t.*,tt.Alias_Default as Alias_Default_y2,tt.Faculty as Faculty_y2 , tt.POSITION as POSITION_y2,tt.Job_Family as Job_Family_y2
-                        ,tt.All_PositionTypes as All_PositionTypes_y2,tt.y AS y2,tt.p1 AS p1_y2,tt.p2 AS p2_y2,tt.p3 AS p3_y2,tt.p4 AS p4_y2,tt.p5 AS p5_y2
+                        ,tt.all_position_types as all_position_types_y2,tt.y AS y2,tt.p1 AS p1_y2,tt.p2 AS p2_y2,tt.p3 AS p3_y2,tt.p4 AS p4_y2,tt.p5 AS p5_y2
                         FROM t8 t
                         RIGHT JOIN t9 tt
                         ON t.Faculty = tt.Faculty 
                         AND t.POSITION = tt.POSITION 
-                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        AND t.all_position_types = tt.all_position_types 
                         WHERE t.Faculty IS NULL)
                         ,t13 AS (
                         SELECT t.*,tt.Alias_Default as Alias_Default_y3,tt.Faculty as Faculty_y3 , tt.POSITION as POSITION_y3,tt.Job_Family as Job_Family_y3
-                        ,tt.All_PositionTypes as All_PositionTypes_y3,tt.y AS y3,tt.p1 AS p1_y3,tt.p2 AS p2_y3,tt.p3 AS p3_y3,tt.p4 AS p4_y3,tt.p5 AS p5_y3
+                        ,tt.all_position_types as all_position_types_y3,tt.y AS y3,tt.p1 AS p1_y3,tt.p2 AS p2_y3,tt.p3 AS p3_y3,tt.p4 AS p4_y3,tt.p5 AS p5_y3
                         FROM t12 t
                         LEFT JOIN t10 tt
                         ON t.Faculty = tt.Faculty 
                         AND t.POSITION = tt.POSITION 
-                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        AND t.all_position_types = tt.all_position_types 
                         UNION
                         SELECT t.*,tt.Alias_Default as Alias_Default_y3,tt.Faculty as Faculty_y3 , tt.POSITION as POSITION_y3,tt.Job_Family as Job_Family_y3
-                        ,tt.All_PositionTypes as All_PositionTypes_y3,tt.y AS y3,tt.p1 AS p1_y3,tt.p2 AS p2_y3,tt.p3 AS p3_y3,tt.p4 AS p4_y3,tt.p5 AS p5_y3
+                        ,tt.all_position_types as all_position_types_y3,tt.y AS y3,tt.p1 AS p1_y3,tt.p2 AS p2_y3,tt.p3 AS p3_y3,tt.p4 AS p4_y3,tt.p5 AS p5_y3
                         FROM t12 t
                         RIGHT JOIN t10 tt
                         ON t.Faculty = tt.Faculty 
                         AND t.POSITION = tt.POSITION 
-                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        AND t.all_position_types = tt.all_position_types 
                         WHERE t.Faculty IS NULL)
                         ,t14 AS (
                         SELECT t.*,tt.Alias_Default as Alias_Default_y4,tt.Faculty as Faculty_y4 , tt.POSITION as POSITION_y4,tt.Job_Family as Job_Family_y4
-                        ,tt.All_PositionTypes as All_PositionTypes_y4,tt.y AS y4,tt.p1 AS p1_y4,tt.p2 AS p2_y4,tt.p3 AS p3_y4,tt.p4 AS p4_y4,tt.p5 AS p5_y4
+                        ,tt.all_position_types as all_position_types_y4,tt.y AS y4,tt.p1 AS p1_y4,tt.p2 AS p2_y4,tt.p3 AS p3_y4,tt.p4 AS p4_y4,tt.p5 AS p5_y4
                         FROM t13 t
                         LEFT JOIN t11 tt
                         ON t.Faculty = tt.Faculty 
                         AND t.POSITION = tt.POSITION 
-                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        AND t.all_position_types = tt.all_position_types 
                         UNION
                         SELECT t.*,tt.Alias_Default as Alias_Default_y4,tt.Faculty as Faculty_y4 , tt.POSITION as POSITION_y4,tt.Job_Family as Job_Family_y4
-                        ,tt.All_PositionTypes as All_PositionTypes_y4,tt.y AS y4,tt.p1 AS p1_y4,tt.p2 AS p2_y4,tt.p3 AS p3_y4,tt.p4 AS p4_y4,tt.p5 AS p5_y4
+                        ,tt.all_position_types as all_position_types_y4,tt.y AS y4,tt.p1 AS p1_y4,tt.p2 AS p2_y4,tt.p3 AS p3_y4,tt.p4 AS p4_y4,tt.p5 AS p5_y4
                         FROM t13 t
                         RIGHT JOIN t11 tt
                         ON t.Faculty = tt.Faculty 
                         AND t.POSITION = tt.POSITION 
-                        AND t.All_PositionTypes = tt.All_PositionTypes 
+                        AND t.all_position_types = tt.all_position_types 
                         WHERE t.Faculty IS NULL)
 
 
                         SELECT * FROM t14
                         ORDER BY t14.faculty,t14.y";
                 $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;

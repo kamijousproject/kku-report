@@ -202,13 +202,13 @@ td {
                     const account = [...new Set(response.bgp.map(item => item.TYPE))];
                     const sub_account = [...new Set(response.bgp.map(item => item.sub_type))];
 
-                    /* console.log(f1);
+                    console.log(f1);
                     console.log(f2);
                     console.log(plan_name);
                     console.log(sub_plan_name);
                     console.log(project_name);
                     console.log(account);
-                    console.log(sub_account); */ 
+                    console.log(sub_account); 
                     
                     /* var str1=''; 
                     var str2='';
@@ -264,6 +264,7 @@ td {
                             str16+='<br/>';
                             plan_name.forEach((row3) => {
                                 var p = response.bgp.filter(item => item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                                
                                 if(p.length>0){
                                     str1+='<br/>'+'&nbsp;'.repeat(16)+row3;
                                     str2+='<br/>';
@@ -284,6 +285,7 @@ td {
                                 }
                                 sub_plan_name.forEach((row4) => {
                                     var sp = p.filter(item =>item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                                    //console.log(sp);
                                     if(sp.length>0){
                                         str1+='<br/>'+'&nbsp;'.repeat(24)+row4;
                                         str2+='<br/>';
@@ -304,7 +306,7 @@ td {
                                     }                                   
                                     project_name.forEach((row5) => {
                                         const pro = sp.filter(item =>item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
-                                        //console.log(pro);
+                                        console.log(pro);
                                         const parseValue = (value) => {
                                             const number = parseFloat(value.replace(/,/g, ''));
                                             return isNaN(number) ? 0 : number;
