@@ -148,7 +148,7 @@ function fetchData($conn)
        ac.sub_type,
        bpanbp.Allocated_Total_Amount_Quantity,
        bpa.BUDGET_ADJUSTMENTS,
-       (bpanbp.Allocated_Total_Amount_Quantity + bpa.BUDGET_ADJUSTMENTS) AS Remaining_Unapproved_Budget,
+       (bpanbp.Allocated_Total_Amount_Quantity - bpa.BUDGET_ADJUSTMENTS) AS Remaining_Unapproved_Budget,
        (bpa.COMMITMENTS + bpa.OBLIGATIONS) AS Budget_Commitments,
        ((bpa.COMMITMENTS + bpa.OBLIGATIONS) / NULLIF( bpanbp.Allocated_Total_Amount_Quantity, 0)) * 100 AS Allocated_Percentage,
        (bpanbp.Allocated_Total_Amount_Quantity - (bpa.COMMITMENTS + bpa.OBLIGATIONS) )  AS Remaining_after_budget_commitment,
@@ -506,11 +506,11 @@ if (isset($_POST['search'])) {
                                             <thead>
                                                 <tr>
                                                     <th colspan="22" style="text-align: center;">
-                                                        รายงานสรุปยอดงบประมาณคงเหลือ
-                                                    </th>
+                                                        รายงานสรุปยอดงบประมาณคงเหลือ</th>
                                                 </tr>
                                                 <tr>
-                                                    <th colspan="22" style="text-align: left; white-space: pre-wrap;">
+                                                    <th colspan="22" style="text-align: left;">
+                                                        แสดงข้อมูล:
                                                         <br> ปีบริหารงบประมาณ: <?php echo $fiscal_year; ?>
                                                         <br> ประเภทงบประมาณ: <?php echo $scenario; ?>
                                                         <br> แหล่งเงิน: <?php echo $fund; ?>
@@ -521,7 +521,6 @@ if (isset($_POST['search'])) {
                                                     </th>
                                                 </tr>
                                             </thead>
-
                                             <thead>
                                                 <tr>
                                                     <th rowspan="2">คำใช้จ่าย</th>
@@ -551,59 +550,30 @@ if (isset($_POST['search'])) {
                                                     <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
                                                 </tr>
                                             </thead>
-                                            <?php
-                                            // ตรวจสอบว่ามีข้อมูลหรือไม่
-                                            if (!empty($data)) {
-                                                $groupedData = [];
-
-                                                // วนลูปข้อมูลเพื่อนำมาจัดกลุ่ม
-                                                foreach ($data as $row) {
-                                                    $key = $row['sub_type']; // ใช้ sub_type เป็น key สำหรับการ grouping
-                                                    if (!isset($groupedData[$key])) {
-                                                        // ถ้ายังไม่มี ให้สร้างแถวใหม่
-                                                        $groupedData[$key] = $row;
-                                                    } else {
-                                                        // ถ้ามีแล้ว ให้รวมค่าของฟิลด์ตัวเลข
-                                                        $groupedData[$key]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
-                                                        $groupedData[$key]['BUDGET_ADJUSTMENTS'] += $row['BUDGET_ADJUSTMENTS'];
-                                                        $groupedData[$key]['Remaining_Unapproved_Budget'] += $row['Remaining_Unapproved_Budget'];
-                                                        $groupedData[$key]['Budget_Commitments'] += $row['Budget_Commitments'];
-                                                        $groupedData[$key]['Allocated_Percentage'] += $row['Allocated_Percentage'];
-                                                        $groupedData[$key]['Remaining_after_budget_commitment'] += $row['Remaining_after_budget_commitment'];
-                                                        $groupedData[$key]['EXPENDITURES'] += $row['EXPENDITURES'];
-                                                        $groupedData[$key]['EXPENDITURES_Total'] += $row['EXPENDITURES_Total'];
-
-                                                        // คำนวณค่าเฉลี่ยของเปอร์เซ็นต์
-                                                        $groupedData[$key]['Allocated_Percentage'] = round(($groupedData[$key]['Allocated_Percentage'] + $row['Allocated_Percentage']) / 2, 2);
-                                                        $groupedData[$key]['Allocated_Remaining_after_budget_commitment_Percentage'] = round(($groupedData[$key]['Allocated_Remaining_after_budget_commitment_Percentage'] + $row['Allocated_Remaining_after_budget_commitment_Percentage']) / 2, 2);
-                                                        $groupedData[$key]['EXPENDITURES_Percentage'] = round(($groupedData[$key]['EXPENDITURES_Percentage'] + $row['EXPENDITURES_Percentage']) / 2, 2);
-                                                        $groupedData[$key]['EXPENDITURES_Total_Percentage'] = round(($groupedData[$key]['EXPENDITURES_Total_Percentage'] + $row['EXPENDITURES_Total_Percentage']) / 2, 2);
-                                                    }
-                                                }
-
-                                                // เปลี่ยนเป็น array ที่สามารถวนลูปได้
-                                                $groupedData = array_values($groupedData);
-                                            } else {
-                                                $groupedData = [];
-                                            }
-                                            ?>
-
                                             <tbody>
-                                                <?php
-                                                // เรียงลำดับ type และ sub_type
-                                                usort($groupedData, function ($a, $b) {
-                                                    $typeCompare = strcmp($a['type'], $b['type']); // เปรียบเทียบ type
-                                                    if ($typeCompare === 0) {
-                                                        return strcmp($a['sub_type'], $b['sub_type']); // ถ้า type เท่ากัน ให้เรียงตาม sub_type
+                                                <?php if (!empty($data)): ?>
+                                                    <?php
+                                                    // เรียงลำดับ type และ sub_type และลบค่าซ้ำกัน
+                                                    usort($data, function ($a, $b) {
+                                                        $typeCompare = strcmp($a['type'], $b['type']); // เปรียบเทียบ type
+                                                        if ($typeCompare === 0) {
+                                                            return strcmp($a['sub_type'], $b['sub_type']); // ถ้า type เท่ากัน ให้เรียงตาม sub_type
+                                                        }
+                                                        return $typeCompare;
+                                                    });
+
+                                                    $uniqueData = [];
+                                                    $prevType = null; // กำหนดค่าเริ่มต้นให้ตัวแปร prevType
+                                            
+                                                    foreach ($data as $row) {
+                                                        $key = $row['type'] . '|' . $row['sub_type'];
+                                                        if (!isset($uniqueData[$key])) {
+                                                            $uniqueData[$key] = $row;
+                                                        }
                                                     }
-                                                    return $typeCompare;
-                                                });
+                                                    ?>
 
-                                                $prevType = null; // เก็บค่า type ก่อนหน้า
-                                                ?>
-
-                                                <?php if (!empty($groupedData)): ?>
-                                                    <?php foreach ($groupedData as $row): ?>
+                                                    <?php foreach ($uniqueData as $row): ?>
                                                         <tr>
                                                             <td>
                                                                 <?php if ($prevType !== $row['type']): ?>
@@ -611,28 +581,32 @@ if (isset($_POST['search'])) {
                                                                 <?php endif; ?>
                                                                 <?php echo $row['sub_type']; ?>
                                                             </td>
-                                                            <td><?php echo $row['Allocated_Total_Amount_Quantity']; ?></td>
-                                                            <td><?php echo $row['BUDGET_ADJUSTMENTS']; ?></td>
-                                                            <td><?php echo $row['BUDGET_ADJUSTMENTS']; ?></td>
-                                                            <td><?php echo $row['Remaining_Unapproved_Budget']; ?></td>
-                                                            <td><?php echo $row['Budget_Commitments']; ?></td>
-                                                            <td><?php echo $row['Allocated_Percentage']; ?>%</td>
-                                                            <td><?php echo $row['Remaining_after_budget_commitment']; ?></td>
-                                                            <td><?php echo $row['Allocated_Remaining_after_budget_commitment_Percentage']; ?>%
+                                                            <td><?php echo sprintf("%.2f", $row['Allocated_Total_Amount_Quantity']); ?>
                                                             </td>
-                                                            <td><?php echo $row['EXPENDITURES']; ?></td>
-                                                            <td><?php echo $row['EXPENDITURES_Percentage']; ?>%</td>
-                                                            <td><?php echo $row['EXPENDITURES_Total']; ?></td>
-                                                            <td><?php echo $row['EXPENDITURES_Total_Percentage']; ?>%</td>
-
+                                                            <td><?php echo sprintf("%.2f", $row['BUDGET_ADJUSTMENTS']); ?></td>
+                                                            <td><?php echo sprintf("%.2f", $row['BUDGET_ADJUSTMENTS']); ?></td>
+                                                            <td><?php echo sprintf("%.2f", $row['Remaining_Unapproved_Budget']); ?>
+                                                            </td>
+                                                            <td><?php echo sprintf("%.2f", $row['Budget_Commitments']); ?></td>
+                                                            <td><?php echo sprintf("%.2f", $row['Allocated_Percentage']); ?>%</td>
+                                                            <td><?php echo sprintf("%.2f", $row['Remaining_after_budget_commitment']); ?>
+                                                            </td>
+                                                            <td><?php echo sprintf("%.2f", $row['Allocated_Remaining_after_budget_commitment_Percentage']); ?>%
+                                                            </td>
+                                                            <td><?php echo sprintf("%.2f", $row['EXPENDITURES']); ?></td>
+                                                            <td><?php echo sprintf("%.2f", $row['EXPENDITURES_Percentage']); ?>%
+                                                            </td>
+                                                            <td><?php echo sprintf("%.2f", $row['EXPENDITURES_Total']); ?></td>
+                                                            <td><?php echo sprintf("%.2f", $row['EXPENDITURES_Total_Percentage']); ?>
+                                                            </td>
                                                             <td>0</td>
                                                             <td>0</td>
                                                             <td>0</td>
                                                             <td>0</td>
-                                                            <td><?php echo $row['EXPENDITURES']; ?></td>
+                                                            <td><?php echo sprintf("%.2f", $row['EXPENDITURES']); ?></td>
                                                             <td>0</td>
                                                         </tr>
-                                                        <?php $prevType = $row['type']; // อัปเดตค่า type ที่แสดงล่าสุด ?>
+                                                        <?php $prevType = $row['type']; // อัพเดทค่าของ prevType ?>
                                                     <?php endforeach; ?>
                                                 <?php else: ?>
                                                     <tr>
@@ -641,16 +615,15 @@ if (isset($_POST['search'])) {
                                                         </td>
                                                     </tr>
                                                 <?php endif; ?>
-
-
                                             </tbody>
+
 
                                         </table>
                                     </div>
                                 <?php endif; ?>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                <button onclick="exportXLSX()" class="btn btn-success m-t-15">Export XLSX</button>
+                                <button onclick="exportXLSX()" class="btn btn-success m-t-15">Export XLS</button>
                             </div>
 
 
@@ -756,14 +729,14 @@ if (isset($_POST['search'])) {
                 for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
                     let cell = row.cells[cellIndex];
 
-                    // ตรวจสอบว่าตำแหน่งนี้ถูก Merge มาก่อนหรือไม่
+                    // ข้ามช่องที่ถูก merge ไว้แล้ว
                     while (mergedCells[`${rowIndex},${colIndex}`]) {
-                        rowData.push(""); // เติมช่องว่างในตำแหน่งที่ถูก merge
+                        rowData[colIndex] = "";
                         colIndex++;
                     }
 
                     let cellText = cell.innerText.trim();
-                    rowData.push(cellText);
+                    rowData[colIndex] = cellText; // ใช้ colIndex ให้คงค่าเดิมใน merged cell
 
                     let rowspan = cell.rowSpan || 1;
                     let colspan = cell.colSpan || 1;
@@ -816,6 +789,7 @@ if (isset($_POST['search'])) {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
 
     </script>
     <!-- Common JS -->

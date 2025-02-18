@@ -109,7 +109,7 @@ function fetchData($conn, $start, $limit)
     wha.APPOINTMENT_DATE,
     wha.RETIREMENT_DATE,
     wha.`POSITION`,
-    wha.EMPLOYMENT_TYPE,
+    wha.all_position_types,
     wha.LOCATION_CODE,
     wha.EMPLOYEE_QUALIFICATIONS,
     wha.PERSONNEL_TYPE,
@@ -327,7 +327,7 @@ $totalPages = ceil($totalRows / $limit);
                                                         </td>
                                                         <td><?php echo !empty($row['POSITION']) ? $row['POSITION'] : '-'; ?>
                                                         </td>
-                                                        <td><?php echo !empty($row['EMPLOYMENT_TYPE']) ? $row['EMPLOYMENT_TYPE'] : '-'; ?>
+                                                        <td><?php echo !empty($row['all_position_types']) ? $row['all_position_types'] : '-'; ?>
                                                         </td>
                                                         <td><?php echo !empty($row['LOCATION_CODE']) ? $row['LOCATION_CODE'] : '-'; ?>
                                                         </td>
@@ -517,79 +517,79 @@ $totalPages = ceil($totalRows / $limit);
     }
 
     function exportXLSX() {
-    const table = document.getElementById('reportTable');
-    const rows = [];
-    const merges = [];
-    const mergedCells = {}; // ใช้เก็บตำแหน่งเซลล์ที่ถูก merge
+            const table = document.getElementById('reportTable');
+            const rows = [];
+            const merges = [];
+            const mergedCells = {}; // ใช้เก็บตำแหน่งเซลล์ที่ถูก merge
 
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-        const row = table.rows[rowIndex];
-        const rowData = [];
-        let colIndex = 0; // ควบคุม index ของคอลัมน์ใน Excel
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const row = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0; // ควบคุม index ของคอลัมน์ใน Excel
 
-        for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
-            let cell = row.cells[cellIndex];
+                for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+                    let cell = row.cells[cellIndex];
 
-            // ตรวจสอบว่าตำแหน่งนี้ถูก Merge มาก่อนหรือไม่
-            while (mergedCells[`${rowIndex},${colIndex}`]) {
-                rowData.push(""); // เติมช่องว่างในตำแหน่งที่ถูก merge
-                colIndex++;
-            }
+                    // ข้ามช่องที่ถูก merge ไว้แล้ว
+                    while (mergedCells[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
+                    }
 
-            let cellText = cell.innerText.trim();
-            rowData.push(cellText);
+                    let cellText = cell.innerText.trim();
+                    rowData[colIndex] = cellText; // ใช้ colIndex ให้คงค่าเดิมใน merged cell
 
-            let rowspan = cell.rowSpan || 1;
-            let colspan = cell.colSpan || 1;
+                    let rowspan = cell.rowSpan || 1;
+                    let colspan = cell.colSpan || 1;
 
-            if (rowspan > 1 || colspan > 1) {
-                merges.push({
-                    s: { r: rowIndex, c: colIndex }, // จุดเริ่มต้น
-                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดสิ้นสุด
-                });
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: { r: rowIndex, c: colIndex }, // จุดเริ่มต้น
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดสิ้นสุด
+                        });
 
-                // บันทึกว่าเซลล์เหล่านี้ถูก merge แล้ว
-                for (let r = 0; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        if (r !== 0 || c !== 0) {
-                            mergedCells[`${rowIndex + r},${colIndex + c}`] = true;
+                        // บันทึกว่าเซลล์เหล่านี้ถูก merge แล้ว
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r !== 0 || c !== 0) {
+                                    mergedCells[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
                         }
                     }
+
+                    colIndex += colspan;
                 }
+                rows.push(rowData);
             }
 
-            colIndex += colspan;
+            // สร้างไฟล์ Excel
+            const XLSX = window.XLSX;
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // ✅ เพิ่ม Merge Cells
+            ws['!merges'] = merges;
+
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // ✅ ดาวน์โหลดไฟล์ Excel
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xlsx',
+                type: 'array'
+            });
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงาน.xlsx';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
-        rows.push(rowData);
-    }
-
-    // สร้างไฟล์ Excel
-    const XLSX = window.XLSX;
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-
-    // ✅ เพิ่ม Merge Cells
-    ws['!merges'] = merges;
-
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-    // ✅ ดาวน์โหลดไฟล์ Excel
-    const excelBuffer = XLSX.write(wb, {
-        bookType: 'xlsx',
-        type: 'array'
-    });
-    const blob = new Blob([excelBuffer], {
-        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'รายงาน.xlsx';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
 
     </script>
     <!-- Common JS -->
