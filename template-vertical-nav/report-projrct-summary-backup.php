@@ -142,102 +142,76 @@
             const scenario = document.getElementById("scenarioSelect").value;
             const fund = document.getElementById("fundSelect").value;
 
-        $.ajax({
-        type: "POST",
-        url: "../server/api.php",
-        // url: "mockup-api",
-        data: {
-            'command': 'report-project-summary',
-            'scenario': scenario,
-            'fund': fund
-        },
-        dataType: "json",
-        success: function(response) {
-            console.log("API Response:", response.plan); // ตรวจสอบข้อมูลที่ได้รับ
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'report-project-summary',
+                    'scenario': scenario,
+                    'fund': fund
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log("API Response:", response.plan);
 
-            const tableBody = document.querySelector('#reportTable tbody');
-            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-            const headerCells = document.querySelectorAll("#reportTable thead th[value]");
+                    const headerCells = document.querySelectorAll("#reportTable thead th[value]");
+                    console.log("Valid header cells:", headerCells.length);
 
-            // ใช้ Map เพื่อจัดกลุ่มข้อมูล
-            const projectMap = new Map();
+                    response.plan.forEach(row => {
+                        const tr = document.createElement('tr');
 
-            response.plan.forEach(row => {
-                const projectKey = `${row.pillar_name}|${row.faculty_name}|${row.plan_name}|${row.sub_plan_name}|${row.project_name}`;
-
-                if (!projectMap.has(projectKey)) {
-                    // ถ้ายังไม่มีข้อมูลของโครงการนี้ ให้เพิ่มข้อมูลใหม่
-                    projectMap.set(projectKey, {
-                        ...row,
-                        totalAmount: parseFloat(row.Total_Amount_Quantity) || 0
-                    });
-                } else {
-                    // ถ้ามีข้อมูลนี้แล้ว ให้รวมค่าของ Total_Amount_Quantity
-                    const existingProject = projectMap.get(projectKey);
-                    existingProject.totalAmount += parseFloat(row.Total_Amount_Quantity) || 0;
-                }
-            });
-
-            // แสดงข้อมูลที่จัดกลุ่มแล้วในตาราง
-            projectMap.forEach(row => {
-                const tr = document.createElement('tr');
-
-                // แสดงรายละเอียดในคอลัมน์แรก
-                const td1 = document.createElement('td');
-                td1.innerHTML = `
-                    <div style="font-weight: bold;">${row.pillar_name || "-"}</div>
+                        // ✅ คอลัมน์แรก (โครงการ/กิจกรรม)
+                        const td1 = document.createElement('td');
+                        td1.innerHTML = `
+                    <div style="font-weight: bold;">${row.pillar_name || "-"}</div> <!-- ✅ Pillar อยู่แยกส่วนบน -->
                     <div>
                         ${row.faculty_name}<br>
                         ${row.plan_name}<br>
                         ${row.sub_plan_name}<br>
-                        <strong>${row.project_name}</strong>
+                        <strong>${row.project_name}</strong>  <!-- ✅ ตัวหนาให้ดูชัด -->
                     </div>
                 `;
-                tr.appendChild(td1);
+                        tr.appendChild(td1);
 
-                let totalSum = 0;
-                let hasValue = false;
+                        let totalSum = 0;
+                        let hasValue = false;
 
-                // แสดงข้อมูลในคอลัมน์งบประมาณ
-                headerCells.forEach(th => {
-                    const td = document.createElement('td');
-                    const parentValue = th.getAttribute("value");
-                    
+                        // ✅ คอลัมน์งบประมาณ → ค่าตัวเลขจะอยู่กับ `row.project_name`
+                        headerCells.forEach(th => {
+                            const td = document.createElement('td');
+                            const parentValue = th.getAttribute("value");
 
-                    if (row.parent === parentValue) {
-                        // console.log("parentValue", parentValue);
-                        // console.log("row", row.parent);
-                        const value = row.totalAmount; // ใช้ค่ารวมที่คำนวณแล้ว
-                        td.textContent = value.toLocaleString();
-                        totalSum += value;
-                        if (value > 0) hasValue = true;
-                    } else {
-                        td.textContent = "-";
-                    }
+                            if (row.parent === parentValue) {
+                                const value = parseFloat(row.Total_Amount_Quantity) || 0;
+                                td.textContent = value.toLocaleString();
+                                totalSum += value;
+                                if (value > 0) hasValue = true;
+                            } else {
+                                td.textContent = "-";
+                            }
 
-                    tr.appendChild(td);
-                });
+                            tr.appendChild(td);
+                        });
 
-                // คอลัมน์รวมงบประมาณ
-                const totalTd = document.createElement('td');
-                totalTd.textContent = totalSum.toLocaleString();
-                totalTd.style.fontWeight = "bold";
-                tr.appendChild(totalTd);
+                        // ✅ คอลัมน์รวมงบประมาณ
+                        const totalTd = document.createElement('td');
+                        totalTd.textContent = totalSum.toLocaleString();
+                        totalTd.style.fontWeight = "bold";
+                        tr.appendChild(totalTd);
 
-             
-                if (totalSum > 0 || hasValue) {
-                    tableBody.appendChild(tr); // ✅ แสดงเฉพาะแถวที่มีค่า
+                        if (totalSum > 0 || hasValue) {
+                            tableBody.appendChild(tr); // ✅ แสดงเฉพาะแถวที่มีค่า
+                        }
+                    });
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
                 }
-                
             });
-        },
-        error: function(jqXHR, exception) {
-            console.error("Error: " + exception);
-            responseError(jqXHR, exception);
-        }
-    });
-
         }
 
 
