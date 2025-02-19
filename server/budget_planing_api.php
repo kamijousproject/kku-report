@@ -669,6 +669,209 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+        case "get_budget-remaining":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH t1 AS (
+                SELECT distinct sub_type,'revenue' as ftype FROM account
+                WHERE id < (SELECT id FROM account WHERE account='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%'
+                UNION ALL 
+                SELECT distinct sub_type,'expense' AS ftype FROM account
+                WHERE id > (SELECT id FROM account WHERE account='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%')
+                ,t2 AS (
+                SELECT Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario 
+                FROM budget_planning_allocated_annual_budget_plan b
+                GROUP BY Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario )
+                ,t3 AS (
+                SELECT Faculty,plan,subplan,project,fund,service,account,fiscal_year,scenario 
+                ,sum(COMMITMENTS) AS COMMITMENTS
+                ,sum(OBLIGATIONS) AS OBLIGATIONS
+                ,sum(EXPENDITURES) AS EXPENDITURES
+                ,sum(BUDGET_ADJUSTMENTS) AS BUDGET_ADJUSTMENTS
+                ,sum(INITIAL_BUDGET) AS INITIAL_BUDGET
+                FROM budget_planning_actual b
+                GROUP BY Faculty,plan,subplan,project,fund,service,account,fiscal_year,scenario )
+                ,t4 AS ( 
+                SELECT tt.*,t.kku_item_name
+                FROM t2 t
+                LEFT JOIN t3 tt
+                ON t.Faculty=tt.FACULTY AND REPLACE(t.Fund,'FN','')= tt.FUND 
+                AND t.Plan=tt.PLAN AND replace(t.Sub_Plan,'SP_','')=tt.SUBPLAN
+                AND t.Project=tt.PROJECT AND replace(t.Service,'SR_','')=tt.SERVICE
+                AND t.Account=tt.ACCOUNT)
+                ,t5 AS (
+                SELECT t.*,a.account AS aname,a.sub_type,a.parent
+                ,case when aa.alias_default LIKE '%.%.%' then a.sub_type 
+                when aa.alias_default is null then a.sub_type
+                ELSE aa.alias_default END  AS pname
+                FROM t4 t
+                LEFT JOIN account a
+                ON t.account=a.account
+                LEFT JOIN account aa
+                ON a.parent=aa.account COLLATE UTF8MB4_GENERAL_CI)
+                ,t6 AS (
+                SELECT Faculty,plan,subplan,project,fund,service,fiscal_year,kku_item_name,pname
+                ,sum(COMMITMENTS) AS COMMITMENTS
+                ,sum(OBLIGATIONS) AS OBLIGATIONS
+                ,sum(EXPENDITURES) AS EXPENDITURES
+                ,sum(BUDGET_ADJUSTMENTS) AS BUDGET_ADJUSTMENTS
+                ,sum(INITIAL_BUDGET) AS INITIAL_BUDGET
+                FROM t5
+                GROUP BY Faculty,plan,subplan,project,fund,service,fiscal_year,kku_item_name,pname)
+                ,t7 AS (
+                SELECT t.sub_type AS smain,t.ftype ,tt.*
+                FROM t1 t
+                LEFT JOIN t5 tt
+                ON t.sub_type=tt.pname COLLATE UTF8MB4_GENERAL_CI)
+                ,t8 AS (
+                SELECT t.*,f.Alias_Default AS fname,p.plan_name,sp.sub_plan_name,pro.project_name
+                FROM t7 t
+                LEFT JOIN (SELECT faculty,Alias_Default FROM Faculty WHERE parent LIKE'Faculty%') f
+                ON t.faculty=f.faculty
+                LEFT JOIN plan p
+                on t.plan=p.plan_id
+                LEFT JOIN sub_plan sp
+                ON t.subplan=replace(sp.sub_plan_id,'SP_','')
+                LEFT JOIN project pro
+                ON t.project=pro.project_id)
+                SELECT* FROM t8";
+
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "report_budget-remaining":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                $fyear = $_POST["fiscal_year"];
+                $faculty = $_POST["faculty"];
+                $scenario = $_POST["scenario"];
+                $fund = $_POST["fund"];
+                $plan = $_POST["plan"];
+                $subplan = $_POST["subplan"];
+                $project = $_POST["project"];
+                $etype = $_POST["etype"];
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH t1 AS (
+                SELECT distinct sub_type,'revenue' as ftype FROM account
+                WHERE id < (SELECT id FROM account WHERE account='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%'
+                UNION ALL 
+                SELECT distinct sub_type,'expense' AS ftype FROM account
+                WHERE id > (SELECT id FROM account WHERE account='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%')
+                ,t2 AS (
+                SELECT Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario 
+                FROM budget_planning_allocated_annual_budget_plan b
+                GROUP BY Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario )
+                ,t3 AS (
+                SELECT Faculty,plan,subplan,project,fund,service,account,fiscal_year,scenario 
+                ,SUM(COMMITMENTS) AS COMMITMENTS
+                ,SUM(OBLIGATIONS) AS OBLIGATIONS
+                ,SUM(EXPENDITURES) AS EXPENDITURES
+                ,SUM(CASE WHEN BUDGET_ADJUSTMENTS > 0 THEN BUDGET_ADJUSTMENTS ELSE 0 END) AS adj_in
+                ,SUM(CASE WHEN BUDGET_ADJUSTMENTS < 0 THEN BUDGET_ADJUSTMENTS ELSE 0 END) AS adj_out
+                ,SUM(INITIAL_BUDGET) AS INITIAL_BUDGET
+                ,SUM(FUNDS_AVAILABLE_AMOUNT) AS FUNDS_AVAILABLE_AMOUNT
+                FROM budget_planning_actual b
+                GROUP BY Faculty,plan,subplan,project,fund,service,account,fiscal_year,scenario)
+                ,t4 AS ( 
+                SELECT tt.*,t.kku_item_name
+                FROM t2 t
+                LEFT JOIN t3 tt
+                ON t.Faculty=tt.FACULTY AND REPLACE(t.Fund,'FN','')= tt.FUND 
+                AND t.Plan=tt.PLAN AND replace(t.Sub_Plan,'SP_','')=tt.SUBPLAN
+                AND t.Project=tt.PROJECT AND replace(t.Service,'SR_','')=tt.SERVICE
+                AND t.Account=tt.ACCOUNT)
+                ,t5 AS (
+                SELECT t.*,a.account AS aname,a.sub_type,a.parent
+                ,case when a.sub_type LIKE '%.%.%' then aa.alias_default ELSE a.sub_type END  AS pname
+                FROM t4 t
+                LEFT JOIN account a
+                ON t.account=a.account
+                LEFT JOIN account aa
+                ON a.parent=aa.account COLLATE UTF8MB4_GENERAL_CI)
+                ,t6 AS (
+                SELECT Faculty,plan,subplan,project,fund,service,fiscal_year,kku_item_name,pname
+                ,sum(COMMITMENTS) AS COMMITMENTS
+                ,sum(OBLIGATIONS) AS OBLIGATIONS
+                ,sum(EXPENDITURES) AS EXPENDITURES
+                ,sum(adj_in) AS adj_in
+                ,sum(adj_out) AS adj_out
+                ,sum(INITIAL_BUDGET) AS INITIAL_BUDGET
+                ,SUM(FUNDS_AVAILABLE_AMOUNT) AS FUNDS_AVAILABLE_AMOUNT
+                FROM t5
+                where fiscal_year=:fyear and fund=:fund and Faculty=:faculty and plan=:plan and subplan=:subplan and project=:project and scenario=:scenario
+                GROUP BY Faculty,plan,subplan,project,fund,service,fiscal_year,kku_item_name,pname)
+                ,t7 AS (
+                SELECT t.sub_type AS smain,t.ftype ,tt.*
+                FROM t1 t
+                LEFT JOIN t5 tt
+                ON t.sub_type=tt.pname COLLATE UTF8MB4_GENERAL_CI)
+                ,t8 AS (
+                SELECT t.*,f.Alias_Default AS fname,p.plan_name,sp.sub_plan_name,pro.project_name
+                FROM t7 t
+                LEFT JOIN (SELECT faculty,Alias_Default FROM Faculty WHERE parent LIKE'Faculty%') f
+                ON t.faculty=f.faculty
+                LEFT JOIN plan p
+                on t.plan=p.plan_id
+                LEFT JOIN sub_plan sp
+                ON t.subplan=replace(sp.sub_plan_id,'SP_','')
+                LEFT JOIN project pro
+                ON t.project=pro.project_id)
+                ,t9 AS (
+                SELECT t.*,a.id
+                FROM t8 t
+                LEFT JOIN account a
+                ON t.smain=a.alias_default COLLATE UTF8MB4_GENERAL_CI)
+                SELECT* FROM t9
+                where ftype=:etype
+                ORDER BY id";
+
+                $cmd = $conn->prepare($sql);
+                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+                $cmd->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+                $cmd->bindParam(':fund', $fund, PDO::PARAM_STR);
+                $cmd->bindParam(':plan', $plan, PDO::PARAM_STR);
+                $cmd->bindParam(':subplan', $subplan, PDO::PARAM_STR);
+                $cmd->bindParam(':project', $project, PDO::PARAM_STR);
+                $cmd->bindParam(':etype', $etype, PDO::PARAM_STR);
+                
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break; 
         default:
             break;
     }

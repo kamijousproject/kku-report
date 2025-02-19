@@ -192,7 +192,7 @@
                         <a href="report-project-requests.php">9.1.3.30.7-4 รายงานสรุปคำขอรายโครงการ</a>
                     </li>
                     <li>
-                        <a href="report-budget-remaining.php">9.1.3.30.7-5 รายงานสรุปยอดงบประมาณคงเหลือ</a>
+                        <a href="report-budget-remaining2.php">9.1.3.30.7-5 รายงานสรุปยอดงบประมาณคงเหลือ</a>
                     </li>
                     <li>
                         <a href="report-hcm-framework.php">9.1.3.30.7-6 รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM) เพื่อนำไปตั้งงบประมาณขอไฟล์ database จากระบบ HCM</a>
