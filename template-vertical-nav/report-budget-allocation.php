@@ -105,7 +105,7 @@ $scenarioValue = isset($scenarioMap[$selectedScenario]) ? $scenarioMap[$selected
 function fetchScenarioData($conn, $fund, $scenarioColumnValue)
 {
     $query = "SELECT 
-     bap.`Account`,
+    bap.`Account`,
     bap.Service,
     bap.Plan, 
     p.plan_id,
@@ -118,36 +118,45 @@ function fetchScenarioData($conn, $fund, $scenarioColumnValue)
     ac.`type`,
     ac.sub_type,
     bap.KKU_Item_Name,
+    
     -- หาก Allocated_Total_Amount_Quantity เป็น NULL ให้แทนที่ด้วย 0
     COALESCE(bap.Allocated_Total_Amount_Quantity, 0) AS Allocated_Total_Amount_Quantity,
-    bpd.Pre_Release_Amount,
-    -- คำนวณบวกกันระหว่าง Pre_Release_Amount และ Release_Amount
-    bpd.Release_Amount,
-    -- แยก Release_Amount โดยใช้เงื่อนไขจาก Scenario
+    
+    -- Pre_Release_Amount ถ้า NULL ให้เป็น 0 เช่นกัน
+    COALESCE(bpd.Pre_Release_Amount, 0) AS Pre_Release_Amount,
+
+    -- Release_Amount ถ้า NULL ให้เป็น 0
+    COALESCE(bpd.Release_Amount, 0) AS Release_Amount,
+
+    -- แยก Release_Amount โดยใช้เงื่อนไขจาก Scenario และ COALESCE อีกชั้น
     CASE
-        WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN bpd.Release_Amount
+        WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0)
         ELSE 0
     END AS Scenario1,
     
     CASE
-        WHEN bpd.Scenario = 'ANL-RELEASE-2' THEN bpd.Release_Amount
+        WHEN bpd.Scenario = 'ANL-RELEASE-2' THEN COALESCE(bpd.Release_Amount, 0)
         ELSE 0
     END AS Scenario2,
     
     CASE
-        WHEN bpd.Scenario = 'ANL-RELEASE-3' THEN bpd.Release_Amount
+        WHEN bpd.Scenario = 'ANL-RELEASE-3' THEN COALESCE(bpd.Release_Amount, 0)
         ELSE 0
     END AS Scenario3,
     
     CASE
-        WHEN bpd.Scenario = 'ANL-RELEASE-4' THEN bpd.Release_Amount
+        WHEN bpd.Scenario = 'ANL-RELEASE-4' THEN COALESCE(bpd.Release_Amount, 0)
         ELSE 0
     END AS Scenario4,
     
-    -- คำนวณผลลัพธ์ของ Total_Amount ลบด้วย Allocated_Total_Amount_Quantity
-    (COALESCE(bap.Allocated_Total_Amount_Quantity, 0) - (bpd.Pre_Release_Amount + bpd.Release_Amount)) AS Remaining_Amount,
+    -- คำนวณ Remaining_Amount โดย Coalesce ทั้ง Pre_Release_Amount และ Release_Amount
+    ( COALESCE(bap.Allocated_Total_Amount_Quantity, 0) 
+      - ( COALESCE(bpd.Pre_Release_Amount, 0) + COALESCE(bpd.Release_Amount, 0) )
+    ) AS Remaining_Amount,
     
-    (COALESCE(bpd.Pre_Release_Amount, 0) + COALESCE(bpd.Release_Amount, 0)) AS Total_Release_Amount,
+    -- คำนวณ Total_Release_Amount โดย Coalesce เช่นกัน
+    ( COALESCE(bpd.Pre_Release_Amount, 0) + COALESCE(bpd.Release_Amount, 0) ) AS Total_Release_Amount,
+    
     -- กรองข้อมูล Fund ที่มีค่าเป็น FN06
     CASE
         WHEN bap.Fund = 'FN06' THEN bap.Fund
@@ -156,28 +165,27 @@ function fetchScenarioData($conn, $fund, $scenarioColumnValue)
     
     bap.Reason
 FROM 
-
     budget_planning_allocated_annual_budget_plan bap
-LEFT JOIN 
-    plan p ON bap.Plan = p.plan_id 
-LEFT JOIN 
-    sub_plan sp ON bap.Sub_Plan = sp.sub_plan_id
-LEFT JOIN 
-    project pj ON bap.Project = pj.project_id
-LEFT JOIN 
-    `account` ac ON bap.`Account` = ac.`account`
-LEFT JOIN 
-    budget_planning_disbursement_budget_plan_anl_release bpd ON 
-        bap.Service = bpd.Service
+    LEFT JOIN plan p 
+        ON bap.Plan = p.plan_id 
+    LEFT JOIN sub_plan sp 
+        ON bap.Sub_Plan = sp.sub_plan_id
+    LEFT JOIN project pj 
+        ON bap.Project = pj.project_id
+    LEFT JOIN `account` ac 
+        ON bap.`Account` = ac.`account`
+    LEFT JOIN budget_planning_disbursement_budget_plan_anl_release bpd 
+        ON  bap.Service = bpd.Service
         AND bap.Faculty = bpd.Faculty
         AND bap.Project = bpd.Project
         AND bap.Plan = bpd.Plan
         AND bap.Sub_Plan = bpd.Sub_Plan
-        AND bap.`Account` = bpd.`Account`
+        AND bap.`Account` = bpd.`Account`;
 
-
-
-    WHERE bap.Fund = :fund";
+    WHERE bap.Fund = :fund
+    ORDER BY 
+    p.plan_id, bap.Sub_Plan, bap.Project,    ac.`type`,
+    ac.sub_type";
 
     // เพิ่มเงื่อนไขสำหรับ Scenario ที่เลือก
     if ($scenarioColumnValue) {
@@ -357,9 +365,13 @@ $results = fetchScenarioData($conn, 'FN06', $scenarioValue);
                                                     }
 
                                                     // แสดง KKU Item Name เสมอ
-                                                    echo str_repeat("&nbsp;", 32) . htmlspecialchars($row['KKU_Item_Name']);
+// ตรวจสอบว่า KKU_Item_Name มีค่า และไม่เป็นค่าว่างหรือไม่
+                                                    $kkuItemName = (!empty($row['KKU_Item_Name']))
+                                                        ? htmlspecialchars($row['KKU_Item_Name'])
+                                                        : "ไม่มี ข้อมูล Item_Name";
 
-                                                    echo "</td>";
+                                                    // แสดงผล
+                                                    echo str_repeat("&nbsp;", 32) . $kkuItemName;
 
                                                     // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Allocated_Total_Amount_Quantity']) . "</td>";
@@ -368,7 +380,7 @@ $results = fetchScenarioData($conn, 'FN06', $scenarioValue);
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Total_Release_Amount']) . "</td>";
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Remaining_Amount']) . "</td>";
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Reason']) . "</td>";
-                                                    
+
 
                                                     echo "</tr>";
                                                 }
@@ -401,283 +413,283 @@ $results = fetchScenarioData($conn, 'FN06', $scenarioValue);
     </div>
     <script>
 
-function exportCSV() {
-    const table = document.getElementById('reportTable');
-    if (!table) {
-        alert("ไม่พบตารางที่ต้องการ Export");
-        return;
-    }
-
-    // แยกการประมวลผล thead กับ tbody ออกเป็น 2 ส่วน
-    const thead = table.querySelector('thead');
-    const tbody = table.querySelector('tbody');
-
-    // สร้าง matrix ของส่วน thead
-    let headerMatrix = [];
-    if (thead) {
-        headerMatrix = parseTableSection(thead);
-    }
-
-    // สร้าง matrix ของส่วน tbody
-    let bodyMatrix = [];
-    if (tbody) {
-        bodyMatrix = parseTableSection(tbody);
-    }
-
-    // รวมทั้งสองส่วนเข้าเป็น CSV
-    const csvRows = [];
-
-    // แปลง headerMatrix -> CSV
-    headerMatrix.forEach(rowArr => {
-        const line = rowArr
-            .map(cell => `"${cell.replace(/"/g, '""')}"`)
-            .join(",");
-        csvRows.push(line);
-    });
-
-    // แปลง bodyMatrix -> CSV
-    bodyMatrix.forEach(rowArr => {
-        const line = rowArr
-            .map(cell => `"${cell.replace(/"/g, '""')}"`)
-            .join(",");
-        csvRows.push(line);
-    });
-
-    // สร้างไฟล์ CSV
-    const csvContent = "\uFEFF" + csvRows.join("\n"); // \uFEFF เพื่อให้ Excel รองรับ UTF-8
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
-
-/**
- * parseTableSection: สร้าง Matrix ตาม rowspan/colspan ของส่วน thead หรือ tbody
- * @param {HTMLElement} section - <thead> หรือ <tbody>
- * @returns {string[][]} 2D array ที่สะท้อนโครงสร้างของตาราง
- */
-function parseTableSection(section) {
-    const rows = Array.from(section.rows);
-
-    // หาจำนวนคอลัมน์สูงสุด (maxCols) จากผลรวม colSpan ของแต่ละแถว
-    let maxCols = 0;
-    rows.forEach(row => {
-        let colCount = 0;
-        Array.from(row.cells).forEach(cell => {
-            colCount += cell.colSpan;
-        });
-        if (colCount > maxCols) {
-            maxCols = colCount;
-        }
-    });
-
-    // สร้าง 2D array เปล่าตามจำนวนแถว x จำนวนคอลัมน์สูงสุด
-    const matrix = [];
-    for (let i = 0; i < rows.length; i++) {
-        matrix.push(new Array(maxCols).fill(""));
-    }
-
-    // skipMap เอาไว้ทำเครื่องหมายช่องที่ถูก "จอง" โดย rowspan/colspan แล้ว
-    const skipMap = {};
-
-    // วนทีละแถว
-    for (let r = 0; r < rows.length; r++) {
-        const row = rows[r];
-        let c = 0; // ตำแหน่งคอลัมน์ที่จะใส่ข้อมูล
-
-        // วนทีละเซลล์ในแถว
-        for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
-            // ข้ามคอลัมน์ที่ถูกจองไว้ก่อน
-            while (skipMap[`${r},${c}`]) {
-                c++;
+        function exportCSV() {
+            const table = document.getElementById('reportTable');
+            if (!table) {
+                alert("ไม่พบตารางที่ต้องการ Export");
+                return;
             }
 
-            const cell = row.cells[cellIndex];
-            const text = cell.innerText.trim();
+            // แยกการประมวลผล thead กับ tbody ออกเป็น 2 ส่วน
+            const thead = table.querySelector('thead');
+            const tbody = table.querySelector('tbody');
 
-            // ใส่ข้อความลงใน matrix
-            matrix[r][c] = text;
-
-            // เก็บ rowSpan, colSpan
-            const rowSpan = cell.rowSpan;
-            const colSpan = cell.colSpan;
-
-            // "จอง" ช่อง skipMap ตาม rowSpan, colSpan
-            for (let rr = r; rr < r + rowSpan; rr++) {
-                for (let cc = c; cc < c + colSpan; cc++) {
-                    if (rr === r && cc === c) continue; // ช่องต้นฉบับไม่ต้องจองซ้ำ
-                    skipMap[`${rr},${cc}`] = true;
-                }
+            // สร้าง matrix ของส่วน thead
+            let headerMatrix = [];
+            if (thead) {
+                headerMatrix = parseTableSection(thead);
             }
 
-            // ขยับตำแหน่ง c ไปข้างหน้าตาม colSpan
-            c += colSpan;
-        }
-    }
-
-    return matrix;
-}
-
-
-
-
-    function exportPDF() {
-        const { jsPDF } = window.jspdf;
-        const doc = new jsPDF('landscape');
-
-        if (window.thsarabunnew_webfont_normal) {
-            doc.addFileToVFS("THSarabun.ttf", window.thsarabunnew_webfont_normal);
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
-        }
-        doc.setFontSize(14);
-        doc.text("รายงานการจัดสรรเงินรายงวด", 10, 10);
-
-        doc.autoTable({
-            html: '#reportTable',
-            startY: 20,
-            styles: { font: "THSarabun", fontSize: 12, lineColor: [0, 0, 0], lineWidth: 0.5 },
-            bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.5 },
-            headStyles: { fillColor: [102, 153, 225], textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5 },
-        });
-
-        doc.save('รายงาน.pdf');
-    }
-
-    function exportXLS() {
-    const table = document.getElementById('reportTable');
-    if (!table) {
-        alert("ไม่พบตารางที่ต้องการ Export");
-        return;
-    }
-
-    // 1) แยก parse ส่วน thead และ tbody ออกเป็น 2 ส่วน
-    const { rowsData: headRows, merges: headMerges } = parseSection(table.tHead, 0);
-    const { rowsData: bodyRows, merges: bodyMerges } = parseSection(table.tBodies[0], headRows.length);
-
-    // รวม rows ของ thead + tbody
-    const allRows = [...headRows, ...bodyRows];
-    // รวม merges ของ thead + tbody
-    const allMerges = [...headMerges, ...bodyMerges];
-
-    // 2) สร้าง workbook / worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(allRows);
-
-    // ใส่ merges เข้าไปใน worksheet
-    ws['!merges'] = allMerges;
-
-    // 3) บันทึกเป็นไฟล์ .xls
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    const excelBuffer = XLSX.write(wb, { bookType: 'xls', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.xls';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
-
-/**
- * parseSection: ดึงข้อมูลจาก thead/tbody แล้วสร้างทั้ง AoA (Array of Arrays)
- * และข้อมูล merge (rowSpan/colSpan) สำหรับ XLSX
- *
- * @param {HTMLTableSectionElement} section - <thead> หรือ <tbody>
- * @param {number} startRow - เริ่มนับแถวที่เท่าไหร่ (กรณี thead มาก่อน)
- * @return { rowsData, merges }
- *    rowsData: string[][] (AoA) สำหรับแต่ละแถว/คอลัมน์
- *    merges: { s: {r,c}, e: {r,c} }[] สำหรับใส่ ws['!merges']
- */
-function parseSection(section, startRow = 0) {
-    if (!section) return { rowsData: [], merges: [] };
-
-    const rows = Array.from(section.rows);
-
-    // หาจำนวนคอลัมน์สูงสุด (maxCols) จากผลรวม colSpan ของแต่ละแถว
-    let maxCols = 0;
-    rows.forEach(row => {
-        let colCount = 0;
-        Array.from(row.cells).forEach(cell => {
-            colCount += cell.colSpan || 1;
-        });
-        if (colCount > maxCols) {
-            maxCols = colCount;
-        }
-    });
-
-    // สร้าง 2D array เปล่าตามจำนวนแถว x จำนวนคอลัมน์สูงสุด
-    const matrix = [];
-    for (let i = 0; i < rows.length; i++) {
-        matrix.push(new Array(maxCols).fill(""));
-    }
-
-    const merges = [];
-    const skipMap = {};
-
-    // วนทีละแถว
-    for (let r = 0; r < rows.length; r++) {
-        const tr = rows[r];
-        let c = 0; // ตำแหน่งคอลัมน์ที่จะใส่ข้อมูล
-
-        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            // ข้ามคอลัมน์ที่ถูกจองแล้ว (rowSpan/colSpan ก่อนหน้า)
-            while (skipMap[`${r},${c}`]) {
-                c++;
+            // สร้าง matrix ของส่วน tbody
+            let bodyMatrix = [];
+            if (tbody) {
+                bodyMatrix = parseTableSection(tbody);
             }
 
-            const cell = tr.cells[cellIndex];
-            let text = cell.innerHTML || "";
-            // ลบแท็ก HTML ออก เหลือแต่ข้อความ + เว้นบรรทัด (ถ้าต้องการ)
-            text = text
-              .replace(/<br\s*\/?>/gi, "\n")
-              .replace(/<\/?[^>]+>/g, "")
-              .replace(/&nbsp;/g, " ")
-              .trim();
+            // รวมทั้งสองส่วนเข้าเป็น CSV
+            const csvRows = [];
 
-            matrix[r][c] = text;
+            // แปลง headerMatrix -> CSV
+            headerMatrix.forEach(rowArr => {
+                const line = rowArr
+                    .map(cell => `"${cell.replace(/"/g, '""')}"`)
+                    .join(",");
+                csvRows.push(line);
+            });
 
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
+            // แปลง bodyMatrix -> CSV
+            bodyMatrix.forEach(rowArr => {
+                const line = rowArr
+                    .map(cell => `"${cell.replace(/"/g, '""')}"`)
+                    .join(",");
+                csvRows.push(line);
+            });
 
-            // ถ้ามี rowspan หรือ colspan ให้ใส่ merges
-            if (rowspan > 1 || colspan > 1) {
-                merges.push({
-                    s: { r: startRow + r, c: c }, // ตำแหน่งเริ่ม (รวม offset ของ startRow)
-                    e: { r: startRow + r + rowspan - 1, c: c + colspan - 1 }
+            // สร้างไฟล์ CSV
+            const csvContent = "\uFEFF" + csvRows.join("\n"); // \uFEFF เพื่อให้ Excel รองรับ UTF-8
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * parseTableSection: สร้าง Matrix ตาม rowspan/colspan ของส่วน thead หรือ tbody
+         * @param {HTMLElement} section - <thead> หรือ <tbody>
+         * @returns {string[][]} 2D array ที่สะท้อนโครงสร้างของตาราง
+         */
+        function parseTableSection(section) {
+            const rows = Array.from(section.rows);
+
+            // หาจำนวนคอลัมน์สูงสุด (maxCols) จากผลรวม colSpan ของแต่ละแถว
+            let maxCols = 0;
+            rows.forEach(row => {
+                let colCount = 0;
+                Array.from(row.cells).forEach(cell => {
+                    colCount += cell.colSpan;
                 });
+                if (colCount > maxCols) {
+                    maxCols = colCount;
+                }
+            });
 
-                // จองช่อง skipMap
-                for (let rr = r; rr < r + rowspan; rr++) {
-                    for (let cc = c; cc < c + colspan; cc++) {
-                        if (rr === r && cc === c) continue;
-                        skipMap[`${rr},${cc}`] = true;
+            // สร้าง 2D array เปล่าตามจำนวนแถว x จำนวนคอลัมน์สูงสุด
+            const matrix = [];
+            for (let i = 0; i < rows.length; i++) {
+                matrix.push(new Array(maxCols).fill(""));
+            }
+
+            // skipMap เอาไว้ทำเครื่องหมายช่องที่ถูก "จอง" โดย rowspan/colspan แล้ว
+            const skipMap = {};
+
+            // วนทีละแถว
+            for (let r = 0; r < rows.length; r++) {
+                const row = rows[r];
+                let c = 0; // ตำแหน่งคอลัมน์ที่จะใส่ข้อมูล
+
+                // วนทีละเซลล์ในแถว
+                for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+                    // ข้ามคอลัมน์ที่ถูกจองไว้ก่อน
+                    while (skipMap[`${r},${c}`]) {
+                        c++;
                     }
+
+                    const cell = row.cells[cellIndex];
+                    const text = cell.innerText.trim();
+
+                    // ใส่ข้อความลงใน matrix
+                    matrix[r][c] = text;
+
+                    // เก็บ rowSpan, colSpan
+                    const rowSpan = cell.rowSpan;
+                    const colSpan = cell.colSpan;
+
+                    // "จอง" ช่อง skipMap ตาม rowSpan, colSpan
+                    for (let rr = r; rr < r + rowSpan; rr++) {
+                        for (let cc = c; cc < c + colSpan; cc++) {
+                            if (rr === r && cc === c) continue; // ช่องต้นฉบับไม่ต้องจองซ้ำ
+                            skipMap[`${rr},${cc}`] = true;
+                        }
+                    }
+
+                    // ขยับตำแหน่ง c ไปข้างหน้าตาม colSpan
+                    c += colSpan;
                 }
             }
 
-            c += colspan;
+            return matrix;
         }
-    }
 
-    return {
-        rowsData: matrix,
-        merges
-    };
-}
 
-</script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape');
+
+            if (window.thsarabunnew_webfont_normal) {
+                doc.addFileToVFS("THSarabun.ttf", window.thsarabunnew_webfont_normal);
+                doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+                doc.setFont("THSarabun");
+            }
+            doc.setFontSize(14);
+            doc.text("รายงานการจัดสรรเงินรายงวด", 10, 10);
+
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 20,
+                styles: { font: "THSarabun", fontSize: 12, lineColor: [0, 0, 0], lineWidth: 0.5 },
+                bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.5 },
+                headStyles: { fillColor: [102, 153, 225], textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5 },
+            });
+
+            doc.save('รายงาน.pdf');
+        }
+
+        function exportXLS() {
+            const table = document.getElementById('reportTable');
+            if (!table) {
+                alert("ไม่พบตารางที่ต้องการ Export");
+                return;
+            }
+
+            // 1) แยก parse ส่วน thead และ tbody ออกเป็น 2 ส่วน
+            const { rowsData: headRows, merges: headMerges } = parseSection(table.tHead, 0);
+            const { rowsData: bodyRows, merges: bodyMerges } = parseSection(table.tBodies[0], headRows.length);
+
+            // รวม rows ของ thead + tbody
+            const allRows = [...headRows, ...bodyRows];
+            // รวม merges ของ thead + tbody
+            const allMerges = [...headMerges, ...bodyMerges];
+
+            // 2) สร้าง workbook / worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+            // ใส่ merges เข้าไปใน worksheet
+            ws['!merges'] = allMerges;
+
+            // 3) บันทึกเป็นไฟล์ .xls
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            const excelBuffer = XLSX.write(wb, { bookType: 'xls', type: 'array' });
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.xls';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * parseSection: ดึงข้อมูลจาก thead/tbody แล้วสร้างทั้ง AoA (Array of Arrays)
+         * และข้อมูล merge (rowSpan/colSpan) สำหรับ XLSX
+         *
+         * @param {HTMLTableSectionElement} section - <thead> หรือ <tbody>
+         * @param {number} startRow - เริ่มนับแถวที่เท่าไหร่ (กรณี thead มาก่อน)
+         * @return { rowsData, merges }
+         *    rowsData: string[][] (AoA) สำหรับแต่ละแถว/คอลัมน์
+         *    merges: { s: {r,c}, e: {r,c} }[] สำหรับใส่ ws['!merges']
+         */
+        function parseSection(section, startRow = 0) {
+            if (!section) return { rowsData: [], merges: [] };
+
+            const rows = Array.from(section.rows);
+
+            // หาจำนวนคอลัมน์สูงสุด (maxCols) จากผลรวม colSpan ของแต่ละแถว
+            let maxCols = 0;
+            rows.forEach(row => {
+                let colCount = 0;
+                Array.from(row.cells).forEach(cell => {
+                    colCount += cell.colSpan || 1;
+                });
+                if (colCount > maxCols) {
+                    maxCols = colCount;
+                }
+            });
+
+            // สร้าง 2D array เปล่าตามจำนวนแถว x จำนวนคอลัมน์สูงสุด
+            const matrix = [];
+            for (let i = 0; i < rows.length; i++) {
+                matrix.push(new Array(maxCols).fill(""));
+            }
+
+            const merges = [];
+            const skipMap = {};
+
+            // วนทีละแถว
+            for (let r = 0; r < rows.length; r++) {
+                const tr = rows[r];
+                let c = 0; // ตำแหน่งคอลัมน์ที่จะใส่ข้อมูล
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    // ข้ามคอลัมน์ที่ถูกจองแล้ว (rowSpan/colSpan ก่อนหน้า)
+                    while (skipMap[`${r},${c}`]) {
+                        c++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let text = cell.innerHTML || "";
+                    // ลบแท็ก HTML ออก เหลือแต่ข้อความ + เว้นบรรทัด (ถ้าต้องการ)
+                    text = text
+                        .replace(/<br\s*\/?>/gi, "\n")
+                        .replace(/<\/?[^>]+>/g, "")
+                        .replace(/&nbsp;/g, " ")
+                        .trim();
+
+                    matrix[r][c] = text;
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ถ้ามี rowspan หรือ colspan ให้ใส่ merges
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: { r: startRow + r, c: c }, // ตำแหน่งเริ่ม (รวม offset ของ startRow)
+                            e: { r: startRow + r + rowspan - 1, c: c + colspan - 1 }
+                        });
+
+                        // จองช่อง skipMap
+                        for (let rr = r; rr < r + rowspan; rr++) {
+                            for (let cc = c; cc < c + colspan; cc++) {
+                                if (rr === r && cc === c) continue;
+                                skipMap[`${rr},${cc}`] = true;
+                            }
+                        }
+                    }
+
+                    c += colspan;
+                }
+            }
+
+            return {
+                rowsData: matrix,
+                merges
+            };
+        }
+
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 
     <!-- โหลดไลบรารีที่จำเป็น -->
