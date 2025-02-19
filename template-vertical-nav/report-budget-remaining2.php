@@ -498,10 +498,10 @@
                         var diff=(sums.INITIAL_BUDGET-sums.adj_in);
                         var diff2=(sums.INITIAL_BUDGET-sum_co);
                         var p1=Math.round((((sum_co)*100)/(sums.INITIAL_BUDGET))* 100) / 100 || 0;
-                        var total_p1=(100-p1);
+                        var total_p1 = (p1 === 0) ? 0 : (100 - p1);
                         var p2=Math.round((((sums.EXPENDITURES)*100)/(sums.INITIAL_BUDGET))* 100) / 100 || 0;
                         var diff3=(sums.INITIAL_BUDGET-sums.EXPENDITURES);
-                        var total_p2=(100-p2);
+                        var total_p2 = (p1 === 0) ? 0 : (100 - p2);
                         var c1="";
                         if(/^\d+\.\d+/.test(row1))
                         {
