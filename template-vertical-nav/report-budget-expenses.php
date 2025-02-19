@@ -33,7 +33,12 @@
                                 <div class="card-title">
                                     <h4>รายงานการใช้จ่ายงบประมาณตามแผนงาน</h4>
                                 </div>
-
+                                <div class="info-section">
+                                    <label for="dropdown1">ส่วนงาน:</label>
+                                    <select id="dropdown1">
+                                        <option value="">-- เลือกส่วนงาน --</option>
+                                    </select>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -67,154 +72,314 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            laodData();
-        });
-
-        function laodData() {
             $.ajax({
                 type: "POST",
                 url: "../server/api.php",
                 data: {
-                    'command': 'get_kku_budget_expenses'
+                    'command': 'get_faculty_action_plan'
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
-                    var str='';
-
-                    response.plan.forEach(row => {
-                        const pro = sp.filter(item =>item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
-                        //console.log(pro);
-                        const parseValue = (value) => {
-                            const number = parseFloat(value.replace(/,/g, ''));
-                            return isNaN(number) ? 0 : number;
-                        };
-                        const sums = pro.reduce((acc, item) => {
-                                return {
-                                    a2: acc.a2 + parseValue(item.a2),
-                                    c2: acc.c2 + parseValue(item.c2),
-                                    o2: acc.o2 + parseValue(item.o2),
-                                    e2: acc.e2 + parseValue(item.e2),
-                                    a6: acc.a6 + parseValue(item.a6),
-                                    c6: acc.c6 + parseValue(item.c6),
-                                    o6: acc.o6 + parseValue(item.o6),
-                                    e6: acc.e6 + parseValue(item.e6)
-                                };
-                            }, {
-                                a2: 0, c2: 0, o2: 0, e2: 0,
-                                a6: 0, c6: 0, o6: 0, e6: 0
-                            });
-                        str+='<tr><td>'+row.Alias_Default+'</td>'+
-                                '<td nowrap style="text-align: left;">'+row.p+'<br/>'+
-                                '&nbsp;'.repeat(8)+row.si_name+'<br/>'+
-                                '&nbsp;'.repeat(16)+row.so_name+'<br/>'+
-                                '&nbsp;'.repeat(24)+row.sp_name+'</td>'+
-                                '<td>'+parseInt(row.Budget_Amount).toLocaleString()+'</td>'+
-                                '<td>'+parseInt(row.Allocated_budget).toLocaleString()+'</td>'+
-                                '<td>'+parseInt(row.Actual_Spend_Amount).toLocaleString()+'</td></tr>';
-                    });
-
-                    tableBody.innerHTML =str;
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
+                    
+                    response.fac.forEach((row) =>{
+                        //console.log(row.y);
+                        $('#dropdown1').append('<option value="'+row.fcode+'">'+row.faculty+'</option>');
+                    });   
                 }
             });
-        }
+
+
+            $('#dropdown1').change(function() {
+                let faculty = $(this).val();
+                //console.log(faculty);
+                $.ajax({
+                    type: "POST",
+                    url: "../server/api.php",
+                    data: {
+                        'command': 'get_kku_budget_expenses',
+                        'faculty':faculty
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        console.log(response);
+                        const tableBody = document.querySelector('#reportTable tbody');
+                        tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                        
+                        
+                        response.plan.forEach((row, index) => {
+                            if( row.parent=="F00T1-Strategic"){
+                                console.log(1);
+                                const ch = response.plan.filter(item =>item.parent === row.pillar_id);
+                                console.log(ch);
+                                const parseValue = (value) => {
+                                    if (value === null || value === undefined) {
+                                        return 0;
+                                    }
+                                    if (typeof value === 'string') {
+                                        const number = parseFloat(value.replace(/,/g, ''));
+                                        return isNaN(number) ? 0 : number;
+                                    } else if (typeof value === 'number') {
+                                        // ถ้า value เป็นตัวเลขอยู่แล้ว ส่งคืนค่านั้น
+                                        return value;
+                                    }
+                                    // สำหรับกรณีอื่นๆ คืนค่า 0
+                                    return 0;
+                                };
+                                const sums = ch.reduce((acc, item) => {
+                                    return {
+                                        Budget_Amount: acc.Budget_Amount + parseValue(item.Budget_Amount??'0'),
+                                        Allocated_budget: acc.Allocated_budget + parseValue(item.Allocated_budget??'0'),
+                                        Actual_Spend_Amount: acc.Actual_Spend_Amount + parseValue(item.Actual_Spend_Amount??'0')
+                                    };
+                                }, {
+                                    Budget_Amount: 0, Allocated_budget: 0, Actual_Spend_Amount: 0
+                                    
+                                });
+                                if(index+1==1){
+                                    var str='<tr><td rowspan="14" >'+$('#dropdown1 option:selected').text()+'</td>'+
+                                        '<td nowrap style="text-align: left;">'+row.pillar_name+'</td>'+
+                                        '<td>'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td>'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td>'+(parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+                                    tableBody.insertAdjacentHTML('beforeend', str);
+                                }else{
+                                    var str='<tr>'+
+                                        '<td nowrap style="text-align: left;">'+row.pillar_name+'</td>'+
+                                        '<td>'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td>'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td>'+(parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+                                    tableBody.insertAdjacentHTML('beforeend', str);
+                                }
+                                
+                            }
+                            else{
+                                var str='<tr>'+
+                                        '<td nowrap style="text-align: left;">'+'&nbsp;'.repeat(8)+row.pillar_name+'</td>'+
+                                        '<td>'+(parseFloat(row.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td>'+(parseFloat(row.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td>'+(parseFloat(row.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+                                tableBody.insertAdjacentHTML('beforeend', str);
+                            }
+                            
+                        });
+
+                        
+                    },
+                    error: function(jqXHR, exception) {
+                        console.error("Error: " + exception);
+                        responseError(jqXHR, exception);
+                    }
+                });
+            });
+        });
+
+        
 
         function exportCSV() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
+        const table = document.getElementById('reportTable');
+        const csvRows = [];
+
+        // วนลูปทีละ <tr>
+        for (const row of table.rows) {
+            // เก็บบรรทัดย่อยของแต่ละเซลล์
+            const cellLines = [];
+            let maxSubLine = 1;
+
+            // วนลูปทีละเซลล์ <td>/<th>
+            for (const cell of row.cells) {
+                let html = cell.innerHTML;
+
+                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                html = html.replace(/(&nbsp;)+/g, (match) => {
+                    const count = match.match(/&nbsp;/g).length;
+                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                });
+
+                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                html = html.replace(/<br\s*\/?>/gi, '\n');
+
+                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                // html = html.replace(/<\/?[^>]+>/g, '');
+
+                // 4) แยกเป็น array บรรทัดย่อย
+                const lines = html.split('\n').map(x => x.trimEnd());
+                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                if (lines.length > maxSubLine) {
+                    maxSubLine = lines.length;
+                }
+
+                cellLines.push(lines);
             }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
 
-        function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+            for (let i = 0; i < maxSubLine; i++) {
+                const rowData = [];
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
+                // วนลูปแต่ละเซลล์
+                for (const lines of cellLines) {
+                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                    // Escape double quotes
+                    text = text.replace(/"/g, '""');
+                    // ครอบด้วย ""
+                    text = `"${text}"`;
+                    rowData.push(text);
+                }
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-            });
-
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
-        }
-
-        function exportXLS() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
+                csvRows.push(rowData.join(','));
             }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
-
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
         }
+
+        // รวมเป็น CSV + BOM
+        const csvContent = "\uFEFF" + csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'report.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    function exportPDF() {
+        const {
+            jsPDF
+        } = window.jspdf;
+        const doc = new jsPDF('landscape');
+
+        // เพิ่มฟอนต์ภาษาไทย
+        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+        doc.setFont("THSarabun");
+
+        // ตั้งค่าฟอนต์และข้อความ
+        doc.setFontSize(12);
+        doc.text("รายงานการใช้จ่ายงบประมาณตามแผนงาน", 10, 10);
+
+        // ใช้ autoTable สำหรับสร้างตาราง
+        doc.autoTable({
+            html: '#reportTable',
+            startY: 20,
+            styles: {
+                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
+                fontSize: 10,
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            bodyStyles: {
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            headStyles: {
+                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
+                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+        });
+
+        // บันทึกไฟล์ PDF
+        doc.save('รายงาน.pdf');
+    }
+
+    function exportXLS() {
+    const table = document.getElementById('reportTable');
+
+    const rows = [];
+    const merges = {};
+    const skipMap = {};
+
+    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+        const tr = table.rows[rowIndex];
+        const rowData = [];
+        let colIndex = 0;
+
+        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+            while (skipMap[`${rowIndex},${colIndex}`]) {
+                rowData.push("");
+                colIndex++;
+            }
+
+            const cell = tr.cells[cellIndex];
+            let cellText = cell.innerText.trim();
+            rowData[colIndex] = cellText;
+
+            const rowspan = cell.rowSpan || 1;
+            const colspan = cell.colSpan || 1;
+
+            if (rowspan > 1 || colspan > 1) {
+                const mergeRef = {
+                    s: { r: rowIndex, c: colIndex },
+                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                };
+
+                const mergeKey = `merge_${rowIndex}_${colIndex}`;
+                merges[mergeKey] = mergeRef;
+
+                for (let r = 0; r < rowspan; r++) {
+                    for (let c = 0; c < colspan; c++) {
+                        if (!(r === 0 && c === 0)) {
+                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                        }
+                    }
+                }
+            }
+
+            colIndex++;
+        }
+        rows.push(rowData);
+    }
+
+    // Create Workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // Apply merges
+    ws['!merges'] = Object.values(merges);
+
+    // Apply header styles to the first few rows (all header rows)
+    const totalHeaderRows = table.tHead.rows.length; // Get the number of header rows
+    for (let R = 0; R < totalHeaderRows; R++) {
+        for (let C = 0; C < rows[R].length; C++) {
+            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+
+            if (ws[cellRef]) {
+                ws[cellRef].s = {
+                    alignment: { horizontal: "center", vertical: "center" }, // Center text
+                    font: { bold: true, name: "Arial", sz: 12 }, // Bold + Font
+                    fill: { fgColor: { rgb: "FFFFCC" } }, // Light yellow background
+                    border: {
+                        top: { style: "thin", color: { rgb: "000000" } },
+                        bottom: { style: "thin", color: { rgb: "000000" } },
+                        left: { style: "thin", color: { rgb: "000000" } },
+                        right: { style: "thin", color: { rgb: "000000" } }
+                    }
+                };
+            }
+        }
+    }
+
+    // Append sheet and write file
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+    // Download file
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'report.xlsx'; // Change to .xlsx for proper styling support
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>

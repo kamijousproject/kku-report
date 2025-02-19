@@ -34,6 +34,12 @@
                                     <div class="card-title">
                                         <h4>รายงานจำนวนผลลัพธ์/ตัวชี้วัดที่สอดคล้องกับแผนยุทธศาสตร์มหาวิทยาลัย</h4>
                                     </div>
+                                    <div class="info-section">
+                                        <label for="dropdown1">ส่วนงาน:</label>
+                                        <select id="dropdown1">
+                                            <option value="">-- เลือกส่วนงาน --</option>
+                                        </select>
+                                    </div>
                                     <div class="table-responsive">
                                         <table id="reportTable" class="table table-hover">
                                             <thead>
@@ -76,52 +82,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <tr>
-                                                    <td>1</td>
-                                                    <td>001</td>
-                                                    <td>หน่วยงาน A</td>
-                                                    <td>10</td>
-                                                    <td>2</td>
-                                                    <td>3</td>
-                                                    <td>1</td>
-                                                    <td>1</td>
-                                                    <td>1</td>
-                                                    <td>1</td>
-                                                    <td>0</td>
-                                                    <td>0</td>
-                                                    <td>1</td>
-                                                    <td>0</td>
-                                                    <td>0</td>
-                                                    <td>5</td>
-                                                    <td>50%</td>
-                                                    <td>3</td>
-                                                    <td>30%</td>
-                                                    <td>2</td>
-                                                    <td>20%</td>
-                                                </tr>
-                                                <tr>
-                                                    <td>2</td>
-                                                    <td>002</td>
-                                                    <td>หน่วยงาน B</td>
-                                                    <td>15</td>
-                                                    <td>5</td>
-                                                    <td>4</td>
-                                                    <td>2</td>
-                                                    <td>1</td>
-                                                    <td>2</td>
-                                                    <td>1</td>
-                                                    <td>0</td>
-                                                    <td>0</td>
-                                                    <td>0</td>
-                                                    <td>0</td>
-                                                    <td>0</td>
-                                                    <td>7</td>
-                                                    <td>46.67%</td>
-                                                    <td>4</td>
-                                                    <td>26.67%</td>
-                                                    <td>3</td>
-                                                    <td>20%</td>
-                                                </tr>
+                                                
                                             </tbody>
                                         </table>
                                     </div>
@@ -146,15 +107,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            laodData();
-        });
-
-        function laodData() {
             $.ajax({
                 type: "POST",
                 url: "../server/api.php",
                 data: {
-                    'command': 'get_strategic-indicators'
+                    'command': 'get_faculty_get_strategic_indicators'
+                },
+                dataType: "json",
+                success: function(response) {
+                    
+                    response.fac.forEach((row) =>{
+                        //console.log(row.y);
+                        $('#dropdown1').append('<option value="'+row.fcode+'">'+row.faculty+'</option>');
+                    });   
+                }
+            });
+            $('#dropdown1').change(function() {
+                let faculty = $(this).val();
+                $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                data: {
+                    'command': 'get_strategic-indicators',
+                    'faculty':faculty
                 },
                 dataType: "json",
                 success: function(response) {
@@ -173,7 +148,7 @@
                             { key: 'fac', value: row.Alias_Default.replace(/^(\d{5}) - /, '') },
                             { key: 'count_okr', value: parseInt(row.count_okr).toLocaleString() },
                             { key: 'sum1', value: parseInt(sum1).toLocaleString() },
-                            { key: 'avg1', value: ((parseInt(sum1)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },
+                            { key: 'avg1', value: (parseFloat((parseFloat(sum1)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },
                             { key: 's1', value: parseInt(row.s1).toLocaleString() },
                             { key: 's2', value: parseInt(row.s2).toLocaleString() },
                             { key: 's3', value: parseInt(row.s3).toLocaleString() },
@@ -188,9 +163,9 @@
                             { key: 'p1', value: (parseInt(row.count_okr)-sum1).toLocaleString() },    
                             { key: 'p1', value: (((parseInt(row.count_okr)-sum1)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },  
                             { key: 'dev_plan', value: parseInt(row.dev_plan || 0).toLocaleString() },  
-                            { key: 'avg2', value: ((parseInt(row.dev_plan || 0)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },  
+                            { key: 'avg2', value: (parseFloat((parseFloat(row.dev_plan || 0)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },  
                             { key: 'divis', value: parseInt(row.divis || 0).toLocaleString() },  
-                            { key: 'avg3', value: ((parseInt(row.divis || 0)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },                                                                  
+                            { key: 'avg3', value: (parseFloat((parseFloat(row.divis || 0)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },                                                                  
                         ];
 
                         columns.forEach(col => {
@@ -207,7 +182,10 @@
                     responseError(jqXHR, exception);
                 }
             });
-        }
+            });
+        });
+
+        
 
         function exportCSV() {
             const table = document.getElementById('reportTable');

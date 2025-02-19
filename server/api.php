@@ -260,7 +260,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-
+                $faculty = $_POST["faculty"];
                 // เชื่อมต่อฐานข้อมูล
                 /* $sqlPlan = "SELECT 
                             pkpp.Faculty,
@@ -331,35 +331,39 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             ORDER BY fa_name, pilar_code, si_code, Strategic_Object, Strategic_Project"; */
                 $sqlPlan = "WITH t1 AS(
-                            SELECT p.Strategic_Object AS so
-                            ,p.Strategic_Project AS sp
-                            ,p.Faculty
-                            ,p.Budget_Amount
-                            ,p2.parent AS si
-                            ,p2.pillar_name AS so_name 
-                            ,p3.pillar_name AS si_name
-                            ,p4.pillar_name AS p
-                            ,k.ksp_name AS sp_name
-                            ,COALESCE(pfp.Allocated_budget,'0.00') AS Allocated_budget
-                            ,COALESCE(pfp.Actual_Spend_Amount,'0.00') AS Actual_Spend_Amount
-                            ,f.Alias_Default
-                            FROM planning_faculty_action_plan p 
-                            LEFT JOIN pilars2 p2
-                            ON p.Strategic_Object=p2.pillar_id
-                            LEFT JOIN pilars2 p3
-                            ON p2.parent=p3.pillar_id
-                            LEFT JOIN pilars2 p4
-                            ON p3.parent=p4.pillar_id
-                            LEFT JOIN ksp k
-                            ON p.Strategic_Project=k.ksp_id
-                            LEFT JOIN planning_faculty_project_progress pfp
-                            ON p.Strategic_Object=pfp.Strategic_Object AND p.Strategic_Project=pfp.Strategic_Project AND p.faculty=pfp.Faculty
-                            LEFT JOIN Faculty f
-                            ON p.Faculty=f.Faculty)
-
-
-                            SELECT * FROM t1";
+                            SELECT *
+                            FROM pilars2
+                            WHERE pillar_id LIKE 'F00SI%' or pillar_id LIKE 'F00P%'
+                            ORDER BY id)
+                            ,t2 AS (
+                            SELECT KKU_Strategic_Plan_LOV
+                            ,SUM(Budget_Amount) AS Budget_Amount
+                            FROM planning_faculty_action_plan
+                            where faculty=:faculty
+                            GROUP BY KKU_Strategic_Plan_LOV)
+                            ,t3 AS (
+                            SELECT t.*,tt.Budget_Amount
+                            FROM t1 t
+                            LEFT JOIN t2 tt
+                            ON t.pillar_id=replace(tt.KKU_Strategic_Plan_LOV,'_',''))
+                            ,t4 AS (
+                            SELECT p1.KKU_Strategic_Plan_LOV
+                            ,SUM(p2.Allocated_budget) AS Allocated_budget
+                            ,SUM(p2.Actual_Spend_Amount) AS Actual_Spend_Amount
+                            FROM planning_faculty_action_plan p1
+                            LEFT JOIN planning_faculty_project_progress p2
+                            ON p1.faculty=p2.Faculty AND p1.Strategic_Project=p2.Strategic_Project
+                            where p1.faculty=:faculty
+                            GROUP BY p1.KKU_Strategic_Plan_LOV)
+                            ,t5 AS (
+                            SELECT t.*,tt.*
+                            FROM t3 t
+                            LEFT JOIN t4 tt
+                            ON t.pillar_id=replace(tt.KKU_Strategic_Plan_LOV,'_',''))
+                
+                            SELECT * FROM t5";
                 $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->bindParam(':faculty', $faculty, PDO::PARAM_STR);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -483,11 +487,40 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
-        case "get_strategic-indicators":
+        case "get_faculty_get_strategic_indicators":
             try {
                 $db = new Database();
                 $conn = $db->connect();
 
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT DISTINCT f.Alias_Default AS faculty ,b.faculty as fcode
+                        FROM planning_faculty_strategic_plan b
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                        ON b.faculty=f.faculty";
+
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'fac' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break; 
+        case "get_strategic-indicators":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                $faculty = $_POST["faculty"];
                 // เชื่อมต่อฐานข้อมูล
                 /* $sqlPlan = "SELECT
                             f.Alias_Default AS fa_name,
@@ -498,6 +531,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sqlPlan = "WITH t1 AS (
                             SELECT Faculty,COUNT(*) AS count_okr
                             FROM planning_faculty_strategic_plan
+                            where faculty=:faculty
                             GROUP BY Faculty)
                             ,t2 AS (
                             SELECT t.*,tt.KKU_Strategic_Plan_LOV,COUNT(*) AS count_st
@@ -542,6 +576,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                             SELECT * FROM t6";
                 $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->bindParam(':faculty', $faculty, PDO::PARAM_STR);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -562,11 +597,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-
+                $faculty = $_POST["faculty"];
                 // เชื่อมต่อฐานข้อมูล
                 $sqlPlan = "WITH t1 AS (
                             SELECT Faculty,COUNT(*) AS count_okr
                             FROM planning_faculty_action_plan
+                            where faculty=:faculty
                             GROUP BY Faculty)
                             ,t2 AS (
                             SELECT t.*,tt.KKU_Strategic_Plan_LOV,COUNT(*) AS count_st
@@ -612,6 +648,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             SELECT * FROM t6
                             ";
                 $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->bindParam(':faculty', $faculty, PDO::PARAM_STR);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -765,6 +802,37 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
                 echo json_encode($response);
             }
+            break;
+        case "get_faculty_action_plan":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT DISTINCT f.Alias_Default AS faculty ,b.faculty as fcode
+                        FROM planning_faculty_action_plan b
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                        ON b.faculty=f.faculty";
+
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'fac' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break; 
+                default:
             break;
     }
 } else {

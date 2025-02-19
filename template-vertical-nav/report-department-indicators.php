@@ -33,6 +33,12 @@
                                 <div class="card-title">
                                     <h4>รายงานจำนวนผลลัพธ์/ตัวชี้วัดในแผนปฏิบัติการ ประจำปีงบประมาณ ส่วนงาน/หน่วยงาน</h4>
                                 </div>
+                                <div class="info-section">
+                                        <label for="dropdown1">ส่วนงาน:</label>
+                                        <select id="dropdown1">
+                                            <option value="">-- เลือกส่วนงาน --</option>
+                                        </select>
+                                    </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                     <thead>
@@ -98,70 +104,87 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         $(document).ready(function() {
-            laodData();
-        });
-
-        function laodData() {
             $.ajax({
                 type: "POST",
                 url: "../server/api.php",
                 data: {
-                    'command': 'get_department-indicators'
+                    'command': 'get_faculty_action_plan'
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
-                    response.plan.forEach((row, index) => {                   
-                        const tr = document.createElement('tr');
-                        var sum1= parseInt(row.s1)+parseInt(row.s2)+parseInt(row.s3)+parseInt(row.s4)
-                        +parseInt(row.s5)+parseInt(row.s6)+parseInt(row.s7)+parseInt(row.s8)+parseInt(row.s9)
-                        +parseInt(row.s10)+parseInt(row.s11);
-                        const columns = [
-                            { key: 'No', value: index+1 },
-                            { key: 'fac_code', value: (row.Alias_Default).substring(0, 2) },
-                            { key: 'fac', value: row.Alias_Default.replace(/^(\d{5}) - /, '') },
-                            { key: 'count_okr', value: parseInt(row.count_okr).toLocaleString() },
-                            { key: 'sum1', value: parseInt(sum1).toLocaleString() },
-                            { key: 'avg1', value: ((parseInt(sum1)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },
-                            { key: 's1', value: parseInt(row.s1).toLocaleString() },
-                            { key: 's2', value: parseInt(row.s2).toLocaleString() },
-                            { key: 's3', value: parseInt(row.s3).toLocaleString() },
-                            { key: 's4', value: parseInt(row.s4).toLocaleString() },
-                            { key: 's5', value: parseInt(row.s5).toLocaleString() },
-                            { key: 's6', value: parseInt(row.s6).toLocaleString() },
-                            { key: 's7', value: parseInt(row.s7).toLocaleString() },
-                            { key: 's8', value: parseInt(row.s8).toLocaleString() },
-                            { key: 's9', value: parseInt(row.s9).toLocaleString() },
-                            { key: 's10', value: parseInt(row.s10).toLocaleString() },
-                            { key: 's11', value: parseInt(row.s11).toLocaleString() },
-                            { key: 'p1', value: (parseInt(row.count_okr)-sum1).toLocaleString() },    
-                            { key: 'p1', value: (((parseInt(row.count_okr)-sum1)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },  
-                            { key: 'dev_plan', value: parseInt(row.dev_plan).toLocaleString() },  
-                            { key: 'avg2', value: ((parseInt(row.dev_plan)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },  
-                            { key: 'divis', value: parseInt(row.divis).toLocaleString() },  
-                            { key: 'avg3', value: ((parseInt(row.divis)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },                                                                  
-                        ];
-
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            tr.appendChild(td);
-                        });
-                        tableBody.appendChild(tr);    
-                        
-                    });
-
-
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
+                    
+                    response.fac.forEach((row) =>{
+                        //console.log(row.y);
+                        $('#dropdown1').append('<option value="'+row.fcode+'">'+row.faculty+'</option>');
+                    });   
                 }
             });
-        }
+
+            $('#dropdown1').change(function() {
+                let faculty = $(this).val();
+                $.ajax({
+                    type: "POST",
+                    url: "../server/api.php",
+                    data: {
+                        'command': 'get_department-indicators',
+                        'faculty':faculty
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        console.log(response.plan);
+                        const tableBody = document.querySelector('#reportTable tbody');
+                        tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+                        response.plan.forEach((row, index) => {                   
+                            const tr = document.createElement('tr');
+                            var sum1= parseInt(row.s1)+parseInt(row.s2)+parseInt(row.s3)+parseInt(row.s4)
+                            +parseInt(row.s5)+parseInt(row.s6)+parseInt(row.s7)+parseInt(row.s8)+parseInt(row.s9)
+                            +parseInt(row.s10)+parseInt(row.s11);
+                            const columns = [
+                                { key: 'No', value: index+1 },
+                                { key: 'fac_code', value: (row.Alias_Default).substring(0, 2) },
+                                { key: 'fac', value: row.Alias_Default.replace(/^(\d{5}) - /, '') },
+                                { key: 'count_okr', value: parseInt(row.count_okr).toLocaleString() },
+                                { key: 'sum1', value: parseInt(sum1).toLocaleString() },
+                                { key: 'avg1', value: (parseFloat((parseFloat(sum1)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },
+                                { key: 's1', value: parseInt(row.s1).toLocaleString() },
+                                { key: 's2', value: parseInt(row.s2).toLocaleString() },
+                                { key: 's3', value: parseInt(row.s3).toLocaleString() },
+                                { key: 's4', value: parseInt(row.s4).toLocaleString() },
+                                { key: 's5', value: parseInt(row.s5).toLocaleString() },
+                                { key: 's6', value: parseInt(row.s6).toLocaleString() },
+                                { key: 's7', value: parseInt(row.s7).toLocaleString() },
+                                { key: 's8', value: parseInt(row.s8).toLocaleString() },
+                                { key: 's9', value: parseInt(row.s9).toLocaleString() },
+                                { key: 's10', value: parseInt(row.s10).toLocaleString() },
+                                { key: 's11', value: parseInt(row.s11).toLocaleString() },
+                                { key: 'p1', value: (parseInt(row.count_okr)-sum1).toLocaleString() },    
+                                { key: 'p1', value: (parseFloat(((parseFloat(row.count_okr)-sum1)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },  
+                                { key: 'dev_plan', value: parseInt(row.dev_plan).toLocaleString() },  
+                                { key: 'avg2', value: (parseFloat((parseFloat(row.dev_plan)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },  
+                                { key: 'divis', value: parseInt(row.divis).toLocaleString() },  
+                                { key: 'avg3', value: (parseFloat((parseFloat(row.divis)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },                                                                  
+                            ];
+
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+                            tableBody.appendChild(tr);    
+                            
+                        });
+
+
+                    },
+                    error: function(jqXHR, exception) {
+                        console.error("Error: " + exception);
+                        responseError(jqXHR, exception);
+                    }
+                });
+            });
+        });
+
 
         function exportCSV() {
             const table = document.getElementById('reportTable');
