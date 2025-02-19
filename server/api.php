@@ -690,44 +690,62 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $db = new Database();
                 $conn = $db->connect();
 
-                // รับค่าที่เลือกจาก Frontend
                 $scenario = isset($_POST['scenario']) ? $_POST['scenario'] : 'Annual Budget Plan';
                 $fund = isset($_POST['fund']) ? $_POST['fund'] : 'FN06';
 
-                // เชื่อมต่อฐานข้อมูล
                 $sqlPlan = "SELECT
+                                    project.project_name,
+                                    annual_bp.Project,
                                     b_actual.FISCAL_YEAR,
                                     annual_bp.Budget_Management_Year,
                                     annual_bp.Plan,
                                     annual_bp.Sub_Plan,
                                     annual_bp.Faculty,
-                                    annual_bp.Project,
                                     annual_bp.Total_Amount_Quantity,
                                     f.Alias_Default AS faculty_name,
                                     account.alias_default,
                                     plan.plan_name,
                                     sub_plan.sub_plan_name,
-                                    project.project_name,
-                                    account.parent
+                                    account.parent,
+                                    kpi.KKU_Strategic_Plan_LOV,  
+                                    pilar.pillar_name  
                                 FROM
                                     budget_planning_annual_budget_plan AS annual_bp
-                                    LEFT JOIN (SELECT DISTINCT Faculty,fund,plan,subplan,project,account,service,fiscal_year from budget_planning_actual) b_actual 
+                                    LEFT JOIN (
+                                        SELECT DISTINCT Faculty, fund, plan, subplan, project, account, service, fiscal_year
+                                        FROM budget_planning_actual
+                                    ) b_actual 
                                     ON b_actual.PLAN = annual_bp.Plan
-                                    AND annual_bp.faculty=b_actual.Faculty
+                                    AND annual_bp.faculty = b_actual.Faculty
                                     AND b_actual.SUBPLAN = REPLACE(annual_bp.Sub_Plan, 'SP_', '')
                                     AND b_actual.PROJECT = annual_bp.Project
-                                    AND annual_bp.account=b_actual.account
-                                    AND b_actual.fund=REPLACE(annual_bp.fund, 'FN', '')
-                                    AND b_actual.service=REPLACE(annual_bp.service, 'SR_', '')
+                                    AND annual_bp.account = b_actual.account
+                                    AND b_actual.fund = REPLACE(annual_bp.fund, 'FN', '')
+                                    AND b_actual.service = REPLACE(annual_bp.service, 'SR_', '')
+            
                                     LEFT JOIN account ON account.account = annual_bp.Account
-                                    LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'FACULTY%') f ON f.Faculty = annual_bp.Faculty
+                                    LEFT JOIN (
+                                        SELECT * FROM Faculty WHERE parent LIKE 'FACULTY%'
+                                    ) f ON f.Faculty = annual_bp.Faculty
                                     LEFT JOIN plan ON plan.plan_id = annual_bp.Plan
                                     LEFT JOIN sub_plan ON sub_plan.sub_plan_id = annual_bp.Sub_Plan
                                     LEFT JOIN project ON project.project_id = annual_bp.Project
+                                    
+                                    LEFT JOIN (
+                                        SELECT Project, MAX(KKU_Strategic_Plan_LOV) AS KKU_Strategic_Plan_LOV 
+                                        FROM budget_planning_project_kpi 
+                                        GROUP BY Project
+                                    ) kpi ON kpi.Project = annual_bp.Project
+            
+                                    LEFT JOIN (
+                                        SELECT pillar_id, MAX(pillar_name) AS pillar_name
+                                        FROM pilars2
+                                        GROUP BY pillar_id
+                                    ) pilar ON pilar.pillar_id = REPLACE(kpi.KKU_Strategic_Plan_LOV, '_', '')
+            
                                 WHERE
                                     annual_bp.Scenario = :scenario
-                                    AND annual_bp.Fund = :fund
-                                ORDER BY Faculty, plan, sub_plan, Project";
+                                    AND annual_bp.Fund = :fund";
 
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->bindParam(':scenario', $scenario, PDO::PARAM_STR);

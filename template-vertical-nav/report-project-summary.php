@@ -163,42 +163,47 @@
                     response.plan.forEach(row => {
                         const tr = document.createElement('tr');
 
-                        // คอลัมน์แรก (ชื่อโครงการ)
+                        // ✅ คอลัมน์แรก (โครงการ/กิจกรรม)
                         const td1 = document.createElement('td');
-                        td1.innerHTML = `${row.faculty_name}<br>${row.plan_name}<br>${row.sub_plan_name}<br>${row.project_name}`;
+                        td1.innerHTML = `
+                    <div style="font-weight: bold;">${row.pillar_name || "-"}</div> <!-- ✅ Pillar อยู่แยกส่วนบน -->
+                    <div>
+                        ${row.faculty_name}<br>
+                        ${row.plan_name}<br>
+                        ${row.sub_plan_name}<br>
+                        <strong>${row.project_name}</strong>  <!-- ✅ ตัวหนาให้ดูชัด -->
+                    </div>
+                `;
                         tr.appendChild(td1);
 
-                        let totalSum = 0; // ตัวแปรสำหรับเก็บผลรวมของแถวนี้
-                        let hasValue = false; // ตัวแปรตรวจสอบว่าแถวนี้มีค่าตัวเลขไหม
+                        let totalSum = 0;
+                        let hasValue = false;
 
-                        // สร้าง td ตามจำนวน <th> ที่มี value
+                        // ✅ คอลัมน์งบประมาณ → ค่าตัวเลขจะอยู่กับ `row.project_name`
                         headerCells.forEach(th => {
                             const td = document.createElement('td');
                             const parentValue = th.getAttribute("value");
 
                             if (row.parent === parentValue) {
-                                const value = parseFloat(row.Total_Amount_Quantity) || 0; // แปลงเป็นตัวเลข
-                                td.textContent = value.toLocaleString(); // แสดงผลรูปแบบตัวเลข
-                                totalSum += value; // บวกค่าทั้งหมดเข้ากับผลรวม
-
-                                if (value > 0) {
-                                    hasValue = true; // ถ้ามีค่ามากกว่า 0 ถือว่าแถวนี้มีค่า
-                                }
+                                const value = parseFloat(row.Total_Amount_Quantity) || 0;
+                                td.textContent = value.toLocaleString();
+                                totalSum += value;
+                                if (value > 0) hasValue = true;
                             } else {
-                                td.textContent = "-"; // ให้แสดง "-" ถ้าไม่มีค่า
+                                td.textContent = "-";
                             }
 
                             tr.appendChild(td);
                         });
 
-                        // ✅ เพิ่มคอลัมน์ "รวมงบประมาณ" ที่ท้ายแถว
+                        // ✅ คอลัมน์รวมงบประมาณ
                         const totalTd = document.createElement('td');
-                        totalTd.textContent = totalSum.toLocaleString(); // แสดงผลรวมเป็นตัวเลข format
-                        totalTd.style.fontWeight = "bold"; // ทำให้ตัวหนา
+                        totalTd.textContent = totalSum.toLocaleString();
+                        totalTd.style.fontWeight = "bold";
                         tr.appendChild(totalTd);
 
                         if (totalSum > 0 || hasValue) {
-                            tableBody.appendChild(tr); // ✅ เพิ่มแถวเฉพาะที่มีค่าตัวเลข
+                            tableBody.appendChild(tr); // ✅ แสดงเฉพาะแถวที่มีค่า
                         }
                     });
                 },
@@ -208,6 +213,7 @@
                 }
             });
         }
+
 
         function exportCSV() {
             const rows = [];
@@ -223,7 +229,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
+            link.setAttribute('download', 'รายงานการจัดสรรเงินรายงวด.csv');
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
@@ -268,7 +274,7 @@
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            doc.save('รายงานการจัดสรรเงินรายงวด.pdf');
         }
 
         function exportXLS() {
@@ -290,7 +296,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
+            link.setAttribute('download', 'รายงานการจัดสรรเงินรายงวด.xls');
             link.style.visibility = 'hidden';
             document.body.appendChild(link);
             link.click();
