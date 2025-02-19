@@ -1,179 +1,3 @@
-<!DOCTYPE html>
-<html lang="en">
-<?php include('../component/header.php');
-
-include '../server/connectdb.php';
-
-$db = new Database();
-$conn = $db->connect();
-
-// ฟังก์ชันดึงข้อมูล
-function fetchBudgetData($conn, $fund)
-{
-    $query = "SELECT DISTINCT
-                                                acc.sub_type,
-                                                acc.type,
-                                                bpanbp.Service,
-                                                bpa.SERVICE,
-                                                bpanbp.Account,
-                                                bpa.ACCOUNT,
-                                                bpanbp.Fund,
-                                                bpanbp.Faculty,
-                                                bpanbp.Plan,
-                                                bpanbp.Sub_Plan,
-                                                bpanbp.Project,
-                                                bpanbp.KKU_Item_Name,
-                                                bpanbp.Allocated_Total_Amount_Quantity,
-                                                bpa.TOTAL_BUDGET,
-                                                bpa.TOTAL_CONSUMPTION,
-                                                bpa.EXPENDITURES,
-                                                bpa.FUNDS_AVAILABLE_AMOUNT,
-                                                bpa.INITIAL_BUDGET,
-                                                bpa.FUNDS_AVAILABLE_PERCENTAGE,
-                                                bpa.COMMITMENTS,
-                                                bpa.OBLIGATIONS,
-                                                f.Alias_Default AS Alias_Default,
-                                                f.Parent AS Faculty_Sub,
-                                                f.Faculty AS Faculty_Main,
-                                                p.plan_name AS Plan_Name,
-                                                sp.sub_plan_name AS Sub_Plan_Name,
-                                                pr.project_name AS Project_Name
-                                            FROM
-                                                budget_planning_allocated_annual_budget_plan bpanbp
-                                                LEFT JOIN budget_planning_actual bpa 
-                                                ON bpanbp.Faculty = bpa.FACULTY 
-                                                AND bpanbp.Plan = bpa.PLAN
-                                                AND bpanbp.Sub_Plan = bpa.SUBPLAN
-                                                AND bpanbp.Project = bpa.PROJECT
-                                                AND bpanbp.Fund = bpa.FUND
-                                                LEFT JOIN account acc ON bpanbp.Account = acc.account
-                                                LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
-                                                LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
-                                                LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-                                                LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id
-                                            WHERE
-                                                bpanbp.Fund = :fund";
-
-    $stmt = $conn->prepare($query);
-    $stmt->bindParam(':fund', $fund);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
-$resultsFN02 = fetchBudgetData($conn, 'FN02');
-$resultsFN06 = fetchBudgetData($conn, 'FN06');
-
-echo "<pre>";
-// print_r($resultsFN02);
-// print_r($resultsFN06);
-echo "</pre>";
-
-
-$mergedData = [];
-
-foreach ($resultsFN06 as $fn06) {
-    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
-        return (string) $fn06['Plan'] === (string) $fn02['Plan'] &&
-            (string) $fn06['Sub_Plan'] === (string) $fn02['Sub_Plan'] &&
-            (string) $fn06['Project'] === (string) $fn02['Project'] &&
-            (string) $fn06['Account'] === (string) $fn02['ACCOUNT'];
-    });
-
-    // ใช้แค่ตัวแรกที่ตรงกับ FN06
-    $fn02 = reset($fn02Match);
-
-    // ✅ กำหนดค่าเริ่มต้นให้ตัวแปร
-    $commitment_FN06 = 0;
-    $commitment_FN02 = 0;
-    $commitment_percent_FN06 = 0;
-    $commitment_percent_FN02 = 0;
-    $Expenditures_Percent_FN06 = 0;
-    $Expenditures_Percent_FN02 = 0;
-
-    // ✅ คำนวณค่าเริ่มต้นสำหรับ Total
-    $Total_Allocated = 0;
-    $Total_Commitments = 0;
-    $Total_Commitments_Percent = 0;
-    $Total_Expenditures = 0;
-    $Total_Expenditures_Percent = 0;
-
-    // ✅ ตรวจสอบว่ามีข้อมูล FN02 หรือไม่
-    if ($fn02) {
-        $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
-        $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
-
-        $commitment_percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-            ? (($commitment_FN06 - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
-            : 0;
-
-        $commitment_percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-            ? (($commitment_FN02 - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
-            : 0;
-
-        $Expenditures_Percent_FN06 = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-            ? (($fn06['EXPENDITURES'] - $fn06['Allocated_Total_Amount_Quantity']) / $fn06['Allocated_Total_Amount_Quantity']) * 100
-            : 0;
-
-        $Expenditures_Percent_FN02 = ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) != 0
-            ? (($fn02['EXPENDITURES'] - $fn02['Allocated_Total_Amount_Quantity']) / $fn02['Allocated_Total_Amount_Quantity']) * 100
-            : 0;
-    }
-
-    // ✅ คำนวณค่า Total
-    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
-    $Total_Commitments = $commitment_FN06 + $commitment_FN02;
-    $Total_Commitments_Percent = $commitment_percent_FN06 + $commitment_percent_FN02;
-    $Total_Expenditures = ($fn06['EXPENDITURES'] ?? 0) + ($fn02['EXPENDITURES'] ?? 0);
-    $Total_Expenditures_Percent = $Expenditures_Percent_FN06 + $Expenditures_Percent_FN02;
-
-    // ✅ เพิ่มข้อมูลลงใน mergedData
-    $mergedData[] = [
-        'Plan' => $fn06['Plan'],
-        'Sub_Plan' => $fn06['Sub_Plan'],
-        'Project' => $fn06['Project'],
-        'Type' => $fn06['type'],
-        'Sub_Type' => $fn06['sub_type'],
-        'Plan_Name' => $fn06['Plan_Name'],
-        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'],
-        'Project_Name' => $fn06['Project_Name'],
-        'KKU_Item_Name' => $fn06['KKU_Item_Name'],
-        'Alias_Default' => $fn06['Alias_Default'], // ✅ เพิ่มข้อมูล Faculty
-        'Faculty_Sub' => $fn06['Faculty_Sub'],
-        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN06' => $commitment_FN06,
-        'Commitment_Percent_FN06' => $commitment_percent_FN06,
-        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
-        'Expenditures_Percent_FN06' => $Expenditures_Percent_FN06,
-        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN02' => $commitment_FN02,
-        'Commitment_Percent_FN02' => $commitment_percent_FN02,
-        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
-        'Expenditures_Percent_FN02' => $Expenditures_Percent_FN02,
-        'Total_Allocated' => $Total_Allocated,
-        'Total_Commitments' => $Total_Commitments,
-        'Total_Commitments_Percent' => $Total_Commitments_Percent,
-        'Total_Expenditures' => $Total_Expenditures,
-        'Total_Expenditures_Percent' => $Total_Expenditures_Percent,
-    ];
-}
-
-
-// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
-$rowspanData = [];
-
-// วนลูปเพื่อคำนวณว่าข้อมูลไหนต้อง merge
-foreach ($mergedData as $row) {
-    $type = $row['Type'] ?? '';
-    $subType = $row['Sub_Type'] ?? '';
-}
-
-
-// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
-$usedRowspan = [];
-
-
-?>
-
 <style>
     #reportTable th:nth-child(1),
     #reportTable td:nth-child(1) {
@@ -181,71 +5,86 @@ $usedRowspan = [];
         /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
     }
 
-    #reportTable th,
-    #reportTable td {
+    #reportTable th {
         text-align: center;
         /* จัดข้อความให้อยู่ตรงกลาง */
-        vertical-align: middle;
+        vertical-align: top;
         /* จัดให้อยู่ตรงกลางในแนวตั้ง */
         white-space: nowrap;
         /* ป้องกันข้อความตัดบรรทัด */
     }
 
-    .wide-column {
-        min-width: 250px;
-        /* ปรับขนาด column ให้กว้างขึ้น */
-        word-break: break-word;
-        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
-        white-space: pre-line;
-        /* รักษารูปแบบการขึ้นบรรทัด */
+    #reportTable td {
+        text-align: left;
+        /* จัดข้อความให้อยู่ตรงกลาง */
         vertical-align: top;
-        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
-        padding: 10px;
-        /* เพิ่มช่องว่างด้านใน */
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
     }
 
-    .wide-column div {
-        margin-bottom: 5px;
-        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
     }
 
-    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+    .content-body {
+        flex-grow: 1;
+        overflow: hidden;
+        /* Prevent body scrolling */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
+
     table {
         width: 100%;
         border-collapse: collapse;
-        /* ลบช่องว่างระหว่างเซลล์ */
     }
 
-    /* ทำให้หัวตารางติดอยู่กับด้านบน */
-    th {
+    thead tr:nth-child(1) th {
         position: sticky;
-        /* ทำให้ header ติดอยู่กับด้านบน */
         top: 0;
-        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
-        background-color: #fff;
-        /* กำหนดพื้นหลังให้กับหัวตาราง */
-        z-index: 2;
-        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        /* เพิ่มเงาให้หัวตาราง */
-        padding: 8px;
+        background: #f4f4f4;
+        z-index: 1000;
     }
 
-    /* เพิ่มเงาให้กับแถวหัวตาราง */
-    th,
-    td {
-        border: 1px solid #ddd;
-        /* เพิ่มขอบให้เซลล์ */
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 45px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
     }
 
-    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
-    .table-responsive {
-        max-height: 60vh;
-        /* กำหนดความสูงของตาราง */
-        overflow-y: auto;
-        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 90px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
     }
 </style>
+<!DOCTYPE html>
+<html lang="en">
+<?php include('../component/header.php'); ?>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -279,7 +118,7 @@ $usedRowspan = [];
                                     <h4>รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</h4>
                                 </div>
                                 <div class="table-responsive">
-                                    <table id="reportTable" class="table table-hover">
+                                    <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
@@ -296,48 +135,9 @@ $usedRowspan = [];
                                                 <th>ร้อยละ</th>
                                             </tr>
                                         </thead>
-                                        <td style="text-align: left;">
-                                            <?php
-                                            static $prevRow = null; // เก็บค่าของแถวก่อนหน้า
-                                            
+                                        <tbody>
 
-                                            if ($prevRow === null || $prevRow['Plan'] !== $row['Plan']) {
-                                                echo "<strong>" . str_repeat('&nbsp;', times: 0) . "{$row['Plan_Name']}</strong><br>";
-                                            }
-
-                                            if ($prevRow === null || $prevRow['Sub_Plan'] !== $row['Sub_Plan']) {
-                                                // ลบข้อมูลในวงเล็บออกจาก Sub_Plan_Name
-                                                $subPlanName = preg_replace('/\([^\)]*\)/', '', $row['Sub_Plan_Name']);
-
-                                                // ลบตัวหนังสือและ _ จาก Sub_Plan
-                                                $subPlan = preg_replace('/[a-zA-Z_]+/', '', $row['Sub_Plan']);
-
-                                                echo "<strong>" . str_repeat('&nbsp;', 10) . "{$subPlanName}</strong><br>";
-                                            }
-
-
-                                            if ($prevRow === null || $prevRow['Project'] !== $row['Project']) {
-                                                // ดึงแค่ชื่อโปรเจ็กต์ โดยตัดตัวเลขก่อนเครื่องหมาย : ออก
-                                                $projectName = preg_replace('/^\d+:\s*/', '', $row['Project_Name']);
-                                                echo "<strong>" . str_repeat('&nbsp;', 15) . "{$projectName}</strong><br>";
-                                            }
-
-
-
-
-                                            if ($prevRow === null || $prevRow['Type'] !== $row['Type']) {
-                                                echo "<strong>" . str_repeat('&nbsp;', 20) . "{$row['Type']}</strong><br>";
-                                            }
-
-                                            if ($prevRow === null || $prevRow['Sub_Type'] !== $row['Sub_Type']) {
-                                                echo "<strong>" . str_repeat('&nbsp;', 25) . "{$row['Sub_Type']}</strong><br>";
-                                            }
-
-                                            // อัปเดตค่าของ $prevRow เพื่อใช้ตรวจสอบแถวถัดไป
-                                            $prevRow = $row;
-                                            ?>
-                                            <strong><?= str_repeat('&nbsp;', 30) ?><?= $row['KKU_Item_Name'] ?></strong>
-                                        </td>
+                                        </tbody>
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
@@ -356,7 +156,127 @@ $usedRowspan = [];
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        $(document).ready(function () {
+            laodData();
+
+        });
+
+        function laodData() {
+            $.ajax({
+                type: "POST",
+                url: "../server/budget_planing_api2.php",
+                data: {
+                    'command': 'report-budget-adjustments'
+                },
+                dataType: "json",
+                success: function (response) {
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า               
+
+                    const f1 = [...new Set(response.bgp.map(item => item.f1))];
+                    const f2 = [...new Set(response.bgp.map(item => item.f2))];
+                    const plan_name = [...new Set(response.bgp.map(item => item.plan_name))];
+                    const sub_plan_name = [...new Set(response.bgp.map(item => item.sub_plan_name))];
+                    const project_name = [...new Set(response.bgp.map(item => item.project_name))];
+                    const account = [...new Set(response.bgp.map(item => item.TYPE))];
+                    const sub_account = [...new Set(response.bgp.map(item => item.sub_type))];
+
+                    console.log(f1);
+                    console.log(f2);
+                    console.log(plan_name);
+                    console.log(sub_plan_name);
+                    console.log(project_name);
+                    console.log(account);
+                    console.log(sub_account);
+                    console.log(response.bgp);
+
+
+                    var html = ''; // สตริงสำหรับเก็บ HTML ที่จะนำไปแสดงในตาราง
+                    plan_name.forEach((row1) => {
+                        var str1 = '<tr><td>' + row1; // เปิด tag สำหรับ f1
+                        var str2 = '<td>'; // เปิด tag สำหรับ f2
+                        var str3 = '<td>';
+                        var str4 = '<td>';
+                        var str5 = '<td>';
+                        var str6 = '<td>';
+                        var str7 = '<td>';
+                        var str8 = '<td>';
+
+                        sub_plan_name.forEach((row2) => {
+                            // กรองข้อมูลที่ตรงกับ sub_plan_name และ plan_name
+                            var sup = response.bgp.filter(item => item.sub_plan_name === row2 && item.plan_name === row1);
+
+                            // ตรวจสอบ sup ก่อนเพื่อหลีกเลี่ยงการวนลูปหากไม่มีข้อมูล
+                            if (sup.length > 0) {
+                                // สำหรับข้อมูลที่พบ, แสดง sub_plan_id และ sub_plan_name
+                                sup.forEach(item => {
+                                    str1 += '<br/>' + '&nbsp;'.repeat(16) + item.sub_plan_id + ' : ' + item.sub_plan_name;
+                                    str2 += '<br/>';
+                                    str3 += '<br/>';
+                                    str4 += '<br/>';
+                                    str5 += '<br/>';
+                                    str6 += '<br/>';
+                                    str7 += '<br/>';
+                                    str8 += '<br/>';
+                                });
+                            }
+                        });
+
+                        project_name.forEach((row3) => {
+                            var p = response.bgp.filter(item => item.project_name === row3 && item.f2 === row2 && item.f1 === row1);
+
+                            if (p.length > 0) {
+                                str1 += '<br/>' + '&nbsp;'.repeat(16) + row3; // เพิ่ม plan_name
+                                str2 += '<br/>';
+                                str3 += '<br/>';
+                                str4 += '<br/>';
+                                str5 += '<br/>';
+                                str6 += '<br/>';
+                                str7 += '<br/>';
+                                str8 += '<br/>';
+
+                                sub_plan_name.forEach((row4) => {
+                                    var sp = p.filter(item => item.project_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+
+                                    if (sp.length > 0) {
+                                        str1 += '<br/>' + '&nbsp;'.repeat(24) + row4; // เพิ่ม sub_plan_name
+                                        str2 += '<br/>';
+                                        str3 += '<br/>';
+                                        str4 += '<br/>';
+                                        str5 += '<br/>';
+                                        str6 += '<br/>';
+                                        str7 += '<br/>';
+                                        str8 += '<br/>';
+                                    }
+                                });
+                            }
+                        });
+                    });
+
+                    // ปิดแท็ก </td> และรวมข้อมูลทั้งหมด
+                    str1 += '</td>';
+                    str2 += '</td>';
+                    str3 += '</td>';
+                    str4 += '</td>';
+                    str5 += '</td>';
+                    str6 += '</td>';
+                    str7 += '</td>';
+                    str8 += '</td>';
+
+                    html += str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8 + '</tr>'; // รวมแถว
+                });
+
+            tableBody.innerHTML = html; // อัพเดท HTML ของตาราง
+        },
+        error: function(jqXHR, exception) {
+            console.error("Error: " + exception);
+            responseError(jqXHR, exception);
+        }
+    });
+}
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

@@ -5,90 +5,83 @@
         /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
     }
 
-    #reportTable1 th,
-    #reportTable1 td {
+    #reportTable th {
         text-align: center;
         /* จัดข้อความให้อยู่ตรงกลาง */
-        vertical-align: middle;
-        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-        white-space: nowrap;
-        /* ป้องกันข้อความตัดบรรทัด */
-    }
-
-
-    #reportTable2 th,
-    #reportTable2 td {
-        text-align: center;
-        /* จัดข้อความให้อยู่ตรงกลาง */
-        vertical-align: middle;
-        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-        white-space: nowrap;
-        /* ป้องกันข้อความตัดบรรทัด */
-    }
-
-    .wide-column {
-        min-width: 250px;
-        /* ปรับขนาด column ให้กว้างขึ้น */
-        word-break: break-word;
-        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
-        white-space: pre-line;
-        /* รักษารูปแบบการขึ้นบรรทัด */
         vertical-align: top;
-        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
-        padding: 10px;
-        /* เพิ่มช่องว่างด้านใน */
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
     }
 
-    .wide-column div {
-        margin-bottom: 5px;
-        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+    #reportTable td {
+        text-align: left;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: top;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
     }
 
-    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
+
+    .content-body {
+        flex-grow: 1;
+        overflow: hidden;
+        /* Prevent body scrolling */
+        display: flex;
+        flex-direction: column;
+    }
+
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
+
     table {
         width: 100%;
         border-collapse: collapse;
-        /* ลบช่องว่างระหว่างเซลล์ */
     }
 
-    /* ทำให้หัวตารางติดอยู่กับด้านบน */
-    th {
+    thead tr:nth-child(1) th {
         position: sticky;
-        /* ทำให้ header ติดอยู่กับด้านบน */
         top: 0;
-        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
-        background-color: #fff;
-        /* กำหนดพื้นหลังให้กับหัวตาราง */
-        z-index: 2;
-        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        /* เพิ่มเงาให้หัวตาราง */
-        padding: 8px;
+        background: #f4f4f4;
+        z-index: 1000;
     }
 
-    /* เพิ่มเงาให้กับแถวหัวตาราง */
-    th,
-    td {
-        height: auto;
-        /* ให้ความสูงของเซลล์ปรับอัตโนมัติตามเนื้อหา */
-        vertical-align: top;
-        /* จัดตำแหน่งเนื้อหาของเซลล์ให้เริ่มต้นจากด้านบน */
-        word-wrap: break-word;
-        /* หากข้อความยาวเกินจะทำการห่อคำ */
-        white-space: normal;
-        /* ป้องกันไม่ให้ข้อความยาวในแถวตัดข้าม */
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 45px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
     }
 
-
-    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
-    .table-responsive {
-        max-height: 60vh;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-        display: block;
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 90px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
     }
 </style>
-
 <?php
 include('../component/header.php');
 include '../server/connectdb.php';
@@ -96,203 +89,121 @@ include '../server/connectdb.php';
 $db = new Database();
 $conn = $db->connect();
 
-// ฟังก์ชันตัดตัวอักษรออกให้เหลือแค่ตัวเลข
-function extractNumericPart($string)
-{
-    return preg_replace('/\D/', '', $string);
-}
+// รับค่าจาก dropdown ถ้าไม่มีให้ใช้ค่าเริ่มต้นเป็น Scenario1
+$selectedScenario = isset($_GET['scenario']) ? $_GET['scenario'] : 'Scenario1';
 
-// ฟังก์ชันเปรียบเทียบ Fund และ Sub_Plan โดยตัดตัวอักษรออกให้เหลือแค่ตัวเลข
-function compareSubPlanAndFund($subPlan1, $subPlan2, $fund1, $fund2)
-{
-    $subPlan1 = extractNumericPart($subPlan1);
-    $subPlan2 = extractNumericPart($subPlan2);
-    $fund1 = extractNumericPart($fund1);
-    $fund2 = extractNumericPart($fund2);
+// map ค่า dropdown เป็นค่าในฐานข้อมูล
+$scenarioMap = array(
+    'Scenario1' => 'ANL-RELEASE-1',
+    'Scenario2' => 'ANL-RELEASE-2',
+    'Scenario3' => 'ANL-RELEASE-3',
+    'Scenario4' => 'ANL-RELEASE-4'
+);
+$scenarioValue = isset($scenarioMap[$selectedScenario]) ? $scenarioMap[$selectedScenario] : 'ANL-RELEASE-1';
 
-    return $subPlan1 === $subPlan2 && $fund1 === $fund2;
-}
-
-// ฟังก์ชันดึงข้อมูล
-function fetchBudgetData($conn, $fund)
+// ฟังก์ชันในการดึงข้อมูลจากฐานข้อมูล
+function fetchScenarioData($conn, $fund, $scenarioColumnValue)
 {
-    $query = "SELECT DISTINCT
-    ksp.ksp_id AS Ksp_id,
-    ksp.ksp_name AS Ksp_Name,
-    bpanbp.Account,
-    acc.type,
-    acc.sub_type,
-    bpanbp.Project,
-    project.project_name,
-    f.Alias_Default AS Faculty_Name,
-    bpanbp.Faculty,
-    bpanbp.Plan,
-    p.plan_name AS Plan_Name,
-    bpanbp.Sub_Plan,
-    CONCAT('SP_', bpa.SUBPLAN) AS SUBPLAN,
-    sp.sub_plan_name AS Sub_Plan_Name,
-    bpanbp.Fund,
-    CONCAT('FN', bpa.FUND) AS FUND,
-    bpanbp.Reason AS Reason,
-    bpanbp.KKU_Item_Name,
-     -- แยก Scenario ออกเป็นแต่ละคอลัมน์
-    (SELECT Release_Amount FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-1' AND Faculty = bpanbp.Faculty AND Plan = bpanbp.Plan AND Sub_Plan = bpanbp.Sub_Plan AND Project = bpanbp.Project AND Fund = bpanbp.Fund LIMIT 1) AS Scenario1,
-    (SELECT Release_Amount FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-2' AND Faculty = bpanbp.Faculty AND Plan = bpanbp.Plan AND Sub_Plan = bpanbp.Sub_Plan AND Project = bpanbp.Project AND Fund = bpanbp.Fund LIMIT 1) AS Scenario2,
-    (SELECT Release_Amount FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-3' AND Faculty = bpanbp.Faculty AND Plan = bpanbp.Plan AND Sub_Plan = bpanbp.Sub_Plan AND Project = bpanbp.Project AND Fund = bpanbp.Fund LIMIT 1) AS Scenario3,
-    (SELECT Release_Amount FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-4' AND Faculty = bpanbp.Faculty AND Plan = bpanbp.Plan AND Sub_Plan = bpanbp.Sub_Plan AND Project = bpanbp.Project AND Fund = bpanbp.Fund LIMIT 1) AS Scenario4,
-    bpanbp.Allocated_Total_Amount_Quantity,
-    bpa.FISCAL_YEAR,
-    bpdbpar.Pre_Release_Amount,
-    bpa.TOTAL_BUDGET,
-    bpa.TOTAL_CONSUMPTION,
-    bpa.EXPENDITURES,
-    bpa.COMMITMENTS,
-    bpa.OBLIGATIONS
-FROM
-    budget_planning_allocated_annual_budget_plan bpanbp
-    LEFT JOIN budget_planning_actual bpa 
-        ON bpanbp.Fund = CONCAT('FN', bpa.FUND)
-        AND bpanbp.Faculty = bpa.FACULTY
-        AND bpanbp.`Account` = bpa.`Account`
-        AND bpanbp.Plan = bpa.PLAN
-        AND bpanbp.Sub_Plan = CONCAT('SP_', bpa.SUBPLAN)
-        AND bpanbp.Project = bpa.PROJECT
-    LEFT JOIN budget_planning_annual_budget_plan bpabp 
-        ON bpanbp.Faculty = bpabp.Faculty
-        AND bpanbp.Plan = bpabp.Plan
-        AND bpanbp.`Account` = bpa.`Account`
-        AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-        AND bpanbp.Project = bpabp.Project
-        AND bpanbp.Fund = bpabp.Fund
-LEFT JOIN budget_planning_disbursement_budget_plan_anl_release bpdbpar 
-    ON bpanbp.Faculty = bpdbpar.Faculty
-    AND bpanbp.Plan = bpdbpar.Plan
-    AND bpanbp.Sub_Plan = bpdbpar.Sub_Plan
-    AND bpanbp.Project = bpdbpar.Project
-    AND bpanbp.Fund = bpdbpar.Fund
-    AND bpdbpar.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2')
-    LEFT JOIN budget_planning_project_kpi bppk 
-        ON bpanbp.Project = bppk.Project
-    LEFT JOIN project 
-        ON bpanbp.Project = project.project_id
-    LEFT JOIN ksp 
-        ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
-    LEFT JOIN account acc 
-        ON bpanbp.Account = acc.account
-    LEFT JOIN Faculty AS f 
-        ON bpanbp.Faculty = f.Faculty
-    LEFT JOIN plan AS p 
-        ON bpanbp.Plan = p.plan_id
-    LEFT JOIN sub_plan AS sp 
-        ON bpanbp.Sub_Plan = sp.sub_plan_id
-    LEFT JOIN project AS pr 
-        ON bpanbp.Project = pr.project_id;
-    WHERE bpanbp.Fund = :fund";
+    $query = "SELECT 
+     bap.`Account`,
+    bap.Service,
+    bap.Plan, 
+    p.plan_id,
+    p.plan_name,
+    bap.Sub_Plan,
+    sp.sub_plan_id,
+    sp.sub_plan_name,
+    bap.Project,
+    pj.project_name,
+    ac.`type`,
+    ac.sub_type,
+    bap.KKU_Item_Name,
+    -- หาก Allocated_Total_Amount_Quantity เป็น NULL ให้แทนที่ด้วย 0
+    COALESCE(bap.Allocated_Total_Amount_Quantity, 0) AS Allocated_Total_Amount_Quantity,
+    bpd.Pre_Release_Amount,
+    -- คำนวณบวกกันระหว่าง Pre_Release_Amount และ Release_Amount
+    bpd.Release_Amount,
+    -- แยก Release_Amount โดยใช้เงื่อนไขจาก Scenario
+    CASE
+        WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN bpd.Release_Amount
+        ELSE 0
+    END AS Scenario1,
+    
+    CASE
+        WHEN bpd.Scenario = 'ANL-RELEASE-2' THEN bpd.Release_Amount
+        ELSE 0
+    END AS Scenario2,
+    
+    CASE
+        WHEN bpd.Scenario = 'ANL-RELEASE-3' THEN bpd.Release_Amount
+        ELSE 0
+    END AS Scenario3,
+    
+    CASE
+        WHEN bpd.Scenario = 'ANL-RELEASE-4' THEN bpd.Release_Amount
+        ELSE 0
+    END AS Scenario4,
+    
+    -- คำนวณผลลัพธ์ของ Total_Amount ลบด้วย Allocated_Total_Amount_Quantity
+    (COALESCE(bap.Allocated_Total_Amount_Quantity, 0) - (bpd.Pre_Release_Amount + bpd.Release_Amount)) AS Remaining_Amount,
+    
+    (COALESCE(bpd.Pre_Release_Amount, 0) + COALESCE(bpd.Release_Amount, 0)) AS Total_Release_Amount,
+    -- กรองข้อมูล Fund ที่มีค่าเป็น FN06
+    CASE
+        WHEN bap.Fund = 'FN06' THEN bap.Fund
+        ELSE NULL
+    END AS Fund,
+    
+    bap.Reason
+FROM 
+
+    budget_planning_allocated_annual_budget_plan bap
+LEFT JOIN 
+    plan p ON bap.Plan = p.plan_id 
+LEFT JOIN 
+    sub_plan sp ON bap.Sub_Plan = sp.sub_plan_id
+LEFT JOIN 
+    project pj ON bap.Project = pj.project_id
+LEFT JOIN 
+    `account` ac ON bap.`Account` = ac.`account`
+LEFT JOIN 
+    budget_planning_disbursement_budget_plan_anl_release bpd ON 
+        bap.Service = bpd.Service
+        AND bap.Faculty = bpd.Faculty
+        AND bap.Project = bpd.Project
+        AND bap.Plan = bpd.Plan
+        AND bap.Sub_Plan = bpd.Sub_Plan
+        AND bap.`Account` = bpd.`Account`
+
+
+
+    WHERE bap.Fund = :fund";
+
+    // เพิ่มเงื่อนไขสำหรับ Scenario ที่เลือก
+    if ($scenarioColumnValue) {
+        $query .= " AND bpd.Scenario = :scenarioColumn";
+    }
+
     $stmt = $conn->prepare($query);
     $stmt->bindParam(':fund', $fund);
+    if ($scenarioColumnValue) {
+        $stmt->bindParam(':scenarioColumn', $scenarioColumnValue);
+    }
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Fetch results for FN02, FN06, FN08
-$resultsFN02 = fetchBudgetData($conn, 'FN02');
-$resultsFN06 = fetchBudgetData($conn, 'FN06');
-$resultsFN08 = fetchBudgetData($conn, 'FN08');
-
-$mergedData = [];
-
-foreach ($resultsFN06 as $fn06) {
-    // Matching FN02 and FN08 with FN06 based on Scenario
-    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
-        return compareSubPlanAndFund($fn06['Sub_Plan'], $fn02['Sub_Plan'], $fn06['Fund'], $fn02['Fund']) &&
-            (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
-            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
-    });
-    $fn08Match = array_filter($resultsFN08, function ($fn08) use ($fn06) {
-        return compareSubPlanAndFund($fn06['Sub_Plan'], $fn08['Sub_Plan'], $fn06['Fund'], $fn08['Fund']) &&
-            (string) ($fn06['Plan'] ?? '') === (string) ($fn08['Plan'] ?? '') &&
-            (string) ($fn06['Project'] ?? '') === (string) ($fn08['Project'] ?? '');
-    });
-
-    $fn02 = reset($fn02Match);
-    $fn08 = reset($fn08Match);
-
-    // Handle Commitments, Expenditures, and Scenario for FN06, FN02, FN08
-    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
-    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
-    $commitment_FN08 = ($fn08['COMMITMENTS'] ?? 0) + ($fn08['OBLIGATIONS'] ?? 0);
-
-    // Calculate Total Allocated and Commitments
-    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0);
-    $Total_Commitments = $commitment_FN06 + $commitment_FN02 + $commitment_FN08;
-    $Total_Release_Amount = $fn06['Scenario1'] + $fn06['Scenario2'] + $fn06['Scenario3'] + $fn06['Scenario4'];
-
-    // คำนวณผลรวมของ Scenario1, Scenario2, Scenario3, Scenario4
-// คำนวณผลรวมของ Scenario1, Scenario2, Scenario3, Scenario4
-    $Total_Scenario =
-        ($fn06['Scenario1'] ?? 0) +
-        ($fn06['Scenario2'] ?? 0) +
-        ($fn06['Scenario3'] ?? 0) +
-        ($fn06['Scenario4'] ?? 0);
-
-
-    // เพิ่มข้อมูลรวมใน mergedData
-    $mergedData[] = [
-        'Account' => $fn06['Account'] ?? '-',
-        'Ksp_id' => $fn06['Ksp_id'] ?? '-',
-        'Ksp_Name' => $fn06['Ksp_Name'] ?? '-',
-        'Plan' => $fn06['Plan'] ?? '',
-        'Sub_Plan' => $fn06['Sub_Plan'] ?? '',
-        'Reason' => $fn06['Reason'] ?? '',
-        'Plan_Name' => $fn06['Plan_Name'] ?? '',
-        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'] ?? '',
-        'Type' => $fn06['type'] ?? '',
-        'Sub_Type' => $fn06['sub_type'] ?? '',
-        'Project_Name' => $fn06['Project_Name'] ?? '',
-        'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
-        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN06' => $commitment_FN06,
-        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
-        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN02' => $commitment_FN02,
-        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
-        'Allocated_FN08' => $fn08['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN08' => $commitment_FN08,
-        'Expenditures_FN08' => $fn08['EXPENDITURES'] ?? 0,
-        'Pre_Release_Amount' => $fn06['Pre_Release_Amount'] ?? 0,
-        'Total_Allocated' => $Total_Allocated,
-        'Total_Commitments' => $Total_Commitments,
-        'Scenario1' => ($fn06['Scenario1'] ?? 0),
-        'Scenario2' => ($fn06['Scenario2'] ?? 0),
-        'Scenario3' => ($fn06['Scenario3'] ?? 0),
-        'Scenario4' => ($fn06['Scenario4'] ?? 0),
-        'Total_Scenarios' => $Total_Scenario,  // ผลรวมของ Scenario ทั้งหมด
-    ];
-
-}
-
-// Creating rowspan for scenarios
-$rowspanData = [];
-
-foreach ($mergedData as $row) {
-    $type = $row['Type'] ?? '';
-    $subType = $row['Sub_Type'] ?? '';
-
-    if (!isset($rowspanData[$type][$subType])) {
-        $rowspanData[$type][$subType] = 1;
-    } else {
-        $rowspanData[$type][$subType]++;
-    }
-}
-
-$usedRowspan = [];
-
-
+// ดึงข้อมูลตาม Scenario ที่เลือก (ในตัวอย่างนี้ใช้ Fund 'FN06')
+$results = fetchScenarioData($conn, 'FN06', $scenarioValue);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+    <title>รายงานการจัดสรรเงินรายงวด</title>
+    <!-- รวม CSS และ Script ต่าง ๆ ที่ต้องการ -->
+</head>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -303,17 +214,16 @@ $usedRowspan = [];
         </div>
     </div>
     <div id="main-wrapper">
-        <?php include('../component/left-nev.php') ?>
+        <?php include('../component/left-nev.php'); ?>
         <div class="content-body">
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานการจัดสรรเงินรายงวด</span></h4>
+                        <h4>รายงานการจัดสรรเงินรายงวด</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
-                            </li>
+                            <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a></li>
                             <li class="breadcrumb-item active">รายงานการจัดสรรเงินรายงวด</li>
                         </ol>
                     </div>
@@ -325,11 +235,46 @@ $usedRowspan = [];
                                 <div class="card-title">
                                     <h4>รายงานการจัดสรรเงินรายงวด</h4>
                                 </div>
-                                <div class="card-title">
-                                    <span>จัดสรรงวดที่ 1 ครั้งที่ 1 </span>
+                                <!-- Dropdown สำหรับเลือก Scenario -->
+                                <form method="GET" action="">
+                                    <label for="scenario">เลือก จัดสรรงวดที่:</label>
+                                    <select name="scenario" id="scenario">
+                                        <option value="Scenario1" <?php if ($selectedScenario == 'Scenario1')
+                                            echo 'selected'; ?>>จัดสรรงวดที่ 1</option>
+                                        <option value="Scenario2" <?php if ($selectedScenario == 'Scenario2')
+                                            echo 'selected'; ?>>จัดสรรงวดที่ 2</option>
+                                        <option value="Scenario3" <?php if ($selectedScenario == 'Scenario3')
+                                            echo 'selected'; ?>>จัดสรรงวดที่ 3</option>
+                                        <option value="Scenario4" <?php if ($selectedScenario == 'Scenario4')
+                                            echo 'selected'; ?>>จัดสรรงวดที่ 4</option>
+                                    </select>
+                                    <button type="submit">แสดงข้อมูล</button>
+                                </form>
+                                <div class="card-title" style="margin-top:20px;">
+                                    <span>
+                                        <?php
+                                        // เปลี่ยนชื่อแสดงตาม Scenario ที่เลือก
+                                        switch ($selectedScenario) {
+                                            case 'Scenario1':
+                                                echo 'จัดสรรงวดที่ 1';
+                                                break;
+                                            case 'Scenario2':
+                                                echo 'จัดสรรงวดที่ 2';
+                                                break;
+                                            case 'Scenario3':
+                                                echo 'จัดสรรงวดที่ 3';
+                                                break;
+                                            case 'Scenario4':
+                                                echo 'จัดสรรงวดที่ 4';
+                                                break;
+                                            default:
+                                                echo 'จัดสรรงวดที่ 1'; // ค่าเริ่มต้น
+                                        }
+                                        ?>
+                                    </span>
                                 </div>
                                 <div class="table-responsive">
-                                    <table id="reportTable1" class="table table-bordered">
+                                    <table id="reportTable" class="table table-bordered">
                                         <thead>
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
@@ -340,89 +285,105 @@ $usedRowspan = [];
                                             </tr>
                                             <tr>
                                                 <th>เงินจัดสรรกำหนดให้แล้ว</th>
-                                                <th>เงินจัดสรรอนุมัติงวดที่ 1</th>
+                                                <?php
+                                                // กำหนดข้อความสำหรับแต่ละ Scenario
+                                                $scenarioHeaders = [
+                                                    'Scenario1' => 'เงินจัดสรรอนุมัติงวดที่ 1',
+                                                    'Scenario2' => 'เงินจัดสรรอนุมัติงวดที่ 2',
+                                                    'Scenario3' => 'เงินจัดสรรอนุมัติงวดที่ 3',
+                                                    'Scenario4' => 'เงินจัดสรรอนุมัติงวดที่ 4',
+                                                ];
+
+                                                // กำหนดค่าเริ่มต้น
+                                                $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
+                                                $headerText = $scenarioHeaders[$selectedScenario] ?? 'เงินจัดสรรอนุมัติงวดที่ 1';
+                                                ?>
+                                                <th><?php echo $headerText; ?></th>
                                                 <th>รวมเงินจัดสรรทั้งสิ้น</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <?php
                                             // ตัวแปรเก็บค่าของแถวก่อนหน้า
-                                            $previousAccount = "";
-                                            $previousType = "";
                                             $previousPlan = "";
-                                            $previousSubPlan = "";
+                                            $previousSubPlanId = "";
+                                            $previousProject = "";
+                                            $previousType = "";
                                             $previousSubType = "";
-                                            $previousKKU_Item_Name = "";  // เก็บค่าของ KKU_Item_Name
-                                            
-                                            // วนลูปแสดงข้อมูลที่รวมกัน
-                                            foreach ($mergedData as $row) {
-                                                echo "<tr>";
-                                                echo "<td style='text-align: left;'>";  // เริ่มต้น <td> สำหรับแสดงข้อมูล
-                                            
-                                                // เช็คว่า Account ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                if ($row['Account'] != $previousAccount) {
-                                                    $previousAccount = $row['Account'];  // เก็บค่าปัจจุบันของ Account
+
+                                            if (!empty($results)) {
+                                                foreach ($results as $row) {
+                                                    echo "<tr>";
+                                                    echo "<td style='text-align: left;'>";
+
+                                                    // เช็คและแสดง Plan ถ้าเปลี่ยนแปลง
+                                                    if ($row['Plan'] != $previousPlan) {
+                                                        echo "<strong>" . htmlspecialchars($row['Plan']) . "</strong> : " . htmlspecialchars($row['plan_name']) . "<br>";
+                                                        $previousPlan = $row['Plan'];
+                                                        $previousSubPlanId = ""; // รีเซ็ตค่าเมื่อเปลี่ยน Plan
+                                                        $previousProject = "";
+                                                        $previousType = "";
+                                                        $previousSubType = "";
+                                                    }
+
+                                                    // เช็คและแสดง Sub Plan ถ้าเปลี่ยนแปลง
+                                                    if ($row['sub_plan_id'] != $previousSubPlanId) {
+                                                        echo str_repeat("&nbsp;", 4) . "<strong>" . htmlspecialchars($row['sub_plan_id']) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
+                                                        $previousSubPlanId = $row['sub_plan_id'];
+                                                        $previousProject = "";
+                                                        $previousType = "";
+                                                        $previousSubType = "";
+                                                    }
+
+                                                    // เช็คและแสดง Project ถ้าเปลี่ยนแปลง
+                                                    if ($row['project_name'] != $previousProject) {
+                                                        echo str_repeat("&nbsp;", 8) . htmlspecialchars($row['project_name']) . "<br>";
+                                                        $previousProject = $row['project_name'];
+                                                        $previousType = "";
+                                                        $previousSubType = "";
+                                                    }
+
+                                                    // เช็คและแสดง Type ถ้าเปลี่ยนแปลง
+                                                    if ($row['type'] != $previousType) {
+                                                        echo str_repeat("&nbsp;", 16) . htmlspecialchars($row['type']) . "<br>";
+                                                        $previousType = $row['type'];
+                                                        $previousSubType = "";
+                                                    }
+
+                                                    // เช็คและแสดง Sub Type ถ้าเปลี่ยนแปลง
+                                                    if ($row['sub_type'] != $previousSubType) {
+                                                        echo str_repeat("&nbsp;", 24) . htmlspecialchars($row['sub_type']) . "<br>";
+                                                        $previousSubType = $row['sub_type'];
+                                                    }
+
+                                                    // แสดง KKU Item Name เสมอ
+                                                    echo str_repeat("&nbsp;", 32) . htmlspecialchars($row['KKU_Item_Name']);
+
+                                                    echo "</td>";
+
+                                                    // แสดงข้อมูลในคอลัมน์ที่เหลือ
+                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                    echo "<td style='vertical-align: bottom;'>0</td>";
+                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row[$selectedScenario]) . "</td>";
+                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Total_Release_Amount']) . "</td>";
+                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Remaining_Amount']) . "</td>";
+                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Reason']) . "</td>";
+                                                    
+
+                                                    echo "</tr>";
                                                 }
-
-                                                if ($row['Plan'] != $previousPlan) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Plan']} : {$row['Plan_Name']}</strong><br>";
-                                                    $previousPlan = $row['Plan'];  // อัปเดตค่า previousPlan
-                                                }
-
-                                                if ($row['Sub_Plan'] != $previousSubPlan) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . "{$row['Sub_Plan']} : {$row['Sub_Plan_Name']}</strong><br>";
-                                                    $previousSubPlan = $row['Sub_Plan'];  // เก็บค่าปัจจุบันของ Type
-                                                }
-
-                                                if ($row['Type'] != $previousType) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 15) . "{$row['Type']}</strong><br>";
-                                                    $previousType = $row['Type'];  // เก็บค่าปัจจุบันของ Type
-                                                }
-
-                                                // เช็คว่า Sub_Type ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                if ($row['Sub_Type'] != $previousSubType) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 25) . "{$row['Sub_Type']}</strong><br>";
-                                                    $previousSubType = $row['Sub_Type'];  // เก็บค่าปัจจุบันของ Sub_Type
-                                                }
-
-                                                // แสดงค่า KKU_Item_Name (เอาคำแรกของ KKU_Item_Name มาแสดง)
-                                                echo "<strong>" . str_repeat('&nbsp;', 30) . implode(' ', array_slice(explode(' ', $row['KKU_Item_Name']), 0, 1)) . "</strong>";
-
-                                                echo "</td>"; // ปิด <td>
-                                            
-                                                // แสดงค่า Allocated_FN06, Pre_Release_Amount, Scenario1
-                                                echo "<td>" . ($row['Allocated_FN06'] ?? '-') . "</td>";
-                                                echo "<td>" . ($row['Pre_Release_Amount'] ?? '-') . "</td>";
-                                                echo "<td>" . ($row['Scenario1'] ?? '-') . "</td>";
-
-                                                // คำนวณ Total_Scenarios1 = Allocated_FN06 + Pre_Release_Amount
-                                                $Allocated_FN06 = isset($row['Allocated_FN06']) ? (float) $row['Allocated_FN06'] : 0.00;
-                                                $Scenario1 = isset($row['Scenario1']) ? (float) $row['Scenario1'] : 0.00;
-                                                $Pre_Release_Amount = isset($row['Pre_Release_Amount']) ? (float) $row['Pre_Release_Amount'] : 0.00;
-                                                $Total_Scenarios1 = $Scenario1 + $Pre_Release_Amount;
-
-                                                // แสดงค่า Total_Scenarios1
-                                                echo "<td>" . sprintf('%.2f', $Total_Scenarios1) . "</td>";
-
-                                                // คำนวณ Remaining_budget = Allocated_FN06 - Total_Scenarios1
-                                                $Remaining_budget = $Allocated_FN06 - $Total_Scenarios1;
-                                                echo "<td>" . sprintf('%.2f', $Remaining_budget) . "</td>";
-
-                                                echo "<td>" . ($row['Reason'] ?? '-') . "</td>";
-
-                                                echo "</tr>"; // ปิด <tr>
+                                            } else {
+                                                echo "<tr><td colspan='8'>ไม่พบข้อมูล</td></tr>";
                                             }
                                             ?>
+
                                         </tbody>
                                     </table>
-                                </div>
-                                <button onclick="exportCSV('reportTable1', 'งวดที่1-ครั้งที่1.csv')"
-                                    class="btn btn-primary m-t-15">Export CSV งวดที่ 1 ครั้งที่ 1</button>
-                                <button onclick="exportPDF('reportTable1', 'งวดที่1-ครั้งที่1.pdf')"
-                                    class="btn btn-danger m-t-15">Export PDF งวดที่ 1 ครั้งที่ 1</button>
-                                <button onclick="exportXLS('reportTable1', 'งวดที่1-ครั้งที่1.xls')"
-                                    class="btn btn-success m-t-15">Export XLS งวดที่ 1 ครั้งที่ 1</button>
 
+                                </div>
+                                <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
+                                <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
+                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLSX</button>
                             </div>
                         </div>
 
@@ -430,216 +391,306 @@ $usedRowspan = [];
                 </div>
             </div>
         </div>
-        <div class="content-body">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="card-title">
-                                    <h4>รายงานการจัดสรรเงินรายงวด</h4>
-                                </div>
-                                <div class="card-title">
-                                    <span>จัดสรรงวดที่ 2 ครั้งที่ 1 </span>
-                                </div>
-                                <div class="table-responsive">
-                                    <table id="reportTable2" class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th rowspan="2">รายการ</th>
-                                                <th rowspan="2">รวมทั้งสิ้น</th>
-                                                <th colspan="3">เงินงวด</th>
-                                                <th rowspan="2">งบประมาณรายจ่ายคงเหลือ</th>
-                                                <th rowspan="2">หมายเหตุ</th>
-                                            </tr>
-                                            <tr>
-                                                <th>เงินจัดสรรกำหนดให้แล้ว</th>
-                                                <th>เงินจัดสรรอนุมัติงวดที่ 2</th>
-                                                <th>รวมเงินจัดสรรทั้งสิ้น</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            // ตัวแปรเก็บค่าของแถวก่อนหน้า
-                                            $previousAccount = "";
-                                            $previousType = "";
-                                            $previousPlan = "";
-                                            $previousSubPlan = "";
-                                            $previousSubType = "";
-                                            $previousKKU_Item_Name = "";  // เก็บค่าของ KKU_Item_Name
-                                            
-                                            // วนลูปแสดงข้อมูลที่รวมกัน
-                                            foreach ($mergedData as $row) {
-                                                echo "<tr>";
-                                                echo "<td style='text-align: left;'>";  // เริ่มต้น <td> สำหรับแสดงข้อมูล
-                                            
-                                                // เช็คว่า Account ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                if ($row['Account'] != $previousAccount) {
-                                                    $previousAccount = $row['Account'];  // เก็บค่าปัจจุบันของ Account
-                                                }
-
-                                                if ($row['Plan'] != $previousPlan) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Plan']} : {$row['Plan_Name']}</strong><br>";
-                                                    $previousPlan = $row['Plan'];  // อัปเดตค่า previousPlan
-                                                }
-
-                                                if ($row['Sub_Plan'] != $previousSubPlan) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . "{$row['Sub_Plan']} : {$row['Sub_Plan_Name']}</strong><br>";
-                                                    $previousSubPlan = $row['Sub_Plan'];  // เก็บค่าปัจจุบันของ Type
-                                                }
-
-                                                if ($row['Type'] != $previousType) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 15) . "{$row['Type']}</strong><br>";
-                                                    $previousType = $row['Type'];  // เก็บค่าปัจจุบันของ Type
-                                                }
-
-                                                // เช็คว่า Sub_Type ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                if ($row['Sub_Type'] != $previousSubType) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 25) . "{$row['Sub_Type']}</strong><br>";
-                                                    $previousSubType = $row['Sub_Type'];  // เก็บค่าปัจจุบันของ Sub_Type
-                                                }
-
-                                                // เช็คว่า KKU_Item_Name ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                echo "<strong>" . str_repeat('&nbsp;', 30) . implode(' ', array_slice(explode(' ', $row['KKU_Item_Name']), 0, 1)) . "</strong>";
-
-                                                echo "</td>";  // ปิด <td>
-                                            
-                                                // แสดงค่า Allocated_FN06, Scenario1, Scenario2, Scenario3
-                                                echo "<td>" . ($row['Allocated_FN06'] ?? '-') . "</td>";
-                                                echo "<td>" . ($row['Scenario1'] ?? '-') . "</td>";
-                                                echo "<td>" . ($row['Scenario2'] ?? '-') . "</td>";
-
-
-                                                // คำนวณ Total_Scenarios
-                                                $Total_Scenarios = isset($row['Total_Scenarios']) && $row['Total_Scenarios'] !== '' ? sprintf('%.2f', $row['Total_Scenarios']) : '0.00';
-                                                echo "<td>" . $Total_Scenarios . "</td>";
-
-                                                // คำนวณ Remaining_budget = Allocated_FN06 - Total_Scenarios
-                                                $Allocated_FN06 = isset($row['Allocated_FN06']) ? (float) $row['Allocated_FN06'] : 0.00;
-                                                $Remaining_budget = $Allocated_FN06 - (float) $Total_Scenarios;
-                                                echo "<td>" . sprintf('%.2f', $Remaining_budget) . "</td>";
-                                                echo "<td>" . ($row['Reason'] ?? '-') . "</td>";
-                                                echo "</tr>";  // ปิด <tr>
-                                            }
-                                            ?>
-
-
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <button onclick="exportCSV('reportTable2', 'งวดที่2-ครั้งที่1.csv')"
-                                    class="btn btn-primary m-t-15">Export CSV งวดที่ 2 ครั้งที่ 1</button>
-                                <button onclick="exportPDF('reportTable2', 'งวดที่2-ครั้งที่1.pdf')"
-                                    class="btn btn-danger m-t-15">Export PDF งวดที่ 2 ครั้งที่ 1</button>
-                                <button onclick="exportXLS('reportTable2', 'งวดที่2-ครั้งที่1.xls')"
-                                    class="btn btn-success m-t-15">Export XLS งวดที่ 2 ครั้งที่ 1</button>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-
-            </div>
-
+    </div>
+    </div>
+    </div>
+    <div class="footer">
+        <div class="copyright">
+            <p>Copyright &copy; <a href="#">KKU</a> 2025</p>
         </div>
-        <div class="footer">
-            <div class="copyright">
-                <p>Copyright &copy; <a href="#">KKU</a> 2025</p>
-            </div>
-        </div>
-        <script>
-            function exportCSV(tableId, filename) {
-                const rows = [];
-                const table = document.getElementById(tableId);
+    </div>
+    <script>
 
-                for (let row of table.rows) {
-                    const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                    rows.push(cells.join(","));
+function exportCSV() {
+    const table = document.getElementById('reportTable');
+    if (!table) {
+        alert("ไม่พบตารางที่ต้องการ Export");
+        return;
+    }
+
+    // แยกการประมวลผล thead กับ tbody ออกเป็น 2 ส่วน
+    const thead = table.querySelector('thead');
+    const tbody = table.querySelector('tbody');
+
+    // สร้าง matrix ของส่วน thead
+    let headerMatrix = [];
+    if (thead) {
+        headerMatrix = parseTableSection(thead);
+    }
+
+    // สร้าง matrix ของส่วน tbody
+    let bodyMatrix = [];
+    if (tbody) {
+        bodyMatrix = parseTableSection(tbody);
+    }
+
+    // รวมทั้งสองส่วนเข้าเป็น CSV
+    const csvRows = [];
+
+    // แปลง headerMatrix -> CSV
+    headerMatrix.forEach(rowArr => {
+        const line = rowArr
+            .map(cell => `"${cell.replace(/"/g, '""')}"`)
+            .join(",");
+        csvRows.push(line);
+    });
+
+    // แปลง bodyMatrix -> CSV
+    bodyMatrix.forEach(rowArr => {
+        const line = rowArr
+            .map(cell => `"${cell.replace(/"/g, '""')}"`)
+            .join(",");
+        csvRows.push(line);
+    });
+
+    // สร้างไฟล์ CSV
+    const csvContent = "\uFEFF" + csvRows.join("\n"); // \uFEFF เพื่อให้ Excel รองรับ UTF-8
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'report.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * parseTableSection: สร้าง Matrix ตาม rowspan/colspan ของส่วน thead หรือ tbody
+ * @param {HTMLElement} section - <thead> หรือ <tbody>
+ * @returns {string[][]} 2D array ที่สะท้อนโครงสร้างของตาราง
+ */
+function parseTableSection(section) {
+    const rows = Array.from(section.rows);
+
+    // หาจำนวนคอลัมน์สูงสุด (maxCols) จากผลรวม colSpan ของแต่ละแถว
+    let maxCols = 0;
+    rows.forEach(row => {
+        let colCount = 0;
+        Array.from(row.cells).forEach(cell => {
+            colCount += cell.colSpan;
+        });
+        if (colCount > maxCols) {
+            maxCols = colCount;
+        }
+    });
+
+    // สร้าง 2D array เปล่าตามจำนวนแถว x จำนวนคอลัมน์สูงสุด
+    const matrix = [];
+    for (let i = 0; i < rows.length; i++) {
+        matrix.push(new Array(maxCols).fill(""));
+    }
+
+    // skipMap เอาไว้ทำเครื่องหมายช่องที่ถูก "จอง" โดย rowspan/colspan แล้ว
+    const skipMap = {};
+
+    // วนทีละแถว
+    for (let r = 0; r < rows.length; r++) {
+        const row = rows[r];
+        let c = 0; // ตำแหน่งคอลัมน์ที่จะใส่ข้อมูล
+
+        // วนทีละเซลล์ในแถว
+        for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
+            // ข้ามคอลัมน์ที่ถูกจองไว้ก่อน
+            while (skipMap[`${r},${c}`]) {
+                c++;
+            }
+
+            const cell = row.cells[cellIndex];
+            const text = cell.innerText.trim();
+
+            // ใส่ข้อความลงใน matrix
+            matrix[r][c] = text;
+
+            // เก็บ rowSpan, colSpan
+            const rowSpan = cell.rowSpan;
+            const colSpan = cell.colSpan;
+
+            // "จอง" ช่อง skipMap ตาม rowSpan, colSpan
+            for (let rr = r; rr < r + rowSpan; rr++) {
+                for (let cc = c; cc < c + colSpan; cc++) {
+                    if (rr === r && cc === c) continue; // ช่องต้นฉบับไม่ต้องจองซ้ำ
+                    skipMap[`${rr},${cc}`] = true;
                 }
-
-                const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM for UTF-8
-                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                const url = URL.createObjectURL(blob);
-
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
             }
 
-            function exportXLS(tableId, filename) {
-                const rows = [];
-                const table = document.getElementById(tableId);
+            // ขยับตำแหน่ง c ไปข้างหน้าตาม colSpan
+            c += colSpan;
+        }
+    }
 
-                for (let row of table.rows) {
-                    const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                    rows.push(cells);
+    return matrix;
+}
+
+
+
+
+    function exportPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('landscape');
+
+        if (window.thsarabunnew_webfont_normal) {
+            doc.addFileToVFS("THSarabun.ttf", window.thsarabunnew_webfont_normal);
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
+        }
+        doc.setFontSize(14);
+        doc.text("รายงานการจัดสรรเงินรายงวด", 10, 10);
+
+        doc.autoTable({
+            html: '#reportTable',
+            startY: 20,
+            styles: { font: "THSarabun", fontSize: 12, lineColor: [0, 0, 0], lineWidth: 0.5 },
+            bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.5 },
+            headStyles: { fillColor: [102, 153, 225], textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5 },
+        });
+
+        doc.save('รายงาน.pdf');
+    }
+
+    function exportXLS() {
+    const table = document.getElementById('reportTable');
+    if (!table) {
+        alert("ไม่พบตารางที่ต้องการ Export");
+        return;
+    }
+
+    // 1) แยก parse ส่วน thead และ tbody ออกเป็น 2 ส่วน
+    const { rowsData: headRows, merges: headMerges } = parseSection(table.tHead, 0);
+    const { rowsData: bodyRows, merges: bodyMerges } = parseSection(table.tBodies[0], headRows.length);
+
+    // รวม rows ของ thead + tbody
+    const allRows = [...headRows, ...bodyRows];
+    // รวม merges ของ thead + tbody
+    const allMerges = [...headMerges, ...bodyMerges];
+
+    // 2) สร้าง workbook / worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+    // ใส่ merges เข้าไปใน worksheet
+    ws['!merges'] = allMerges;
+
+    // 3) บันทึกเป็นไฟล์ .xls
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+    const excelBuffer = XLSX.write(wb, { bookType: 'xls', type: 'array' });
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'report.xls';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * parseSection: ดึงข้อมูลจาก thead/tbody แล้วสร้างทั้ง AoA (Array of Arrays)
+ * และข้อมูล merge (rowSpan/colSpan) สำหรับ XLSX
+ *
+ * @param {HTMLTableSectionElement} section - <thead> หรือ <tbody>
+ * @param {number} startRow - เริ่มนับแถวที่เท่าไหร่ (กรณี thead มาก่อน)
+ * @return { rowsData, merges }
+ *    rowsData: string[][] (AoA) สำหรับแต่ละแถว/คอลัมน์
+ *    merges: { s: {r,c}, e: {r,c} }[] สำหรับใส่ ws['!merges']
+ */
+function parseSection(section, startRow = 0) {
+    if (!section) return { rowsData: [], merges: [] };
+
+    const rows = Array.from(section.rows);
+
+    // หาจำนวนคอลัมน์สูงสุด (maxCols) จากผลรวม colSpan ของแต่ละแถว
+    let maxCols = 0;
+    rows.forEach(row => {
+        let colCount = 0;
+        Array.from(row.cells).forEach(cell => {
+            colCount += cell.colSpan || 1;
+        });
+        if (colCount > maxCols) {
+            maxCols = colCount;
+        }
+    });
+
+    // สร้าง 2D array เปล่าตามจำนวนแถว x จำนวนคอลัมน์สูงสุด
+    const matrix = [];
+    for (let i = 0; i < rows.length; i++) {
+        matrix.push(new Array(maxCols).fill(""));
+    }
+
+    const merges = [];
+    const skipMap = {};
+
+    // วนทีละแถว
+    for (let r = 0; r < rows.length; r++) {
+        const tr = rows[r];
+        let c = 0; // ตำแหน่งคอลัมน์ที่จะใส่ข้อมูล
+
+        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+            // ข้ามคอลัมน์ที่ถูกจองแล้ว (rowSpan/colSpan ก่อนหน้า)
+            while (skipMap[`${r},${c}`]) {
+                c++;
+            }
+
+            const cell = tr.cells[cellIndex];
+            let text = cell.innerHTML || "";
+            // ลบแท็ก HTML ออก เหลือแต่ข้อความ + เว้นบรรทัด (ถ้าต้องการ)
+            text = text
+              .replace(/<br\s*\/?>/gi, "\n")
+              .replace(/<\/?[^>]+>/g, "")
+              .replace(/&nbsp;/g, " ")
+              .trim();
+
+            matrix[r][c] = text;
+
+            const rowspan = cell.rowSpan || 1;
+            const colspan = cell.colSpan || 1;
+
+            // ถ้ามี rowspan หรือ colspan ให้ใส่ merges
+            if (rowspan > 1 || colspan > 1) {
+                merges.push({
+                    s: { r: startRow + r, c: c }, // ตำแหน่งเริ่ม (รวม offset ของ startRow)
+                    e: { r: startRow + r + rowspan - 1, c: c + colspan - 1 }
+                });
+
+                // จองช่อง skipMap
+                for (let rr = r; rr < r + rowspan; rr++) {
+                    for (let cc = c; cc < c + colspan; cc++) {
+                        if (rr === r && cc === c) continue;
+                        skipMap[`${rr},${cc}`] = true;
+                    }
                 }
-
-                let xlsContent = "<table>";
-                rows.forEach(row => {
-                    xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-                });
-                xlsContent += "</table>";
-
-                const blob = new Blob([xlsContent], { type: 'application/vnd.ms-excel' });
-                const url = URL.createObjectURL(blob);
-
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
             }
 
-            function exportPDF(tableId, filename) {
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF('landscape');
+            c += colspan;
+        }
+    }
 
-                doc.setFont("THSarabun");
-                doc.setFontSize(12);
-                doc.text("รายงานการจัดสรรเงินรายงวด", 10, 10);
+    return {
+        rowsData: matrix,
+        merges
+    };
+}
 
-                doc.autoTable({
-                    html: `#${tableId}`,
-                    startY: 20,
-                    styles: {
-                        font: "THSarabun",
-                        fontSize: 10,
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.5,
-                    },
-                    bodyStyles: {
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.5,
-                    },
-                    headStyles: {
-                        fillColor: [102, 153, 225],
-                        textColor: [0, 0, 0],
-                        lineColor: [0, 0, 0],
-                        lineWidth: 0.5,
-                    },
-                });
+</script>
 
-                doc.save(filename);
-            }
-        </script>
-        <!-- Common JS -->
-        <script src="../assets/plugins/common/common.min.js"></script>
-        <!-- Custom script -->
-        <script src="../js/custom.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
-        <!-- โหลดฟอนต์ THSarabun -->
-        <script>
-            const thsarabunnew_webfont_normal = "data:font/truetype;base64,AAEAAA...";
-        </script>
+
+    <!-- โหลดไลบรารีที่จำเป็น -->
+    <script src="../assets/plugins/common/common.min.js"></script>
+    <script src="../js/custom.min.js"></script>
+
+
+    <!-- โหลดฟอนต์ THSarabun (ตรวจสอบไม่ให้ประกาศซ้ำ) -->
+    <script>
+        if (typeof window.thsarabunnew_webfont_normal === 'undefined') {
+            window.thsarabunnew_webfont_normal = "data:font/truetype;base64,AAEAAA...";
+        }
+    </script>
 </body>
 
 </html>
