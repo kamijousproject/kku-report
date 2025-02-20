@@ -5,15 +5,14 @@
         /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
     }
 
-    #reportTable th {
+    #reportTable th{
         text-align: center;
         /* จัดข้อความให้อยู่ตรงกลาง */
-        vertical-align: top;
+        vertical-align: middle;
         /* จัดให้อยู่ตรงกลางในแนวตั้ง */
         white-space: nowrap;
         /* ป้องกันข้อความตัดบรรทัด */
     }
-
     #reportTable td {
         text-align: left;
         /* จัดข้อความให้อยู่ตรงกลาง */
@@ -23,76 +22,64 @@
         /* ป้องกันข้อความตัดบรรทัด */
     }
 
-    #main-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
+    .wide-column {
+        min-width: 250px;
+        /* ปรับขนาด column ให้กว้างขึ้น */
+        word-break: break-word;
+        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
+        white-space: pre-line;
+        /* รักษารูปแบบการขึ้นบรรทัด */
+        vertical-align: top;
+        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
+        padding: 10px;
+        /* เพิ่มช่องว่างด้านใน */
     }
 
-    .content-body {
-        flex-grow: 1;
-        overflow: hidden;
-        /* Prevent body scrolling */
-        display: flex;
-        flex-direction: column;
+    .wide-column div {
+        margin-bottom: 5px;
+        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
     }
 
-    .container {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-
-    .table-responsive {
-        flex-grow: 1;
-        overflow-y: auto;
-        /* Scrollable content only inside table */
-        max-height: 60vh;
-        /* Set a fixed height */
-        border: 1px solid #ccc;
-    }
-
+    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
     table {
         width: 100%;
         border-collapse: collapse;
+        /* ลบช่องว่างระหว่างเซลล์ */
     }
 
-    thead tr:nth-child(1) th {
+    /* ทำให้หัวตารางติดอยู่กับด้านบน */
+    th {
         position: sticky;
+        /* ทำให้ header ติดอยู่กับด้านบน */
         top: 0;
-        background: #f4f4f4;
-        z-index: 1000;
+        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
+        background-color: #fff;
+        /* กำหนดพื้นหลังให้กับหัวตาราง */
+        z-index: 2;
+        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* เพิ่มเงาให้หัวตาราง */
+        padding: 8px;
     }
 
-    thead tr:nth-child(2) th {
-        position: sticky;
-        top: 45px;
-        /* Adjust height based on previous row */
-        background: #f4f4f4;
-        z-index: 999;
+    /* เพิ่มเงาให้กับแถวหัวตาราง */
+    th,
+    td {
+        border: 1px solid #ddd;
+        /* เพิ่มขอบให้เซลล์ */
     }
 
-    thead tr:nth-child(3) th {
-        position: sticky;
-        top: 90px;
-        /* Adjust height based on previous rows */
-        background: #f4f4f4;
-        z-index: 998;
-    }
-
-    .label-faculty {
-        font-size: 16px;
-        /* ขนาดตัวหนังสือ */
-        font-weight: bold;
-        /* ตัวหนา */
-        color: #333;
-        /* สีของตัวหนังสือ */
-        margin-bottom: 10px;
-        /* เว้นระยะห่างด้านล่าง */
+    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
+    .table-responsive {
+        max-height: 60vh;
+        /* กำหนดความสูงของตาราง */
+        overflow-y: auto;
+        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
     }
 </style>
+
+
+
 <?php
 
 include '../server/connectdb.php';
@@ -100,9 +87,24 @@ include '../server/connectdb.php';
 $db = new Database();
 $conn = $db->connect();
 
+$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+$budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
 
-function fetchBudgetData($conn, $faculty = null)
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
 {
+    // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
+    if ($budget_year1 === null) {
+        $budget_year1 = 2568;  // ค่าเริ่มต้นถ้าหากไม่ได้รับจาก URL
+    }
+    if ($budget_year2 === null) {
+        $budget_year2 = 2567;  // ค่าเริ่มต้น
+    }
+    if ($budget_year3 === null) {
+        $budget_year3 = 2566;  // ค่าเริ่มต้น
+    }
+
+    // สร้างคิวรี
     $query = "SELECT 
     bap.id, bap.Faculty,
     bap.Plan,
@@ -119,30 +121,30 @@ function fetchBudgetData($conn, $faculty = null)
     bap.KKU_Item_Name,
 
     -- แยก Total_Amount_Quantity ตามปีจากคอลัมน์ Budget_Management_Year
-    SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
-    SUM(CASE WHEN bap.Budget_Management_Year = 2567 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
-    SUM(CASE WHEN bap.Budget_Management_Year = 2566 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
 
     -- แยก TOTAL_BUDGET ตามปีจาก bpa.FISCAL_YEAR
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2566 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
 
     -- หาผลต่างระหว่าง Total_Amount_2568 และ TOTAL_BUDGET_2567
-    SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-    COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+    COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
     AS Difference_2568_2567,
 
     -- คำนวณเปอร์เซ็นต์ผลต่าง
     CASE
-        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
+        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
         THEN 100
         ELSE 
             (
-                SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+                SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
             ) / 
-            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
+            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
     END AS Percentage_Difference_2568_2567,
     bap.Reason
 
@@ -162,22 +164,23 @@ LEFT JOIN budget_planning_actual bpa
     AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
     AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
     AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
-WHERE bap.`Account` LIKE '4%'  
-";
+WHERE bap.`Account` LIKE '4%'";
 
+    // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
     if ($faculty) {
         $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
     }
 
-    // Remove duplicate GROUP BY
+    // เพิ่มการจัดกลุ่มข้อมูล
     $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
     bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
     bap.KKU_Item_Name, ft.Alias_Default
     ORDER BY CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED) ASC, pj.project_name ASC";
 
-
+    // เตรียมคำสั่ง SQL
     $stmt = $conn->prepare($query);
 
+    // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
     if ($faculty) {
         $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
     }
@@ -188,7 +191,9 @@ WHERE bap.`Account` LIKE '4%'
 
 
 
-$results = fetchBudgetData($conn);
+
+$results = fetchBudgetData($conn, null, $budget_year1, $budget_year2, $budget_year3);
+
 function fetchFacultyData($conn)
 {
     // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
@@ -200,6 +205,15 @@ function fetchFacultyData($conn)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function fetchYearsData($conn)
+{
+    $query = "SELECT DISTINCT Budget_Management_Year 
+              FROM budget_planning_annual_budget_plan 
+              ORDER BY Budget_Management_Year DESC"; // ดึงปีจากฐานข้อมูล และเรียงลำดับจากปีล่าสุด
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 
 ?>
@@ -242,28 +256,76 @@ function fetchFacultyData($conn)
 
                                 <?php
                                 $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
+                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
                                 ?>
 
-                                <form method="GET" action="">
-                                    <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
-                                            ส่วนงาน/หน่วยงาน.</label>
-                                        <select name="faculty" id="faculty" class="form-control"
-                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ส่วนงาน/หน่วยงาน.</option>
-                                            <?php
-                                            // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
-                                            foreach ($faculties as $faculty) {
-                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']); // ใช้ Faculty_Name แทน Faculty
-                                                $facultyCode = htmlspecialchars($faculty['Faculty']); // ใช้ Faculty รหัสเพื่อส่งไปใน GET
-                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
-                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
-                                    </div>
-                                </form>
+<form method="GET" action="" onsubmit="return validateForm()">
+    <div class="form-group" style="display: flex; align-items: center;">
+        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก ส่วนงาน/หน่วยงาน</label>
+        <select name="faculty" id="faculty" class="form-control" style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
+            <?php
+            // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
+            foreach ($faculties as $faculty) {
+                $facultyName = htmlspecialchars($faculty['Faculty_Name']); // ใช้ Faculty_Name แทน Faculty
+                $facultyCode = htmlspecialchars($faculty['Faculty']); // ใช้ Faculty รหัสเพื่อส่งไปใน GET
+                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+            }
+            ?>
+        </select>
+    </div>
+
+    <div class="form-group" style="display: flex; align-items: center;">
+        <label for="year" class="label-year" style="margin-right: 10px;">เลือกปีงบประมาณ</label>
+        <select name="year" id="year" class="form-control" style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+            <option value="">เลือก ปีงบประมาณ</option>
+            <?php
+            // แสดงปีที่ดึงมาจากฟังก์ชัน fetchYearsData
+            foreach ($years as $year) {
+                $yearValue = htmlspecialchars($year['Budget_Management_Year']); // ใช้ Budget_Management_Year เพื่อแสดงปี
+                $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
+                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
+            }
+            ?>
+        </select>
+    </div>
+
+    <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
+    <div class="form-group" style="display: flex; justify-content: center;">
+        <button type="submit" class="btn btn-primary">ค้นหา</button>
+    </div>
+</form>
+
+<script>
+    function validateForm() {
+        // ตรวจสอบว่าเลือกส่วนงาน/หน่วยงาน
+        var faculty = document.getElementById('faculty').value;
+        var year = document.getElementById('year').value;
+        
+        // หากไม่ได้เลือกส่วนงานหรือปี จะมีการแจ้งเตือนและไม่ส่งฟอร์ม
+        if (faculty == '' || year == '') {
+            alert('กรุณาเลือกส่วนงาน/หน่วยงานและปีงบประมาณ และ ปีงบประมาณ');
+            return false;  // ป้องกันการส่งฟอร์ม
+        }
+        return true;  // ส่งฟอร์มได้
+    }
+</script>
+
+
+                                <script>
+                                    // ส่งค่าจาก PHP ไปยัง JavaScript
+                                    const budgetYear1 = <?php echo json_encode($budget_year1); ?>;
+                                    const budgetYear2 = <?php echo json_encode($budget_year2); ?>;
+                                    const budgetYear3 = <?php echo json_encode($budget_year3); ?>;
+                                     const faculty = <?php echo json_encode($faculty); ?>;
+
+                                    // แสดงค่าของ budget_year ในคอนโซล
+                                    console.log('Budget Year 1:', budgetYear1);
+                                    console.log('Budget Year 2:', budgetYear2);
+                                    console.log('Budget Year 3:', budgetYear3);
+                                    console.log('faculty',faculty)
+                                </script>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
