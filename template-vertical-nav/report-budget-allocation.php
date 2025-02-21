@@ -57,6 +57,10 @@
     table {
         width: 100%;
         border-collapse: collapse;
+        font-family: 'Arial', sans-serif; /* เลือกฟอนต์ที่ต้องการ */
+    font-size: 16px; /* กำหนดขนาดฟอนต์ให้เท่ากัน */
+    line-height: 1.5; /* กำหนดระยะห่างระหว่างบรรทัด */
+        
     }
 
     thead tr:nth-child(1) th {
@@ -102,21 +106,33 @@ $scenarioMap = array(
 $scenarioValue = isset($scenarioMap[$selectedScenario]) ? $scenarioMap[$selectedScenario] : 'ANL-RELEASE-1';
 
 // ฟังก์ชันในการดึงข้อมูลจากฐานข้อมูล
-function fetchScenarioData($conn, $fund, $scenarioColumnValue)
+function fetchScenarioData($conn, $scenarioColumnValue)
 {
     $query = "SELECT 
-    bap.`Account`,
     bap.Service,
-    bap.Plan, 
-    p.plan_id,
+    bap.Plan,
     p.plan_name,
+    bap.Faculty,
+    ft.Faculty,
+    ft.Alias_Default AS FacultyName,
+    bap.Project,
+    pj.project_id,
+    pj.project_name,
     bap.Sub_Plan,
     sp.sub_plan_id,
     sp.sub_plan_name,
-    bap.Project,
-    pj.project_name,
+    bap.`Account`,
+    
+    -- a1: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
+    CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
+    
+    -- a2: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
+    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
+    
+    ac.`account`,
     ac.`type`,
     ac.sub_type,
+    bap.Fund,
     bap.KKU_Item_Name,
     
     -- หาก Allocated_Total_Amount_Quantity เป็น NULL ให้แทนที่ด้วย 0
@@ -157,43 +173,52 @@ function fetchScenarioData($conn, $fund, $scenarioColumnValue)
     -- คำนวณ Total_Release_Amount โดย Coalesce เช่นกัน
     ( COALESCE(bpd.Pre_Release_Amount, 0) + COALESCE(bpd.Release_Amount, 0) ) AS Total_Release_Amount,
     
-    -- กรองข้อมูล Fund ที่มีค่าเป็น FN06
-    CASE
-        WHEN bap.Fund = 'FN06' THEN bap.Fund
-        ELSE NULL
-    END AS Fund,
-    
+    -- กรองข้อมูล Fund ที่มีค่าเป็น FN06 หรือ FN02
     bap.Reason
 FROM 
     budget_planning_allocated_annual_budget_plan bap
+
+    -- เชื่อม Faculty โดยเลือกเฉพาะ parent ที่ขึ้นต้นด้วย 'Faculty%'
+    INNER JOIN Faculty ft 
+        ON bap.Faculty = ft.Faculty 
+        AND ft.parent LIKE 'Faculty%' 
+
     LEFT JOIN plan p 
         ON bap.Plan = p.plan_id 
+
     LEFT JOIN sub_plan sp 
         ON bap.Sub_Plan = sp.sub_plan_id
+
     LEFT JOIN project pj 
         ON bap.Project = pj.project_id
-    LEFT JOIN `account` ac 
+
+    INNER JOIN account ac 
         ON bap.`Account` = ac.`account`
+        
     LEFT JOIN budget_planning_disbursement_budget_plan_anl_release bpd 
         ON  bap.Service = bpd.Service
         AND bap.Faculty = bpd.Faculty
         AND bap.Project = bpd.Project
         AND bap.Plan = bpd.Plan
         AND bap.Sub_Plan = bpd.Sub_Plan
-        AND bap.`Account` = bpd.`Account`;
-
-    WHERE bap.Fund = :fund
-    ORDER BY 
-    p.plan_id, bap.Sub_Plan, bap.Project,    ac.`type`,
-    ac.sub_type";
+        AND bap.`Account` = bpd.`Account`";
 
     // เพิ่มเงื่อนไขสำหรับ Scenario ที่เลือก
     if ($scenarioColumnValue) {
-        $query .= " AND bpd.Scenario = :scenarioColumn";
+        $query .= " WHERE bpd.Scenario = :scenarioColumn";
     }
 
+    // เพิ่มเงื่อนไขสำหรับ account id ที่มากกว่า id สูงสุดของบัญชี Expenses
+    $query .= " AND ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
+
+    $query .= " ORDER BY 
+    bap.Plan,
+    bap.Sub_Plan,
+    bap.Project,           
+    bap.Faculty,            
+    bap.Account";
+
     $stmt = $conn->prepare($query);
-    $stmt->bindParam(':fund', $fund);
     if ($scenarioColumnValue) {
         $stmt->bindParam(':scenarioColumn', $scenarioColumnValue);
     }
@@ -201,9 +226,13 @@ FROM
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// ดึงข้อมูลตาม Scenario ที่เลือก (ในตัวอย่างนี้ใช้ Fund 'FN06')
-$results = fetchScenarioData($conn, 'FN06', $scenarioValue);
+
+
+// ดึงข้อมูลตาม Scenario ที่เลือก (ในตัวอย่างนี้ใช้ ScenarioValue)
+$results = fetchScenarioData($conn, $scenarioValue);
 ?>
+
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -336,7 +365,7 @@ $results = fetchScenarioData($conn, 'FN06', $scenarioValue);
 
                                                     // เช็คและแสดง Sub Plan ถ้าเปลี่ยนแปลง
                                                     if ($row['sub_plan_id'] != $previousSubPlanId) {
-                                                        echo str_repeat("&nbsp;", 4) . "<strong>" . htmlspecialchars($row['sub_plan_id']) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
+                                                        echo str_repeat("&nbsp;", 8) . "<strong>" . htmlspecialchars($row['sub_plan_id']) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
                                                         $previousSubPlanId = $row['sub_plan_id'];
                                                         $previousProject = "";
                                                         $previousType = "";
@@ -345,7 +374,7 @@ $results = fetchScenarioData($conn, 'FN06', $scenarioValue);
 
                                                     // เช็คและแสดง Project ถ้าเปลี่ยนแปลง
                                                     if ($row['project_name'] != $previousProject) {
-                                                        echo str_repeat("&nbsp;", 8) . htmlspecialchars($row['project_name']) . "<br>";
+                                                        echo str_repeat("&nbsp;", 16) . htmlspecialchars($row['project_name']) . "<br>";
                                                         $previousProject = $row['project_name'];
                                                         $previousType = "";
                                                         $previousSubType = "";
@@ -353,21 +382,21 @@ $results = fetchScenarioData($conn, 'FN06', $scenarioValue);
 
                                                     // เช็คและแสดง Type ถ้าเปลี่ยนแปลง
                                                     if ($row['type'] != $previousType) {
-                                                        echo str_repeat("&nbsp;", 16) . htmlspecialchars($row['type']) . "<br>";
+                                                        echo "<strong>" . htmlspecialchars($row['a1']) . "</strong> : " . htmlspecialchars($row['type']) . "<br>";
                                                         $previousType = $row['type'];
                                                         $previousSubType = "";
                                                     }
 
                                                     // เช็คและแสดง Sub Type ถ้าเปลี่ยนแปลง
                                                     if ($row['sub_type'] != $previousSubType) {
-                                                        echo str_repeat("&nbsp;", 24) . htmlspecialchars($row['sub_type']) . "<br>";
+                                                        echo str_repeat("&nbsp;", 16) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($row['sub_type']) . "<br>";
                                                         $previousSubType = $row['sub_type'];
                                                     }
 
                                                     // แสดง KKU Item Name เสมอ
 // ตรวจสอบว่า KKU_Item_Name มีค่า และไม่เป็นค่าว่างหรือไม่
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? htmlspecialchars($row['KKU_Item_Name'])
+                                                        ? "<strong>" . htmlspecialchars($row['account']) ."</strong> : " .htmlspecialchars($row['KKU_Item_Name'])
                                                         : "ไม่มี ข้อมูล Item_Name";
 
                                                     // แสดงผล
