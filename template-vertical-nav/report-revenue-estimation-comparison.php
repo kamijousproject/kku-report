@@ -1,8 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid black;
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #87AFC7;
+        /* สีฟ้าอ่อน */
+    }
+</style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
+
     <div id="preloader">
         <div class="loader">
             <svg class="circular" viewBox="25 25 50 50">
@@ -39,97 +58,74 @@
                                         <thead>
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
-                                                <th rowspan="2">รวมทั้งสิ้น</th>
                                                 <th colspan="5">ปี 2564</th>
                                                 <th colspan="5">ปี 2565</th>
-                                                <th colspan="6">จำนวน (รวมจัดสรร 66-67)</th>
+                                                <th colspan="5">ปี 2566</th>
+                                                <th colspan="5">ปี 2567</th>
                                             </tr>
                                             <tr>
                                                 <th>ประมาณการรายรับ</th>
-                                                <th>ไตรมาสที่ 1</th>
-                                                <th>ไตรมาสที่ 2</th>
-                                                <th>ไตรมาสที่ 3</th>
-                                                <th>ไตรมาสที่ 4</th>
-                                                <th>รวมรายรับจริง</th>
+                                                <th colspan="4">รายรับจริง</th>
                                                 <th>ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th>ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th>ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                            </tr>
+                                            <tr>
+                                                <th></th>
+                                                <th></th>
                                                 <th>ไตรมาสที่ 1</th>
                                                 <th>ไตรมาสที่ 2</th>
                                                 <th>ไตรมาสที่ 3</th>
                                                 <th>ไตรมาสที่ 4</th>
-                                                <th>รวมรายรับจริง</th>
+                                                <th></th>
                                                 <th>ไตรมาสที่ 1</th>
                                                 <th>ไตรมาสที่ 2</th>
                                                 <th>ไตรมาสที่ 3</th>
                                                 <th>ไตรมาสที่ 4</th>
-                                                <th>รวมรายรับจริง</th>
+                                                <th></th>
+                                                <th>ไตรมาสที่ 1</th>
+                                                <th>ไตรมาสที่ 2</th>
+                                                <th>ไตรมาสที่ 3</th>
+                                                <th>ไตรมาสที่ 4</th>
+                                                <th></th>
+                                                <th>ไตรมาสที่ 1</th>
+                                                <th>ไตรมาสที่ 2</th>
+                                                <th>ไตรมาสที่ 3</th>
+                                                <th>ไตรมาสที่ 4</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                             <tr>
-                                                <td>แผนงาน (ผลผลิต) [Plan]</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>แผนงานย่อย (ผลผลิตย่อย/กิจกรรม) [Sub plan]</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                            </tr>
-                                            <tr>
-                                                <td>โครงการ/กิจกรรม [Project]</td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
-                                                <td></td>
+                                                <td>ตัวอย่างข้อมูล</td>
+                                                <td>10000</td>
+                                                <td>2500</td>
+                                                <td>2500</td>
+                                                <td>2500</td>
+                                                <td>2500</td>
+                                                <td>11000</td>
+                                                <td>2750</td>
+                                                <td>2750</td>
+                                                <td>2750</td>
+                                                <td>2750</td>
+                                                <td>12000</td>
+                                                <td>3000</td>
+                                                <td>3000</td>
+                                                <td>3000</td>
+                                                <td>3000</td>
+                                                <td>13000</td>
+                                                <td>3250</td>
+                                                <td>3250</td>
+                                                <td>3250</td>
+                                                <td>3250</td>
                                             </tr>
                                         </tbody>
                                     </table>
                                     <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
-                                <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
+                                    <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
+                                    <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
 
                                 </div>
                             </div>
