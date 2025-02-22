@@ -818,6 +818,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             abp.Q4_Spending_Plan,
                                             abp.Total_Amount_Quantity,
                                             acc.sub_type,
+                                            acc.parent,
                                             pj.project_name,
                                             sp.sub_plan_name,
                                             plan.plan_name
@@ -828,7 +829,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                             LEFT JOIN sub_plan sp ON sp.sub_plan_id = abp.Sub_Plan
                                             LEFT JOIN plan ON plan.plan_id = abp.Plan
                                     WHERE
-                                            abp.Budget_Management_Year = :yearselect";
+                                            abp.Budget_Management_Year = :yearselect
+                                            AND acc.parent LIKE '4%'";
     
                     $stmtrevenue = $conn->prepare($sqlrevenue);
                     $stmtrevenue->bindParam(':yearselect', $yearselect, PDO::PARAM_STR);
