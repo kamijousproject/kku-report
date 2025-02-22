@@ -53,42 +53,25 @@
                                     <h4>ปีงบที่ต้องการเปรียบเทียบ 2567-2568</h4>
                                     <h5>ส่วนงาน/หน่วยงาน: ...............................</h5>
                                 </div>
-                                <div class="row">
-
-                                    <!-- ปีบริหารงบประมาณ -->
-                                    <div class="col-md-3">
-                                        <label for="budgetYearSelect">ปีบริหารงบประมาณ:</label>
-                                        <select id="budgetYearSelect" class="form-control">
-                                            <option value="2568">2568</option>
-                                            <option value="2567">2567</option>
-                                        </select>
-                                    </div>
-                                    <!-- ปุ่มค้นหา -->
-                                    <div class="col-md-2 d-flex align-items-end">
-                                        <button onclick="loadData()" class="btn btn-info w-100">ค้นหา</button>
-                                    </div>
-                                </div>
-                                <br>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
-                                            <!-- <tr>
+                                            <tr>
                                                 <th rowspan="2">รายการ</th>
                                                 <th colspan="5">ปี 2564</th>
                                                 <th colspan="5">ปี 2565</th>
                                                 <th colspan="5">ปี 2566</th>
                                                 <th colspan="5">ปี 2567</th>
-                                            </tr> -->
+                                            </tr>
                                             <tr>
-                                                <th>รายการ</th>
-                                                <th>ประมาณการรายรับ</th>
-                                                <th colspan="4">รายรับจริง</th>
-                                                <th>รวมรายรับจริง</th>
-                                                <!-- <th colspan="4">รายรับจริง</th>
                                                 <th>ประมาณการรายรับ</th>
                                                 <th colspan="4">รายรับจริง</th>
                                                 <th>ประมาณการรายรับ</th>
-                                                <th colspan="4">รายรับจริง</th> -->
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th>ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th>ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
                                             </tr>
                                             <tr>
                                                 <th></th>
@@ -98,10 +81,47 @@
                                                 <th>ไตรมาสที่ 3</th>
                                                 <th>ไตรมาสที่ 4</th>
                                                 <th></th>
+                                                <th>ไตรมาสที่ 1</th>
+                                                <th>ไตรมาสที่ 2</th>
+                                                <th>ไตรมาสที่ 3</th>
+                                                <th>ไตรมาสที่ 4</th>
+                                                <th></th>
+                                                <th>ไตรมาสที่ 1</th>
+                                                <th>ไตรมาสที่ 2</th>
+                                                <th>ไตรมาสที่ 3</th>
+                                                <th>ไตรมาสที่ 4</th>
+                                                <th></th>
+                                                <th>ไตรมาสที่ 1</th>
+                                                <th>ไตรมาสที่ 2</th>
+                                                <th>ไตรมาสที่ 3</th>
+                                                <th>ไตรมาสที่ 4</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-
+                                            <tr>
+                                                <td>ตัวอย่างข้อมูล</td>
+                                                <td>10000</td>
+                                                <td>2500</td>
+                                                <td>2500</td>
+                                                <td>2500</td>
+                                                <td>2500</td>
+                                                <td>11000</td>
+                                                <td>2750</td>
+                                                <td>2750</td>
+                                                <td>2750</td>
+                                                <td>2750</td>
+                                                <td>12000</td>
+                                                <td>3000</td>
+                                                <td>3000</td>
+                                                <td>3000</td>
+                                                <td>3000</td>
+                                                <td>13000</td>
+                                                <td>3250</td>
+                                                <td>3250</td>
+                                                <td>3250</td>
+                                                <td>3250</td>
+                                            </tr>
+                                        </tbody>
                                     </table>
                                     <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                     <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
@@ -122,36 +142,6 @@
         </div>
     </div>
     <script>
-
-$(document).ready(function() {
-            loadData();
-        });
-
-        function loadData() {
-            const yearselect = document.getElementById("budgetYearSelect").value;
-
-        $.ajax({
-        type: "POST",
-        url: "../server/api.php",
-        // url: "mockup-api",
-        data: {
-            'command': 'report-revenue-estimation-comparison',
-            'yearselect': yearselect,
-        },
-        dataType: "json",
-        success: function(response) {
-            console.log("API Response:", response.revenue); // ตรวจสอบข้อมูลที่ได้รับ
-
-
-
-        },
-        error: function(jqXHR, exception) {
-            console.error("Error: " + exception);
-            responseError(jqXHR, exception);
-        }
-    });
-
-        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

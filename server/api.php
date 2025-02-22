@@ -803,6 +803,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+            case "report-revenue-estimation-comparison":
+                try {
+                    $db = new Database();
+                    $conn = $db->connect();
+    
+                    $yearselect = isset($_POST['yearselect']) ? $_POST['yearselect'] : '2568';
+    
+                    $sqlrevenue = "SELECT
+                                            abp.KKU_Item_Name,
+                                            abp.Q1_Spending_Plan,
+                                            abp.Q2_Spending_Plan,
+                                            abp.Q3_Spending_Plan,
+                                            abp.Q4_Spending_Plan,
+                                            abp.Total_Amount_Quantity,
+                                            acc.sub_type,
+                                            pj.project_name,
+                                            sp.sub_plan_name,
+                                            plan.plan_name
+                                    FROM
+                                            budget_planning_annual_budget_plan abp
+                                            LEFT JOIN account acc ON abp.`Account` = acc.`account`
+                                            LEFT JOIN project pj ON pj.project_id = abp.Project
+                                            LEFT JOIN sub_plan sp ON sp.sub_plan_id = abp.Sub_Plan
+                                            LEFT JOIN plan ON plan.plan_id = abp.Plan
+                                    WHERE
+                                            abp.Budget_Management_Year = :yearselect";
+    
+                    $stmtrevenue = $conn->prepare($sqlrevenue);
+                    $stmtrevenue->bindParam(':yearselect', $yearselect, PDO::PARAM_STR);
+                    $stmtrevenue->execute();
+                    $revenue = $stmtrevenue->fetchAll(PDO::FETCH_ASSOC);
+                    $conn = null;
+    
+                    $response = array(
+                        'revenue' => $revenue
+                    );
+                    echo json_encode($response);
+                } catch (PDOException $e) {
+                    $response = array(
+                        'status' => 'error',
+                        'message' => 'Database error: ' . $e->getMessage()
+                    );
+                    echo json_encode($response);
+                }
+                break;
         case "get_faculty_action_plan":
             try {
                 $db = new Database();
