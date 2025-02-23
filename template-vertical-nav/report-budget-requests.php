@@ -33,40 +33,43 @@
                                 <div class="card-title">
                                     <h4>รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ</h4>
                                 </div>
+                                <div class="row">
+
+                                <!-- ปีบริหารงบประมาณ -->
+                                <div class="col-md-3">
+                                    <label for="budgetYearSelect">ปีบริหารงบประมาณ:</label>
+                                    <select id="budgetYearSelect" class="form-control">
+                                            <option value="2568">2568</option>
+                                            <option value="2567">2567</option>
+                                    </select>
+                                </div>
+                                <!-- ปุ่มค้นหา -->
+                                <div class="col-md-2 d-flex align-items-end">
+                                        <button onclick="loadData()" class="btn btn-info w-100">ค้นหา</button>
+                                </div>
+                        </div>
+                        <br>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th>ส่วนงาน</th>
-                                                <th>เงินอุดหนุนจากรัฐ</th>
-                                                <th>เงินนอกงบประมาณ</th>
-                                                <th>เงินรายได้</th>
+                                                <th>งบประมาณรายจ่าย</th>
+                                                <th value="fn06">เงินอุดหนุนจากรัฐ</th>
+                                                <th value="fn08">เงินนอกงบประมาณ</th>
+                                                <th value="fn02">เงินรายได้</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>หน่วยงาน A</td>
-                                                <td>2,000,000</td>
-                                                <td>1,500,000</td>
-                                                <td>500,000</td>
-                                            </tr>
-                                            <tr>
-                                                <td>หน่วยงาน B</td>
-                                                <td>3,000,000</td>
-                                                <td>2,000,000</td>
-                                                <td>700,000</td>
-                                            </tr>
-                                        </tbody>
                                     </table>
 
-                                    <div class="section">
+                                    <!-- <div class="section">
                                         <p>หน่วยงาน: ........................................</p>
                                         <p>แผนงาน(ผลผลิต): ........................................</p>
                                         <p>แผนงานย่อย(ผลผลิตย่อย/กิจกรรม): ........................................</p>
                                         <p>โครงการ/กิจกรรม: ........................................</p>
                                         <p>งบรายจ่าย: [Expenses Code / Name]</p>
                                         <p>รายการรายจ่าย: [Item Name]</p>
-                                    </div>
+                                    </div> -->
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
@@ -86,6 +89,94 @@
         </div>
     </div>
     <script>
+$(document).ready(function() {
+            loadData();
+        });
+
+        function loadData() {
+            const yearselect = document.getElementById("budgetYearSelect").value;
+
+        $.ajax({
+        type: "POST",
+        url: "../server/api.php",
+        // url: "mockup-api",
+        data: {
+            'command': 'report-budget-requests',
+            'yearselect': yearselect,
+        },
+        dataType: "json",
+        success: function(response) {
+            console.log("API Response:", response.budget); // ตรวจสอบข้อมูลที่ได้รับ
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+            if (!response.budget || response.budget.length === 0) {
+                tableBody.innerHTML = '<tr><td colspan="4" class="text-center">No data found</td></tr>';
+                return;
+            }
+
+            // สร้าง Map เพื่อจัดกลุ่มข้อมูล
+            const groupedData = new Map();
+
+            response.budget.forEach(row => {
+                const key = `${row.Alias_Default_Parent}|${row.Alias_Default}|${row.plan_name}|${row.sub_plan_name}|${row.project_name}`;
+
+                if (!groupedData.has(key)) {
+                    groupedData.set(key, {
+                        Alias_Default_Parent: row.Alias_Default_Parent,
+                        Alias_Default: row.Alias_Default,
+                        plan_name: row.plan_name,
+                        sub_plan_name: row.sub_plan_name,
+                        project_name: row.project_name,
+                        nametype: row.type,
+                        alias_default: row.alias_default,
+                        KKU_Item_Name: row.KKU_Item_Name,
+                        FN06: 0,
+                        FN08: 0,
+                        FN02: 0
+                    });
+                }
+
+                // เพิ่มค่า Total_Amount_Quantity ลงในคอลัมน์ที่เหมาะสม
+                if (row.Fund === "FN06") {
+                    groupedData.get(key).FN06 = row.Total_Amount_Quantity;
+                } else if (row.Fund === "FN08") {
+                    groupedData.get(key).FN08 = row.Total_Amount_Quantity;
+                } else if (row.Fund === "FN02") {
+                    groupedData.get(key).FN02 = row.Total_Amount_Quantity;
+                }
+            });
+
+
+            // แสดงข้อมูลในตาราง
+            groupedData.forEach(row => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td style="text-align: left;">${row.Alias_Default_Parent || '-'}</br>
+                    ${row.Alias_Default || '-'}</br>
+                    ${row.plan_name || '-'}</br>
+                    ${row.sub_plan_name || '-'}</br>
+                    ${row.project_name || '-'}</br>
+                    ${row.nametype || '-'}</br>
+                    ${row.alias_default || '-'}</br>
+                    ${row.KKU_Item_Name || '-'}</td>
+                    <td>${row.FN06 > 0 ? row.FN06.toLocaleString() : '-'}</td>
+                    <td>${row.FN08 > 0 ? row.FN08.toLocaleString() : '-'}</td>
+                    <td>${row.FN02 > 0 ? row.FN02.toLocaleString() : '-'}</td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+        },
+        error: function(jqXHR, exception) {
+            console.error("Error: " + exception);
+            responseError(jqXHR, exception);
+        }
+    });
+
+        }
+
+
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');

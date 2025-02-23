@@ -850,6 +850,67 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     echo json_encode($response);
                 }
                 break;
+                case "report-budget-requests":
+                    try {
+                        $db = new Database();
+                        $conn = $db->connect();
+        
+                        $yearselect = isset($_POST['yearselect']) ? $_POST['yearselect'] : '2568';
+        
+                        $sqlbudget = "SELECT
+                                                plan.plan_name,
+                                                sp.sub_plan_name,
+                                                pj.project_name,
+                                                acc.alias_default,
+                                                acc.`type`,
+                                                abp.KKU_Item_Name,
+                                                abp.Fund,
+                                                abp.Total_Amount_Quantity,
+                                                Faculty.Faculty,
+                                                Faculty.Alias_Default,
+                                                (
+                                                    SELECT
+                                                            Faculty_Parent.Alias_Default
+                                                    FROM
+                                                            Faculty Faculty_Parent
+                                                    WHERE
+                                                            Faculty_Parent.Faculty = CONCAT(
+                                                            LEFT(Faculty.Faculty, 2),
+                                                            '000'
+                                                )
+                                                    LIMIT
+                                                            1
+                                                ) AS Alias_Default_Parent
+                                        FROM
+                                                budget_planning_annual_budget_plan abp
+                                                LEFT JOIN account acc ON abp.`Account` = acc.`account`
+                                                LEFT JOIN plan ON abp.Plan = plan.plan_id
+                                                LEFT JOIN sub_plan sp ON sp.sub_plan_id = abp.Sub_Plan
+                                                LEFT JOIN project pj ON pj.project_id = abp.Project
+                                                LEFT JOIN Faculty ON Faculty.Faculty = abp.Faculty
+                                        WHERE
+                                                abp.Fund IN ('FN06', 'FN02', 'FN08')
+                                                AND acc.`type` LIKE '%ค่าใช้จ่าย%'
+                                                AND abp.Budget_Management_Year = :yearselect ";
+        
+                        $stmtbudget = $conn->prepare($sqlbudget);
+                        $stmtbudget->bindParam(':yearselect', $yearselect, PDO::PARAM_STR);
+                        $stmtbudget->execute();
+                        $budget = $stmtbudget->fetchAll(PDO::FETCH_ASSOC);
+                        $conn = null;
+        
+                        $response = array(
+                            'budget' => $budget
+                        );
+                        echo json_encode($response);
+                    } catch (PDOException $e) {
+                        $response = array(
+                            'status' => 'error',
+                            'message' => 'Database error: ' . $e->getMessage()
+                        );
+                        echo json_encode($response);
+                    }
+                    break;
         case "get_faculty_action_plan":
             try {
                 $db = new Database();
