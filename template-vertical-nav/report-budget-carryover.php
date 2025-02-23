@@ -78,175 +78,147 @@
     }
 </style>
 <?php
-include('../component/header.php');
+
 include '../server/connectdb.php';
 
 $db = new Database();
 $conn = $db->connect();
 
-// ฟังก์ชันตัดตัวอักษรออกให้เหลือแค่ตัวเลข
-function extractNumericPart($string)
+$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+$budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
+
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
 {
-    return preg_replace('/\D/', '', $string);
-}
+    // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
+    if ($budget_year1 === null) {
+        $budget_year1 = 2568;  // ค่าเริ่มต้นถ้าหากไม่ได้รับจาก URL
+    }
+    if ($budget_year2 === null) {
+        $budget_year2 = 2567;  // ค่าเริ่มต้น
+    }
+    if ($budget_year3 === null) {
+        $budget_year3 = 2566;  // ค่าเริ่มต้น
+    }
 
-// ฟังก์ชันเปรียบเทียบ Fund และ Sub_Plan โดยตัดตัวอักษรออกให้เหลือแค่ตัวเลข
-function compareSubPlanAndFund($subPlan1, $subPlan2, $fund1, $fund2)
-{
-    $subPlan1 = extractNumericPart($subPlan1);
-    $subPlan2 = extractNumericPart($subPlan2);
-    $fund1 = extractNumericPart($fund1);
-    $fund2 = extractNumericPart($fund2);
+    // สร้างคิวรี
+    $query = "SELECT 
+    bap.id, bap.Faculty,
+    bap.Plan,
+    ft.Alias_Default AS Faculty_name,
+    MAX(p.plan_name) AS plan_name, -- ใช้ MAX() หรือฟังก์ชันการรวมอื่น ๆ
+    (SELECT fc.Alias_Default 
+     FROM Faculty fc 
+     WHERE fc.Faculty = bap.Faculty 
+     LIMIT 1) AS Faculty_Name,
+     
+    bap.Sub_Plan, sp.sub_plan_name,
+    bap.Project, pj.project_name,
+    bap.`Account`, ac.sub_type,
+    bap.KKU_Item_Name,
+        -- a1: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
+        CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
+    
+    -- a2: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
+    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
+    
 
-    return $subPlan1 === $subPlan2 && $fund1 === $fund2;
-}
+    -- แยก Total_Amount_Quantity ตามปีจากคอลัมน์ Budget_Management_Year
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
 
-// ฟังก์ชันดึงข้อมูล
-function fetchBudgetData($conn, $fund)
-{
-    $query = "SELECT DISTINCT
-    ksp.ksp_id AS Ksp_id,
-    ksp.ksp_name AS Ksp_Name,
-    acc.type,
-    acc.sub_type,
-    project.project_name,
-    bpanbp.Account,
-    bpanbp.Fund,  -- คืนค่าเดิม
-    CONCAT('FN', bpa.FUND) AS FUND,  -- เพิ่ม 'FN' นำหน้า
-    bpanbp.Faculty,
-    bpanbp.Plan,
-    bpanbp.Sub_Plan,  -- คืนค่าเดิม
-    CONCAT('SP_', bpa.SUBPLAN) AS SUBPLAN,  -- เพิ่ม 'SP_' นำหน้า
-    bpanbp.Reason AS Reason,
-    bpanbp.Project,
-    bpanbp.KKU_Item_Name,
-    bpanbp.Allocated_Total_Amount_Quantity,
-    bpa.FISCAL_YEAR,
-    bpa.TOTAL_BUDGET,
-    bpa.TOTAL_CONSUMPTION,
-    bpa.EXPENDITURES,
-    bpa.COMMITMENTS,
-    bpa.OBLIGATIONS,
-    f.Alias_Default AS Faculty_Name,
-    p.plan_name AS Plan_Name,
-    sp.sub_plan_name AS Sub_Plan_Name,
-    pr.project_name AS Project_Name
-FROM
-    budget_planning_allocated_annual_budget_plan bpanbp
-    LEFT JOIN budget_planning_actual bpa ON 
-        bpanbp.Fund = CONCAT('FN', bpa.FUND)  -- เปรียบเทียบแบบเพิ่ม 'FN' ให้ bpa.FUND
-        AND bpanbp.Faculty = bpa.FACULTY
-        AND bpanbp.Plan = bpa.PLAN
-        AND bpanbp.Sub_Plan = CONCAT('SP_', bpa.SUBPLAN)  -- เปรียบเทียบแบบเพิ่ม 'SP_' ให้ bpa.SUBPLAN
-        AND bpanbp.Project = bpa.PROJECT
-    LEFT JOIN budget_planning_annual_budget_plan bpabp ON 
-        bpanbp.Faculty = bpabp.Faculty
-        AND bpanbp.Plan = bpabp.Plan
-        AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-        AND bpanbp.Project = bpabp.Project
-        AND bpanbp.Fund = bpabp.Fund
-    LEFT JOIN budget_planning_project_kpi bppk ON bpanbp.Project = bppk.Project
-    LEFT JOIN project ON bpanbp.Project = project.project_id
-    LEFT JOIN ksp ON bppk.KKU_Strategic_Plan_LOV = ksp.ksp_id
-    LEFT JOIN account acc ON bpanbp.Account = acc.account
-    LEFT JOIN Faculty AS f ON bpanbp.Faculty = f.Faculty
-    LEFT JOIN plan AS p ON bpanbp.Plan = p.plan_id
-    LEFT JOIN sub_plan AS sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-    LEFT JOIN project AS pr ON bpanbp.Project = pr.project_id;
+    -- แยก TOTAL_BUDGET ตามปีจาก bpa.FISCAL_YEAR
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
 
-    WHERE CONCAT('FN', bpanbp.Fund) = :fund
-    ORDER BY
-    acc.type ASC,  -- เรียงตาม acc.type
-    acc.sub_type ASC,  -- เรียงตาม acc.sub_type
-    project.project_name ASC,  -- เรียงตาม project.project_name
-    bpanbp.Plan ASC,  -- เรียงตาม bpanbp.Plan
-    bpanbp.Sub_Plan ASC,  -- เรียงตาม bpanbp.Sub_Plan
-    bpanbp.Project ASC,  -- เรียงตาม bpanbp.Project
-    bpanbp.KKU_Item_Name ASC;  -- เรียงตาม bpanbp.KKU_Item_Name"
-    ;
+    -- หาผลต่างระหว่าง Total_Amount_2568 และ TOTAL_BUDGET_2567
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+    COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+    AS Difference_2568_2567,
+
+    -- คำนวณเปอร์เซ็นต์ผลต่าง
+    CASE
+        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
+        THEN 100
+        ELSE 
+            (
+                SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+            ) / 
+            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
+    END AS Percentage_Difference_2568_2567,
+    bap.Reason
+
+FROM budget_planning_annual_budget_plan bap
+LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') ft
+ON ft.Faculty = bap.Faculty
+LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan
+LEFT JOIN project pj ON pj.project_id = bap.Project
+LEFT JOIN `account` ac ON ac.`account` = bap.`Account`
+LEFT JOIN plan p ON p.plan_id = bap.Plan
+LEFT JOIN budget_planning_actual bpa
+    ON bpa.FACULTY = bap.Faculty
+    AND bpa.`ACCOUNT` = bap.`Account`
+    AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED) -- ใช้ SUBSTRING แทน REPLACE เพื่อแปลงเป็นตัวเลข
+    AND bpa.PROJECT = bap.Project
+    AND bpa.PLAN = bap.Plan
+    AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
+    AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
+    AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
+WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
+
+    // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
+    if ($faculty) {
+        $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
+    }
+
+    // เพิ่มการจัดกลุ่มข้อมูล
+    $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
+    bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
+    bap.KKU_Item_Name, ft.Alias_Default
+    ORDER BY CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED) ASC, pj.project_name ASC";
+
+    // เตรียมคำสั่ง SQL
     $stmt = $conn->prepare($query);
-    $stmt->bindParam(':fund', $fund);
+
+    // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
+    if ($faculty) {
+        $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+    }
+
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Fetch results for FN02, FN06, and FN08
-$resultsFN02 = fetchBudgetData($conn, 'FN02');
-$resultsFN06 = fetchBudgetData($conn, 'FN06');
-$resultsFN08 = fetchBudgetData($conn, 'FN08');
 
-$mergedData = [];
 
-foreach ($resultsFN06 as $fn06) {
-    // Matching FN02 and FN08 with FN06
-    $fn02Match = array_filter($resultsFN02, function ($fn02) use ($fn06) {
-        return compareSubPlanAndFund($fn06['Sub_Plan'], $fn02['Sub_Plan'], $fn06['Fund'], $fn02['Fund']) &&
-            (string) ($fn06['Plan'] ?? '') === (string) ($fn02['Plan'] ?? '') &&
-            (string) ($fn06['Project'] ?? '') === (string) ($fn02['Project'] ?? '');
-    });
-    $fn08Match = array_filter($resultsFN08, function ($fn08) use ($fn06) {
-        return compareSubPlanAndFund($fn06['Sub_Plan'], $fn08['Sub_Plan'], $fn06['Fund'], $fn08['Fund']) &&
-            (string) ($fn06['Plan'] ?? '') === (string) ($fn08['Plan'] ?? '') &&
-            (string) ($fn06['Project'] ?? '') === (string) ($fn08['Project'] ?? '');
-    });
 
-    $fn02 = reset($fn02Match);
-    $fn08 = reset($fn08Match);
+$results = fetchBudgetData($conn,$faculty, $budget_year1, $budget_year2, $budget_year3);
 
-    // Handle Commitments and Expenditures
-    $commitment_FN06 = ($fn06['COMMITMENTS'] ?? 0) + ($fn06['OBLIGATIONS'] ?? 0);
-    $commitment_FN02 = ($fn02['COMMITMENTS'] ?? 0) + ($fn02['OBLIGATIONS'] ?? 0);
-    $commitment_FN08 = ($fn08['COMMITMENTS'] ?? 0) + ($fn08['OBLIGATIONS'] ?? 0);
-
-    // Calculate Total
-    $Total_Allocated = ($fn06['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0);
-    $Total_Commitments = $commitment_FN06 + $commitment_FN02 + $commitment_FN08;
-
-    $mergedData[] = [
-        'Account' => $fn06['Account'] ?? '-',
-        'Ksp_id' => $fn06['Ksp_id'] ?? '-',
-        'Ksp_Name' => $fn06['Ksp_Name'] ?? '-',
-        'Plan' => $fn06['Plan'] ?? '',
-        'Sub_Plan' => $fn06['Sub_Plan'] ?? '',
-        'Reason' => $fn06['Reason'] ?? '',
-        'Plan_Name' => $fn06['Plan_Name'] ?? '',
-        'Sub_Plan_Name' => $fn06['Sub_Plan_Name'] ?? '',
-        'Type' => $fn06['type'] ?? '',
-        'Sub_Type' => $fn06['sub_type'] ?? '',
-        'Project_Name' => $fn06['Project_Name'] ?? '',
-        'KKU_Item_Name' => $fn06['KKU_Item_Name'] ?? '',
-        'Allocated_FN06' => $fn06['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN06' => $commitment_FN06,
-        'Expenditures_FN06' => $fn06['EXPENDITURES'] ?? 0,
-        'Allocated_FN02' => $fn02['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN02' => $commitment_FN02,
-        'Expenditures_FN02' => $fn02['EXPENDITURES'] ?? 0,
-        'Allocated_FN08' => $fn08['Allocated_Total_Amount_Quantity'] ?? 0,
-        'Commitments_FN08' => $commitment_FN08,
-        'Expenditures_FN08' => $fn08['EXPENDITURES'] ?? 0,
-        'Total_Allocated' => $Total_Allocated,
-        'Total_Commitments' => $Total_Commitments,
-    ];
+function fetchFacultyData($conn)
+{
+    // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
+    $query = "SELECT DISTINCT bap.Faculty, ft.Alias_Default AS Faculty_Name
+              FROM budget_planning_annual_budget_plan bap
+              LEFT JOIN Faculty ft ON ft.Faculty = bap.Faculty";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// สร้างตัวแปรเก็บจำนวนแถวที่ต้อง merge
-$rowspanData = [];
-
-foreach ($mergedData as $row) {
-    $type = $row['Type'] ?? '';
-    $subType = $row['Sub_Type'] ?? '';
-
-    if (!isset($rowspanData[$type][$subType])) {
-        $rowspanData[$type][$subType] = 1;
-    } else {
-        $rowspanData[$type][$subType]++;
-    }
+function fetchYearsData($conn)
+{
+    $query = "SELECT DISTINCT Budget_Management_Year 
+              FROM budget_planning_annual_budget_plan 
+              ORDER BY Budget_Management_Year DESC"; // ดึงปีจากฐานข้อมูล และเรียงลำดับจากปีล่าสุด
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// ใช้ตัวแปรนี้เพื่อติดตามแถวที่ถูก merge ไปแล้ว
-$usedRowspan = [];
 
-// เริ่มสร้างตาราง HTML
 ?>
 
 

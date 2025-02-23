@@ -199,7 +199,7 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
 
 
 
-$results = fetchBudgetData($conn, null, $budget_year1, $budget_year2, $budget_year3);
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3);
 
 function fetchFacultyData($conn)
 {
