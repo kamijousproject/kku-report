@@ -94,7 +94,16 @@ $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
 
 function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
 {
-
+    // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
+    if ($budget_year1 === null) {
+        $budget_year1 = 2568;  // ค่าเริ่มต้นถ้าหากไม่ได้รับจาก URL
+    }
+    if ($budget_year2 === null) {
+        $budget_year2 = 2567;  // ค่าเริ่มต้น
+    }
+    if ($budget_year3 === null) {
+        $budget_year3 = 2566;  // ค่าเริ่มต้น
+    }
 
     // สร้างคิวรี
     $query = "SELECT 
@@ -352,10 +361,11 @@ function fetchYearsData($conn)
                                             $previousProject = "";
                                             $previousSubType = "";
                                             $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-                                            $selectedYear1 = isset($_GET['year']) ? $_GET['year'] : null;
-                                            $selectedYear2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
-                                            $selectedYear3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-                                            $results = fetchBudgetData($conn, $selectedFaculty, $selectedYear1, $selectedYear2, $selectedYear3);
+                                            $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+                                            $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+                                            $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3);
+
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
                                                 foreach ($results as $row) {
@@ -378,10 +388,8 @@ function fetchYearsData($conn)
                                                         echo str_repeat("&nbsp;", 8) . "<strong>" . htmlspecialchars($cleanedSubPlanId) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
                                                         $previousSubPlanId = $row['Sub_Plan'];
                                                         $previousProject = "";
-                                                        $previousType = "";
                                                         $previousSubType = "";
                                                     }
-
 
                                                     // เช็คและแสดง Project ถ้าเปลี่ยนแปลง
                                                     if ($row['project_name'] != $previousProject) {
@@ -397,9 +405,8 @@ function fetchYearsData($conn)
                                                         echo str_repeat("&nbsp;", 24) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($cleanedSubType) . "<br>";
                                                         $previousSubType = $row['sub_type'];
                                                     }
+
                                                     // แสดง KKU Item Name เสมอ
-// ตรวจสอบว่า KKU_Item_Name มีค่า และไม่เป็นค่าว่างหรือไม่
-                                                    // เช็คและกำหนดค่า kkuItemName
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
                                                         ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
                                                         : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
@@ -416,15 +423,13 @@ function fetchYearsData($conn)
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Percentage_Difference_2568_2567']) . "</td>";
                                                     echo "<td style='vertical-align: bottom;'>" . (isset($row['Reason']) ? htmlspecialchars($row['Reason']) : "ไม่มีข้อมูล") . "</td>";
 
-
                                                     echo "</tr>";
-
                                                 }
                                             } else {
                                                 echo "<tr><td colspan='8' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
                                             }
-
                                             ?>
+
                                         </tbody>
                                     </table>
                                     <script>
@@ -433,14 +438,15 @@ function fetchYearsData($conn)
                                         console.log('Selected Faculty: ', selectedFaculty);
 
                                         // การส่งค่าของ selectedYear1, selectedYear2, selectedYear3 ไปยัง JavaScript
-                                        var selectedYear1 = "<?php echo isset($_GET['year']) ? $_GET['year'] : ''; ?>";
-                                        var selectedYear2 = "<?php echo isset($_GET['year']) ? $_GET['year'] - 1 : ''; ?>";
-                                        var selectedYear3 = "<?php echo isset($_GET['year']) ? $_GET['year'] - 2 : ''; ?>";
+                                        var budget_year1 = "<?php echo isset($budget_year1) ? $budget_year1 : ''; ?>";
+                                        var budget_year2 = "<?php echo isset($budget_year2) ? $budget_year2 : ''; ?>";
+                                        var budget_year3 = "<?php echo isset($budget_year3) ? $budget_year3 : ''; ?>";
 
-                                        console.log('Selected Year 1: ', selectedYear1);
-                                        console.log('Selected Year 2: ', selectedYear2);
-                                        console.log('Selected Year 3: ', selectedYear3);
+                                        console.log('Selected Year 1: ', budget_year1);
+                                        console.log('Selected Year 2: ', budget_year2);
+                                        console.log('Selected Year 3: ', budget_year3); 
                                     </script>
+
 
 
 
