@@ -5,7 +5,7 @@
         /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
     }
 
-    #reportTable th{
+    #reportTable th {
         text-align: center;
         /* จัดข้อความให้อยู่ตรงกลาง */
         vertical-align: middle;
@@ -13,6 +13,7 @@
         white-space: nowrap;
         /* ป้องกันข้อความตัดบรรทัด */
     }
+
     #reportTable td {
         text-align: left;
         /* จัดข้อความให้อยู่ตรงกลาง */
@@ -93,16 +94,7 @@ $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
 
 function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
 {
-    // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
-    if ($budget_year1 === null) {
-        $budget_year1 = 2568;  // ค่าเริ่มต้นถ้าหากไม่ได้รับจาก URL
-    }
-    if ($budget_year2 === null) {
-        $budget_year2 = 2567;  // ค่าเริ่มต้น
-    }
-    if ($budget_year3 === null) {
-        $budget_year3 = 2566;  // ค่าเริ่มต้น
-    }
+
 
     // สร้างคิวรี
     $query = "SELECT 
@@ -265,58 +257,62 @@ function fetchYearsData($conn)
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
                                 ?>
 
-<form method="GET" action="" onsubmit="return validateForm()">
-    <div class="form-group" style="display: flex; align-items: center;">
-        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก ส่วนงาน/หน่วยงาน</label>
-        <select name="faculty" id="faculty" class="form-control" style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
-            <?php
-            // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
-            foreach ($faculties as $faculty) {
-                $facultyName = htmlspecialchars($faculty['Faculty_Name']); // ใช้ Faculty_Name แทน Faculty
-                $facultyCode = htmlspecialchars($faculty['Faculty']); // ใช้ Faculty รหัสเพื่อส่งไปใน GET
-                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
-                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
-            }
-            ?>
-        </select>
-    </div>
+                                <form method="GET" action="" onsubmit="return validateForm()">
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
+                                            ส่วนงาน/หน่วยงาน</label>
+                                        <select name="faculty" id="faculty" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
+                                            <?php
+                                            // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
+                                            foreach ($faculties as $faculty) {
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']); // ใช้ Faculty_Name แทน Faculty
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']); // ใช้ Faculty รหัสเพื่อส่งไปใน GET
+                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
 
-    <div class="form-group" style="display: flex; align-items: center;">
-        <label for="year" class="label-year" style="margin-right: 10px;">เลือกปีงบประมาณ</label>
-        <select name="year" id="year" class="form-control" style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-            <option value="">เลือก ปีงบประมาณ</option>
-            <?php
-            // แสดงปีที่ดึงมาจากฟังก์ชัน fetchYearsData
-            foreach ($years as $year) {
-                $yearValue = htmlspecialchars($year['Budget_Management_Year']); // ใช้ Budget_Management_Year เพื่อแสดงปี
-                $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
-                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
-            }
-            ?>
-        </select>
-    </div>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="year" class="label-year"
+                                            style="margin-right: 10px;">เลือกปีงบประมาณ</label>
+                                        <select name="year" id="year" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ปีงบประมาณ</option>
+                                            <?php
+                                            // แสดงปีที่ดึงมาจากฟังก์ชัน fetchYearsData
+                                            foreach ($years as $year) {
+                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']); // ใช้ Budget_Management_Year เพื่อแสดงปี
+                                                $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
+                                                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
 
-    <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
-    <div class="form-group" style="display: flex; justify-content: center;">
-        <button type="submit" class="btn btn-primary">ค้นหา</button>
-    </div>
-</form>
+                                    <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
+                                    <div class="form-group" style="display: flex; justify-content: center;">
+                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                    </div>
+                                </form>
 
-<script>
-    function validateForm() {
-        // ตรวจสอบว่าเลือกส่วนงาน/หน่วยงาน
-        var faculty = document.getElementById('faculty').value;
-        var year = document.getElementById('year').value;
-        
-        // หากไม่ได้เลือกส่วนงานหรือปี จะมีการแจ้งเตือนและไม่ส่งฟอร์ม
-        if (faculty == '' || year == '') {
-            alert('กรุณาเลือกส่วนงาน/หน่วยงานและปีงบประมาณ และ ปีงบประมาณ');
-            return false;  // ป้องกันการส่งฟอร์ม
-        }
-        return true;  // ส่งฟอร์มได้
-    }
-</script>
+                                <script>
+                                    function validateForm() {
+                                        // ตรวจสอบว่าเลือกส่วนงาน/หน่วยงาน
+                                        var faculty = document.getElementById('faculty').value;
+                                        var year = document.getElementById('year').value;
+
+                                        // หากไม่ได้เลือกส่วนงานหรือปี จะมีการแจ้งเตือนและไม่ส่งฟอร์ม
+                                        if (faculty == '' || year == '') {
+                                            alert('กรุณาเลือกส่วนงาน/หน่วยงานและปีงบประมาณ และ ปีงบประมาณ');
+                                            return false;  // ป้องกันการส่งฟอร์ม
+                                        }
+                                        return true;  // ส่งฟอร์มได้
+                                    }
+                                </script>
 
 
                                 <script>
@@ -324,13 +320,11 @@ function fetchYearsData($conn)
                                     const budgetYear1 = <?php echo json_encode($budget_year1); ?>;
                                     const budgetYear2 = <?php echo json_encode($budget_year2); ?>;
                                     const budgetYear3 = <?php echo json_encode($budget_year3); ?>;
-                                     const faculty = <?php echo json_encode($faculty); ?>;
 
                                     // แสดงค่าของ budget_year ในคอนโซล
                                     console.log('Budget Year 1:', budgetYear1);
                                     console.log('Budget Year 2:', budgetYear2);
-                                    console.log('Budget Year 3:', budgetYear3);
-                                    console.log('faculty',faculty)
+                                    console.log('Budget Year 2:', budgetYear3);
                                 </script>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
@@ -358,7 +352,10 @@ function fetchYearsData($conn)
                                             $previousProject = "";
                                             $previousSubType = "";
                                             $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-                                            $results = fetchBudgetData($conn, $selectedFaculty);
+                                            $selectedYear1 = isset($_GET['year']) ? $_GET['year'] : null;
+                                            $selectedYear2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+                                            $selectedYear3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $selectedYear1, $selectedYear2, $selectedYear3);
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
                                                 foreach ($results as $row) {
@@ -430,6 +427,21 @@ function fetchYearsData($conn)
                                             ?>
                                         </tbody>
                                     </table>
+                                    <script>
+                                        // การส่งค่าของ selectedFaculty ไปยัง JavaScript
+                                        var selectedFaculty = "<?php echo isset($selectedFaculty) ? htmlspecialchars($selectedFaculty, ENT_QUOTES, 'UTF-8') : ''; ?>";
+                                        console.log('Selected Faculty: ', selectedFaculty);
+
+                                        // การส่งค่าของ selectedYear1, selectedYear2, selectedYear3 ไปยัง JavaScript
+                                        var selectedYear1 = "<?php echo isset($_GET['year']) ? $_GET['year'] : ''; ?>";
+                                        var selectedYear2 = "<?php echo isset($_GET['year']) ? $_GET['year'] - 1 : ''; ?>";
+                                        var selectedYear3 = "<?php echo isset($_GET['year']) ? $_GET['year'] - 2 : ''; ?>";
+
+                                        console.log('Selected Year 1: ', selectedYear1);
+                                        console.log('Selected Year 2: ', selectedYear2);
+                                        console.log('Selected Year 3: ', selectedYear3);
+                                    </script>
+
 
 
                                 </div>
