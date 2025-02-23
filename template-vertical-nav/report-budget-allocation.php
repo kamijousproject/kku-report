@@ -109,7 +109,7 @@ $scenarioMap = array(
 $scenarioValue = isset($scenarioMap[$selectedScenario]) ? $scenarioMap[$selectedScenario] : 'ANL-RELEASE-1';
 
 // ฟังก์ชันในการดึงข้อมูลจากฐานข้อมูล
-function fetchScenarioData($conn, $scenarioColumnValue)
+function fetchScenarioData($conn, $scenarioColumnValue, $selectedScenario)
 {
     $query = "SELECT 
     bap.Service,
@@ -142,7 +142,37 @@ function fetchScenarioData($conn, $scenarioColumnValue)
     COALESCE(bap.Allocated_Total_Amount_Quantity, 0) AS Allocated_Total_Amount_Quantity,
     
     -- Pre_Release_Amount ถ้า NULL ให้เป็น 0 เช่นกัน
-    COALESCE(bpd.Pre_Release_Amount, 0) AS Pre_Release_Amount,
+    CASE
+        WHEN :selectedScenario = 'Scenario1' THEN 0
+        WHEN :selectedScenario = 'Scenario2' THEN 
+            CASE
+                WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0)
+                ELSE 0
+            END
+        WHEN :selectedScenario = 'Scenario3' THEN 
+            CASE
+                WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0)
+                ELSE 0
+            END +
+            CASE
+                WHEN bpd.Scenario = 'ANL-RELEASE-2' THEN COALESCE(bpd.Release_Amount, 0)
+                ELSE 0
+            END
+        WHEN :selectedScenario = 'Scenario4' THEN 
+            CASE
+                WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0)
+                ELSE 0
+            END +
+            CASE
+                WHEN bpd.Scenario = 'ANL-RELEASE-2' THEN COALESCE(bpd.Release_Amount, 0)
+                ELSE 0
+            END +
+            CASE
+                WHEN bpd.Scenario = 'ANL-RELEASE-3' THEN COALESCE(bpd.Release_Amount, 0)
+                ELSE 0
+            END
+        ELSE 0
+    END AS Pre_Release_Amount,
 
     -- Release_Amount ถ้า NULL ให้เป็น 0
     COALESCE(bpd.Release_Amount, 0) AS Release_Amount,
@@ -176,7 +206,7 @@ function fetchScenarioData($conn, $scenarioColumnValue)
     -- คำนวณ Total_Release_Amount โดย Coalesce เช่นกัน
     ( COALESCE(bpd.Pre_Release_Amount, 0) + COALESCE(bpd.Release_Amount, 0) ) AS Total_Release_Amount,
     
-    -- กรองข้อมูล Fund ที่มีค่าเป็น FN06 หรือ FN02
+
     bap.Reason
 FROM 
     budget_planning_allocated_annual_budget_plan bap
@@ -215,24 +245,28 @@ FROM
     $query .= " AND ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
 
     $query .= " ORDER BY 
-    bap.Plan,
-    bap.Sub_Plan,
-    bap.Project,           
-    bap.Faculty,            
-    bap.Account";
+    bap.Faculty ASC,
+    bap.Plan ASC,
+    bap.Sub_Plan ASC,
+    bap.Project ASC,           
+            CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
+            CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
+            bap.`Account` ASC ";
 
     $stmt = $conn->prepare($query);
     if ($scenarioColumnValue) {
         $stmt->bindParam(':scenarioColumn', $scenarioColumnValue);
+        $stmt->bindParam(':selectedScenario', $selectedScenario);
     }
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// รับค่าจาก dropdown ถ้าไม่มีให้ใช้ค่าเริ่มต้นเป็น Scenario1
+$selectedScenario = isset($_GET['scenario']) ? $_GET['scenario'] : 'Scenario1';
 
-
-// ดึงข้อมูลตาม Scenario ที่เลือก (ในตัวอย่างนี้ใช้ ScenarioValue)
-$results = fetchScenarioData($conn, $scenarioValue);
+// ดึงข้อมูลตาม Scenario ที่เลือก
+$results = fetchScenarioData($conn, $scenarioValue, $selectedScenario);
 ?>
 
 
@@ -427,14 +461,35 @@ $results = fetchScenarioData($conn, $scenarioValue);
 
                                                     // แสดงผล
                                                     echo str_repeat("&nbsp;", 32) . $kkuItemName;
-
+                                                    
+                                                    switch ($selectedScenario) {
+                                                        case 'Scenario1':
+                                                            $total = $row['Scenario1'];
+                                                            break;
+                                                        case 'Scenario2':
+                                                            $total = $row['Scenario1'] + $row['Scenario2'];
+                                                            break;
+                                                        case 'Scenario3':
+                                                            $total = $row['Scenario1'] + $row['Scenario2'] + $row['Scenario3'];
+                                                            break;
+                                                        case 'Scenario4':
+                                                            $total = $row['Scenario1'] + $row['Scenario2'] + $row['Scenario3'] + $row['Scenario4'];
+                                                            break;
+                                                        default:
+                                                            $total = 0; // หากไม่มี Scenario ที่ตรงกัน
+                                                            break;
+                                                    }
+                                                    
                                                     // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>0</td>";
+                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Pre_Release_Amount']) . "</td>";
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row[$selectedScenario]) . "</td>";
+                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($total) . "</td>";
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Total_Release_Amount']) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Remaining_Amount']) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Reason']) . "</td>";
+                                                    
+                                                    echo "<td style='vertical-align: bottom;'>" .
+                                                        (!empty($row['Reason']) ? htmlspecialchars($row['Reason']) : 'ไม่มีหมายเหตุ') .
+                                                        "</td>";
 
 
                                                     echo "</tr>";
