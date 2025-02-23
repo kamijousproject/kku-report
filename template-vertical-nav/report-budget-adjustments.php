@@ -110,39 +110,26 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     bap.id, bap.Faculty,
     bap.Plan,
     ft.Alias_Default AS Faculty_name,
-    MAX(p.plan_name) AS plan_name, -- ใช้ MAX() หรือฟังก์ชันการรวมอื่น ๆ
+    MAX(p.plan_name) AS plan_name,
     (SELECT fc.Alias_Default 
      FROM Faculty fc 
      WHERE fc.Faculty = bap.Faculty 
      LIMIT 1) AS Faculty_Name,
-     
     bap.Sub_Plan, sp.sub_plan_name,
     bap.Project, pj.project_name,
     bap.`Account`, ac.sub_type,
     bap.KKU_Item_Name,
-        -- a1: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
-        CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
-    
-    -- a2: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
+    CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
     CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
-    
-
-    -- แยก Total_Amount_Quantity ตามปีจากคอลัมน์ Budget_Management_Year
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
-
-    -- แยก TOTAL_BUDGET ตามปีจาก bpa.FISCAL_YEAR
     SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
     SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
     SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
-
-    -- หาผลต่างระหว่าง Total_Amount_2568 และ TOTAL_BUDGET_2567
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
     COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
     AS Difference_2568_2567,
-
-    -- คำนวณเปอร์เซ็นต์ผลต่าง
     CASE
         WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
         THEN 100
@@ -154,10 +141,10 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
             NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
     END AS Percentage_Difference_2568_2567,
     bap.Reason
-
 FROM budget_planning_annual_budget_plan bap
-LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') ft
-ON ft.Faculty = bap.Faculty
+    INNER JOIN Faculty ft 
+        ON bap.Faculty = ft.Faculty 
+        AND ft.parent LIKE 'Faculty%' 
 LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan
 LEFT JOIN project pj ON pj.project_id = bap.Project
 LEFT JOIN `account` ac ON ac.`account` = bap.`Account`
@@ -165,7 +152,7 @@ LEFT JOIN plan p ON p.plan_id = bap.Plan
 LEFT JOIN budget_planning_actual bpa
     ON bpa.FACULTY = bap.Faculty
     AND bpa.`ACCOUNT` = bap.`Account`
-    AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED) -- ใช้ SUBSTRING แทน REPLACE เพื่อแปลงเป็นตัวเลข
+    AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
     AND bpa.PROJECT = bap.Project
     AND bpa.PLAN = bap.Plan
     AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
@@ -196,6 +183,7 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 
 
 

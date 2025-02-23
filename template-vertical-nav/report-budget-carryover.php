@@ -79,148 +79,112 @@
 </style>
 <?php
 
+include('../component/header.php');
 include '../server/connectdb.php';
 
 $db = new Database();
 $conn = $db->connect();
 
-$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
-$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
-$budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
+function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
 {
-    // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
-    if ($budget_year1 === null) {
-        $budget_year1 = 2568;  // ค่าเริ่มต้นถ้าหากไม่ได้รับจาก URL
-    }
-    if ($budget_year2 === null) {
-        $budget_year2 = 2567;  // ค่าเริ่มต้น
-    }
-    if ($budget_year3 === null) {
-        $budget_year3 = 2566;  // ค่าเริ่มต้น
-    }
-
-    // สร้างคิวรี
-    $query = "SELECT 
-    bap.id, bap.Faculty,
-    bap.Plan,
-    ft.Alias_Default AS Faculty_name,
-    MAX(p.plan_name) AS plan_name, -- ใช้ MAX() หรือฟังก์ชันการรวมอื่น ๆ
-    (SELECT fc.Alias_Default 
-     FROM Faculty fc 
-     WHERE fc.Faculty = bap.Faculty 
-     LIMIT 1) AS Faculty_Name,
-     
-    bap.Sub_Plan, sp.sub_plan_name,
-    bap.Project, pj.project_name,
-    bap.`Account`, ac.sub_type,
-    bap.KKU_Item_Name,
-        -- a1: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
+    try {
+        $query = "SELECT 
+        bap.Faculty, 
+        ft.Faculty, 
+        ft.Alias_Default, 
+        bpa.BUDGET_PERIOD,
         CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
-    
-    -- a2: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
-    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
-    
+        ac.`type`,
+        CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2, 
+        ac.sub_type,
+        bap.`Account`,
+        bap.KKU_Item_Name,
+        SUM(CASE WHEN bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN02,
+        SUM(CASE WHEN bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN06,
+        SUM(CASE WHEN bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN08,
+        SUM(bap.Allocated_Total_Amount_Quantity) AS Total_Amount,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN02,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN06,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN08,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_SUM,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN02,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN06,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN08,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_SUM,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) - 
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Difference_2568_2567,
+        CASE
+            WHEN SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 THEN 100
+            ELSE (SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) / 
+                  SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) * 100
+        END AS Percentage_2568_to_2567
+        FROM budget_planning_allocated_annual_budget_plan bap
+        INNER JOIN Faculty ft ON bap.Faculty = ft.Faculty AND ft.parent LIKE 'Faculty%'
+        LEFT JOIN plan p ON bap.Plan = p.plan_id
+        LEFT JOIN sub_plan sp ON bap.Sub_Plan = sp.sub_plan_id
+        LEFT JOIN project pj ON bap.Project = pj.project_id
+        INNER JOIN account ac ON bap.`Account` = ac.`account`
+        INNER JOIN budget_planning_actual bpa ON bpa.PROJECT = bap.Project
+            AND bpa.`ACCOUNT` = bap.`Account`
+            AND bpa.PLAN = bap.Plan
+            AND bpa.FUND = bap.Fund
+            AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
+            AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)";
 
-    -- แยก Total_Amount_Quantity ตามปีจากคอลัมน์ Budget_Management_Year
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
+        if ($faculty) {
+            $query .= " AND bap.Faculty = :faculty";
+        }
 
-    -- แยก TOTAL_BUDGET ตามปีจาก bpa.FISCAL_YEAR
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
+        $query .= " GROUP BY 
+            bap.Faculty, 
+            ft.Faculty, 
+            ft.Alias_Default, 
+            bpa.BUDGET_PERIOD, 
+            bap.`Account`, 
+            ac.`type`, 
+            ac.sub_type, 
+            bap.KKU_Item_Name
+        ORDER BY 
+            bap.Faculty ASC, 
+            CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
+            CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
+            bap.`Account` ASC
+        LIMIT :limit OFFSET :offset";
 
-    -- หาผลต่างระหว่าง Total_Amount_2568 และ TOTAL_BUDGET_2567
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-    COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
-    AS Difference_2568_2567,
+        $stmt = $conn->prepare($query);
 
-    -- คำนวณเปอร์เซ็นต์ผลต่าง
-    CASE
-        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
-        THEN 100
-        ELSE 
-            (
-                SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
-            ) / 
-            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
-    END AS Percentage_Difference_2568_2567,
-    bap.Reason
+        if ($faculty) {
+            $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+        }
 
-FROM budget_planning_annual_budget_plan bap
-LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') ft
-ON ft.Faculty = bap.Faculty
-LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan
-LEFT JOIN project pj ON pj.project_id = bap.Project
-LEFT JOIN `account` ac ON ac.`account` = bap.`Account`
-LEFT JOIN plan p ON p.plan_id = bap.Plan
-LEFT JOIN budget_planning_actual bpa
-    ON bpa.FACULTY = bap.Faculty
-    AND bpa.`ACCOUNT` = bap.`Account`
-    AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED) -- ใช้ SUBSTRING แทน REPLACE เพื่อแปลงเป็นตัวเลข
-    AND bpa.PROJECT = bap.Project
-    AND bpa.PLAN = bap.Plan
-    AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
-    AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-    AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
-WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
+        // Binding limit and offset
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 
-    // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
-    if ($faculty) {
-        $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
+        return [];
     }
-
-    // เพิ่มการจัดกลุ่มข้อมูล
-    $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
-    bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
-    bap.KKU_Item_Name, ft.Alias_Default
-    ORDER BY CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED) ASC, pj.project_name ASC";
-
-    // เตรียมคำสั่ง SQL
-    $stmt = $conn->prepare($query);
-
-    // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
-    if ($faculty) {
-        $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
-    }
-
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
-
-
-
-$results = fetchBudgetData($conn,$faculty, $budget_year1, $budget_year2, $budget_year3);
 
 function fetchFacultyData($conn)
 {
-    // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
-    $query = "SELECT DISTINCT bap.Faculty, ft.Alias_Default AS Faculty_Name
-              FROM budget_planning_annual_budget_plan bap
-              LEFT JOIN Faculty ft ON ft.Faculty = bap.Faculty";
-    $stmt = $conn->prepare($query);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $query = "SELECT DISTINCT bap.Faculty, ft.Alias_Default AS Faculty_Name
+                  FROM budget_planning_annual_budget_plan bap
+                  LEFT JOIN Faculty ft ON ft.Faculty = bap.Faculty";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        echo "Error: " . $e->getMessage();
+        return [];
+    }
 }
-
-function fetchYearsData($conn)
-{
-    $query = "SELECT DISTINCT Budget_Management_Year 
-              FROM budget_planning_annual_budget_plan 
-              ORDER BY Budget_Management_Year DESC"; // ดึงปีจากฐานข้อมูล และเรียงลำดับจากปีล่าสุด
-    $stmt = $conn->prepare($query);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
 
 ?>
-
 
 
 <!DOCTYPE html>
@@ -258,6 +222,51 @@ function fetchYearsData($conn)
                                     <h4>รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว
                                         ประเภทที่ยังไม่มีหนี้</h4>
                                 </div>
+
+                                <?php
+                                $faculties = fetchFacultyData($conn);
+                                ?>
+                                <form method="GET" action="" onsubmit="return validateForm()">
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
+                                            ส่วนงาน/หน่วยงาน</label>
+                                        <select name="faculty" id="faculty" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
+                                            <?php
+                                            // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
+                                            foreach ($faculties as $faculty) {
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']); // ใช้ Faculty_Name แทน Faculty
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']); // ใช้ Faculty รหัสเพื่อส่งไปใน GET
+                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+
+                                    <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
+                                    <div class="form-group" style="display: flex; justify-content: center;">
+                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                    </div>
+                                </form>
+
+
+
+
+
+                                <script>
+                                    function validateForm() {
+                                        var faculty = document.getElementById('faculty').value;
+                                        if (faculty == '') {
+                                            alert('กรุณาเลือกส่วนงาน/หน่วยงาน');
+                                            return false;
+                                        }
+                                        return true;
+                                    }
+                                </script>
+
+
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
@@ -281,92 +290,82 @@ function fetchYearsData($conn)
                                             </tr>
                                         </thead>
 
-                                        <tbody>
-                                            <?php
-                                            // ตัวแปรเก็บค่าของแถวก่อนหน้า
-                                            $previousAccount = "";
-                                            $previousType = "";
-                                            $previousSubType = "";
-                                            $previousKKU_Item_Name = "";  // เก็บค่าของ KKU_Item_Name
-                                            
-                                            // วนลูปแสดงข้อมูลที่รวมกัน
-                                            foreach ($mergedData as $row) {
-                                                // คำนวณ Total_Allocated สำหรับแต่ละแถว
-                                                $Allocated_FN06 = $row['Allocated_FN06'] ?? 0;
-                                                $Allocated_FN02 = $row['Allocated_FN02'] ?? 0;
-                                                $Allocated_FN08 = $row['Allocated_FN08'] ?? 0;
-                                                $Total_Allocated = $Allocated_FN06 + $Allocated_FN02 + $Allocated_FN08;  // เพิ่ม Allocated_FN08 ในการคำนวณ Total_Allocated
-                                                $Allocated_FN08Yead00 = 0;
-                                                $Total = $Total_Allocated - $Allocated_FN08Yead00;
-                                                // คำนวณ Percentage Change (เพิ่มหรือลด)
-                                                $Percentage_Change = 0;
+                                        <?php
+                                        // ตัวแปรเก็บค่าของแถวก่อนหน้า
+                                        $previousType = "";
+                                        $previousSubType = "";
+                                        $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 
-                                                // ตรวจสอบว่าค่า Allocated_FN02 เป็น 0 หรือไม่
-                                            
-                                                // คำนวณ Percentage Change (เพิ่มหรือลด)
-                                                if ($Allocated_FN08Yead00 == 0) {
-                                                    $Percentage_Change = 100; // กรณีที่ค่าเป็น 0 ให้ถือว่าเป็น 100%
-                                                } else {
-                                                    $Percentage_Change = (($Allocated_FN06 - $Allocated_FN08Yead00) / $Allocated_FN08Yead00) * 100;
-                                                }
+                                        $results = fetchBudgetData($conn, $selectedFaculty);
 
+                                        // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                        if (isset($results) && is_array($results) && count($results) > 0) {
+                                            foreach ($results as $row) {
                                                 echo "<tr>";
-                                                echo "<td style='text-align: left;'>";  // เริ่มต้น <td> สำหรับแสดงข้อมูล
-                                            
-                                                // เช็คว่า Account ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                if ($row['Account'] != $previousAccount) {
-                                                    $previousAccount = $row['Account'];  // เก็บค่าปัจจุบันของ Account
+                                                echo "<td style='text-align: left;'>";
+
+                                                // เช็คและแสดง Type ถ้าเปลี่ยนแปลง
+                                                if ($row['a1'] != $previousType) {
+                                                    // ลบตัวเลขและจุดจาก type
+                                                    $cleanedType = preg_replace('/[0-9.]/', '', $row['type']);
+                                                    echo "<strong>" . htmlspecialchars($row['a1']) . "</strong> : " . htmlspecialchars($cleanedType) . "<br>";
+                                                    $previousType = $row['a1'];
+                                                    $previousSubType = "";
                                                 }
 
-                                                // เช็คว่า Type ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                if ($row['Type'] != $previousType) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Type']}</strong><br>";
-                                                    $previousType = $row['Type'];  // เก็บค่าปัจจุบันของ Type
-                                                }
-
-                                                // เช็คว่า Sub_Type ก่อนหน้าต่างจากแถวปัจจุบันหรือไม่
-                                                if ($row['Sub_Type'] != $previousSubType) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . "{$row['Sub_Type']}</strong><br>";
-                                                    $previousSubType = $row['Sub_Type'];  // เก็บค่าปัจจุบันของ Sub_Type
-                                                }
-
-
-                                                if ($row['KKU_Item_Name'] != $previousKKU_Item_Name) {
-                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . "{$row['KKU_Item_Name']}</strong><br>";
-                                                    $previousKKU_Item_Name = $row['KKU_Item_Name'];  // เก็บค่าปัจจุบันของ Sub_Type
+                                                // เช็คและแสดง Sub Type ถ้าเปลี่ยนแปลง
+                                                if ($row['a2'] != $previousSubType) {
+                                                    // ลบตัวเลขและจุดจาก sub_type
+                                                    $cleanedSubType = preg_replace('/[0-9.]/', '', $row['sub_type']);
+                                                    echo str_repeat("&nbsp;", 16) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($cleanedSubType) . "<br>";
+                                                    $previousSubType = $row['a2'];
                                                 }
 
 
-                                                // แสดงข้อมูลเพิ่มเติมในแต่ละช่อง
-                                                echo "<td>0</td>";  // ปี 2567 เงินอุดหนุนจากรัฐ
-                                                echo "<td>0</td>";  // ปี 2567 เงินนอกงบประมาณ
-                                                echo "<td>0</td>";  // ปี 2567 เงินรายได้
-                                                echo "<td>0</td>";  // ปี 2567 รวม
-                                                echo "</td>";  // ปิด <td>
-                                            
-                                                // แสดง Allocated_FN06, Allocated_FN08, Allocated_FN02
-                                                echo "<td>" . (isset($row['Allocated_FN06']) ? $row['Allocated_FN06'] : '-') . "</td>";
-                                                echo "<td>" . (isset($row['Allocated_FN08']) ? $row['Allocated_FN08'] : '-') . "</td>";
-                                                echo "<td>" . (isset($row['Allocated_FN02']) ? $row['Allocated_FN02'] : '-') . "</td>";
+                                                // เช็คและกำหนดค่า kkuItemName
+                                                $kkuItemName = (!empty($row['KKU_Item_Name']))
+                                                    ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
+                                                    : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
 
-                                                // แสดง Total_Allocated
-                                                echo "<td>" . $Total_Allocated . "</td>";  // ปี 2568 รวม
-                                            
-                                                // แสดงเพิ่ม/ลด จำนวน
-                                                echo "<td>" . $Total . "</td>";
-                                                // แสดงเพิ่ม/ลด ร้อยละ
-                                                echo "<td>" . sprintf("%.2f", $Percentage_Change) . "%</td>";
-                                                // เพิ่ม/ลด ร้อยละ
-                                                echo "</tr>";  // ปิด <tr>
+                                                // แสดงผล
+                                                echo str_repeat("&nbsp;", 32) . $kkuItemName;
+                                                echo "</td>";
+
+                                                // แสดงยอดเงิน
+                                                echo "<td>" . number_format($row['Total_Amount_2567_FN06'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Total_Amount_2567_FN08'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Total_Amount_2567_FN02'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Total_Amount_2567_SUM'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Total_Amount_2568_FN06'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Total_Amount_2568_FN08'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Total_Amount_2568_FN02'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Total_Amount_2568_SUM'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Difference_2568_2567'], 2) . "</td>";
+                                                echo "<td>" . number_format($row['Percentage_2568_to_2567'], 2) . "</td>";
+
+
+                                                echo "</tr>";
+
+                                                // อัปเดตตัวแปรก่อนหน้า
+                                                $previousType = $row['a1'];
+                                                $previousSubType = $row['a2'];
                                             }
-                                            ?>
+                                        } else {
+                                            echo "<tr><td colspan='8'>ไม่มีข้อมูลที่ค้นหามา</td></tr>";
+                                        }
 
-
-
-                                        </tbody>
+                                        ?>
                                     </table>
-                                </div>
+                                    <script>
+                                        // การส่งค่าของ selectedFaculty ไปยัง JavaScript
+                                        var selectedFaculty = "<?php echo isset($selectedFaculty) ? htmlspecialchars($selectedFaculty, ENT_QUOTES, 'UTF-8') : ''; ?>";
+                                        console.log('Selected Faculty: ', selectedFaculty);
 
+
+                                    </script>
+
+
+                                </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
@@ -557,6 +556,8 @@ function fetchYearsData($conn)
     <!-- โหลดไลบรารี xlsx จาก CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 
 </body>
 
