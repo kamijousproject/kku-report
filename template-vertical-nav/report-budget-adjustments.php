@@ -119,6 +119,12 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     bap.Project, pj.project_name,
     bap.`Account`, ac.sub_type,
     bap.KKU_Item_Name,
+        -- a1: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
+        CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
+    
+    -- a2: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
+    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
+    
 
     -- แยก Total_Amount_Quantity ตามปีจากคอลัมน์ Budget_Management_Year
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
@@ -164,7 +170,7 @@ LEFT JOIN budget_planning_actual bpa
     AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
     AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
     AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
-WHERE bap.`Account` LIKE '4%'";
+WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
 
     // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
     if ($faculty) {
@@ -370,30 +376,36 @@ function fetchYearsData($conn)
 
                                                     // เช็คและแสดง Sub Plan ถ้าเปลี่ยนแปลง
                                                     if ($row['Sub_Plan'] != $previousSubPlanId) {
-                                                        echo str_repeat("&nbsp;", 4) . "<strong>" . htmlspecialchars($row['Sub_Plan']) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
+                                                        // ลบคำว่า "SP_" ออกจาก sub_plan_id
+                                                        $cleanedSubPlanId = str_replace('SP_', '', $row['Sub_Plan']);
+                                                        echo str_repeat("&nbsp;", 8) . "<strong>" . htmlspecialchars($cleanedSubPlanId) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
                                                         $previousSubPlanId = $row['Sub_Plan'];
                                                         $previousProject = "";
+                                                        $previousType = "";
                                                         $previousSubType = "";
                                                     }
 
+
                                                     // เช็คและแสดง Project ถ้าเปลี่ยนแปลง
                                                     if ($row['project_name'] != $previousProject) {
-                                                        echo str_repeat("&nbsp;", 8) . htmlspecialchars($row['project_name']) . "<br>";
+                                                        echo str_repeat("&nbsp;", 16) . htmlspecialchars($row['project_name']) . "<br>";
                                                         $previousProject = $row['project_name'];
                                                         $previousSubType = "";
                                                     }
 
                                                     // เช็คและแสดง Sub Type ถ้าเปลี่ยนแปลง
                                                     if ($row['sub_type'] != $previousSubType) {
-                                                        echo str_repeat("&nbsp;", 24) . htmlspecialchars($row['sub_type']) . "<br>";
+                                                        // ลบตัวเลขและจุดจาก sub_type
+                                                        $cleanedSubType = preg_replace('/[0-9.]/', '', $row['sub_type']);
+                                                        echo str_repeat("&nbsp;", 24) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($cleanedSubType) . "<br>";
                                                         $previousSubType = $row['sub_type'];
                                                     }
-
                                                     // แสดง KKU Item Name เสมอ
 // ตรวจสอบว่า KKU_Item_Name มีค่า และไม่เป็นค่าว่างหรือไม่
+                                                    // เช็คและกำหนดค่า kkuItemName
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? htmlspecialchars($row['KKU_Item_Name'])
-                                                        : "ไม่มี ข้อมูล Item_Name";
+                                                        ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
+                                                        : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
 
                                                     // แสดงผล
                                                     echo str_repeat("&nbsp;", 32) . $kkuItemName;

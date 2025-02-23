@@ -57,10 +57,13 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        font-family: 'Arial', sans-serif; /* เลือกฟอนต์ที่ต้องการ */
-    font-size: 16px; /* กำหนดขนาดฟอนต์ให้เท่ากัน */
-    line-height: 1.5; /* กำหนดระยะห่างระหว่างบรรทัด */
-        
+        font-family: 'Arial', sans-serif;
+        /* เลือกฟอนต์ที่ต้องการ */
+        font-size: 16px;
+        /* กำหนดขนาดฟอนต์ให้เท่ากัน */
+        line-height: 1.5;
+        /* กำหนดระยะห่างระหว่างบรรทัด */
+
     }
 
     thead tr:nth-child(1) th {
@@ -287,6 +290,22 @@ $results = fetchScenarioData($conn, $scenarioValue);
                                     </select>
                                     <button type="submit">แสดงข้อมูล</button>
                                 </form>
+                                <script>
+                                    document.addEventListener("DOMContentLoaded", function () {
+                                        console.log("Script Loaded");
+
+                                        // ดึงค่า scenario จาก URL (หลังจากกดแสดงข้อมูล)
+                                        const urlParams = new URLSearchParams(window.location.search);
+                                        const selectedScenario = urlParams.get("scenario");
+
+                                        if (selectedScenario) {
+                                            console.log("ค่าที่เลือก:", selectedScenario);
+                                        } else {
+                                            console.log("ไม่มีค่า scenario ใน URL");
+                                        }
+                                    });
+                                </script>
+
                                 <div class="card-title" style="margin-top:20px;">
                                     <span>
                                         <?php
@@ -365,12 +384,15 @@ $results = fetchScenarioData($conn, $scenarioValue);
 
                                                     // เช็คและแสดง Sub Plan ถ้าเปลี่ยนแปลง
                                                     if ($row['sub_plan_id'] != $previousSubPlanId) {
-                                                        echo str_repeat("&nbsp;", 8) . "<strong>" . htmlspecialchars($row['sub_plan_id']) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
+                                                        // ลบคำว่า "SP_" ออกจาก sub_plan_id
+                                                        $cleanedSubPlanId = str_replace('SP_', '', $row['sub_plan_id']);
+                                                        echo str_repeat("&nbsp;", 8) . "<strong>" . htmlspecialchars($cleanedSubPlanId) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
                                                         $previousSubPlanId = $row['sub_plan_id'];
                                                         $previousProject = "";
                                                         $previousType = "";
                                                         $previousSubType = "";
                                                     }
+
 
                                                     // เช็คและแสดง Project ถ้าเปลี่ยนแปลง
                                                     if ($row['project_name'] != $previousProject) {
@@ -382,22 +404,26 @@ $results = fetchScenarioData($conn, $scenarioValue);
 
                                                     // เช็คและแสดง Type ถ้าเปลี่ยนแปลง
                                                     if ($row['type'] != $previousType) {
-                                                        echo "<strong>" . htmlspecialchars($row['a1']) . "</strong> : " . htmlspecialchars($row['type']) . "<br>";
+                                                        // ลบตัวเลขและจุดจาก type
+                                                        $cleanedType = preg_replace('/[0-9.]/', '', $row['type']);
+                                                        echo "<strong>" . htmlspecialchars($row['a1']) . "</strong> : " . htmlspecialchars($cleanedType) . "<br>";
                                                         $previousType = $row['type'];
                                                         $previousSubType = "";
                                                     }
 
                                                     // เช็คและแสดง Sub Type ถ้าเปลี่ยนแปลง
                                                     if ($row['sub_type'] != $previousSubType) {
-                                                        echo str_repeat("&nbsp;", 16) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($row['sub_type']) . "<br>";
+                                                        // ลบตัวเลขและจุดจาก sub_type
+                                                        $cleanedSubType = preg_replace('/[0-9.]/', '', $row['sub_type']);
+                                                        echo str_repeat("&nbsp;", 16) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($cleanedSubType) . "<br>";
                                                         $previousSubType = $row['sub_type'];
                                                     }
 
-                                                    // แสดง KKU Item Name เสมอ
-// ตรวจสอบว่า KKU_Item_Name มีค่า และไม่เป็นค่าว่างหรือไม่
+
+                                                    // เช็คและกำหนดค่า kkuItemName
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? "<strong>" . htmlspecialchars($row['account']) ."</strong> : " .htmlspecialchars($row['KKU_Item_Name'])
-                                                        : "ไม่มี ข้อมูล Item_Name";
+                                                        ? "<strong>" . htmlspecialchars($row['account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
+                                                        : "<strong>" . htmlspecialchars($row['account']) . "</strong>";
 
                                                     // แสดงผล
                                                     echo str_repeat("&nbsp;", 32) . $kkuItemName;
