@@ -104,7 +104,22 @@
                                 $db = new Database();
                                 $conn = $db->connect();
 
-                                function fetchBudgetData($conn, $fund)
+                                // ดึงรายการ "ส่วนงาน/หน่วยงาน"
+                                function getFacultyList($conn)
+                                {
+                                    $query = "SELECT Faculty, Alias_Default FROM Faculty ORDER BY Alias_Default ASC";
+                                    $stmt = $conn->prepare($query);
+                                    $stmt->execute();
+                                    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                }
+
+                                $facultyList = getFacultyList($conn);
+
+                                // รับค่าที่ User เลือกจาก Dropdown
+                                $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : "";
+
+                                // ดึงข้อมูลงบประมาณตามหน่วยงานที่เลือก
+                                function fetchBudgetData($conn, $selectedFaculty)
                                 {
                                     $query = "SELECT
                                                 acc.alias_default AS Account_Alias_Default,
@@ -118,40 +133,63 @@
                                                 bpanbp.Project,
                                                 bpanbp.KKU_Item_Name,
                                                 bpanbp.Allocated_Total_Amount_Quantity,
+                                                bpanbp.Fund,
                                                 bpabp.Total_Amount_Quantity,
+                                                bpabp.Fund,
                                                 f.Alias_Default AS Faculty_Name,
+                                                (
+                                                    SELECT Faculty_Parent.Alias_Default
+                                                    FROM Faculty Faculty_Parent
+                                                    WHERE Faculty_Parent.Faculty = CONCAT(LEFT(f.Faculty, 2), '000')
+                                                    LIMIT 1
+                                                ) AS Alias_Default_Parent,
                                                 p.plan_name AS Plan_Name,
                                                 sp.sub_plan_name AS Sub_Plan_Name,
                                                 pr.project_name AS Project_Name
-                                            FROM
-                                                budget_planning_allocated_annual_budget_plan bpanbp
-                                                LEFT JOIN budget_planning_annual_budget_plan bpabp 
-                                                    ON bpanbp.Account = bpabp.Account
-                                                    AND bpanbp.Plan = bpabp.Plan
-                                                    AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-                                                    AND bpanbp.Project = bpabp.Project
-                                                LEFT JOIN account acc 
-                                                    ON bpanbp.Account = acc.account
-                                                LEFT JOIN Faculty f 
-                                                    ON bpanbp.Faculty = f.Faculty
-                                                LEFT JOIN plan p 
-                                                    ON bpanbp.Plan = p.plan_id
-                                                LEFT JOIN sub_plan sp 
-                                                    ON bpanbp.Sub_Plan = sp.sub_plan_id
-                                                LEFT JOIN project pr 
-                                                    ON bpanbp.Project = pr.project_id
-                                            WHERE 
-                                                bpabp.Fund = :fund;";
+                                            FROM budget_planning_allocated_annual_budget_plan bpanbp
+                                            LEFT JOIN budget_planning_annual_budget_plan bpabp 
+                                                ON bpanbp.Account = bpabp.Account
+                                                AND bpanbp.Plan = bpabp.Plan
+                                                AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+                                                AND bpanbp.Project = bpabp.Project
+                                            LEFT JOIN account acc ON bpanbp.Account = acc.account
+                                            LEFT JOIN Faculty f ON bpanbp.Faculty = f.Faculty
+                                            LEFT JOIN plan p ON bpanbp.Plan = p.plan_id
+                                            LEFT JOIN sub_plan sp ON bpanbp.Sub_Plan = sp.sub_plan_id
+                                            LEFT JOIN project pr ON bpanbp.Project = pr.project_id";
+
+                                    // เพิ่มเงื่อนไขกรองข้อมูลถ้า User เลือกหน่วยงาน
+                                    if (!empty($selectedFaculty)) {
+                                        $query .= " WHERE bpanbp.Faculty = :selectedFaculty";
+                                    }
 
                                     $stmt = $conn->prepare($query);
-                                    $stmt->bindParam(':fund', $fund);
+
+                                    // ผูกค่า Parameter ถ้ามีการเลือกหน่วยงาน
+                                    if (!empty($selectedFaculty)) {
+                                        $stmt->bindParam(':selectedFaculty', $selectedFaculty, PDO::PARAM_STR);
+                                    }
+
                                     $stmt->execute();
                                     return $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 }
-                                $resultsFN06 = fetchBudgetData($conn, 'FN06');
-                                $resultsFN08 = fetchBudgetData($conn, 'FN08');
-                                $resultsFN02 = fetchBudgetData($conn, 'FN02');
+
+                                // ดึงข้อมูลตามค่าที่เลือก
+                                $results = fetchBudgetData($conn, $selectedFaculty);
                                 ?>
+                                <form method="GET">
+                                    <label for="faculty">เลือกส่วนงาน/หน่วยงาน:</label>
+                                    <select class="form-control" name="faculty" id="faculty" onchange="this.form.submit()">
+                                        <option value="">-- เลือกทั้งหมด --</option>
+                                        <?php foreach ($facultyList as $faculty): ?>
+                                            <option value="<?php echo $faculty['Faculty']; ?>"
+                                                <?php echo ($selectedFaculty == $faculty['Faculty']) ? "selected" : ""; ?>>
+                                                <?php echo htmlspecialchars($faculty['Alias_Default']); ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </form>
+                                <br>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -180,77 +218,72 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php
-                                            foreach ($resultsFN06 as $row):
-                                                $fn08 = $resultsFN08[array_search($row['Account'], array_column($resultsFN08, 'Account'))] ?? [];
-                                                $fn02 = $resultsFN02[array_search($row['Account'], array_column($resultsFN02, 'Account'))] ?? [];
-                                                $sum67 = ($row['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
-                                                $sum68Request = ($row['Total_Amount_Quanity'] ?? 0) + ($fn08['Total_Amount_Quanity'] ?? 0) + ($fn02['Total_Amount_Quanity'] ?? 0);
-                                                $sum68Allocated = ($row['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn08['Allocated_Total_Amount_Quantity'] ?? 0) + ($fn02['Allocated_Total_Amount_Quantity'] ?? 0);
-                                                $diff = $sum67 - $sum68Allocated;
-                                                // $percent = $diff / $sum68Allocated * 100;
-                                                $percent = ($sum67 - $sum68Allocated) / $sum68Allocated * 100;
+                                            <?php foreach ($results as $row):
+                                                // รวมค่าที่ต้องการในช่อง "รายการ"
+                                                $item_name =
+                                                    htmlspecialchars($row['Faculty_Name']) . "<br>" .
+                                                    htmlspecialchars($row['Alias_Default_Parent']) . "<br>" .
+                                                    htmlspecialchars($row['Plan_Name']) . "<br>" .
+                                                    htmlspecialchars($row['Sub_Plan_Name']) . "<br>" .
+                                                    htmlspecialchars($row['Project_Name']);
+
+                                                // ตรวจสอบค่าของปี 2567 (ถ้าไม่มีให้ใส่ "-")
+                                                $total_2567 = !empty($row['Allocated_Total_Amount_Quantity']) ? $row['Allocated_Total_Amount_Quantity'] : null;
+                                                $display_2567 = !is_null($total_2567) ? number_format($total_2567) : "-";
+
+                                                // คำนวณค่ารวมของปี 2568
+                                                $total_2568 = !empty($row['Total_Amount_Quantity']) ? $row['Total_Amount_Quantity'] : 0;
+
+                                                // แยก Fund ออกมา
+                                                $fund_allocated = isset($row['Fund']) ? $row['Fund'] : null;
+                                                $fund_total = isset($row['Fund']) ? $row['Fund'] : null;
+
+                                                // คำนวณ "เงินอุดหนุนจากรัฐ (คำขอ 2568)" และ "เงินอุดหนุนจากรัฐ (จัดสรร 2568)"
+                                                $fund_fn06_allocated = ($fund_allocated === 'FN06') ? $row['Allocated_Total_Amount_Quantity'] : 0;
+                                                $fund_fn06_total = ($fund_total === 'FN06') ? $row['Total_Amount_Quantity'] : 0;
+
+                                                // คำนวณ "เงินนอกงบประมาณ (คำขอ 2568)" และ "เงินนอกงบประมาณ (จัดสรร 2568)"
+                                                $fund_fn08_allocated = ($fund_allocated === 'FN08') ? $row['Allocated_Total_Amount_Quantity'] : 0;
+                                                $fund_fn08_total = ($fund_total === 'FN08') ? $row['Total_Amount_Quantity'] : 0;
+
+                                                // คำนวณ "เงินรายได้ (คำขอ 2568)" และ "เงินรายได้ (จัดสรร 2568)"
+                                                $fund_fn02_allocated = ($fund_allocated === 'FN02') ? $row['Allocated_Total_Amount_Quantity'] : 0;
+                                                $fund_fn02_total = ($fund_total === 'FN02') ? $row['Total_Amount_Quantity'] : 0;
+
+                                                // คำนวณ "รวม (คำขอ 2568)"
+                                                $total_request_2568 = $fund_fn06_allocated + $fund_fn08_allocated + $fund_fn02_allocated;
+
+                                                // คำนวณ "รวม (จัดสรร 2568)"
+                                                $total_allocated_2568 = $fund_fn06_total + $fund_fn08_total + $fund_fn02_total;
+
+                                                // คำนวณ "เพิ่ม/ลด (จำนวน)" = "รวม (จัดสรร 2568)" - 0
+                                                $change_amount = $total_allocated_2568;
+
+                                                // คำนวณ "เพิ่ม/ลด (%)" = 100%
+                                                $change_percent = 100;
                                             ?>
+                                                <tr>
+                                                    <td><?php echo $item_name; ?></td>
 
-                                                <td style="text-align: left; white-space: nowrap;">
-                                                    <?php
+                                                    <!-- ปี 2567 -->
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>-</td>
 
-                                                    // แสดง Plan และ Plan_Name
-                                                    echo "<strong>" . str_repeat('&nbsp;', 5) . "{$row['Plan']} : {$row['Plan_Name']}</strong><br>";
+                                                    <!-- ปี 2568 -->
+                                                    <td><?php echo number_format($fund_fn06_allocated); ?></td> <!-- เงินอุดหนุนจากรัฐ (คำขอ) -->
+                                                    <td><?php echo number_format($fund_fn06_total); ?></td> <!-- เงินอุดหนุนจากรัฐ (จัดสรร) -->
+                                                    <td><?php echo number_format($fund_fn08_allocated); ?></td> <!-- เงินนอกงบประมาณ (คำขอ) -->
+                                                    <td><?php echo number_format($fund_fn08_total); ?></td> <!-- เงินนอกงบประมาณ (จัดสรร) -->
+                                                    <td><?php echo number_format($fund_fn02_allocated); ?></td> <!-- เงินรายได้ (คำขอ) -->
+                                                    <td><?php echo number_format($fund_fn02_total); ?></td> <!-- เงินรายได้ (จัดสรร) -->
+                                                    <td><?php echo number_format($total_request_2568); ?></td> <!-- รวม (คำขอ) -->
+                                                    <td><?php echo number_format($total_allocated_2568); ?></td> <!-- รวม (จัดสรร) -->
 
-                                                    // ลบข้อมูลในวงเล็บออกจาก Sub_Plan_Name และแสดง Sub_Plan กับ Sub_Plan_Name
-                                                    $subPlanName = preg_replace('/\([^\)]*\)/', '', $row['Sub_Plan_Name']);
-                                                    $subPlan = preg_replace('/[a-zA-Z_]+/', '', $row['Sub_Plan']);
-                                                    echo "<strong>" . str_repeat('&nbsp;', 10) . "{$subPlan} : {$subPlanName}</strong><br>";
-
-                                                    // แก้ไข Project_Name ให้มีช่องว่างหลังเครื่องหมาย :
-                                                    $projectName = preg_replace('/(\d+):(\S)/', '$1 : $2', $row['Project_Name']);
-                                                    echo "<strong>" . str_repeat('&nbsp;', 15) . "{$projectName}</strong><br>";
-
-                                                    // แสดงข้อมูล Account_Alias_Default
-                                                    echo "<strong>" . str_repeat('&nbsp;', 20) . "{$row['type']}</strong><br>";
-                                                    ?>
-                                                </td>
-
-
-
-                                                <td style="vertical-align: bottom;">-</td>
-                                                <td style="vertical-align: bottom;">-</td>
-                                                <td style="vertical-align: bottom;">-</td>
-                                                <td style="vertical-align: bottom;">-</td>
-
-                                                <!-- --  ---------- 68 -------------- -->
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $row['Total_Amount_Quanity'] ?? '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $row['Allocated_Total_Amount_Quantity'] ?? '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $fn08['Total_Amount_Quanity'] ?? '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $fn08['Allocated_Total_Amount_Quantity'] ?? '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $fn02['Total_Amount_Quanity'] ?? '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $fn02['Allocated_Total_Amount_Quantity'] ?? '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $sum68Request ?: '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $sum68Allocated ?: '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $diff ?: '-' ?>
-                                                </td>
-                                                <td style="vertical-align: bottom;">
-                                                    <?= $percent ? $percent . '%' : '-' ?>
-                                                </td>
-
+                                                    <!-- การเพิ่ม/ลด -->
+                                                    <td><?php echo number_format($change_amount); ?></td> <!-- เพิ่ม/ลด (จำนวน) -->
+                                                    <td><?php echo number_format($change_percent, 2) . "%"; ?></td> <!-- เพิ่ม/ลด (%) -->
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -299,7 +332,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
+            link.setAttribute('download', 'รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี.csv');
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -343,7 +376,7 @@
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            doc.save('รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี.pdf');
         }
 
         function exportXLSX() {
@@ -424,7 +457,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงาน.xlsx';
+            link.download = 'รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี.xlsx';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

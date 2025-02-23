@@ -107,91 +107,86 @@
         </div>
     </div>
     <script>
-
-$(document).ready(function() {
+        $(document).ready(function() {
             loadData();
         });
 
         function loadData() {
             const yearselect = document.getElementById("budgetYearSelect").value;
 
-        $.ajax({
-        type: "POST",
-        url: "../server/api.php",
-        // url: "mockup-api",
-        data: {
-            'command': 'report-revenue-estimation-comparison',
-            'yearselect': yearselect,
-        },
-        dataType: "json",
-        success: function(response) {
-            console.log("API Response:", response.revenue); // ตรวจสอบข้อมูลที่ได้รับ
+            $.ajax({
+                type: "POST",
+                url: "../server/api.php",
+                // url: "mockup-api",
+                data: {
+                    'command': 'report-revenue-estimation-comparison',
+                    'yearselect': yearselect,
+                },
+                dataType: "json",
+                success: function(response) {
+                    console.log("API Response:", response.revenue); // ตรวจสอบข้อมูลที่ได้รับ
 
-            const tableBody = document.querySelector('#reportTable tbody');
-            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-            // ใช้ Map เพื่อจัดกลุ่มข้อมูล
-             const groupedData = new Map();
+                    // ใช้ Map เพื่อจัดกลุ่มข้อมูล
+                    const groupedData = new Map();
 
-    response.revenue.forEach(item => {
-        const key = `${item.plan_name}-${item.sub_plan_name}-${item.project_name}-${item.sub_type}`;
+                    response.revenue.forEach(item => {
+                        const key = `${item.plan_name}-${item.sub_plan_name}-${item.project_name}-${item.sub_type}`;
 
-        if (!groupedData.has(key)) {
-            groupedData.set(key, {
-                plan_name: item.plan_name,
-                sub_plan_name: item.sub_plan_name,
-                project_name: item.project_name,
-                sub_type: item.sub_type,
-                kku_items: new Set(), // ใช้ Set() ป้องกันค่าซ้ำ
-                q1: 0,
-                q2: 0,
-                q3: 0,
-                q4: 0
+                        if (!groupedData.has(key)) {
+                            groupedData.set(key, {
+                                plan_name: item.plan_name,
+                                sub_plan_name: item.sub_plan_name,
+                                project_name: item.project_name,
+                                sub_type: item.sub_type,
+                                kku_items: new Set(), // ใช้ Set() ป้องกันค่าซ้ำ
+                                q1: 0,
+                                q2: 0,
+                                q3: 0,
+                                q4: 0
+                            });
+                        }
+
+                        let data = groupedData.get(key);
+                        data.kku_items.add(item.KKU_Item_Name); // เพิ่ม KKU_Item_Name ลงใน Set
+                        data.q1 += parseFloat(item.Q1_Spending_Plan) || 0;
+                        data.q2 += parseFloat(item.Q2_Spending_Plan) || 0;
+                        data.q3 += parseFloat(item.Q3_Spending_Plan) || 0;
+                        data.q4 += parseFloat(item.Q4_Spending_Plan) || 0;
+                    });
+
+                    // วนลูปเพื่อสร้างแถวของตาราง
+                    groupedData.forEach((data) => {
+                        const totalActual = data.q1 + data.q2 + data.q3 + data.q4;
+
+                        // หาก totalActual เป็น 0 จะข้ามการแสดงแถวนี้
+                        if (totalActual === 0) return;
+
+                        const kkuItemList = Array.from(data.kku_items).join("</br> "); // แปลง Set เป็น String
+
+                        const row = `<tr>
+                                        <td style="text-align: left;">${data.plan_name} </br> ${data.sub_plan_name} </br> ${data.project_name} </br> ${data.sub_type} <br> <strong>${kkuItemList}</strong></td>
+                                        <td></td>
+                                        <td>${data.q1.toLocaleString()}</td>
+                                        <td>${data.q2.toLocaleString()}</td>
+                                        <td>${data.q3.toLocaleString()}</td>
+                                        <td>${data.q4.toLocaleString()}</td>
+                                        <td>${totalActual.toLocaleString()}</td>
+                                    </tr>`;
+
+                        tableBody.innerHTML += row;
+                    });
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
+                }
             });
         }
 
-        let data = groupedData.get(key);
-        data.kku_items.add(item.KKU_Item_Name); // เพิ่ม KKU_Item_Name ลงใน Set
-        data.q1 += parseFloat(item.Q1_Spending_Plan) || 0;
-        data.q2 += parseFloat(item.Q2_Spending_Plan) || 0;
-        data.q3 += parseFloat(item.Q3_Spending_Plan) || 0;
-        data.q4 += parseFloat(item.Q4_Spending_Plan) || 0;
-    });
-
-    // วนลูปเพื่อสร้างแถวของตาราง
-    groupedData.forEach((data) => {
-    const totalActual = data.q1 + data.q2 + data.q3 + data.q4;
-    
-    // หาก totalActual เป็น 0 จะข้ามการแสดงแถวนี้
-    if (totalActual === 0) return;
-
-    const kkuItemList = Array.from(data.kku_items).join("</br> "); // แปลง Set เป็น String
-
-    const row = `<tr>
-        <td style="text-align: left;">${data.plan_name} </br> ${data.sub_plan_name} </br> ${data.project_name} </br> ${data.sub_type} <br> <strong>${kkuItemList}</strong></td>
-        <td></td>
-        <td>${data.q1.toLocaleString()}</td>
-        <td>${data.q2.toLocaleString()}</td>
-        <td>${data.q3.toLocaleString()}</td>
-        <td>${data.q4.toLocaleString()}</td>
-        <td>${totalActual.toLocaleString()}</td>
-    </tr>`;
-
-    tableBody.innerHTML += row;
-});
-
-
-
-
-
-        },
-        error: function(jqXHR, exception) {
-            console.error("Error: " + exception);
-            responseError(jqXHR, exception);
-        }
-    });
-
-        }
         function exportCSV() {
             const rows = [];
             const table = document.getElementById('reportTable');
