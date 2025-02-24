@@ -220,7 +220,7 @@
                                         </thead>
                                         <thead>
                                             <tr>
-                                                <th rowspan="2">คำใช้จ่าย</th>
+                                                <th rowspan="2">ค่าใช้จ่าย</th>
                                                 <th colspan="4">ยอดรวมงบประมาณ</th>
                                                 <th colspan="8">เงินประจำงวด</th>
                                                 <th colspan="2">ผูกพัน</th>
@@ -678,7 +678,7 @@
 
         // ตั้งค่าฟอนต์และข้อความ
         doc.setFontSize(12);
-        doc.text("รายงานสรุปยอดงบประมาณคงเหลือ", 10, 10);
+        doc.text("รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กร ตาม แหล่งเงิน ตามแผนงาน/โครงการ โดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ", 10, 500);
 
         // ใช้ autoTable สำหรับสร้างตาราง
         doc.autoTable({
@@ -707,97 +707,165 @@
     }
 
     function exportXLSX() {
-    const table = document.getElementById('reportTable');
+        const table = document.getElementById('reportTable');
 
-    const rows = [];
-    const merges = {};
-    const skipMap = {};
+        // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+        // จะสร้าง aoa ของ thead + merges array
+        const { theadRows, theadMerges } = parseThead(table.tHead);
 
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-        const tr = table.rows[rowIndex];
-        const rowData = [];
-        let colIndex = 0;
+        // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
+        const tbodyRows = parseTbody(table.tBodies[0]);
 
-        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+        // รวม rows ทั้งหมด: thead + tbody
+        const allRows = [...theadRows, ...tbodyRows];
+
+        // สร้าง Workbook + Worksheet
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+        // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+        // สังเกตว่า thead อยู่แถวบนสุดของ allRows (index เริ่มจาก 0 ตาม parseThead)
+        ws['!merges'] = theadMerges;
+
+        // เพิ่ม worksheet ลงใน workbook
+        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+        // เขียนไฟล์เป็น .xls (BIFF8)
+        const excelBuffer = XLSX.write(wb, {
+            bookType: 'xls',
+            type: 'array'
+        });
+
+        // สร้าง Blob + ดาวน์โหลด
+        const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'report.xls';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+        }
+
+        /**
+         * -----------------------
+         * 1) parseThead: รองรับ merge
+         * -----------------------
+         * - ใช้ skipMap จัดการ colSpan/rowSpan
+         * - ไม่แยก <br/> เป็นแถวใหม่ (โดยทั่วไป header ไม่ต้องแตกแถว)
+         * - ถ้า thead มีหลาย <tr> ก็จะได้หลาย row
+         * - return: { theadRows: [][] , theadMerges: [] }
+         */
+        function parseThead(thead) {
+        const theadRows = [];
+        const theadMerges = [];
+
+        if (!thead) {
+            return { theadRows, theadMerges };
+        }
+
+        // Map กันการเขียนทับ merge
+        const skipMap = {};
+
+        for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+            const tr = thead.rows[rowIndex];
+            const rowData = [];
+            let colIndex = 0;
+
+            for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+            // ข้ามเซลล์ที่ถูก merge ครอบไว้
             while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData.push("");
+                rowData[colIndex] = "";
                 colIndex++;
             }
 
             const cell = tr.cells[cellIndex];
-            let cellText = cell.innerText.trim();
-            rowData[colIndex] = cellText;
+            // ไม่แยก <br/> → แค่แทน &nbsp; เป็น space
+            let text = cell.innerHTML
+                .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // &nbsp; => spaces
+                .replace(/<br\s*\/?>/gi, ' ') // ถ้ามี <br/> ใน thead ก็เปลี่ยนเป็นช่องว่าง (ไม่แตกแถว)
+                .replace(/<\/?[^>]+>/g, '')   // ลบ tag อื่น ถ้าเหลือ
+                .trim();
 
+            rowData[colIndex] = text;
+
+            // ดู rowSpan/colSpan
             const rowspan = cell.rowSpan || 1;
             const colspan = cell.colSpan || 1;
 
             if (rowspan > 1 || colspan > 1) {
-                const mergeRef = {
-                    s: { r: rowIndex, c: colIndex },
-                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                };
+                // Push merges object
+                theadMerges.push({
+                s: { r: rowIndex, c: colIndex },
+                e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                });
 
-                const mergeKey = `merge_${rowIndex}_${colIndex}`;
-                merges[mergeKey] = mergeRef;
-
+                // Mark skipMap
                 for (let r = 0; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        if (!(r === 0 && c === 0)) {
-                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
-                        }
-                    }
+                for (let c = 0; c < colspan; c++) {
+                    if (r === 0 && c === 0) continue;
+                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                }
                 }
             }
-
             colIndex++;
+            }
+            theadRows.push(rowData);
         }
-        rows.push(rowData);
+
+        return { theadRows, theadMerges };
     }
 
-    // Create Workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(rows);
+    /**
+     * -----------------------
+     * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+     * -----------------------
+     * - ไม่ทำ merge (ตัวอย่าง) เพื่อความง่าย
+     * - ถ้าใน tbody มี colSpan/rowSpan ต้องประยุกต์ skipMap ต่อเอง
+     */
+    function parseTbody(tbody) {
+        const rows = [];
 
-    // Apply merges
-    ws['!merges'] = Object.values(merges);
+        if (!tbody) return rows;
 
-    // Apply header styles to the first few rows (all header rows)
-    const totalHeaderRows = table.tHead.rows.length; // Get the number of header rows
-    for (let R = 0; R < totalHeaderRows; R++) {
-        for (let C = 0; C < rows[R].length; C++) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+        for (const tr of tbody.rows) {
+            // เก็บ sub-lines ของแต่ละเซลล์
+            const cellLines = [];
+            let maxSubLine = 1;
 
-            if (ws[cellRef]) {
-                ws[cellRef].s = {
-                    alignment: { horizontal: "center", vertical: "center" }, // Center text
-                    font: { bold: true, name: "Arial", sz: 12 }, // Bold + Font
-                    fill: { fgColor: { rgb: "FFFFCC" } }, // Light yellow background
-                    border: {
-                        top: { style: "thin", color: { rgb: "000000" } },
-                        bottom: { style: "thin", color: { rgb: "000000" } },
-                        left: { style: "thin", color: { rgb: "000000" } },
-                        right: { style: "thin", color: { rgb: "000000" } }
-                    }
-                };
+            for (const cell of tr.cells) {
+            // (a) แปลง &nbsp; → space ตามจำนวน
+            // (b) แปลง <br/> → \n เพื่อนำไป split เป็นหลายบรรทัด
+            let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
+                const count = match.match(/&nbsp;/g).length;
+                return ' '.repeat(count);
+            });
+            html = html.replace(/<br\s*\/?>/gi, '\n');
+
+            // (c) ลบแท็กอื่น ๆ (ถ้าต้องการ)
+            html = html.replace(/<\/?[^>]+>/g, '');
+
+            // (d) split ด้วย \n → ได้หลาย sub-lines
+            const lines = html.split('\n').map(x => x.trimEnd());
+            if (lines.length > maxSubLine) {
+                maxSubLine = lines.length;
+            }
+            cellLines.push(lines);
+            }
+
+            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+            for (let i = 0; i < maxSubLine; i++) {
+            const rowData = [];
+            for (const lines of cellLines) {
+                rowData.push(lines[i] || ''); // ถ้าไม่มีบรรทัด => ใส่ว่าง
+            }
+            rows.push(rowData);
             }
         }
+
+        return rows;
     }
-
-    // Append sheet and write file
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-    // Download file
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.xlsx'; // Change to .xlsx for proper styling support
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
 
 
     </script>
