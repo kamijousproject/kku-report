@@ -102,9 +102,15 @@ $selectedScenario = isset($_GET['scenario']) ? $_GET['scenario'] : 'Scenario1';
 // map ค่า dropdown เป็นค่าในฐานข้อมูล
 $scenarioMap = array(
     'Scenario1' => 'ANL-RELEASE-1',
-    'Scenario2' => 'ANL-RELEASE-2',
-    'Scenario3' => 'ANL-RELEASE-3',
-    'Scenario4' => 'ANL-RELEASE-4'
+    'Scenario2' => 'ANL-RELEASE-1',
+    'ANL-RELEASE-2',
+    'Scenario3' => 'ANL-RELEASE-1',
+    'ANL-RELEASE-2',
+    'ANL-RELEASE-3',
+    'Scenario4' => 'ANL-RELEASE-1',
+    'ANL-RELEASE-2',
+    'ANL-RELEASE-3',
+    'ANL-RELEASE-4'
 );
 $scenarioValue = isset($scenarioMap[$selectedScenario]) ? $scenarioMap[$selectedScenario] : 'ANL-RELEASE-1';
 
@@ -112,163 +118,141 @@ $scenarioValue = isset($scenarioMap[$selectedScenario]) ? $scenarioMap[$selected
 function fetchScenarioData($conn, $scenarioColumnValue, $selectedScenario)
 {
     $query = "SELECT 
-    bap.Service,
-    bap.Plan,
-    p.plan_name,
-    bap.Faculty,
-    ft.Faculty,
-    ft.Alias_Default AS FacultyName,
-    bap.Project,
-    pj.project_id,
-    pj.project_name,
-    bap.Sub_Plan,
-    sp.sub_plan_id,
-    sp.sub_plan_name,
-    bap.`Account`,
-    
-    -- a1: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
-    CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
-    
-    -- a2: แสดงแค่สองเลขแรกแล้วตามด้วย 00000000
-    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
-    
-    ac.`account`,
-    ac.`type`,
-    ac.sub_type,
-    bap.Fund,
-    bap.KKU_Item_Name,
-    
-    -- หาก Allocated_Total_Amount_Quantity เป็น NULL ให้แทนที่ด้วย 0
-    COALESCE(bap.Allocated_Total_Amount_Quantity, 0) AS Allocated_Total_Amount_Quantity,
-    
-    -- Pre_Release_Amount ถ้า NULL ให้เป็น 0 เช่นกัน
-    CASE
-        WHEN :selectedScenario = 'Scenario1' THEN 0
-        WHEN :selectedScenario = 'Scenario2' THEN 
-            CASE
-                WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0)
-                ELSE 0
-            END
-        WHEN :selectedScenario = 'Scenario3' THEN 
-            CASE
-                WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0)
-                ELSE 0
-            END +
-            CASE
-                WHEN bpd.Scenario = 'ANL-RELEASE-2' THEN COALESCE(bpd.Release_Amount, 0)
-                ELSE 0
-            END
-        WHEN :selectedScenario = 'Scenario4' THEN 
-            CASE
-                WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0)
-                ELSE 0
-            END +
-            CASE
-                WHEN bpd.Scenario = 'ANL-RELEASE-2' THEN COALESCE(bpd.Release_Amount, 0)
-                ELSE 0
-            END +
-            CASE
-                WHEN bpd.Scenario = 'ANL-RELEASE-3' THEN COALESCE(bpd.Release_Amount, 0)
-                ELSE 0
-            END
-        ELSE 0
-    END AS Pre_Release_Amount,
-
-    -- Release_Amount ถ้า NULL ให้เป็น 0
-    COALESCE(bpd.Release_Amount, 0) AS Release_Amount,
-
-    -- แยก Release_Amount โดยใช้เงื่อนไขจาก Scenario และ COALESCE อีกชั้น
-    CASE
-        WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0)
-        ELSE 0
-    END AS Scenario1,
-    
-    CASE
-        WHEN bpd.Scenario = 'ANL-RELEASE-2' THEN COALESCE(bpd.Release_Amount, 0)
-        ELSE 0
-    END AS Scenario2,
-    
-    CASE
-        WHEN bpd.Scenario = 'ANL-RELEASE-3' THEN COALESCE(bpd.Release_Amount, 0)
-        ELSE 0
-    END AS Scenario3,
-    
-    CASE
-        WHEN bpd.Scenario = 'ANL-RELEASE-4' THEN COALESCE(bpd.Release_Amount, 0)
-        ELSE 0
-    END AS Scenario4,
-    
-    -- คำนวณ Remaining_Amount โดย Coalesce ทั้ง Pre_Release_Amount และ Release_Amount
-    ( COALESCE(bap.Allocated_Total_Amount_Quantity, 0) 
-      - ( COALESCE(bpd.Pre_Release_Amount, 0) + COALESCE(bpd.Release_Amount, 0) )
-    ) AS Remaining_Amount,
-    
-    -- คำนวณ Total_Release_Amount โดย Coalesce เช่นกัน
-    ( COALESCE(bpd.Pre_Release_Amount, 0) + COALESCE(bpd.Release_Amount, 0) ) AS Total_Release_Amount,
-    
-
-    bap.Reason
-FROM 
-    budget_planning_allocated_annual_budget_plan bap
-
-    -- เชื่อม Faculty โดยเลือกเฉพาะ parent ที่ขึ้นต้นด้วย 'Faculty%'
-    INNER JOIN Faculty ft 
-        ON bap.Faculty = ft.Faculty 
-        AND ft.parent LIKE 'Faculty%' 
-
-    LEFT JOIN plan p 
-        ON bap.Plan = p.plan_id 
-
-    LEFT JOIN sub_plan sp 
-        ON bap.Sub_Plan = sp.sub_plan_id
-
-    LEFT JOIN project pj 
-        ON bap.Project = pj.project_id
-
-    INNER JOIN account ac 
-        ON bap.`Account` = ac.`account`
+        bap.Service,
+        bap.Plan,
+        p.plan_name,
+        bap.Faculty,
+        ft.Faculty,
+        ft.Alias_Default AS FacultyName,
+        bap.Project,
+        pj.project_id,
+        pj.project_name,
+        bap.Sub_Plan,
+        sp.sub_plan_id,
+        sp.sub_plan_name,
+        bap.`Account`,
+        CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
+        CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
+        ac.`account`,
+        ac.`type`,
+        ac.sub_type,
+        bap.Fund,
+        bap.KKU_Item_Name,
+        COALESCE(bap.Allocated_Total_Amount_Quantity, 0) AS Allocated_Total_Amount_Quantity,
+        COALESCE(bpd.Release_Amount, 0) AS Release_Amount,
         
-    LEFT JOIN budget_planning_disbursement_budget_plan_anl_release bpd 
-        ON  bap.Service = bpd.Service
-        AND bap.Faculty = bpd.Faculty
-        AND bap.Project = bpd.Project
-        AND bap.Plan = bpd.Plan
-        AND bap.Sub_Plan = bpd.Sub_Plan
-        AND bap.`Account` = bpd.`Account`";
+        -- คำนวณ Pre_Release_Amount ตาม Scenario
+CASE 
+    WHEN :selectedScenario = 'Scenario1' THEN 0
+    WHEN :selectedScenario = 'Scenario2' THEN 
+        CASE 
+            WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN COALESCE(bpd.Release_Amount, 0) 
+            ELSE 0 
+        END
+    WHEN :selectedScenario = 'Scenario3' THEN 
+        CASE 
+            WHEN bpd.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2', 'ANL-RELEASE-3') THEN 
+                (
+                    SELECT COALESCE(SUM(Release_Amount), 0) 
+                    FROM budget_planning_disbursement_budget_plan_anl_release AS bpd_sub
+                    WHERE bpd_sub.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2') 
+                      AND bpd_sub.Service = bpd.Service 
+                      AND bpd_sub.Faculty = bpd.Faculty 
+                      AND bpd_sub.Project = bpd.Project 
+                      AND bpd_sub.Plan = bpd.Plan 
+                      AND bpd_sub.Sub_Plan = bpd.Sub_Plan 
+                      AND bpd_sub.Account = bpd.Account
+                )
+            ELSE 0 
+        END
+    WHEN :selectedScenario = 'Scenario4' THEN 
+        CASE 
+            WHEN bpd.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2', 'ANL-RELEASE-3','ANL-RELEASE-4') THEN 
+                (
+                    SELECT COALESCE(SUM(Release_Amount), 0) 
+                    FROM budget_planning_disbursement_budget_plan_anl_release AS bpd_sub
+                    WHERE bpd_sub.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2', 'ANL-RELEASE-3') 
+                      AND bpd_sub.Service = bpd.Service 
+                      AND bpd_sub.Faculty = bpd.Faculty 
+                      AND bpd_sub.Project = bpd.Project 
+                      AND bpd_sub.Plan = bpd.Plan 
+                      AND bpd_sub.Sub_Plan = bpd.Sub_Plan 
+                      AND bpd_sub.Account = bpd.Account
+                )
+            ELSE 0 
+        END
+END AS Pre_Release_Amount,
 
-    // เพิ่มเงื่อนไขสำหรับ Scenario ที่เลือก
+
+        -- แยก Release_Amount ตาม Scenario
+        CASE 
+            WHEN bpd.Scenario = 'ANL-RELEASE-1' THEN 
+                (SELECT COALESCE(Release_Amount, 0) FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-1' AND bpd.Service = Service AND bpd.Faculty = Faculty AND bpd.Project = Project AND bpd.Plan = Plan AND bpd.Sub_Plan = Sub_Plan AND bpd.Account = Account)
+            ELSE 0 
+        END AS Scenario1,
+
+        CASE 
+            WHEN bpd.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2') THEN 
+                (SELECT COALESCE(Release_Amount, 0) FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-2' AND bpd.Service = Service AND bpd.Faculty = Faculty AND bpd.Project = Project AND bpd.Plan = Plan AND bpd.Sub_Plan = Sub_Plan AND bpd.Account = Account)
+            ELSE 0 
+        END AS Scenario2,
+
+        CASE 
+            WHEN bpd.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2', 'ANL-RELEASE-3') THEN 
+                (SELECT COALESCE(Release_Amount, 0) FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-3' AND bpd.Service = Service AND bpd.Faculty = Faculty AND bpd.Project = Project AND bpd.Plan = Plan AND bpd.Sub_Plan = Sub_Plan AND bpd.Account = Account)
+            ELSE 0 
+        END AS Scenario3,
+
+        CASE 
+            WHEN bpd.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2', 'ANL-RELEASE-3', 'ANL-RELEASE-4') THEN 
+                (SELECT COALESCE(Release_Amount, 0) FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-4' AND bpd.Service = Service AND bpd.Faculty = Faculty AND bpd.Project = Project AND bpd.Plan = Plan AND bpd.Sub_Plan = Sub_Plan AND bpd.Account = Account)
+            ELSE 0 
+        END AS Scenario4
+
+    FROM 
+        budget_planning_allocated_annual_budget_plan bap
+        INNER JOIN Faculty ft ON bap.Faculty = ft.Faculty AND ft.parent LIKE 'Faculty%'
+        LEFT JOIN plan p ON bap.Plan = p.plan_id
+        LEFT JOIN sub_plan sp ON bap.Sub_Plan = sp.sub_plan_id
+        LEFT JOIN project pj ON bap.Project = pj.project_id
+        INNER JOIN account ac ON bap.`Account` = ac.`account`
+        LEFT JOIN budget_planning_disbursement_budget_plan_anl_release bpd 
+            ON  bap.Service = bpd.Service
+            AND bap.Faculty = bpd.Faculty
+            AND bap.Project = bpd.Project
+            AND bap.Plan = bpd.Plan
+            AND bap.Sub_Plan = bpd.Sub_Plan
+            AND bap.`Account` = bpd.`Account`";
+
     if ($scenarioColumnValue) {
-        $query .= " WHERE bpd.Scenario = :scenarioColumn";
+        $query .= " WHERE bpd.Scenario = :scenarioColumnValue";
     }
 
-    // เพิ่มเงื่อนไขสำหรับ account id ที่มากกว่า id สูงสุดของบัญชี Expenses
     $query .= " AND ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
 
-    $query .= " ORDER BY 
-    bap.Faculty ASC,
-    bap.Plan ASC,
-    bap.Sub_Plan ASC,
-    bap.Project ASC,           
-            CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
-            CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
-            bap.`Account` ASC ";
+    $query .= " ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
+                CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
+                CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
+                bap.`Account` ASC ";
 
     $stmt = $conn->prepare($query);
-    if ($scenarioColumnValue) {
-        $stmt->bindParam(':scenarioColumn', $scenarioColumnValue);
-        $stmt->bindParam(':selectedScenario', $selectedScenario);
-    }
-    $stmt->execute();
+
+    $stmt->execute([
+        ':selectedScenario' => $selectedScenario,
+        ':scenarioColumnValue' => $scenarioColumnValue
+    ]);
+
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+
 
 // รับค่าจาก dropdown ถ้าไม่มีให้ใช้ค่าเริ่มต้นเป็น Scenario1
 $selectedScenario = isset($_GET['scenario']) ? $_GET['scenario'] : 'Scenario1';
 
 // ดึงข้อมูลตาม Scenario ที่เลือก
-$results = fetchScenarioData($conn, $scenarioValue, $selectedScenario);
+$results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selectedScenario: $selectedScenario);
 ?>
-
 
 <!DOCTYPE html>
 <html lang="en">
@@ -394,6 +378,7 @@ $results = fetchScenarioData($conn, $scenarioValue, $selectedScenario);
                                         </thead>
                                         <tbody>
                                             <?php
+
                                             // ตัวแปรเก็บค่าของแถวก่อนหน้า
                                             $previousPlan = "";
                                             $previousSubPlanId = "";
@@ -427,7 +412,6 @@ $results = fetchScenarioData($conn, $scenarioValue, $selectedScenario);
                                                         $previousSubType = "";
                                                     }
 
-
                                                     // เช็คและแสดง Project ถ้าเปลี่ยนแปลง
                                                     if ($row['project_name'] != $previousProject) {
                                                         echo str_repeat("&nbsp;", 16) . htmlspecialchars($row['project_name']) . "<br>";
@@ -453,7 +437,6 @@ $results = fetchScenarioData($conn, $scenarioValue, $selectedScenario);
                                                         $previousSubType = $row['sub_type'];
                                                     }
 
-
                                                     // เช็คและกำหนดค่า kkuItemName
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
                                                         ? "<strong>" . htmlspecialchars($row['account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
@@ -461,36 +444,52 @@ $results = fetchScenarioData($conn, $scenarioValue, $selectedScenario);
 
                                                     // แสดงผล
                                                     echo str_repeat("&nbsp;", 32) . $kkuItemName;
-                                                    
+
+                                                    // หลังจากดึงข้อมูลจากฐานข้อมูลมาแล้ว
+                                                    $preReleaseAmount = $row['Pre_Release_Amount'];
+
+                                                    // กำหนดค่า $selectedScenario จาก URL (หรือค่าเริ่มต้น)
+                                                    $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
+
+                                                    // คำนวณ Pre_Release_Amount บวกกับค่า $selectedScenario (ถ้ามี)
+                                                    $finalPreReleaseAmount = $preReleaseAmount;
+
+                                                    // ตรวจสอบว่า scenario ที่เลือกมีค่าเป็น Scenario1, Scenario2, Scenario3, หรือ Scenario4
                                                     switch ($selectedScenario) {
                                                         case 'Scenario1':
-                                                            $total = $row['Scenario1'];
+                                                            $finalPreReleaseAmount += $row['Scenario1']; // เพิ่ม Scenario1
                                                             break;
                                                         case 'Scenario2':
-                                                            $total = $row['Scenario1'] + $row['Scenario2'];
+                                                            $finalPreReleaseAmount += $row['Scenario2']; // เพิ่ม Scenario1 และ Scenario2
                                                             break;
                                                         case 'Scenario3':
-                                                            $total = $row['Scenario1'] + $row['Scenario2'] + $row['Scenario3'];
+                                                            $finalPreReleaseAmount += +$row['Scenario3'];// เพิ่ม Scenario1, Scenario2, และ Scenario3
                                                             break;
                                                         case 'Scenario4':
-                                                            $total = $row['Scenario1'] + $row['Scenario2'] + $row['Scenario3'] + $row['Scenario4'];
+                                                            $finalPreReleaseAmount +=  $row['Scenario4']; // เพิ่ม Scenario1, Scenario2, Scenario3, และ Scenario4
                                                             break;
                                                         default:
-                                                            $total = 0; // หากไม่มี Scenario ที่ตรงกัน
                                                             break;
                                                     }
-                                                    
+
                                                     // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Allocated_Total_Amount_Quantity']) . "</td>";
                                                     echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Pre_Release_Amount']) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row[$selectedScenario]) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($total) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Total_Release_Amount']) . "</td>";
-                                                    
+                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars(isset($row[$selectedScenario]) ? $row[$selectedScenario] : 0) . "</td>";
+
+                                                    echo "<td style='vertical-align: bottom;'>" . sprintf("%0.2f", $finalPreReleaseAmount) . "</td>";
+
+
+                                                    // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
+                                                    $subtractedAmount = $row['Allocated_Total_Amount_Quantity'] - $finalPreReleaseAmount;
+
+                                                    // แสดงผลในคอลัมน์ที่ต้องการ
+                                                    echo "<td style='vertical-align: bottom;'>" . sprintf("%0.2f", $subtractedAmount) . "</td>";
+
+                                                    //echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Remaining_Amount']) . "</td>";
                                                     echo "<td style='vertical-align: bottom;'>" .
                                                         (!empty($row['Reason']) ? htmlspecialchars($row['Reason']) : 'ไม่มีหมายเหตุ') .
                                                         "</td>";
-
 
                                                     echo "</tr>";
                                                 }
@@ -501,6 +500,7 @@ $results = fetchScenarioData($conn, $scenarioValue, $selectedScenario);
 
                                         </tbody>
                                     </table>
+
 
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
