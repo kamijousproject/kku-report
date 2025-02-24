@@ -155,6 +155,9 @@
                         <a href="report-new-positions-summary.php">9.1.2.17.6-10 รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวทิยาลัย (อัตราใหม่)
                             รายตำแหน่ง</a>
                     </li>
+                    <li>
+                        <a href="report-expense-prediction-wf.php">9.1.2.10 รายงานประมาณการค่าใช้จ่ายบุคลากรตามกรอบอัตรากำลัง</a>
+                    </li>
                 </ul>
             </li>
             <li><a class="has-arrow" href="#" aria-expanded="false"><i class="mdi mdi-finance"></i> <span
