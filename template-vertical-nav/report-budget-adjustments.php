@@ -342,225 +342,225 @@ function fetchYearsData($conn)
                                             </tr>
                                         </thead>
                                         <tbody>
-                                        <?php
-function formatNumber($number)
-{
-    return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
-}
+                                            <?php
+                                            function formatNumber($number)
+                                            {
+                                                return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
+                                            }
 
-// ตัวแปรเก็บค่าของแถวก่อนหน้า
-$previousPlan = "";
-$previousSubPlan = "";
-$previousProject = "";
-$previousSubType = "";
-$selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
-$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
-$budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-$results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3);
+                                            // ตัวแปรเก็บค่าของแถวก่อนหน้า
+                                            $previousPlan = "";
+                                            $previousSubPlan = "";
+                                            $previousProject = "";
+                                            $previousSubType = "";
+                                            $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                            $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+                                            $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+                                            $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3);
 
-// ตรวจสอบว่า $results มีข้อมูลหรือไม่
-if (isset($results) && is_array($results) && count($results) > 0) {
-    // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
-    $summary = [];
-    foreach ($results as $row) {
-        $plan = $row['Plan'];
-        $subPlan = $row['Sub_Plan'];
-        $project = $row['project_name'];
-        $subType = $row['sub_type'];
+                                            // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                            if (isset($results) && is_array($results) && count($results) > 0) {
+                                                // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
+                                                $summary = [];
+                                                foreach ($results as $row) {
+                                                    $plan = $row['Plan'];
+                                                    $subPlan = $row['Sub_Plan'];
+                                                    $project = $row['project_name'];
+                                                    $subType = $row['sub_type'];
 
-        // เก็บข้อมูลของ Plan
-        if (!isset($summary[$plan])) {
-            $summary[$plan] = [
-                'plan_name' => $row['plan_name'],
-                'Total_Amount_2566' => 0,
-                'Total_Amount_2567' => 0,
-                'TOTAL_BUDGET_2567' => 0,
-                'Total_Amount_2568' => 0,
-                'Difference_2568_2567' => 0,
-                'Percentage_Difference_2568_2567' => 0,
-                'Reason' => '',
-                'sub_plans' => [], // เก็บข้อมูลของ Sub_Plan
-            ];
-        }
+                                                    // เก็บข้อมูลของ Plan
+                                                    if (!isset($summary[$plan])) {
+                                                        $summary[$plan] = [
+                                                            'plan_name' => $row['plan_name'],
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
+                                                            'sub_plans' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
 
-        // เก็บข้อมูลของ Sub_Plan
-        if (!isset($summary[$plan]['sub_plans'][$subPlan])) {
-            $summary[$plan]['sub_plans'][$subPlan] = [
-                'sub_plan_name' => $row['sub_plan_name'],
-                'Total_Amount_2566' => 0,
-                'Total_Amount_2567' => 0,
-                'TOTAL_BUDGET_2567' => 0,
-                'Total_Amount_2568' => 0,
-                'Difference_2568_2567' => 0,
-                'Percentage_Difference_2568_2567' => 0,
-                'Reason' => '',
-                'projects' => [], // เก็บข้อมูลของ Project
-            ];
-        }
+                                                    // เก็บข้อมูลของ Sub_Plan
+                                                    if (!isset($summary[$plan]['sub_plans'][$subPlan])) {
+                                                        $summary[$plan]['sub_plans'][$subPlan] = [
+                                                            'sub_plan_name' => $row['sub_plan_name'],
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
+                                                            'projects' => [], // เก็บข้อมูลของ Project
+                                                        ];
+                                                    }
 
-        // เก็บข้อมูลของ Project
-        if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project])) {
-            $summary[$plan]['sub_plans'][$subPlan]['projects'][$project] = [
-                'Total_Amount_2566' => 0,
-                'Total_Amount_2567' => 0,
-                'TOTAL_BUDGET_2567' => 0,
-                'Total_Amount_2568' => 0,
-                'Difference_2568_2567' => 0,
-                'Percentage_Difference_2568_2567' => 0,
-                'Reason' => '',
-                'sub_types' => [], // เก็บข้อมูลของ Sub_Type
-            ];
-        }
+                                                    // เก็บข้อมูลของ Project
+                                                    if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project])) {
+                                                        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project] = [
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
+                                                            'sub_types' => [], // เก็บข้อมูลของ Sub_Type
+                                                        ];
+                                                    }
 
-        // เก็บข้อมูลของ Sub_Type
-        if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType])) {
-            $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType] = [
-                'Total_Amount_2566' => 0,
-                'Total_Amount_2567' => 0,
-                'TOTAL_BUDGET_2567' => 0,
-                'Total_Amount_2568' => 0,
-                'Difference_2568_2567' => 0,
-                'Percentage_Difference_2568_2567' => 0,
-                'Reason' => '',
-                'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
-            ];
-        }
+                                                    // เก็บข้อมูลของ Sub_Type
+                                                    if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType])) {
+                                                        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType] = [
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
+                                                            'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
+                                                        ];
+                                                    }
 
-        // รวมข้อมูลของ Plan
-        $summary[$plan]['Total_Amount_2566'] += $row['Total_Amount_2566'];
-        $summary[$plan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
-        $summary[$plan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
-        $summary[$plan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+                                                    // รวมข้อมูลของ Plan
+                                                    $summary[$plan]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
-        // รวมข้อมูลของ Sub_Plan
-        $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2566'] += $row['Total_Amount_2566'];
-        $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
-        $summary[$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
-        $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+                                                    // รวมข้อมูลของ Sub_Plan
+                                                    $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
-        // รวมข้อมูลของ Project
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2566'] += $row['Total_Amount_2566'];
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2567'] += $row['Total_Amount_2567'];
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+                                                    // รวมข้อมูลของ Project
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
-        // รวมข้อมูลของ Sub_Type
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2566'] += $row['Total_Amount_2566'];
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2567'] += $row['Total_Amount_2567'];
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+                                                    // รวมข้อมูลของ Sub_Type
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
-        // เก็บข้อมูลของ KKU_Item_Name
-        $kkuItemName = (!empty($row['KKU_Item_Name']))
-            ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
-            : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
-        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['kku_items'][] = [
-            'name' => $kkuItemName,
-            'Total_Amount_2566' => $row['Total_Amount_2566'],
-            'Total_Amount_2567' => $row['Total_Amount_2567'],
-            'TOTAL_BUDGET_2567' => $row['TOTAL_BUDGET_2567'],
-            'Total_Amount_2568' => $row['Total_Amount_2568'],
-            'Difference_2568_2567' => $row['Difference_2568_2567'],
-            'Percentage_Difference_2568_2567' => $row['Percentage_Difference_2568_2567'],
-            'Reason' => $row['Reason'],
-        ];
-    }
+                                                    // เก็บข้อมูลของ KKU_Item_Name
+                                                    $kkuItemName = (!empty($row['KKU_Item_Name']))
+                                                        ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
+                                                        : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['kku_items'][] = [
+                                                        'name' => $kkuItemName,
+                                                        'Total_Amount_2566' => $row['Total_Amount_2566'],
+                                                        'Total_Amount_2567' => $row['Total_Amount_2567'],
+                                                        'TOTAL_BUDGET_2567' => $row['TOTAL_BUDGET_2567'],
+                                                        'Total_Amount_2568' => $row['Total_Amount_2568'],
+                                                        'Difference_2568_2567' => $row['Difference_2568_2567'],
+                                                        'Percentage_Difference_2568_2567' => $row['Percentage_Difference_2568_2567'],
+                                                        'Reason' => $row['Reason'],
+                                                    ];
+                                                }
 
-    // แสดงผลลัพธ์
-    foreach ($summary as $plan => $data) {
-        // แสดงผลรวมของ Plan
-        echo "<tr>";
-        echo "<td style='text-align: left;'><strong>" . htmlspecialchars($plan) . "</strong> : " . htmlspecialchars($data['plan_name']) . "<br></td>";
-        echo "<td>" . formatNumber($data['Total_Amount_2566']) . "</td>";
-        echo "<td>" . formatNumber($data['Total_Amount_2567']) . "</td>";
-        echo "<td>" . formatNumber($data['TOTAL_BUDGET_2567']) . "</td>";
-        echo "<td>" . formatNumber($data['Total_Amount_2568']) . "</td>";
+                                                // แสดงผลลัพธ์
+                                                foreach ($summary as $plan => $data) {
+                                                    // แสดงผลรวมของ Plan
+                                                    echo "<tr>";
+                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($plan) . "</strong> : " . htmlspecialchars($data['plan_name']) . "<br></td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_2566']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_2567']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['TOTAL_BUDGET_2567']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_2568']) . "</td>";
 
-        // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Plan
-        $Difference = $data['Total_Amount_2568'] - $data['TOTAL_BUDGET_2567'];
-        $Percentage_Difference = ($data['TOTAL_BUDGET_2567'] != 0) ? ($Difference / $data['TOTAL_BUDGET_2567']) * 100 : 100;
+                                                    // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Plan
+                                                    $Difference = $data['Total_Amount_2568'] - $data['TOTAL_BUDGET_2567'];
+                                                    $Percentage_Difference = ($data['TOTAL_BUDGET_2567'] != 0) ? ($Difference / $data['TOTAL_BUDGET_2567']) * 100 : 100;
 
-        echo "<td>" . formatNumber($Difference) . "</td>";
-        echo "<td>" . formatNumber($Percentage_Difference) . "%</td>";
-        echo "<td>" . (isset($data['Reason']) && !empty($data['Reason']) ? htmlspecialchars($data['Reason']) : "ไม่มีข้อมูล") . "</td>";
-        echo "</tr>";
+                                                    echo "<td>" . formatNumber($Difference) . "</td>";
+                                                    echo "<td>" . formatNumber($Percentage_Difference) . "%</td>";
+                                                    echo "<td>" . "</td>";
+                                                    echo "</tr>";
 
-        // แสดงผลรวมของแต่ละ Sub_Plan
-        foreach ($data['sub_plans'] as $subPlan => $subData) {
-            echo "<tr>";
-            echo "<td style='text-align: left;'><strong>" .str_repeat("&nbsp;", 8). htmlspecialchars($subPlan) . "</strong> : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
-            echo "<td>" . formatNumber($subData['Total_Amount_2566']) . "</td>";
-            echo "<td>" . formatNumber($subData['Total_Amount_2567']) . "</td>";
-            echo "<td>" . formatNumber($subData['TOTAL_BUDGET_2567']) . "</td>";
-            echo "<td>" . formatNumber($subData['Total_Amount_2568']) . "</td>";
+                                                    // แสดงผลรวมของแต่ละ Sub_Plan
+                                                    foreach ($data['sub_plans'] as $subPlan => $subData) {
+                                                        echo "<tr>";
+                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subPlan) . "</strong> : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
+                                                        echo "<td>" . formatNumber($subData['Total_Amount_2566']) . "</td>";
+                                                        echo "<td>" . formatNumber($subData['Total_Amount_2567']) . "</td>";
+                                                        echo "<td>" . formatNumber($subData['TOTAL_BUDGET_2567']) . "</td>";
+                                                        echo "<td>" . formatNumber($subData['Total_Amount_2568']) . "</td>";
 
-            // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Plan
-            $subDifference = $subData['Total_Amount_2568'] - $subData['TOTAL_BUDGET_2567'];
-            $subPercentage_Difference = ($subData['TOTAL_BUDGET_2567'] != 0) ? ($subDifference / $subData['TOTAL_BUDGET_2567']) * 100 : 100;
+                                                        // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Plan
+                                                        $subDifference = $subData['Total_Amount_2568'] - $subData['TOTAL_BUDGET_2567'];
+                                                        $subPercentage_Difference = ($subData['TOTAL_BUDGET_2567'] != 0) ? ($subDifference / $subData['TOTAL_BUDGET_2567']) * 100 : 100;
 
-            echo "<td>" . formatNumber($subDifference) . "</td>";
-            echo "<td>" . formatNumber($subPercentage_Difference) . "%</td>";
-            echo "<td>" . (isset($subData['Reason']) && !empty($subData['Reason']) ? htmlspecialchars($subData['Reason']) : "ไม่มีข้อมูล") . "</td>";
-            echo "</tr>";
+                                                        echo "<td>" . formatNumber($subDifference) . "</td>";
+                                                        echo "<td>" . formatNumber($subPercentage_Difference) . "%</td>";
+                                                        echo "<td>" . "</td>";
+                                                        echo "</tr>";
 
-            // แสดงผลรวมของแต่ละ Project
-            foreach ($subData['projects'] as $project => $projectData) {
-                echo "<tr>";
-                echo "<td style='text-align: left; '>" . htmlspecialchars($project) . "<br></td>";
-                echo "<td>" . formatNumber($projectData['Total_Amount_2566']) . "</td>";
-                echo "<td>" . formatNumber($projectData['Total_Amount_2567']) . "</td>";
-                echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_2567']) . "</td>";
-                echo "<td>" . formatNumber($projectData['Total_Amount_2568']) . "</td>";
+                                                        // แสดงผลรวมของแต่ละ Project
+                                                        foreach ($subData['projects'] as $project => $projectData) {
+                                                            echo "<tr>";
+                                                            echo "<td style='text-align: left; '>" . htmlspecialchars($project) . "<br></td>";
+                                                            echo "<td>" . formatNumber($projectData['Total_Amount_2566']) . "</td>";
+                                                            echo "<td>" . formatNumber($projectData['Total_Amount_2567']) . "</td>";
+                                                            echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_2567']) . "</td>";
+                                                            echo "<td>" . formatNumber($projectData['Total_Amount_2568']) . "</td>";
 
-                // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Project
-                $projectDifference = $projectData['Total_Amount_2568'] - $projectData['TOTAL_BUDGET_2567'];
-                $projectPercentage_Difference = ($projectData['TOTAL_BUDGET_2567'] != 0) ? ($projectDifference / $projectData['TOTAL_BUDGET_2567']) * 100 : 100;
+                                                            // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Project
+                                                            $projectDifference = $projectData['Total_Amount_2568'] - $projectData['TOTAL_BUDGET_2567'];
+                                                            $projectPercentage_Difference = ($projectData['TOTAL_BUDGET_2567'] != 0) ? ($projectDifference / $projectData['TOTAL_BUDGET_2567']) * 100 : 100;
 
-                echo "<td>" . formatNumber($projectDifference) . "</td>";
-                echo "<td>" . formatNumber($projectPercentage_Difference) . "%</td>";
-                echo "<td>" . (isset($projectData['Reason']) && !empty($projectData['Reason']) ? htmlspecialchars($projectData['Reason']) : "ไม่มีข้อมูล") . "</td>";
-                echo "</tr>";
+                                                            echo "<td>" . formatNumber($projectDifference) . "</td>";
+                                                            echo "<td>" . formatNumber($projectPercentage_Difference) . "%</td>";
+                                                            echo "<td>" . "</td>";
+                                                            echo "</tr>";
 
-                // แสดงผลรวมของแต่ละ Sub_Type
-                foreach ($projectData['sub_types'] as $subType => $subTypeData) {
-                    echo "<tr>";
-                    echo "<td style='text-align: left; '>".str_repeat("&nbsp;", 8) . htmlspecialchars($subType) . "<br></td>";
-                    echo "<td>" . formatNumber($subTypeData['Total_Amount_2566']) . "</td>";
-                    echo "<td>" . formatNumber($subTypeData['Total_Amount_2567']) . "</td>";
-                    echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_2567']) . "</td>";
-                    echo "<td>" . formatNumber($subTypeData['Total_Amount_2568']) . "</td>";
+                                                            // แสดงผลรวมของแต่ละ Sub_Type
+                                                            foreach ($projectData['sub_types'] as $subType => $subTypeData) {
+                                                                echo "<tr>";
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subType) . "<br></td>";
+                                                                echo "<td>" . formatNumber($subTypeData['Total_Amount_2566']) . "</td>";
+                                                                echo "<td>" . formatNumber($subTypeData['Total_Amount_2567']) . "</td>";
+                                                                echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_2567']) . "</td>";
+                                                                echo "<td>" . formatNumber($subTypeData['Total_Amount_2568']) . "</td>";
 
-                    // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
-                    $subTypeDifference = $subTypeData['Total_Amount_2568'] - $subTypeData['TOTAL_BUDGET_2567'];
-                    $subTypePercentage_Difference = ($subTypeData['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $subTypeData['TOTAL_BUDGET_2567']) * 100 : 100;
+                                                                // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
+                                                                $subTypeDifference = $subTypeData['Total_Amount_2568'] - $subTypeData['TOTAL_BUDGET_2567'];
+                                                                $subTypePercentage_Difference = ($subTypeData['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $subTypeData['TOTAL_BUDGET_2567']) * 100 : 100;
 
-                    echo "<td>" . formatNumber($subTypeDifference) . "</td>";
-                    echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
-                    echo "<td>" . (isset($subTypeData['Reason']) && !empty($subTypeData['Reason']) ? htmlspecialchars($subTypeData['Reason']) : "ไม่มีข้อมูล") . "</td>";
-                    echo "</tr>";
+                                                                echo "<td>" . formatNumber($subTypeDifference) . "</td>";
+                                                                echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
+                                                                echo "<td>" . "</td>";
+                                                                echo "</tr>";
 
-                    // แสดงข้อมูล KKU_Item_Name
-                    foreach ($subTypeData['kku_items'] as $kkuItem) {
-                        echo "<tr>";
-                        echo "<td style='text-align: left; '>" .str_repeat("&nbsp;", 16). $kkuItem['name'] . "<br></td>";
-                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
-                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
-                        echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2567']) . "</td>";
-                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568']) . "</td>";
-                        echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
-                        echo "<td>" . formatNumber($kkuItem['Percentage_Difference_2568_2567']) . "</td>";
-                        echo "<td>" . (isset($kkuItem['Reason']) && !empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : "ไม่มีข้อมูล") . "</td>";
-                        echo "</tr>";
-                    }
-                }
-            }
-        }
-    }
-} else {
-    echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
-}
-?>
+                                                                // แสดงข้อมูล KKU_Item_Name
+                                                                foreach ($subTypeData['kku_items'] as $kkuItem) {
+                                                                    echo "<tr>";
+                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "<br></td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2567']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2568']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Percentage_Difference_2568_2567']) . "</td>";
+                                                                    echo "<td>" . (isset($kkuItem['Reason']) && !empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : "") . "</td>";
+                                                                    echo "</tr>";
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                            }
+                                            ?>
                                         </tbody>
                                     </table>
                                     <script>
@@ -624,7 +624,7 @@ if (isset($results) && is_array($results) && count($results) > 0) {
                     html = html.replace(/<br\s*\/?>/gi, '\n');
 
                     // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                    // html = html.replace(/<\/?[^>]+>/g, '');
+                    html = html.replace(/<\/?[^>]+>/g, '');
 
                     // 4) แยกเป็น array บรรทัดย่อย
                     const lines = html.split('\n').map(x => x.trimEnd());
@@ -661,7 +661,7 @@ if (isset($results) && is_array($results) && count($results) > 0) {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'report.csv';
+            link.download = 'รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -706,170 +706,170 @@ if (isset($results) && is_array($results) && count($results) > 0) {
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            doc.save('รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.pdf');
         }
 
         function exportXLS() {
-    const table = document.getElementById('reportTable');
+            const table = document.getElementById('reportTable');
 
-    // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
-    const { theadRows, theadMerges } = parseThead(table.tHead);
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+            const { theadRows, theadMerges } = parseThead(table.tHead);
 
-    // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
-    const tbodyRows = parseTbody(table.tBodies[0]);
+            // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
+            const tbodyRows = parseTbody(table.tBodies[0]);
 
-    // รวม rows ทั้งหมด: thead + tbody
-    const allRows = [...theadRows, ...tbodyRows];
+            // รวม rows ทั้งหมด: thead + tbody
+            const allRows = [...theadRows, ...tbodyRows];
 
-    // สร้าง Workbook + Worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(allRows);
+            // สร้าง Workbook + Worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-    // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
-    ws['!merges'] = theadMerges;
+            // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+            ws['!merges'] = theadMerges;
 
-    // ตั้งค่า vertical-align: bottom ให้ทุกเซลล์
-    applyCellStyles(ws, "bottom");
+            // ตั้งค่า vertical-align: bottom ให้ทุกเซลล์
+            applyCellStyles(ws, "bottom");
 
-    // เพิ่ม worksheet ลงใน workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            // เพิ่ม worksheet ลงใน workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
-    // เขียนไฟล์เป็น .xlsx (แทน .xls เพื่อรองรับ style)
-    const excelBuffer = XLSX.write(wb, {
-        bookType: 'xlsx',
-        type: 'array'
-    });
+            // เขียนไฟล์เป็น .xlsx (แทน .xls เพื่อรองรับ style)
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xlsx',
+                type: 'array'
+            });
 
-    // สร้าง Blob + ดาวน์โหลด
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
+            // สร้าง Blob + ดาวน์โหลด
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
 
-/**
- * -----------------------
- * 1) parseThead: รองรับ merge
- * -----------------------
- */
-function parseThead(thead) {
-    const theadRows = [];
-    const theadMerges = [];
+        /**
+         * -----------------------
+         * 1) parseThead: รองรับ merge
+         * -----------------------
+         */
+        function parseThead(thead) {
+            const theadRows = [];
+            const theadMerges = [];
 
-    if (!thead) {
-        return { theadRows, theadMerges };
-    }
-
-    const skipMap = {};
-
-    for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
-        const tr = thead.rows[rowIndex];
-        const rowData = [];
-        let colIndex = 0;
-
-        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData[colIndex] = "";
-                colIndex++;
+            if (!thead) {
+                return { theadRows, theadMerges };
             }
 
-            const cell = tr.cells[cellIndex];
-            let text = cell.innerHTML
-                .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // แทนที่ &nbsp; ด้วยช่องว่าง
-                .replace(/<\/?[^>]+>/g, '') // ลบแท็ก HTML ทั้งหมด
-                .trim();
+            const skipMap = {};
 
-            rowData[colIndex] = text;
+            for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+                const tr = thead.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
 
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
-
-            if (rowspan > 1 || colspan > 1) {
-                theadMerges.push({
-                    s: { r: rowIndex, c: colIndex },
-                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                });
-
-                for (let r = 0; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        if (r === 0 && c === 0) continue;
-                        skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
                     }
+
+                    const cell = tr.cells[cellIndex];
+                    let text = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // แทนที่ &nbsp; ด้วยช่องว่าง
+                        .replace(/<\/?[^>]+>/g, '') // ลบแท็ก HTML ทั้งหมด
+                        .trim();
+
+                    rowData[colIndex] = text;
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        theadMerges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r === 0 && c === 0) continue;
+                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                    colIndex++;
+                }
+                theadRows.push(rowData);
+            }
+
+            return { theadRows, theadMerges };
+        }
+
+        /**
+         * -----------------------
+         * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+         * -----------------------
+         */
+        function parseTbody(tbody) {
+            const rows = [];
+
+            if (!tbody) return rows;
+
+            for (const tr of tbody.rows) {
+                const cellLines = [];
+                let maxSubLine = 1;
+
+                for (const cell of tr.cells) {
+                    let html = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, match => {
+                            const count = match.match(/&nbsp;/g).length;
+                            return ' '.repeat(count);
+                        })
+                        .replace(/<\/?[^>]+>/g, ''); // ลบแท็ก HTML ทั้งหมด
+
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+                    cellLines.push(lines);
+                }
+
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+                    for (const lines of cellLines) {
+                        rowData.push(lines[i] || '');
+                    }
+                    rows.push(rowData);
                 }
             }
-            colIndex++;
+
+            return rows;
         }
-        theadRows.push(rowData);
-    }
 
-    return { theadRows, theadMerges };
-}
+        /**
+         * -----------------------
+         * 3) applyCellStyles: ตั้งค่า vertical-align ให้ทุก cell
+         * -----------------------
+         */
+        function applyCellStyles(ws, verticalAlign) {
+            if (!ws['!ref']) return;
 
-/**
- * -----------------------
- * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
- * -----------------------
- */
-function parseTbody(tbody) {
-    const rows = [];
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cell_address]) continue;
 
-    if (!tbody) return rows;
-
-    for (const tr of tbody.rows) {
-        const cellLines = [];
-        let maxSubLine = 1;
-
-        for (const cell of tr.cells) {
-            let html = cell.innerHTML
-                .replace(/(&nbsp;)+/g, match => {
-                    const count = match.match(/&nbsp;/g).length;
-                    return ' '.repeat(count);
-                })
-                .replace(/<\/?[^>]+>/g, ''); // ลบแท็ก HTML ทั้งหมด
-
-            const lines = html.split('\n').map(x => x.trimEnd());
-            if (lines.length > maxSubLine) {
-                maxSubLine = lines.length;
+                    if (!ws[cell_address].s) ws[cell_address].s = {};
+                    ws[cell_address].s.alignment = { vertical: verticalAlign };
+                }
             }
-            cellLines.push(lines);
         }
-
-        for (let i = 0; i < maxSubLine; i++) {
-            const rowData = [];
-            for (const lines of cellLines) {
-                rowData.push(lines[i] || '');
-            }
-            rows.push(rowData);
-        }
-    }
-
-    return rows;
-}
-
-/**
- * -----------------------
- * 3) applyCellStyles: ตั้งค่า vertical-align ให้ทุก cell
- * -----------------------
- */
-function applyCellStyles(ws, verticalAlign) {
-    if (!ws['!ref']) return;
-
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!ws[cell_address]) continue;
-
-            if (!ws[cell_address].s) ws[cell_address].s = {};
-            ws[cell_address].s.alignment = { vertical: verticalAlign };
-        }
-    }
-}
 
 
     </script>
