@@ -29,7 +29,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "WITH t1 AS(
+                /* $sql = "WITH t1 AS(
                         SELECT b.*,a.parent FROM budget_planning_annual_budget_plan b
                         LEFT JOIN account a
                         ON b.Account=a.account
@@ -58,7 +58,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default 
                         FROM Faculty) f 
-                        ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI";
+                        ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        order by f.Alias_Default"; */
+                        $sql = "WITH t1 AS(
+                        SELECT b.*,a.type FROM budget_planning_annual_budget_plan b
+                        LEFT JOIN account a
+                        ON b.Account=a.account)
+                        , t2 AS(
+                        SELECT Faculty
+                        ,type
+                        ,SUM(Total_Amount_Quantity) AS Total_Amount
+                        FROM t1
+                        GROUP BY Faculty
+                        ,type)
+                        ,t3 AS(
+                        SELECT Faculty
+                        ,sum(case when type='1.เงินอุดหนุนจากรัฐ' then Total_Amount ELSE 0 END) AS a1
+                        ,sum(case when type='2.เงินและทรัพย์สินซึ่งมีผู้อุทิศให้แก่มหาวิทยาลัย' then Total_Amount ELSE 0 END) AS a2
+                        ,sum(case when type='3.เงินกองทุนที่รัฐบาลหรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้หรือผลประโยชน์จากกองทุน' then Total_Amount ELSE 0 END) AS a3
+                        ,sum(case when type='4.ค่าธรรมเนียม ค่าบำรุง ค่าตอบแทน เบี้ยปรับ และค่าบริการต่างๆของมหาวิทยาลัย' then Total_Amount ELSE 0 END) AS a4
+                        ,sum(case when type='5. รายได้หรือผลประโยชน์ที่ได้มาจากการลงทุนหรือการร่วมลงทุนจากทรัพย์สินของมหาวิทย' then Total_Amount ELSE 0 END) AS a5
+                        ,sum(case when type='6. รายได้หรือผลประโยชน์ที่ได้มาจากการใช้ที่ราชพัสดุหรือจัดหาประโยชน์ในที่ราชพัสด' then Total_Amount ELSE 0 END) AS a6
+                        ,sum(case when type='7.เงินอุดหนุนจากหน่วยงานภายนอก' then Total_Amount ELSE 0 END) AS a7
+                        ,sum(case when type='8.เงินและผลประโยชน์ที่ได้รับจากการบริการวิชาการ การวิจัย และนำทรัพย์สินทางปัญญาไ' then Total_Amount ELSE 0 END) AS a8
+                        ,sum(case when type='9.รายได้ผลประโยชน์อย่างอื่น' then Total_Amount ELSE 0 END) AS a9
+                        FROM t2
+                        GROUP BY Faculty)
+                        SELECT t.*,f.Alias_Default FROM t3 t
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default 
+                        FROM Faculty) f 
+                        ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        order by f.Alias_Default";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -125,7 +156,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM t3 t
                         LEFT JOIN t4 a
                         ON t.faculty=a.FACULTY 
-                            AND t.fund= CONCAT('FN',a.Fund) 
+                            AND (t.fund= CONCAT('FN',a.Fund) or t.fund=a.Fund)
                             AND t.plan=a.plan 
                         AND t.sub_plan=CONCAT('SP_',a.SUBPLAN) 
                         AND t.project=a.project 
