@@ -488,7 +488,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
 
                                                     //echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Remaining_Amount']) . "</td>";
                                                     echo "<td style='vertical-align: bottom;'>" .
-                                                        (!empty($row['Reason']) ? htmlspecialchars($row['Reason']) : 'ไม่มีหมายเหตุ') .
+                                                        (!empty($row['Reason']) ? htmlspecialchars($row['Reason']) : '') .
                                                         "</td>";
 
                                                     echo "</tr>";
