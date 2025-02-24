@@ -348,11 +348,18 @@ function fetchYearsData($conn)
                                                 return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
                                             }
 
+                                            function removeLeadingNumbers($text)
+                                            {
+                                                // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
+                                                return preg_replace('/^[\d.]+\s*/', '', $text);
+                                            }
+
                                             // ตัวแปรเก็บค่าของแถวก่อนหน้า
                                             $previousPlan = "";
                                             $previousSubPlan = "";
                                             $previousProject = "";
                                             $previousSubType = "";
+
                                             $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
                                             $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
                                             $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
@@ -416,6 +423,7 @@ function fetchYearsData($conn)
                                                     // เก็บข้อมูลของ Sub_Type
                                                     if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType])) {
                                                         $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType] = [
+                                                            'a2' => $row['a2'],
                                                             'Total_Amount_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
@@ -453,7 +461,7 @@ function fetchYearsData($conn)
 
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
+                                                        ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
                                                         : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
                                                     $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['kku_items'][] = [
                                                         'name' => $kkuItemName,
@@ -489,7 +497,14 @@ function fetchYearsData($conn)
                                                     // แสดงผลรวมของแต่ละ Sub_Plan
                                                     foreach ($data['sub_plans'] as $subPlan => $subData) {
                                                         echo "<tr>";
-                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subPlan) . "</strong> : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
+
+                                                        // ลบ 'SP_' ที่อยู่หน้าสุดของข้อความ
+                                                        $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
+
+                                                        // แสดงผลข้อมูล
+                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
+
+
                                                         echo "<td>" . formatNumber($subData['Total_Amount_2566']) . "</td>";
                                                         echo "<td>" . formatNumber($subData['Total_Amount_2567']) . "</td>";
                                                         echo "<td>" . formatNumber($subData['TOTAL_BUDGET_2567']) . "</td>";
@@ -525,7 +540,11 @@ function fetchYearsData($conn)
                                                             // แสดงผลรวมของแต่ละ Sub_Type
                                                             foreach ($projectData['sub_types'] as $subType => $subTypeData) {
                                                                 echo "<tr>";
-                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subType) . "<br></td>";
+                                                                // ใช้ Regex ลบตัวเลขและจุดข้างหน้า
+                                                                $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $subType);
+
+                                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
                                                                 echo "<td>" . formatNumber($subTypeData['Total_Amount_2566']) . "</td>";
                                                                 echo "<td>" . formatNumber($subTypeData['Total_Amount_2567']) . "</td>";
                                                                 echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_2567']) . "</td>";
@@ -543,6 +562,7 @@ function fetchYearsData($conn)
                                                                 // แสดงข้อมูล KKU_Item_Name
                                                                 foreach ($subTypeData['kku_items'] as $kkuItem) {
                                                                     echo "<tr>";
+
                                                                     echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "<br></td>";
                                                                     echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
                                                                     echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
@@ -577,10 +597,6 @@ function fetchYearsData($conn)
                                         console.log('Selected Year 2: ', budget_year2);
                                         console.log('Selected Year 3: ', budget_year3); 
                                     </script>
-
-
-
-
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
@@ -620,9 +636,7 @@ function fetchYearsData($conn)
                         return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
                     });
 
-                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                    html = html.replace(/<br\s*\/?>/gi, '\n');
-
+ 
                     // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
                     html = html.replace(/<\/?[^>]+>/g, '');
 
