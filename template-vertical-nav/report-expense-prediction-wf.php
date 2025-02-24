@@ -78,6 +78,9 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
     <script>
         $(document).ready(function() {
             laodData();
@@ -399,45 +402,76 @@
         }
 
         function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
+    // Add Thai font
+    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+    doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานประมาณการค่าใช้จ่ายบุคลากรตามกรอบอัตรากำลัง", 10, 10);
+    // Configure autoTable
+    doc.autoTable({
+        html: '#reportTable',
+        startY: 25,
+        styles: {
+            font: "THSarabun",
+            fontSize: 10,
+            cellPadding: 2,
+            lineWidth: 0.1
+        },
+        headStyles: {
+            fillColor: [220, 230, 241],
+            textColor: [0, 0, 0],
+            fontSize: 10,
+            fontStyle: 'bold',
+            halign: 'center',
+            valign: 'middle'
+        },
+        columnStyles: {
+            0: { cellWidth: 40 }, // ส่วนงาน
+            1: { cellWidth: 40 }, // หน่วยงาน
+            2: { cellWidth: 40 }, // ตำแหน่ง
+            3: { cellWidth: 20 }, // จำนวนตำแหน่ง
+            4: { cellWidth: 25 }, // เงินเดือน
+            5: { cellWidth: 30 }, // ค่าตอบแทน
+            6: { cellWidth: 30 }, // เงินเดือนเต็มขั้น
+            7: { cellWidth: 25 }, // ตำแหน่งบริหาร
+            8: { cellWidth: 25 }  // ค่ารถ
+        },
+        didDrawPage: function(data) {
+            // Add header
+            doc.setFontSize(16);
+            doc.text('รายงานประมาณการค่าใช้จ่ายบุคลากรตามกรอบอัตรากำลัง', 14, 15);
+            
+            // Add footer with page number
+            doc.setFontSize(10);
+            doc.text(
+                'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                doc.internal.pageSize.width - 20, 
+                doc.internal.pageSize.height - 10,
+                { align: 'right' }
+            );
+        },
+        didParseCell: function(data) {
+            // Apply background color for summary rows
+            const element = data.cell.raw;
+            if (element && element.style && element.style.backgroundColor === 'rgb(247, 247, 247)') {
+                data.cell.styles.fillColor = [247, 247, 247];
+            }
 
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-            });
+            // Apply text alignment
+            if (element && element.style && element.style.textAlign === 'left') {
+                data.cell.styles.halign = 'left';
+            }
+        },
+        margin: { top: 20, right: 14, bottom: 20, left: 14 }
+    });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
-        }
+    // Save the PDF
+    doc.save('รายงานประมาณการค่าใช้จ่ายบุคลากร.pdf');
+}
+
 
         function exportXLS() {
         const table = document.getElementById('reportTable');
