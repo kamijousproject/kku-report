@@ -366,44 +366,128 @@
     }
 
     function exportPDF() {
-        const {
-            jsPDF
-        } = window.jspdf;
-        const doc = new jsPDF('landscape');
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF('l', 'mm', 'a4'); // A4 landscape
 
-        // เพิ่มฟอนต์ภาษาไทย
-        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+        // Add Thai font
+        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
         doc.addFont("THSarabun.ttf", "THSarabun", "normal");
         doc.setFont("THSarabun");
 
-        // ตั้งค่าฟอนต์และข้อความ
-        doc.setFontSize(12);
-        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-        // ใช้ autoTable สำหรับสร้างตาราง
+        // Configure autoTable
         doc.autoTable({
             html: '#reportTable',
             startY: 20,
+            theme: 'grid',
             styles: {
-                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                fontSize: 10,
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            bodyStyles: {
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
+                font: "THSarabun",
+                fontSize: 6,
+                cellPadding: { top: 1, right: 1, bottom: 1, left: 1 },
+                lineWidth: 0.1,
+                lineColor: [0, 0, 0],
+                minCellHeight: 4
             },
             headStyles: {
-                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
+                fillColor: [220, 230, 241],
+                textColor: [0, 0, 0],
+                fontSize: 6,
+                fontStyle: 'bold',
+                halign: 'center',
+                valign: 'middle',
+                minCellHeight: 4
             },
+            columnStyles: {
+                0: { cellWidth: 25 }, // ส่วนงาน/หน่วยงาน
+                // Year 2567
+                1: { cellWidth: 6.5 }, 2: { cellWidth: 6.5 },  // ประเภทบริหาร
+                3: { cellWidth: 6.5 }, 4: { cellWidth: 6.5 },  // ประเภทวิชาการ
+                5: { cellWidth: 6.5 }, 6: { cellWidth: 6.5 },  // ประเภทวิจัย
+                7: { cellWidth: 6.5 }, 8: { cellWidth: 6.5 },  // ประเภทสนับสนุน
+                9: { cellWidth: 6.5 }, 10: { cellWidth: 6.5 }, // รวม
+                // Year 2568
+                11: { cellWidth: 6.5 }, 12: { cellWidth: 6.5 }, // ประเภทบริหาร
+                13: { cellWidth: 6.5 }, 14: { cellWidth: 6.5 }, // ประเภทวิชาการ
+                15: { cellWidth: 6.5 }, 16: { cellWidth: 6.5 }, // ประเภทวิจัย
+                17: { cellWidth: 6.5 }, 18: { cellWidth: 6.5 }, // ประเภทสนับสนุน
+                19: { cellWidth: 6.5 }, 20: { cellWidth: 6.5 }, // รวม
+                // Year 2569
+                21: { cellWidth: 6.5 }, 22: { cellWidth: 6.5 }, // ประเภทบริหาร
+                23: { cellWidth: 6.5 }, 24: { cellWidth: 6.5 }, // ประเภทวิชาการ
+                25: { cellWidth: 6.5 }, 26: { cellWidth: 6.5 }, // ประเภทวิจัย
+                27: { cellWidth: 6.5 }, 28: { cellWidth: 6.5 }, // ประเภทสนับสนุน
+                29: { cellWidth: 6.5 }, 30: { cellWidth: 6.5 }, // รวม
+                // Year 2570
+                31: { cellWidth: 6.5 }, 32: { cellWidth: 6.5 }, // ประเภทบริหาร
+                33: { cellWidth: 6.5 }, 34: { cellWidth: 6.5 }, // ประเภทวิชาการ
+                35: { cellWidth: 6.5 }, 36: { cellWidth: 6.5 }, // ประเภทวิจัย
+                37: { cellWidth: 6.5 }, 38: { cellWidth: 6.5 }, // ประเภทสนับสนุน
+                39: { cellWidth: 6.5 }, 40: { cellWidth: 6.5 }  // รวม
+            },
+            didDrawPage: function(data) {
+                // Add header
+                doc.setFontSize(12);
+                doc.text('รายงานกรอบอัตรากำลังระยะเวลา 4 ปี', 14, 10);
+                
+                // Add footer with page number
+                doc.setFontSize(8);
+                doc.text(
+                    'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                    doc.internal.pageSize.width - 20, 
+                    doc.internal.pageSize.height - 10,
+                    { align: 'right' }
+                );
+            },
+            // Handle cell styles
+            didParseCell: function(data) {
+                // Center align all header cells
+                if (data.section === 'head') {
+                    data.cell.styles.halign = 'center';
+                    data.cell.styles.valign = 'middle';
+                    
+                    // Adjust font sizes for different header rows
+                    if (data.row.index === 0) {
+                        data.cell.styles.fontSize = 7; // Year headers
+                    } else if (data.row.index === 1) {
+                        data.cell.styles.fontSize = 6; // Category headers
+                    } else {
+                        data.cell.styles.fontSize = 6; // แผน/ผล headers
+                    }
+                }
+                
+                // Handle body and footer cells
+                if (data.section === 'body' || data.section === 'foot') {
+                    // Left align department names
+                    if (data.column.index === 0) {
+                        data.cell.styles.halign = 'left';
+                        data.cell.styles.fontSize = 7;
+                    } else {
+                        // Center align numeric data
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.fontSize = 6;
+                    }
+                }
+
+                // Style footer row
+                if (data.section === 'foot') {
+                    data.cell.styles.fontStyle = 'bold';
+                    data.cell.styles.textColor = 'black';
+                    data.cell.styles.fillColor = [240, 240, 240];
+                }
+            },
+            willDrawCell: function(data) {
+                // Additional cell customization if needed
+                if (data.section === 'head') {
+                    data.cell.styles.fillColor = [220, 230, 241];
+                }
+            },
+            // Set margins to maximize space
+            margin: { top: 15, right: 5, bottom: 15, left: 5 },
+            // Use all available width
+            tableWidth: 'auto'
         });
 
-        // บันทึกไฟล์ PDF
-        doc.save('รายงาน.pdf');
+        // Save the PDF
+        doc.save('รายงานกรอบอัตรากำลัง.pdf');
     }
 
     function exportXLS() {

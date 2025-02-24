@@ -311,7 +311,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             rate_status,
                             fund_ft,
                             COUNT(*) AS total_person
-                        FROM actual_data_2
+                        FROM workforce_hcm_actual
                         WHERE 
                             Faculty != '00000' 
                             AND all_position_types IS NOT NULL 
@@ -329,7 +329,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             rate_status,
                             '' AS fund_ft,
                             COUNT(*) AS total_person
-                        FROM actual_data_2
+                        FROM workforce_hcm_actual
                         WHERE 
                             Faculty != '00000' 
                             AND all_position_types IS NOT NULL 
@@ -343,7 +343,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     UNION ALL
                     SELECT * FROM ad2)
 
-                    SELECT f.Alias_Default
+                    SELECT f.Alias_Default,f.parent
                     ,sum(case when t1.Personnel_Type='ข้าราชการ'AND t1.all_position_types='วิชาการ' then total_person ELSE 0 END) AS c1
                     ,sum(case when t1.Personnel_Type='ข้าราชการ'AND t1.all_position_types='สนับนสุน' then total_person ELSE 0 END) AS c2
                     ,sum(case when t1.Personnel_Type='ลูกจ้างประจำ'AND t1.all_position_types='สนับสนุน' then total_person ELSE 0 END) AS c3
@@ -367,10 +367,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ,sum(case when t1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'AND t1.all_position_types='สนับสนุน' AND t1.rate_status='อัตราว่าง'then t1.total_person ELSE 0 END) AS c21
                     FROM t1
                     LEFT JOIN (
-                    SELECT DISTINCT Faculty, Alias_Default 
+                    SELECT DISTINCT Faculty, Alias_Default ,parent
                     FROM Faculty
-                    ) f ON t1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                    GROUP BY f.Alias_Default
+                    WHERE parent LIKE 'Faculty%') f ON t1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                    GROUP BY f.Alias_Default,f.parent
                     ORDER BY f.Alias_Default";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();

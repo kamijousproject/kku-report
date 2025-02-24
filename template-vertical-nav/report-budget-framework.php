@@ -379,141 +379,220 @@ thead tr:nth-child(3) th {
     }
 
     function exportPDF() {
-        const {
-            jsPDF
-        } = window.jspdf;
-        const doc = new jsPDF('landscape');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4'); // A4 landscape
 
-        // เพิ่มฟอนต์ภาษาไทย
-        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-        doc.setFont("THSarabun");
+    // Add Thai font
+    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+    doc.setFont("THSarabun");
 
-        // ตั้งค่าฟอนต์และข้อความ
-        doc.setFontSize(12);
-        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-        // ใช้ autoTable สำหรับสร้างตาราง
-        doc.autoTable({
-            html: '#reportTable',
-            startY: 20,
-            styles: {
-                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                fontSize: 10,
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            bodyStyles: {
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            headStyles: {
-                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-        });
-
-        // บันทึกไฟล์ PDF
-        doc.save('รายงาน.pdf');
-    }
-
-    function exportXLS() {
-    const table = document.getElementById('reportTable');
-
-    const rows = [];
-    const merges = {};
-    const skipMap = {};
-
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-        const tr = table.rows[rowIndex];
-        const rowData = [];
-        let colIndex = 0;
-
-        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData.push("");
-                colIndex++;
+    // Configure autoTable
+    doc.autoTable({
+        html: '#reportTable',
+        startY: 20,
+        theme: 'grid',
+        styles: {
+            font: "THSarabun",
+            fontSize: 6,
+            cellPadding: { top: 1, right: 1, bottom: 1, left: 1 },
+            lineWidth: 0.1,
+            lineColor: [0, 0, 0],
+            minCellHeight: 4
+        },
+        headStyles: {
+            fillColor: [220, 230, 241],
+            textColor: [0, 0, 0],
+            fontSize: 6,
+            fontStyle: 'bold',
+            halign: 'center',
+            valign: 'middle',
+            minCellHeight: 4
+        },
+        columnStyles: {
+            0: { cellWidth: 8 },  // ที่
+            1: { cellWidth: 35 }, // ส่วนงาน/หน่วยงาน
+            // ประเภทบริหาร
+            2: { cellWidth: 10 }, // จำนวน (แผ่นดิน)
+            3: { cellWidth: 14 }, // งบประมาณ (แผ่นดิน)
+            4: { cellWidth: 10 }, // จำนวน (รายได้)
+            5: { cellWidth: 14 }, // งบประมาณ (รายได้)
+            // ประเภทวิชาการ
+            6: { cellWidth: 10 }, // จำนวน (แผ่นดิน)
+            7: { cellWidth: 14 }, // งบประมาณ (แผ่นดิน)
+            8: { cellWidth: 10 }, // จำนวน (รายได้)
+            9: { cellWidth: 14 }, // งบประมาณ (รายได้)
+            // ประเภทวิจัย
+            10: { cellWidth: 10 }, // จำนวน (แผ่นดิน)
+            11: { cellWidth: 14 }, // งบประมาณ (แผ่นดิน)
+            12: { cellWidth: 10 }, // จำนวน (รายได้)
+            13: { cellWidth: 14 }, // งบประมาณ (รายได้)
+            // ประเภทสนับสนุน
+            14: { cellWidth: 10 }, // จำนวน (แผ่นดิน)
+            15: { cellWidth: 14 }, // งบประมาณ (แผ่นดิน)
+            16: { cellWidth: 10 }, // จำนวน (รายได้)
+            17: { cellWidth: 14 }, // งบประมาณ (รายได้)
+            // รวม
+            18: { cellWidth: 10 }, // จำนวน (แผ่นดิน)
+            19: { cellWidth: 14 }, // งบประมาณ (แผ่นดิน)
+            20: { cellWidth: 10 }, // จำนวน (รายได้)
+            21: { cellWidth: 14 }  // งบประมาณ (รายได้)
+        },
+        didDrawPage: function(data) {
+            // Add header
+            doc.setFontSize(12);
+            doc.text('รายงานกรอบอัตรากำลังตามงบประมาณประเภทต่างๆ', 14, 10);
+            
+            // Add footer with page number
+            doc.setFontSize(8);
+            doc.text(
+                'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                doc.internal.pageSize.width - 20, 
+                doc.internal.pageSize.height - 10,
+                { align: 'right' }
+            );
+        },
+        didParseCell: function(data) {
+            // Center align all header cells
+            if (data.section === 'head') {
+                data.cell.styles.halign = 'center';
+                data.cell.styles.valign = 'middle';
+                
+                // Adjust font sizes for different header rows
+                if (data.row.index === 0) {
+                    data.cell.styles.fontSize = 7; // Main headers
+                } else {
+                    data.cell.styles.fontSize = 6; // Sub-headers
+                }
             }
-
-            const cell = tr.cells[cellIndex];
-            let cellText = cell.innerText.trim();
-            rowData[colIndex] = cellText;
-
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
-
-            if (rowspan > 1 || colspan > 1) {
-                const mergeRef = {
-                    s: { r: rowIndex, c: colIndex },
-                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                };
-
-                const mergeKey = `merge_${rowIndex}_${colIndex}`;
-                merges[mergeKey] = mergeRef;
-
-                for (let r = 0; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        if (!(r === 0 && c === 0)) {
-                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
-                        }
-                    }
+            
+            // Handle body and footer cells
+            if (data.section === 'body' || data.section === 'foot') {
+                // Left align department names
+                if (data.column.index <= 1) {
+                    data.cell.styles.halign = 'left';
+                    data.cell.styles.fontSize = 7;
+                } else {
+                    // Right align numeric data
+                    data.cell.styles.halign = 'right';
+                    data.cell.styles.fontSize = 6;
                 }
             }
 
-            colIndex++;
-        }
-        rows.push(rowData);
-    }
-
-    // Create Workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-
-    // Apply merges
-    ws['!merges'] = Object.values(merges);
-
-    // Apply header styles to the first few rows (all header rows)
-    const totalHeaderRows = table.tHead.rows.length; // Get the number of header rows
-    for (let R = 0; R < totalHeaderRows; R++) {
-        for (let C = 0; C < rows[R].length; C++) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-
-            if (ws[cellRef]) {
-                ws[cellRef].s = {
-                    alignment: { horizontal: "center", vertical: "center" }, // Center text
-                    font: { bold: true, name: "Arial", sz: 12 }, // Bold + Font
-                    fill: { fgColor: { rgb: "FFFFCC" } }, // Light yellow background
-                    border: {
-                        top: { style: "thin", color: { rgb: "000000" } },
-                        bottom: { style: "thin", color: { rgb: "000000" } },
-                        left: { style: "thin", color: { rgb: "000000" } },
-                        right: { style: "thin", color: { rgb: "000000" } }
-                    }
-                };
+            // Style footer row
+            if (data.section === 'foot') {
+                data.cell.styles.fontStyle = 'bold';
+                data.cell.styles.textColor = 'black';
+                data.cell.styles.fillColor = [240, 240, 240];
             }
-        }
-    }
+        },
+        // Set margins to maximize space
+        margin: { top: 15, right: 5, bottom: 15, left: 5 },
+        // Use all available width
+        tableWidth: 'auto'
+    });
 
-    // Append sheet and write file
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-    // Download file
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.xlsx'; // Change to .xlsx for proper styling support
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Save the PDF
+    doc.save('รายงานกรอบอัตรากำลัง.pdf');
 }
 
+    function exportXLS() {
+            const table = document.getElementById('reportTable');
 
+            // เก็บข้อมูลแต่ละแถวเป็น Array ของ Array
+            const rows = [];
+            // เก็บ Merge (colSpan/rowSpan) ในรูปแบบ SheetJS
+            const merges = {};
 
+            // ใช้ object เก็บว่าส่วนใดถูก merge ไปแล้ว เพื่อเลี่ยงการซ้ำซ้อน
+            // key = "rowIndex,colIndex" => true/false
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const tr = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    // ข้ามเซลล์ที่อยู่ในพื้นที่ merge แล้ว
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData.push(""); 
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    // เอา innerText หรือจะใช้ innerHTML แปลงเองก็ได้
+                    let cellText = cell.innerText.trim();
+
+                    // ใส่ข้อมูลลงใน Array
+                    rowData[colIndex] = cellText;
+                    
+                    // ตรวจสอบ colSpan / rowSpan
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ถ้ามีการ Merge จริง (มากกว่า 1)
+                    if (rowspan > 1 || colspan > 1) {
+                        // สร้าง object merge ตามรูปแบบ SheetJS
+                        const mergeRef = {
+                            s: { r: rowIndex, c: colIndex },                 // จุดเริ่ม (start)
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดจบ (end)
+                        };
+
+                        // เก็บลง merges (รูปแบบเก่าคือ ws['!merges'] = [])
+                        // แต่ต้องรอใส่หลังสร้าง Worksheet ด้วย SheetJS
+                        // จึงบันทึกชั่วคราวใน merges พร้อม index
+                        const mergeKey = `merge_${rowIndex}_${colIndex}`;
+                        merges[mergeKey] = mergeRef;
+
+                        // Mark skipMap กันซ้ำ
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (!(r === 0 && c === 0)) {
+                                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
+                        }
+                    }
+
+                    colIndex++;
+                }
+                rows.push(rowData);
+            }
+
+            // สร้าง Workbook
+            const wb = XLSX.utils.book_new();
+            // แปลง Array เป็น Worksheet
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // ใส่ merges เข้า Worksheet (Array)
+            ws['!merges'] = Object.values(merges);
+
+            // เพิ่มชีทใน Workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์เป็น XLS (BIFF8)
+            // ใช้ { bookType: 'xls', type: 'array' } เพื่อได้ Buffer Array
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xls',
+                type: 'array'
+            });
+
+            // สร้าง Blob เป็นไฟล์ XLS
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.ms-excel'
+            });
+
+            // ดาวน์โหลดไฟล์
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.xls'; // ชื่อไฟล์ .xls
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
