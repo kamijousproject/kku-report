@@ -207,7 +207,8 @@ END AS Pre_Release_Amount,
             WHEN bpd.Scenario IN ('ANL-RELEASE-1', 'ANL-RELEASE-2', 'ANL-RELEASE-3', 'ANL-RELEASE-4') THEN 
                 (SELECT COALESCE(Release_Amount, 0) FROM budget_planning_disbursement_budget_plan_anl_release WHERE Scenario = 'ANL-RELEASE-4' AND bpd.Service = Service AND bpd.Faculty = Faculty AND bpd.Project = Project AND bpd.Plan = Plan AND bpd.Sub_Plan = Sub_Plan AND bpd.Account = Account)
             ELSE 0 
-        END AS Scenario4
+        END AS Scenario4,
+        bap.Reason
 
     FROM 
         budget_planning_allocated_annual_budget_plan bap
@@ -390,7 +391,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                 foreach ($results as $row) {
                                                     echo "<tr>";
                                                     echo "<td style='text-align: left;'>";
-
+                                                    $br=0;
                                                     // เช็คและแสดง Plan ถ้าเปลี่ยนแปลง
                                                     if ($row['Plan'] != $previousPlan) {
                                                         echo "<strong>" . htmlspecialchars($row['Plan']) . "</strong> : " . htmlspecialchars($row['plan_name']) . "<br>";
@@ -399,6 +400,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         $previousProject = "";
                                                         $previousType = "";
                                                         $previousSubType = "";
+                                                        $br+=1;
                                                     }
 
                                                     // เช็คและแสดง Sub Plan ถ้าเปลี่ยนแปลง
@@ -410,6 +412,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         $previousProject = "";
                                                         $previousType = "";
                                                         $previousSubType = "";
+                                                        $br+=1;
                                                     }
 
                                                     // เช็คและแสดง Project ถ้าเปลี่ยนแปลง
@@ -418,6 +421,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         $previousProject = $row['project_name'];
                                                         $previousType = "";
                                                         $previousSubType = "";
+                                                        $br+=1;
                                                     }
 
                                                     // เช็คและแสดง Type ถ้าเปลี่ยนแปลง
@@ -427,6 +431,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         echo "<strong>" . htmlspecialchars($row['a1']) . "</strong> : " . htmlspecialchars($cleanedType) . "<br>";
                                                         $previousType = $row['type'];
                                                         $previousSubType = "";
+                                                        $br+=1;
                                                     }
 
                                                     // เช็คและแสดง Sub Type ถ้าเปลี่ยนแปลง
@@ -435,6 +440,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         $cleanedSubType = preg_replace('/[0-9.]/', '', $row['sub_type']);
                                                         echo str_repeat("&nbsp;", 16) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($cleanedSubType) . "<br>";
                                                         $previousSubType = $row['sub_type'];
+                                                        $br+=1;
                                                     }
 
                                                     // เช็คและกำหนดค่า kkuItemName
@@ -473,21 +479,21 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     }
 
                                                     // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Pre_Release_Amount']) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>" . htmlspecialchars(isset($row[$selectedScenario]) ? $row[$selectedScenario] : 0) . "</td>";
+                                                    echo "<td >".str_repeat("<br>", $br) . htmlspecialchars($row['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                    echo "<td >".str_repeat("<br>", $br) . htmlspecialchars($row['Pre_Release_Amount']) . "</td>";
+                                                    echo "<td >".str_repeat("<br>", $br) . htmlspecialchars(isset($row[$selectedScenario]) ? $row[$selectedScenario] : 0) . "</td>";
 
-                                                    echo "<td style='vertical-align: bottom;'>" . sprintf("%0.2f", $finalPreReleaseAmount) . "</td>";
+                                                    echo "<td >".str_repeat("<br>", $br) .sprintf("%0.2f", $finalPreReleaseAmount) . "</td>";
 
 
                                                     // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
                                                     $subtractedAmount = $row['Allocated_Total_Amount_Quantity'] - $finalPreReleaseAmount;
 
                                                     // แสดงผลในคอลัมน์ที่ต้องการ
-                                                    echo "<td style='vertical-align: bottom;'>" . sprintf("%0.2f", $subtractedAmount) . "</td>";
+                                                    echo "<td >".str_repeat("<br>", $br) . sprintf("%0.2f", $subtractedAmount) . "</td>";
 
                                                     //echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Remaining_Amount']) . "</td>";
-                                                    echo "<td style='vertical-align: bottom;'>" .
+                                                    echo "<td >".str_repeat("<br>", $br) .
                                                         (!empty($row['Reason']) ? htmlspecialchars($row['Reason']) : '') .
                                                         "</td>";
 
@@ -523,277 +529,278 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
     </div>
     <script>
 
-        function exportCSV() {
-            const table = document.getElementById('reportTable');
-            if (!table) {
-                alert("ไม่พบตารางที่ต้องการ Export");
-                return;
-            }
+function exportCSV() {
+        const table = document.getElementById('reportTable');
+        const csvRows = [];
 
-            // แยกการประมวลผล thead กับ tbody ออกเป็น 2 ส่วน
-            const thead = table.querySelector('thead');
-            const tbody = table.querySelector('tbody');
+        // วนลูปทีละ <tr>
+        for (const row of table.rows) {
+            // เก็บบรรทัดย่อยของแต่ละเซลล์
+            const cellLines = [];
+            let maxSubLine = 1;
 
-            // สร้าง matrix ของส่วน thead
-            let headerMatrix = [];
-            if (thead) {
-                headerMatrix = parseTableSection(thead);
-            }
+            // วนลูปทีละเซลล์ <td>/<th>
+            for (const cell of row.cells) {
+                let html = cell.innerHTML;
 
-            // สร้าง matrix ของส่วน tbody
-            let bodyMatrix = [];
-            if (tbody) {
-                bodyMatrix = parseTableSection(tbody);
-            }
-
-            // รวมทั้งสองส่วนเข้าเป็น CSV
-            const csvRows = [];
-
-            // แปลง headerMatrix -> CSV
-            headerMatrix.forEach(rowArr => {
-                const line = rowArr
-                    .map(cell => `"${cell.replace(/"/g, '""')}"`)
-                    .join(",");
-                csvRows.push(line);
-            });
-
-            // แปลง bodyMatrix -> CSV
-            bodyMatrix.forEach(rowArr => {
-                const line = rowArr
-                    .map(cell => `"${cell.replace(/"/g, '""')}"`)
-                    .join(",");
-                csvRows.push(line);
-            });
-
-            // สร้างไฟล์ CSV
-            const csvContent = "\uFEFF" + csvRows.join("\n"); // \uFEFF เพื่อให้ Excel รองรับ UTF-8
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'report.csv';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        /**
-         * parseTableSection: สร้าง Matrix ตาม rowspan/colspan ของส่วน thead หรือ tbody
-         * @param {HTMLElement} section - <thead> หรือ <tbody>
-         * @returns {string[][]} 2D array ที่สะท้อนโครงสร้างของตาราง
-         */
-        function parseTableSection(section) {
-            const rows = Array.from(section.rows);
-
-            // หาจำนวนคอลัมน์สูงสุด (maxCols) จากผลรวม colSpan ของแต่ละแถว
-            let maxCols = 0;
-            rows.forEach(row => {
-                let colCount = 0;
-                Array.from(row.cells).forEach(cell => {
-                    colCount += cell.colSpan;
+                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                html = html.replace(/(&nbsp;)+/g, (match) => {
+                    const count = match.match(/&nbsp;/g).length;
+                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
                 });
-                if (colCount > maxCols) {
-                    maxCols = colCount;
+
+                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                html = html.replace(/<br\s*\/?>/gi, '\n');
+
+                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                // html = html.replace(/<\/?[^>]+>/g, '');
+
+                // 4) แยกเป็น array บรรทัดย่อย
+                const lines = html.split('\n').map(x => x.trimEnd());
+                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                if (lines.length > maxSubLine) {
+                    maxSubLine = lines.length;
                 }
-            });
 
-            // สร้าง 2D array เปล่าตามจำนวนแถว x จำนวนคอลัมน์สูงสุด
-            const matrix = [];
-            for (let i = 0; i < rows.length; i++) {
-                matrix.push(new Array(maxCols).fill(""));
+                cellLines.push(lines);
             }
 
-            // skipMap เอาไว้ทำเครื่องหมายช่องที่ถูก "จอง" โดย rowspan/colspan แล้ว
-            const skipMap = {};
+            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+            for (let i = 0; i < maxSubLine; i++) {
+                const rowData = [];
 
-            // วนทีละแถว
-            for (let r = 0; r < rows.length; r++) {
-                const row = rows[r];
-                let c = 0; // ตำแหน่งคอลัมน์ที่จะใส่ข้อมูล
-
-                // วนทีละเซลล์ในแถว
-                for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
-                    // ข้ามคอลัมน์ที่ถูกจองไว้ก่อน
-                    while (skipMap[`${r},${c}`]) {
-                        c++;
-                    }
-
-                    const cell = row.cells[cellIndex];
-                    const text = cell.innerText.trim();
-
-                    // ใส่ข้อความลงใน matrix
-                    matrix[r][c] = text;
-
-                    // เก็บ rowSpan, colSpan
-                    const rowSpan = cell.rowSpan;
-                    const colSpan = cell.colSpan;
-
-                    // "จอง" ช่อง skipMap ตาม rowSpan, colSpan
-                    for (let rr = r; rr < r + rowSpan; rr++) {
-                        for (let cc = c; cc < c + colSpan; cc++) {
-                            if (rr === r && cc === c) continue; // ช่องต้นฉบับไม่ต้องจองซ้ำ
-                            skipMap[`${rr},${cc}`] = true;
-                        }
-                    }
-
-                    // ขยับตำแหน่ง c ไปข้างหน้าตาม colSpan
-                    c += colSpan;
+                // วนลูปแต่ละเซลล์
+                for (const lines of cellLines) {
+                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                    // Escape double quotes
+                    text = text.replace(/"/g, '""');
+                    // ครอบด้วย ""
+                    text = `"${text}"`;
+                    rowData.push(text);
                 }
-            }
 
-            return matrix;
+                csvRows.push(rowData.join(','));
+            }
         }
 
+        // รวมเป็น CSV + BOM
+        const csvContent = "\uFEFF" + csvRows.join("\n");
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'report.csv';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
 
+    function exportPDF() {
+        const {
+            jsPDF
+        } = window.jspdf;
+        const doc = new jsPDF('landscape');
 
+        // เพิ่มฟอนต์ภาษาไทย
+        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+        doc.setFont("THSarabun");
 
-        function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('landscape');
+        // ตั้งค่าฟอนต์และข้อความ
+        doc.setFontSize(12);
+        doc.text("รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ", 10, 500);
 
-            if (window.thsarabunnew_webfont_normal) {
-                doc.addFileToVFS("THSarabun.ttf", window.thsarabunnew_webfont_normal);
-                doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-                doc.setFont("THSarabun");
+        // ใช้ autoTable สำหรับสร้างตาราง
+        doc.autoTable({
+            html: '#reportTable',
+            startY: 20,
+            styles: {
+                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
+                fontSize: 10,
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            bodyStyles: {
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+            headStyles: {
+                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
+                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
+                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                lineWidth: 0.5, // ความหนาของเส้นขอบ
+            },
+        });
+
+        // บันทึกไฟล์ PDF
+        doc.save('รายงาน.pdf');
+    }
+
+    function exportXLS() {
+    const table = document.getElementById('reportTable');
+
+    // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+    const { theadRows, theadMerges } = parseThead(table.tHead);
+
+    // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
+    const tbodyRows = parseTbody(table.tBodies[0]);
+
+    // รวม rows ทั้งหมด: thead + tbody
+    const allRows = [...theadRows, ...tbodyRows];
+
+    // สร้าง Workbook + Worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+    // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+    ws['!merges'] = theadMerges;
+
+    // ตั้งค่า vertical-align: bottom ให้ทุกเซลล์
+    applyCellStyles(ws, "bottom");
+
+    // เพิ่ม worksheet ลงใน workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+    // เขียนไฟล์เป็น .xlsx (แทน .xls เพื่อรองรับ style)
+    const excelBuffer = XLSX.write(wb, {
+        bookType: 'xlsx',
+        type: 'array'
+    });
+
+    // สร้าง Blob + ดาวน์โหลด
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'report.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
+/**
+ * -----------------------
+ * 1) parseThead: รองรับ merge
+ * -----------------------
+ */
+function parseThead(thead) {
+    const theadRows = [];
+    const theadMerges = [];
+
+    if (!thead) {
+        return { theadRows, theadMerges };
+    }
+
+    const skipMap = {};
+
+    for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+        const tr = thead.rows[rowIndex];
+        const rowData = [];
+        let colIndex = 0;
+
+        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+            while (skipMap[`${rowIndex},${colIndex}`]) {
+                rowData[colIndex] = "";
+                colIndex++;
             }
-            doc.setFontSize(14);
-            doc.text("รายงานการจัดสรรเงินรายงวด", 10, 10);
 
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: { font: "THSarabun", fontSize: 12, lineColor: [0, 0, 0], lineWidth: 0.5 },
-                bodyStyles: { lineColor: [0, 0, 0], lineWidth: 0.5 },
-                headStyles: { fillColor: [102, 153, 225], textColor: [0, 0, 0], lineColor: [0, 0, 0], lineWidth: 0.5 },
-            });
+            const cell = tr.cells[cellIndex];
+            let text = cell.innerHTML
+                .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
+                .replace(/<br\s*\/?>/gi, ' ')
+                .replace(/<\/?[^>]+>/g, '')
+                .trim();
 
-            doc.save('รายงาน.pdf');
-        }
+            rowData[colIndex] = text;
 
-        function exportXLS() {
-            const table = document.getElementById('reportTable');
-            if (!table) {
-                alert("ไม่พบตารางที่ต้องการ Export");
-                return;
-            }
+            const rowspan = cell.rowSpan || 1;
+            const colspan = cell.colSpan || 1;
 
-            // 1) แยก parse ส่วน thead และ tbody ออกเป็น 2 ส่วน
-            const { rowsData: headRows, merges: headMerges } = parseSection(table.tHead, 0);
-            const { rowsData: bodyRows, merges: bodyMerges } = parseSection(table.tBodies[0], headRows.length);
-
-            // รวม rows ของ thead + tbody
-            const allRows = [...headRows, ...bodyRows];
-            // รวม merges ของ thead + tbody
-            const allMerges = [...headMerges, ...bodyMerges];
-
-            // 2) สร้าง workbook / worksheet
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(allRows);
-
-            // ใส่ merges เข้าไปใน worksheet
-            ws['!merges'] = allMerges;
-
-            // 3) บันทึกเป็นไฟล์ .xls
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            const excelBuffer = XLSX.write(wb, { bookType: 'xls', type: 'array' });
-            const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'report.xls';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        /**
-         * parseSection: ดึงข้อมูลจาก thead/tbody แล้วสร้างทั้ง AoA (Array of Arrays)
-         * และข้อมูล merge (rowSpan/colSpan) สำหรับ XLSX
-         *
-         * @param {HTMLTableSectionElement} section - <thead> หรือ <tbody>
-         * @param {number} startRow - เริ่มนับแถวที่เท่าไหร่ (กรณี thead มาก่อน)
-         * @return { rowsData, merges }
-         *    rowsData: string[][] (AoA) สำหรับแต่ละแถว/คอลัมน์
-         *    merges: { s: {r,c}, e: {r,c} }[] สำหรับใส่ ws['!merges']
-         */
-        function parseSection(section, startRow = 0) {
-            if (!section) return { rowsData: [], merges: [] };
-
-            const rows = Array.from(section.rows);
-
-            // หาจำนวนคอลัมน์สูงสุด (maxCols) จากผลรวม colSpan ของแต่ละแถว
-            let maxCols = 0;
-            rows.forEach(row => {
-                let colCount = 0;
-                Array.from(row.cells).forEach(cell => {
-                    colCount += cell.colSpan || 1;
+            if (rowspan > 1 || colspan > 1) {
+                theadMerges.push({
+                    s: { r: rowIndex, c: colIndex },
+                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
                 });
-                if (colCount > maxCols) {
-                    maxCols = colCount;
-                }
-            });
 
-            // สร้าง 2D array เปล่าตามจำนวนแถว x จำนวนคอลัมน์สูงสุด
-            const matrix = [];
-            for (let i = 0; i < rows.length; i++) {
-                matrix.push(new Array(maxCols).fill(""));
-            }
-
-            const merges = [];
-            const skipMap = {};
-
-            // วนทีละแถว
-            for (let r = 0; r < rows.length; r++) {
-                const tr = rows[r];
-                let c = 0; // ตำแหน่งคอลัมน์ที่จะใส่ข้อมูล
-
-                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-                    // ข้ามคอลัมน์ที่ถูกจองแล้ว (rowSpan/colSpan ก่อนหน้า)
-                    while (skipMap[`${r},${c}`]) {
-                        c++;
+                for (let r = 0; r < rowspan; r++) {
+                    for (let c = 0; c < colspan; c++) {
+                        if (r === 0 && c === 0) continue;
+                        skipMap[`${rowIndex + r},${colIndex + c}`] = true;
                     }
-
-                    const cell = tr.cells[cellIndex];
-                    let text = cell.innerHTML || "";
-                    // ลบแท็ก HTML ออก เหลือแต่ข้อความ + เว้นบรรทัด (ถ้าต้องการ)
-                    text = text
-                        .replace(/<br\s*\/?>/gi, "\n")
-                        .replace(/<\/?[^>]+>/g, "")
-                        .replace(/&nbsp;/g, " ")
-                        .trim();
-
-                    matrix[r][c] = text;
-
-                    const rowspan = cell.rowSpan || 1;
-                    const colspan = cell.colSpan || 1;
-
-                    // ถ้ามี rowspan หรือ colspan ให้ใส่ merges
-                    if (rowspan > 1 || colspan > 1) {
-                        merges.push({
-                            s: { r: startRow + r, c: c }, // ตำแหน่งเริ่ม (รวม offset ของ startRow)
-                            e: { r: startRow + r + rowspan - 1, c: c + colspan - 1 }
-                        });
-
-                        // จองช่อง skipMap
-                        for (let rr = r; rr < r + rowspan; rr++) {
-                            for (let cc = c; cc < c + colspan; cc++) {
-                                if (rr === r && cc === c) continue;
-                                skipMap[`${rr},${cc}`] = true;
-                            }
-                        }
-                    }
-
-                    c += colspan;
                 }
             }
-
-            return {
-                rowsData: matrix,
-                merges
-            };
+            colIndex++;
         }
+        theadRows.push(rowData);
+    }
+
+    return { theadRows, theadMerges };
+}
+
+/**
+ * -----------------------
+ * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+ * -----------------------
+ */
+function parseTbody(tbody) {
+    const rows = [];
+
+    if (!tbody) return rows;
+
+    for (const tr of tbody.rows) {
+        const cellLines = [];
+        let maxSubLine = 1;
+
+        for (const cell of tr.cells) {
+            let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
+                const count = match.match(/&nbsp;/g).length;
+                return ' '.repeat(count);
+            });
+            html = html.replace(/<br\s*\/?>/gi, '\n');
+            html = html.replace(/<\/?[^>]+>/g, '');
+
+            const lines = html.split('\n').map(x => x.trimEnd());
+            if (lines.length > maxSubLine) {
+                maxSubLine = lines.length;
+            }
+            cellLines.push(lines);
+        }
+
+        for (let i = 0; i < maxSubLine; i++) {
+            const rowData = [];
+            for (const lines of cellLines) {
+                rowData.push(lines[i] || '');
+            }
+            rows.push(rowData);
+        }
+    }
+
+    return rows;
+}
+
+/**
+ * -----------------------
+ * 3) applyCellStyles: ตั้งค่า vertical-align ให้ทุก cell
+ * -----------------------
+ */
+function applyCellStyles(ws, verticalAlign) {
+    if (!ws['!ref']) return;
+
+    const range = XLSX.utils.decode_range(ws['!ref']);
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+        for (let C = range.s.c; C <= range.e.c; ++C) {
+            const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+            if (!ws[cell_address]) continue;
+
+            if (!ws[cell_address].s) ws[cell_address].s = {};
+            ws[cell_address].s.alignment = { vertical: verticalAlign };
+        }
+    }
+}
+
 
     </script>
 
