@@ -729,7 +729,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 SELECT tt.*,t.kku_item_name
                 FROM t2 t
                 LEFT JOIN t3 tt
-                ON t.Faculty=tt.FACULTY AND REPLACE(t.Fund,'FN','')= tt.FUND 
+                ON t.Faculty=tt.FACULTY AND (REPLACE(t.Fund,'FN','')= tt.FUND or t.Fund= tt.FUND)
                 AND t.Plan=tt.PLAN AND replace(t.Sub_Plan,'SP_','')=tt.SUBPLAN
                 AND t.Project=tt.PROJECT AND replace(t.Service,'SR_','')=tt.SERVICE
                 AND t.Account=tt.ACCOUNT)
