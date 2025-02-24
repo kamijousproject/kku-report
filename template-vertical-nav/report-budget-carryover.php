@@ -291,6 +291,179 @@ function fetchFacultyData($conn)
                                         </thead>
 
                                         <?php
+
+                                        function formatNumber($number)
+                                        {
+                                            return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
+                                        }
+
+                                        function removeLeadingNumbers($text)
+                                        {
+                                            // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
+                                            return preg_replace('/^[\d.]+\s*/', '', $text);
+                                        }
+
+                                        $previousType = "";
+                                        $previousSubType = "";
+                                        $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+
+                                        $results = fetchBudgetData($conn, $selectedFaculty);
+
+                                        // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                        if (isset($results) && is_array($results) && count($results) > 0) {
+                                            // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
+                                            $summary = [];
+                                            foreach ($results as $row) {
+                                                $type = $row['type'];
+                                                $sub_type = $row['sub_type'];
+
+                                                if (!isset($summary[$type])) {
+                                                    $summary[$type] = [
+                                                        'type' => $row['type'],
+                                                        'a1' => $row['a1'],
+                                                        'Total_Amount_2567_FN06' => 0,
+                                                        'Total_Amount_2567_FN08' => 0,
+                                                        'Total_Amount_2567_FN02' => 0,
+                                                        'Total_Amount_2567_SUM' => 0,
+                                                        'Total_Amount_2568_FN06' => 0,
+                                                        'Total_Amount_2568_FN08' => 0,
+                                                        'Total_Amount_2568_FN02' => 0,
+                                                        'Total_Amount_2568_SUM' => 0,
+                                                        'Difference_2568_2567' => 0,
+                                                        'Percentage_2568_to_2567' => 0,
+                                                        'sub_type' => [], // เก็บข้อมูลของ Sub_Plan
+                                                    ];
+                                                }
+                                                // เก็บข้อมูลของ Sub_Plan
+                                                if (!isset($summary[$type]['sub_type'][$sub_type])) {
+                                                    $summary[$type]['sub_type'][$sub_type] = [
+                                                        'sub_type' => $row['sub_type'],
+                                                        'a2' => $row['a2'],
+                                                        'Total_Amount_2567_FN06' => 0,
+                                                        'Total_Amount_2567_FN08' => 0,
+                                                        'Total_Amount_2567_FN02' => 0,
+                                                        'Total_Amount_2567_SUM' => 0,
+                                                        'Total_Amount_2568_FN06' => 0,
+                                                        'Total_Amount_2568_FN08' => 0,
+                                                        'Total_Amount_2568_FN02' => 0,
+                                                        'Total_Amount_2568_SUM' => 0,
+                                                        'Difference_2568_2567' => 0,
+                                                        'Percentage_2568_to_2567' => 0,
+                                                        'kku_items' => [], // เก็บข้อมูลของ Sub_Plan
+                                                    ];
+                                                }
+                                                // รวมข้อมูลของ type
+                                                $summary[$type]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$type]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$type]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$type]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$type]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$type]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+
+                                                // รวมข้อมูลของ Subtype
+                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+
+
+                                                // เก็บข้อมูลของ KKU_Item_Name
+                                                $kkuItemName = (!empty($row['KKU_Item_Name']))
+                                                    ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                    : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
+                                                $summary[$type]['sub_type'][$sub_type]['kku_items'][] = [
+                                                    'name' => $kkuItemName,
+                                                    'Total_Amount_2567_FN06' => $row['Total_Amount_2567_FN06'],
+                                                    'Total_Amount_2567_FN08' => $row['Total_Amount_2567_FN08'],
+                                                    'Total_Amount_2567_FN02' => $row['Total_Amount_2567_FN02'],
+                                                    'Total_Amount_2567_SUM' => $row['Total_Amount_2567_SUM'],
+                                                    'Total_Amount_2568_FN06' => $row['Total_Amount_2568_FN06'],
+                                                    'Total_Amount_2568_FN08' => $row['Total_Amount_2568_FN08'],
+                                                    'Total_Amount_2568_FN02' => $row['Total_Amount_2568_FN02'],
+                                                    'Total_Amount_2568_SUM' => $row['Total_Amount_2568_SUM'],
+                                                    'Difference_2568_2567' => $row['Difference_2568_2567'],
+                                                    'Percentage_2568_to_2567' => $row['Percentage_2568_to_2567'],
+                                                ];
+
+                                            }
+                                            // แสดงผลลัพธ์
+                                            foreach ($summary as $type => $data) {
+                                                // แสดงผลรวมของ Plan
+                                                echo "<tr>";
+                                                $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $type);
+
+                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+                                                echo "<td style='text-align: left; '>" . htmlspecialchars($data['a1']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+
+                                                echo "<td>" . formatNumber($data['Total_Amount_2567_FN06']) . "</td>";
+                                                echo "<td>" . formatNumber($data['Total_Amount_2567_FN08']) . "</td>";
+                                                echo "<td>" . formatNumber($data['Total_Amount_2567_FN02']) . "</td>";
+                                                $total1 = $data['Total_Amount_2567_FN06'] + $data['Total_Amount_2567_FN08'] + $data['Total_Amount_2567_FN02'];
+                                                echo "<td>" . formatNumber($total1) . "</td>";
+                                                echo "<td>" . formatNumber($data['Total_Amount_2568_FN06']) . "</td>";
+                                                echo "<td>" . formatNumber($data['Total_Amount_2568_FN08']) . "</td>";
+                                                echo "<td>" . formatNumber($data['Total_Amount_2568_FN02']) . "</td>";
+                                                $total2 = $data['Total_Amount_2568_FN06'] + $data['Total_Amount_2568_FN08'] + $data['Total_Amount_2568_FN02'];
+                                                echo "<td>" . formatNumber($total2) . "</td>";
+                                                $Difference = $total2 - $total1;
+                                                echo "<td>" . formatNumber($Difference) . "</td>";
+                                                $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+
+                                                echo "</tr>";
+                                                foreach ($data['sub_type'] as $sub_type => $SubTypeData) {
+                                                    // แสดงผลรวมของ Plan
+                                                    echo "<tr>";
+                                                    $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $sub_type);
+
+                                                    // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($SubTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+
+                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN06']) . "</td>";
+                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN08']) . "</td>";
+                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN02']) . "</td>";
+                                                    $total1 = $SubTypeData['Total_Amount_2567_FN06'] + $SubTypeData['Total_Amount_2567_FN08'] + $SubTypeData['Total_Amount_2567_FN02'];
+                                                    echo "<td>" . formatNumber($total1) . "</td>";
+                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN06']) . "</td>";
+                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN08']) . "</td>";
+                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN02']) . "</td>";
+                                                    $total2 = $SubTypeData['Total_Amount_2568_FN06'] + $SubTypeData['Total_Amount_2568_FN08'] + $SubTypeData['Total_Amount_2568_FN02'];
+                                                    echo "<td>" . formatNumber($total2) . "</td>";
+                                                    $Difference = $total2 - $total1;
+                                                    echo "<td>" . formatNumber($Difference) . "</td>";
+                                                    $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                    echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+
+                                                    echo "</tr>";
+
+                                                    // แสดงข้อมูล KKU_Item_Name
+                                                    foreach ($SubTypeData['kku_items'] as $kkuItem) {
+                                                        echo "<tr>";
+
+                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "<br></td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_SUM']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN06']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN08']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN02']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_SUM']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
+                                                        echo "<td>" . formatNumber($kkuItem['Percentage_2568_to_2567']) . "</td>";
+
+                                                        echo "</tr>";
+                                                    }
+                                                }
+                                            }
+
+                                        } else {
+                                            echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                        }
+
+                                        /*
                                         // ตัวแปรเก็บค่าของแถวก่อนหน้า
                                         $previousType = "";
                                         $previousSubType = "";
@@ -353,7 +526,7 @@ function fetchFacultyData($conn)
                                         } else {
                                             echo "<tr><td colspan='8'>ไม่มีข้อมูลที่ค้นหามา</td></tr>";
                                         }
-
+*/
                                         ?>
                                     </table>
                                     <script>
@@ -368,7 +541,7 @@ function fetchFacultyData($conn)
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
+                                <button onclick="exportXLSX()" class="btn btn-success m-t-15">Export XLSX</button>
                             </div>
                         </div>
                     </div>
@@ -382,46 +555,72 @@ function fetchFacultyData($conn)
         </div>
     </div>
     <script>
+
         function exportCSV() {
-            const rows = [];
             const table = document.getElementById('reportTable');
+            const csvRows = [];
 
-            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-                const row = table.rows[rowIndex];
-                const cells = Array.from(row.cells).map((cell, index) => {
-                    let text = cell.innerText.trim();
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-                    // เช็คว่าเป็นตัวเลข float (ไม่มี , ในหน้าเว็บ)
-                    if (!isNaN(text) && text !== "") {
-                        text = `"${parseFloat(text).toLocaleString("en-US", { minimumFractionDigits: 2 })}"`;
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
+
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
+
+
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    html = html.replace(/<\/?[^>]+>/g, '');
+
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
                     }
 
-                    return text;
-                });
-
-                // ขยับเฉพาะแถวที่ 2 (rowIndex === 1) ไป 1 คอลัมน์
-                if (rowIndex === 1) {  // rowIndex === 1 คือแถวที่ 2
-                    cells.splice(0, 0, "");  // เพิ่มช่องว่างในคอลัมน์แรก
+                    cellLines.push(lines);
                 }
 
-                // ขยับแค่แถวที่ 2 เท่านั้น
-                rows.push(cells.join(",")); // ใช้ , เป็นตัวคั่น CSV
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
+
+                    csvRows.push(rowData.join(','));
+                }
             }
 
-            const csvContent = "\uFEFF" + rows.join("\n"); // ป้องกัน Encoding เพี้ยน
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
+            link.href = url;
+            link.download = 'รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
-
-
 
         function exportPDF() {
             const {
@@ -436,7 +635,7 @@ function fetchFacultyData($conn)
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+            doc.text("รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -461,104 +660,190 @@ function fetchFacultyData($conn)
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            doc.save('รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้.pdf');
         }
 
         function exportXLSX() {
             const table = document.getElementById('reportTable');
-            const rows = [];
-            const merges = [];
-            const rowSpans = {}; // เก็บค่า rowspan
-            const colSpans = {}; // เก็บค่า colspan
 
-            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-                const row = table.rows[rowIndex];
-                const cells = [];
-                let colIndex = 0;
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+            const { theadRows, theadMerges } = parseThead(table.tHead);
 
-                for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
-                    let cell = row.cells[cellIndex];
-                    let cellText = cell.innerText.trim();
+            // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
+            const tbodyRows = parseTbody(table.tBodies[0]);
 
-                    // ตรวจสอบว่ามี rowspan หรือ colspan หรือไม่
-                    let rowspan = cell.rowSpan || 1;
-                    let colspan = cell.colSpan || 1;
+            // รวม rows ทั้งหมด: thead + tbody
+            const allRows = [...theadRows, ...tbodyRows];
 
-                    // หากเป็นเซลล์ที่เคยถูก Merge ข้ามมา ให้ข้ามไป
-                    while (rowSpans[`${rowIndex},${colIndex}`]) {
-                        cells.push(""); // ใส่ค่าว่างแทน Merge
-                        colIndex++;
-                    }
-
-                    // เพิ่มค่าลงไปในแถว
-                    cells.push(cellText);
-
-                    // ถ้ามี colspan หรือ rowspan
-                    if (rowspan > 1 || colspan > 1) {
-                        merges.push({
-                            s: {
-                                r: rowIndex,
-                                c: colIndex
-                            }, // จุดเริ่มต้นของ Merge
-                            e: {
-                                r: rowIndex + rowspan - 1,
-                                c: colIndex + colspan - 1
-                            } // จุดสิ้นสุดของ Merge
-                        });
-
-                        // บันทึกตำแหน่งเซลล์ที่ถูก Merge เพื่อกันการซ้ำ
-                        for (let r = 0; r < rowspan; r++) {
-                            for (let c = 0; c < colspan; c++) {
-                                if (r !== 0 || c !== 0) {
-                                    rowSpans[`${rowIndex + r},${colIndex + c}`] = true;
-                                }
-                            }
-                        }
-                    }
-
-                    colIndex++;
-                }
-                rows.push(cells);
-            }
-
-            // สร้างไฟล์ Excel
-            const XLSX = window.XLSX;
+            // สร้าง Workbook + Worksheet
             const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-            // ✅ เพิ่ม Merge Cells
-            ws['!merges'] = merges;
+            // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+            ws['!merges'] = theadMerges;
 
+            // ตั้งค่า vertical-align: bottom ให้ทุกเซลล์
+            applyCellStyles(ws, "bottom");
+
+            // เพิ่ม worksheet ลงใน workbook
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
-            // ✅ ดาวน์โหลดไฟล์ Excel
+            // เขียนไฟล์เป็น .xlsx (แทน .xls เพื่อรองรับ style)
             const excelBuffer = XLSX.write(wb, {
                 bookType: 'xlsx',
                 type: 'array'
             });
-            const blob = new Blob([excelBuffer], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            });
+
+            // สร้าง Blob + ดาวน์โหลด
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงาน.xlsx';
+            link.download = 'รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
+        /**
+         * -----------------------
+         * 1) parseThead: รองรับ merge
+         * -----------------------
+         */
+        function parseThead(thead) {
+            const theadRows = [];
+            const theadMerges = [];
+
+            if (!thead) {
+                return { theadRows, theadMerges };
+            }
+
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+                const tr = thead.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let text = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // แทนที่ &nbsp; ด้วยช่องว่าง
+                        .replace(/<\/?[^>]+>/g, '') // ลบแท็ก HTML ทั้งหมด
+                        .trim();
+
+                    rowData[colIndex] = text;
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        theadMerges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r === 0 && c === 0) continue;
+                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                    colIndex++;
+                }
+                theadRows.push(rowData);
+            }
+
+            return { theadRows, theadMerges };
+        }
+
+        /**
+         * -----------------------
+         * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+         * -----------------------
+         */
+        function parseTbody(tbody) {
+            const rows = [];
+
+            if (!tbody) return rows;
+
+            for (const tr of tbody.rows) {
+                const cellLines = [];
+                let maxSubLine = 1;
+
+                for (const cell of tr.cells) {
+                    let html = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, match => {
+                            const count = match.match(/&nbsp;/g).length;
+                            return ' '.repeat(count);
+                        })
+                        .replace(/<\/?[^>]+>/g, ''); // ลบแท็ก HTML ทั้งหมด
+
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+                    cellLines.push(lines);
+                }
+
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+                    for (const lines of cellLines) {
+                        rowData.push(lines[i] || '');
+                    }
+                    rows.push(rowData);
+                }
+            }
+
+            return rows;
+        }
+
+        /**
+         * -----------------------
+         * 3) applyCellStyles: ตั้งค่า vertical-align ให้ทุก cell
+         * -----------------------
+         */
+        function applyCellStyles(ws, verticalAlign) {
+            if (!ws['!ref']) return;
+
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cell_address]) continue;
+
+                    if (!ws[cell_address].s) ws[cell_address].s = {};
+                    ws[cell_address].s.alignment = { vertical: verticalAlign };
+                }
+            }
+        }
+
+
     </script>
-    <!-- Common JS -->
-    <script src="../assets/plugins/common/common.min.js"></script>
-    <!-- Custom script -->
-    <script src="../js/custom.min.js"></script>
-    <!-- โหลดไลบรารี xlsx จาก CDN -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- โหลดไลบรารีที่จำเป็น -->
+    <script src="../assets/plugins/common/common.min.js"></script>
+    <script src="../js/custom.min.js"></script>
 
+
+    <!-- โหลดฟอนต์ THSarabun (ตรวจสอบไม่ให้ประกาศซ้ำ) -->
+    <script>
+        if (typeof window.thsarabunnew_webfont_normal === 'undefined') {
+            window.thsarabunnew_webfont_normal = "data:font/truetype;base64,AAEAAA...";
+        }
+    </script>
 </body>
 
 </html>
