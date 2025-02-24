@@ -939,7 +939,114 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
                 echo json_encode($response);
             }
-            break; 
+            break;
+            case "report-budget-comparison":
+                try {
+                    $db = new Database();
+                    $conn = $db->connect();
+    
+                    // เชื่อมต่อฐานข้อมูล
+                    $sql = "SELECT
+                                    DISTINCT acc.alias_default AS Account_Alias_Default,
+                                    acc.type,
+                                    acc.sub_type,
+                                    bpanbp.Service,
+                                    bpanbp.Account,
+                                    bpanbp.Faculty,
+                                    bpanbp.Plan,
+                                    bpanbp.Sub_Plan,
+                                    bpanbp.Project,
+                                    bpanbp.KKU_Item_Name,
+                                    bpanbp.Allocated_Total_Amount_Quantity,
+                                    bpanbp.Reason,
+                                    sp_kpi.UoM_for_Sub_plan_KPI,
+                                    sp_kpi.Sub_plan_KPI_Name,
+                                    pj_kpi.UoM_for_Proj_KPI,
+                                    pj_kpi.Proj_KPI_Name,
+                                    bpanbp.Fund,
+                                    bpabp.Total_Amount_Quantity,
+                                    bpabp.Fund,
+                                    f.Alias_Default AS Faculty_Name,
+                            (
+                                    SELECT
+                                            Faculty_Parent.Alias_Default
+                                    FROM
+                                            Faculty Faculty_Parent
+                                    WHERE
+                                            Faculty_Parent.Faculty = CONCAT(
+                                            LEFT(f.Faculty, 2),
+                                            '000'
+                                    )
+                                    LIMIT
+                                    1
+                                                ) AS Alias_Default_Parent,
+                                    p.plan_name AS Plan_Name,
+                                    sp.sub_plan_name AS Sub_Plan_Name,
+                                    pr.project_name AS Project_Name
+                                    FROM
+                                    budget_planning_allocated_annual_budget_plan bpanbp
+                                    LEFT JOIN (
+                                    SELECT
+                                    DISTINCT Account,
+                                            Plan,
+                                            Sub_Plan,
+                                            Project,
+                                            Total_Amount_Quantity,
+                                            Fund
+                                    FROM
+                                            budget_planning_annual_budget_plan
+                                        ) bpabp ON bpanbp.Account = bpabp.Account
+                                    AND bpanbp.Plan = bpabp.Plan
+                                    AND bpanbp.Sub_Plan = bpabp.Sub_Plan
+                                    AND bpanbp.Project = bpabp.Project
+                                    LEFT JOIN (
+                                    SELECT
+                                    DISTINCT Plan,
+                                    Sub_Plan,
+                                    Faculty,
+                                    UoM_for_Sub_plan_KPI,
+                                    Sub_plan_KPI_Name
+                                    FROM
+                                    budget_planning_subplan_kpi
+                                    ) sp_kpi ON bpanbp.Plan = sp_kpi.Plan
+                                    AND bpanbp.Sub_Plan = sp_kpi.Sub_Plan
+                                    AND bpanbp.Faculty = sp_kpi.Faculty
+                                    LEFT JOIN (
+                                    SELECT
+                                    DISTINCT Faculty,
+                                    Project,
+                                    UoM_for_Proj_KPI,
+                                    Proj_KPI_Name
+                                    FROM
+                                    budget_planning_project_kpi
+                                    ) pj_kpi ON bpanbp.Faculty = pj_kpi.Faculty
+                                    AND bpanbp.Project = pj_kpi.Project
+                                    LEFT JOIN account acc ON bpanbp.Account = acc.account
+                                    LEFT JOIN Faculty f ON bpanbp.Faculty = f.Faculty
+                                    LEFT JOIN plan p ON bpanbp.Plan = p.plan_id
+                                    LEFT JOIN sub_plan sp ON bpanbp.Sub_Plan = sp.sub_plan_id
+                                    LEFT JOIN project pr ON bpanbp.Project = pr.project_id
+                                    WHERE
+                                    acc.type LIKE '%ค่าใช้จ่าย%';";
+    
+                    $cmd = $conn->prepare($sql);
+                    $cmd->execute();
+                    $budget = $cmd->fetchAll(PDO::FETCH_ASSOC);
+    
+                    $conn = null;
+    
+                    $response = array(
+                        'budget' => $budget,
+                    );
+                    echo json_encode($response);
+                } catch (PDOException $e) {
+                    $response = array(
+                        'status' => 'error',
+                        'message' => 'Database error: ' . $e->getMessage()
+                    );
+                    echo json_encode($response);
+                }
+                break;  
                 default:
             break;
     }
