@@ -42,7 +42,13 @@
                                 $conn = $db->connect();
 
                                 // ดึงข้อมูล Faculty
-                                $query_faculty = "SELECT Faculty, Alias_Default FROM Faculty";
+                                $query_faculty = "SELECT DISTINCT
+                                                    abp.Faculty, 
+                                                    Faculty.Alias_Default
+                                                FROM
+                                                    budget_planning_annual_budget_plan abp
+                                                LEFT JOIN Faculty 
+                                                    ON abp.Faculty = Faculty.Faculty";
                                 $stmt = $conn->prepare($query_faculty);
                                 $stmt->execute();
                                 $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
