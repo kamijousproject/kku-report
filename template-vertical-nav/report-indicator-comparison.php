@@ -162,7 +162,7 @@
                         tr.appendChild(td10);
 
                         const td11 = document.createElement('td');
-                        td11.textContent = row.Budget_Amount;
+                        td11.textContent = Number(row.Budget_Amount).toLocaleString();
                         tr.appendChild(td11);
 
                         const td12 = document.createElement('td');

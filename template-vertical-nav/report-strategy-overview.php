@@ -151,7 +151,7 @@
                         tr.appendChild(td3);
 
                         const td4 = document.createElement('td');
-                        td4.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
+                        td4.textContent = row.pillar_name === previousPilarName ? '' : row.pillar_name;
                         tr.appendChild(td4);
 
                         const td5 = document.createElement('td');
@@ -223,7 +223,7 @@
                         tr.appendChild(td21);
 
                         const td22 = document.createElement('td');
-                        td22.textContent = row.Budget_Amount;
+                        td22.textContent = Number(row.Budget_Amount).toLocaleString();
                         tr.appendChild(td22);
 
                         const td23 = document.createElement('td');
@@ -237,7 +237,7 @@
                         previousFacultyCode = row.Faculty;
                         previousFacultyName = row.fa_name;
                         previousPilarCode = row.pilar_code;
-                        previousPilarName = row.pilar_name;
+                        previousPilarName = row.pillar_name;
                         previousSICode = row.si_code;
                         previousSIName = row.si_name;
                         previousSOCode = row.Strategic_Object;
