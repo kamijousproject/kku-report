@@ -107,7 +107,13 @@
                                 // ดึงรายการ "ส่วนงาน/หน่วยงาน"
                                 function getFacultyList($conn)
                                 {
-                                    $query = "SELECT Faculty, Alias_Default FROM Faculty ORDER BY Alias_Default ASC";
+                                    $query = "SELECT DISTINCT
+                                                    abp.Faculty, 
+                                                    Faculty.Alias_Default
+                                                FROM
+                                                    budget_planning_annual_budget_plan abp
+                                                LEFT JOIN Faculty 
+                                                    ON abp.Faculty = Faculty.Faculty";
                                     $stmt = $conn->prepare($query);
                                     $stmt->execute();
                                     return $stmt->fetchAll(PDO::FETCH_ASSOC);
