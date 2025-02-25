@@ -187,7 +187,7 @@
                         // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
                         previousSICode = row.si_code;
                         previousSIName = row.si_name;
-                        previousSOName = row.so_name;
+                        previousSOCode = row.Strategic_Object;
                         previousSOName = row.so_name;
                     });
 

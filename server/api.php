@@ -30,10 +30,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sqlPlan = "SELECT  pkap.*,REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pilar_name AS si_name, so.pilar_name AS so_name,ksp.ksp_name , okr.okr_name
+                $sqlPlan = "SELECT  pkap.*,REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pillar_name AS si_name, so.pillar_name AS so_name,ksp.ksp_name , okr.okr_name
                             FROM planning_kku_action_plan AS pkap
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON so.pilar_id = pkap.Strategic_Object
+                            LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilars2 AS so ON so.pillar_id = pkap.Strategic_Object
                             LEFT JOIN ksp ON ksp.ksp_id = pkap.Strategic_Project
                             LEFT JOIN okr ON okr.okr_id = pkap.OKR
                             ORDER BY 
@@ -179,11 +179,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sqlPlan = "SELECT pfap.*,REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pilar_name AS si_name, so.pilar_name AS so_name,ksp.ksp_name , okr.okr_name
+                $sqlPlan = "SELECT pfap.*,REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pillar_name AS si_name, so.pillar_name AS so_name,ksp.ksp_name , okr.okr_name
                             FROM planning_faculty_action_plan AS pfap
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfap.Strategic_Project)
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON so.pilar_id = pfap.Strategic_Object
+                            LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilars2 AS so ON so.pillar_id = pfap.Strategic_Object
                             LEFT JOIN okr ON okr.okr_id = pfap.OKR
                             ORDER BY 
                             si_code,
@@ -220,10 +220,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             LEFT(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) - 1),
                             'P',
                             SUBSTRING(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) + 2, 2 ) ) as pilar_code,
-                            p.pilar_name,
+                            p.pillar_name,
                             REPLACE(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
-                            si.pilar_name AS si_name,
-                            so.pilar_name as so_name,
+                            si.pillar_name AS si_name,
+                            so.pillar_name as so_name,
                             ksp.ksp_name,
                             okr.okr_name,
                             pkop.Quarter_Progress_Value
@@ -231,10 +231,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             planning_kku_strategic_plan AS pksp
                             LEFT JOIN Faculty 
                             ON pksp.Faculty = Faculty.Faculty
-                            LEFT JOIN pilar AS p ON p.pilar_id = CONCAT(LEFT(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) - 1),'P',
+                            LEFT JOIN pilars2 AS p ON p.pillar_id = CONCAT(LEFT(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), LOCATE('SO', pksp.Strategic_Object) - 1),'P',
                             SUBSTRING(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1),LOCATE('SO', pksp.Strategic_Object) + 2,2))
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON so.pilar_id = pksp.Strategic_Object
+                            LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pksp.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilars2 AS so ON so.pillar_id = pksp.Strategic_Object
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pksp.Strategic_Project)
                             LEFT JOIN okr ON okr.okr_id = pksp.okr
                             LEFT JOIN planning_kku_okr_progress as pkop ON pkop.OKR = pksp.OKR
