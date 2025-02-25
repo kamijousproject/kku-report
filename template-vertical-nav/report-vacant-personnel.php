@@ -1,7 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>     
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
 
+.content-body {
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto; /* Scrollable content only inside table */
+    max-height: 60vh; /* Set a fixed height */
+    border: 1px solid #ccc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+thead tr:nth-child(1) th {
+    position: sticky;
+    top: 0;
+    background: #f4f4f4;
+    z-index: 1000;
+}
+
+thead tr:nth-child(2) th {
+    position: sticky;
+    top: 60px; /* Adjust height based on previous row */
+    background: #f4f4f4;
+    z-index: 999;
+}
+
+thead tr:nth-child(3) th {
+    position: sticky;
+    top: 105px; /* Adjust height based on previous rows */
+    background: #f4f4f4;
+    z-index: 998;
+}
+.nowrap {
+    white-space: nowrap;
+}
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -38,54 +101,23 @@
                                         <thead>
                                             <tr>
                                                 <th>ที่</th>
-                                                <th>ส่วนงาน/หน่วยงาน</th>
+                                                <th nowrap>ส่วนงาน/<br>หน่วยงาน</th>
                                                 <th>ประเภทบุคลากร</th>
                                                 <th>ประเภทตำแหน่ง</th>
                                                 <th>กลุ่มบุคลากร</th>
-                                                <th>เลขอัตรา</th>
+                                                <th nowrap>เลขอัตรา</th>
                                                 <th>ชื่อตำแหน่ง</th>
                                                 <th>สถานที่ปฏิบัติงาน</th>
                                                 <th>Job Family</th>
                                                 <th>จำนวนที่ว่าง</th>
-                                                <th>ว่าง ณ วันที่/เดือน/ปี</th>
+                                                <th nowrap>ว่าง ณ วันที่/เดือน/ปี</th>
                                                 <th>สาเหตุที่ว่าง</th>
                                                 <th>สถานะอัตราว่าง</th>
-                                                <th>ครบระยะเวลาว่าง 6 เดือน ณ วันที่/เดือน/ปี</th>
+                                                <th nowrap>ครบระยะเวลาว่าง 6 เดือน<br/>ณ วันที่/เดือน/ปี</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>หน่วยงาน A</td>
-                                                <td>ข้าราชการ</td>
-                                                <td>วิชาการ</td>
-                                                <td>กลุ่ม A</td>
-                                                <td>12345</td>
-                                                <td>อาจารย์</td>
-                                                <td>กรุงเทพฯ</td>
-                                                <td>Teaching</td>
-                                                <td>2</td>
-                                                <td>01/01/2567</td>
-                                                <td>เกษียณอายุ</td>
-                                                <td>อยู่ระหว่างสรรหา</td>
-                                                <td>01/07/2567</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>หน่วยงาน B</td>
-                                                <td>พนักงานมหาวิทยาลัย</td>
-                                                <td>สนับสนุน</td>
-                                                <td>กลุ่ม B</td>
-                                                <td>67890</td>
-                                                <td>นักวิชาการ</td>
-                                                <td>เชียงใหม่</td>
-                                                <td>Research</td>
-                                                <td>1</td>
-                                                <td>01/02/2567</td>
-                                                <td>ลาออก</td>
-                                                <td>กำลังพิจารณา</td>
-                                                <td>01/08/2567</td>
-                                            </tr>
+                                            
                                         </tbody>
                                     </table>
                                 </div>
@@ -106,6 +138,9 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
         $(document).ready(function() {
             laodData();
@@ -131,24 +166,29 @@
 
                         const columns = [
                             { key: 'No', value: index+1 },
-                            { key: 'Alias_Default', value: row.Faculty },                           
-                            { key: 'personnel_type', value: row.personnel_type },
-                            { key: 'all_position_types', value: row.all_position_types },  
-                            { key: 'Personnel_Group', value: row.Personnel_Group },
-                            { key: 'position_number', value: row.position_number },                            
-                            { key: 'Location_Code', value: row.Location_Code },
-                            { key: 'POSITION', value: row.POSITION },
-                            { key: 'Job_Family', value: row.Job_Family },                           
+                            { key: 'Alias_Default', value: row.Faculty , nowrap: true},                           
+                            { key: 'personnel_type', value: row.Personnel_Type , nowrap: true},
+                            { key: 'all_position_types', value: row.all_position_types , nowrap: true},  
+                            { key: 'Personnel_Group', value: row.PERSONNEL_GROUP },
+                            { key: 'position_number', value: row.POSITION_NUMBER },                            
+                            { key: 'Location_Code', value: row.LOCATION_CODE , nowrap: true},
+                            { key: 'POSITION', value: row.POSITION , nowrap: true},
+                            { key: 'Job_Family', value: row.JOB_FAMILY },                           
                             { key: 'empty', value: 1 },
-                            { key: 'Vacant_From_Which_Date', value: row.Vacant_From_Which_Date },                     
-                            { key: 'Reason_For_Vacancy', value: row.Reason_For_Vacancy },
+                            { key: 'Vacant_From_Which_Date', value: row.VACANT_FROM_WHICH_DATE },                     
+                            { key: 'Reason_For_Vacancy', value: row.REASON_FOR_VACANCY },
                             { key: 'status', value: "" },                    
-                            { key: 'V_For_6_Months_On', value: row.V_For_6_Months_On },                            
+                            { key: 'V_For_6_Months_On', value: row.V_FOR_6_MONTHS_ON },                            
                         ];
 
                         columns.forEach(col => {
                             const td = document.createElement('td');
                             td.textContent = col.value;
+                            
+                            if (col.nowrap) {
+                                td.classList.add("nowrap");
+                            }
+
                             tr.appendChild(td);
                         });
                         tableBody.appendChild(tr);     
@@ -162,91 +202,247 @@
             });
         }
         function exportCSV() {
-            const rows = [];
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
+            const csvRows = [];
+
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
+
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
+
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
+
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
+
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
+
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
+                }
+
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
+
+                    csvRows.push(rowData.join(','));
+                }
             }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
+
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = 'report.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4'); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: { cellWidth: 8 },  // ที่
+                    1: { cellWidth: 25 }, // ส่วนงาน/หน่วยงาน
+                    // ข้าราชการ
+                    2: { cellWidth: 25 },  // วิชาการ
+                    3: { cellWidth: 25 },  // สนับสนุน
+                    4: { cellWidth: 20 },  // รวม
+                    // ลูกจ้างประจำ
+                    5: { cellWidth: 12 },  // สนับสนุน
+                    // พนักงานมหาวิทยาลัยงบประมาณแผ่นดิน
+                    6: { cellWidth: 30 },  // บริหาร
+                    7: { cellWidth: 30},  // วิชาการ-คนครอง
+                    8: { cellWidth: 20 },  // วิชาการ-อัตราว่าง
+                    9: { cellWidth: 20 },  // วิจัย-คนครอง
+                    10: { cellWidth: 20 }, // วิจัย-อัตราว่าง
+                    11: { cellWidth: 15 }, // สนับสนุน-คนครอง
+                    12: { cellWidth: 15 }, // สนับสนุน-อัตราว่าง
+                    13: { cellWidth: 19}, // รวม-คนครอง
+                    
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(16);
+                    doc.text('รายงานอัตรากำลังว่าง', 14, 15);
+                    
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    /* doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20, 
+                        doc.internal.pageSize.height - 10,
+                        { align: 'right' }
+                    ); */
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+                    
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                        // Left align the ส่วนงาน/หน่วยงาน column
+                        if (data.column.index === 1) {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle table width
+                margin: { top: 25, right: 7, bottom: 15, left: 7 },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานอัตรากำลัง.pdf');
         }
 
-        function exportXLS() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
-            }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        function exportXLS() {
+            const table = document.getElementById('reportTable');
+
+            const rows = [];
+            const merges = [];
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const tr = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData.push("");
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let cellText = cell.innerText.trim();
+
+                    // เช็คว่าเป็น Header หรือไม่
+                    const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
+
+                    rowData[colIndex] = {
+                        v: cellText,
+                        s: {
+                            alignment: {
+                                vertical: "top",
+                                horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
+                            },
+                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                        }
+                    };
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (!(r === 0 && c === 0)) {
+                                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
+                        }
+                    }
+
+                    colIndex++;
+                }
+                rows.push(rowData);
+            }
+
+            // สร้าง Workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // นำ merges ไปใช้
+            ws['!merges'] = merges;
+
+            // เพิ่ม Worksheet ลงใน Workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์ Excel
+            XLSX.writeFile(wb, 'report.xlsx');
         }
     </script>
     <!-- Common JS -->

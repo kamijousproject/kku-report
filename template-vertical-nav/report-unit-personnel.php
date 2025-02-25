@@ -1,7 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>     
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
 
+.content-body {
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto; /* Scrollable content only inside table */
+    max-height: 60vh; /* Set a fixed height */
+    border: 1px solid #ccc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+thead tr:nth-child(1) th {
+    position: sticky;
+    top: 0;
+    background: #f4f4f4;
+    z-index: 1000;
+}
+
+thead tr:nth-child(2) th {
+    position: sticky;
+    top: 60px; /* Adjust height based on previous row */
+    background: #f4f4f4;
+    z-index: 999;
+}
+
+thead tr:nth-child(3) th {
+    position: sticky;
+    top: 105px; /* Adjust height based on previous rows */
+    background: #f4f4f4;
+    z-index: 998;
+}
+
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -267,7 +328,8 @@
         });
 
         // เพิ่มแถว footer ลงในตาราง
-        footer.appendChild(footerRow);
+        footer.innerHTML='';
+        footer.append(footerRow);
         }
         function exportCSV() {
             const table = document.getElementById('reportTable');
@@ -462,71 +524,76 @@
 
 
         function exportXLS() {
-        const table = document.getElementById('reportTable');
+    const table = document.getElementById('reportTable');
 
-        const rows = [];
-        const merges = [];
-        const skipMap = {};
+    const rows = [];
+    const merges = [];
+    const skipMap = {};
 
-        for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-            const tr = table.rows[rowIndex];
-            const rowData = [];
-            let colIndex = 0;
+    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+        const tr = table.rows[rowIndex];
+        const rowData = [];
+        let colIndex = 0;
 
-            for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-                while (skipMap[`${rowIndex},${colIndex}`]) {
-                    rowData.push("");
-                    colIndex++;
-                }
-
-                const cell = tr.cells[cellIndex];
-                let cellText = cell.innerText.trim();
-                rowData[colIndex] = {
-                    v: cellText,
-                    s: {
-                        alignment: {
-                            vertical: "top",
-                            horizontal: "left"
-                        }
-                    }
-                };
-
-                const rowspan = cell.rowSpan || 1;
-                const colspan = cell.colSpan || 1;
-
-                if (rowspan > 1 || colspan > 1) {
-                    merges.push({
-                        s: { r: rowIndex, c: colIndex },
-                        e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                    });
-
-                    for (let r = 0; r < rowspan; r++) {
-                        for (let c = 0; c < colspan; c++) {
-                            if (!(r === 0 && c === 0)) {
-                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
-                            }
-                        }
-                    }
-                }
-
+        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+            while (skipMap[`${rowIndex},${colIndex}`]) {
+                rowData.push("");
                 colIndex++;
             }
-            rows.push(rowData);
+
+            const cell = tr.cells[cellIndex];
+            let cellText = cell.innerText.trim();
+
+            // เช็คว่าเป็น Header หรือไม่
+            const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
+
+            rowData[colIndex] = {
+                v: cellText,
+                s: {
+                    alignment: {
+                        vertical: "top",
+                        horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
+                    },
+                    font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                }
+            };
+
+            const rowspan = cell.rowSpan || 1;
+            const colspan = cell.colSpan || 1;
+
+            if (rowspan > 1 || colspan > 1) {
+                merges.push({
+                    s: { r: rowIndex, c: colIndex },
+                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                });
+
+                for (let r = 0; r < rowspan; r++) {
+                    for (let c = 0; c < colspan; c++) {
+                        if (!(r === 0 && c === 0)) {
+                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                        }
+                    }
+                }
+            }
+
+            colIndex++;
         }
-
-        // สร้าง Workbook
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(rows);
-
-        // นำ merges ไปใช้
-        ws['!merges'] = merges;
-
-        // เพิ่ม Worksheet ลงใน Workbook
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-        // เขียนไฟล์ Excel
-        XLSX.writeFile(wb, 'report.xlsx');
+        rows.push(rowData);
     }
+
+    // สร้าง Workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // นำ merges ไปใช้
+    ws['!merges'] = merges;
+
+    // เพิ่ม Worksheet ลงใน Workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+    // เขียนไฟล์ Excel
+    XLSX.writeFile(wb, 'report.xlsx');
+}
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>

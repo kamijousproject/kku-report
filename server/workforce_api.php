@@ -34,57 +34,51 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $cmd->execute();
                 $f4 = $cmd->fetchAll(PDO::FETCH_ASSOC);                  
                 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
                         FROM workforce_current_positions_allocation w
-                        LEFT JOIN actual_data_1 act1
-                        ON w.Position_Number=act1.Position_Number
-                        LEFT JOIN actual_data_2 act2
-                        ON w.Position_Number=act2.position_number
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.POSITION_NUMBER
                         WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c1 = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                
+
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
                         FROM workforce_current_positions_allocation w
-                        LEFT JOIN actual_data_1 act1
-                        ON w.Position_Number=act1.Position_Number
-                        LEFT JOIN actual_data_2 act2
-                        ON w.Position_Number=act2.position_number
-                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย' and act1.Contract_Type='วิชาการระยะสั้น'";
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        
+                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='วิชาการระยะสั้น'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c2 = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
                         FROM workforce_current_positions_allocation w
-                        LEFT JOIN actual_data_1 act1
-                        ON w.Position_Number=act1.Position_Number
-                        LEFT JOIN actual_data_2 act2
-                        ON w.Position_Number=act2.position_number
-                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'and act1.Contract_Type='ผู้เกษียณอายุราชการ' ";
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย'and act1.Contract_Type='ผู้เกษียณอายุราชการ' ";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c3 = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
                         FROM workforce_current_positions_allocation w
-                        LEFT JOIN actual_data_1 act1
-                        ON w.Position_Number=act1.Position_Number
-                        LEFT JOIN actual_data_2 act2
-                        ON w.Position_Number=act2.position_number
-                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย' and act1.Contract_Type='ชาวต่างประเทศ' ";
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        
+                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='ชาวต่างประเทศ' ";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c4 = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act2.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
                         FROM workforce_current_positions_allocation w
-                        LEFT JOIN actual_data_1 act1
-                        ON w.Position_Number=act1.Position_Number
-                        LEFT JOIN actual_data_2 act2
-                        ON w.Position_Number=act2.position_number
-                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย' and act1.Contract_Type='ผู้ปฏิบัติงานในมหาวิทยาลัย'";
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='ผู้ปฏิบัติงานในมหาวิทยาลัย'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c5 = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -395,34 +389,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "WITH ad2 AS (
-                        SELECT Faculty 
-                        ,personnel_type
+                $sql = "WITH t1 AS (
+                        SELECT Faculty
+                        ,Personnel_Type
+                        ,PERSONNEL_GROUP
                         ,all_position_types
+                        ,POSITION_NUMBER
                         ,POSITION
-                        ,position_number 
-                        FROM actual_data_2
+                        ,LOCATION_CODE
+                        ,JOB_FAMILY
+                        ,VACANT_FROM_WHICH_DATE
+                        ,REASON_FOR_VACANCY
+                        ,V_FOR_6_MONTHS_ON
+                        FROM workforce_hcm_actual
                         WHERE rate_status='อัตราว่าง')
 
-                        SELECT distinct act2.Faculty 
-                        ,act2.personnel_type
-                        ,act2.all_position_types
-                        ,act2.POSITION
-                        ,act2.position_number
-                        ,act1.Personnel_Group
-                        ,act1.Job_Family
-                        ,act5.Location_Code
-                        ,act4.Vacant_From_Which_Date
-                        ,act4.Reason_For_Vacancy
-                        ,act4.V_For_6_Months_On
-                        FROM ad2 act2
-                        LEFT JOIN actual_data_1 act1
-                        ON act2.position_number=act1.Position_Number
-                        LEFT JOIN actual_data_5 act5
-                        ON act2.position_number=act5.Position_Number
-                        LEFT JOIN actual_data_4 act4
-                        ON act2.position_number=act4.Position_Number
-                        order BY act2.position_number";
+                        SELECT * FROM t1
+                        order by POSITION_NUMBER";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -460,7 +443,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN Faculty f
                         ON act1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
                         where act1.Faculty!='00000' and f.parent =:slt
-                        ORDER BY COALESCE(f.Alias_Default,act1.Faculty),act4.Retirement_Date,Replace(act1.Position_Number,'PN_','')";
+                        ORDER BY COALESCE(f.Alias_Default,act1.Faculty),Replace(act1.Position_Number,'PN_','')";
                 $cmd = $conn->prepare($sql);
                 $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
@@ -491,7 +474,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,Faculty COLLATE UTF8MB4_GENERAL_CI AS Faculty
                         ,All_PositionTypes COLLATE UTF8MB4_GENERAL_CI AS All_PositionTypes
                         ,POSITION COLLATE UTF8MB4_GENERAL_CI AS POSITION
-                        ,Position_Number COLLATE UTF8MB4_GENERAL_CI AS Position_Number
+                        ,replace(Position_Number,'PN_','') COLLATE UTF8MB4_GENERAL_CI AS Position_Number
                         ,Fund_FT COLLATE UTF8MB4_GENERAL_CI AS Fund_FT
                         ,Salary_rate COLLATE UTF8MB4_GENERAL_CI AS Salary_rate
                         ,Govt_Fund COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
@@ -518,24 +501,92 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         SELECT a.*
                         ,f.Alias_Default
+                        ,f.parent
                         ,act1.Employment_Type
                         ,act1.Workers_Name_Surname
                         ,act1.Personnel_Group
                         ,act1.Job_Family
-                        ,act1.Position_Qualifications 
+                        ,act1.POSITION_QUALIFIFCATIONS AS Position_Qualifications
                         ,act1.Contract_Type
                         ,act1.Contract_Period_Short_Term
-                        ,act5.Location_Code
+                        ,act1.Location_Code
                         FROM all_data a
-                        LEFT JOIN actual_data_1 act1
-                        ON a.Position_Number=act1.Position_Number
-                        LEFT JOIN actual_data_5 act5
-                        ON a.Position_Number=act5.Position_Number
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(a.Position_Number,'PN_','')=act1.Position_Number
                         LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
-                        ) f ON a.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        ORDER BY a.Faculty";
+                        where parent like 'Faculty%') f ON a.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        ORDER BY a.Faculty,a.Position_Number";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "kku_wf_overview-framework_dropdown":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH CURRENT AS (
+                        SELECT 'อัตราเดิม' COLLATE utf8mb4_general_ci AS TYPE 
+                        ,Personnel_Type COLLATE UTF8MB4_GENERAL_CI AS Personnel_Type
+                        ,Faculty COLLATE UTF8MB4_GENERAL_CI AS Faculty
+                        ,All_PositionTypes COLLATE UTF8MB4_GENERAL_CI AS All_PositionTypes
+                        ,POSITION COLLATE UTF8MB4_GENERAL_CI AS POSITION
+                        ,replace(Position_Number,'PN_','') COLLATE UTF8MB4_GENERAL_CI AS Position_Number
+                        ,Fund_FT COLLATE UTF8MB4_GENERAL_CI AS Fund_FT
+                        ,Salary_rate COLLATE UTF8MB4_GENERAL_CI AS Salary_rate
+                        ,Govt_Fund COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
+                        ,Division_Revenue COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
+                        ,OOP_Central_Revenue COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
+                        FROM workforce_current_positions_allocation)
+                        , NEW AS (
+                        SELECT 'อัตราใหม่'AS TYPE 
+                        ,Personnel_Type
+                        ,Faculty
+                        ,All_PositionTypes
+                        ,POSITION 
+                        ,NULL AS Position_Number
+                        ,Fund_FT
+                        ,NULL AS Salary_rate
+                        ,Govt_Fund
+                        ,Division_Revenue
+                        ,OOP_Central_Revenue
+                        FROM workforce_new_positions_allocation)
+                        , all_data AS (
+                        SELECT * FROM CURRENT
+                        UNION ALL 
+                        SELECT * FROM NEW)
+
+                        SELECT distinct f.parent
+                        ,f2.Alias_Default as pname
+                        FROM all_data a
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(a.Position_Number,'PN_','')=act1.Position_Number
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON a.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        
+                        ORDER BY f.parent";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -554,6 +605,93 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             break;
         case "kku_wf_annual-allocation":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "WITH CURRENT AS (
+                        SELECT 'อัตราเดิม' COLLATE utf8mb4_general_ci AS TYPE 
+                        ,Personnel_Type COLLATE UTF8MB4_GENERAL_CI AS Personnel_Type
+                        ,Faculty COLLATE UTF8MB4_GENERAL_CI AS Faculty
+                        ,All_PositionTypes COLLATE UTF8MB4_GENERAL_CI AS All_PositionTypes
+                        ,POSITION COLLATE UTF8MB4_GENERAL_CI AS POSITION
+                        ,Position_Number COLLATE UTF8MB4_GENERAL_CI AS Position_Number
+                        ,Fund_FT COLLATE UTF8MB4_GENERAL_CI AS Fund_FT
+                        ,Salary_rate COLLATE UTF8MB4_GENERAL_CI AS Salary_rate
+                        ,Govt_Fund COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
+                        ,Division_Revenue COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
+                        ,OOP_Central_Revenue COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
+                        ,'1' AS num
+                        ,NULL AS Name_Surname_If_change 
+                        FROM workforce_current_positions_allocation)
+                        , NEW AS (
+                        SELECT 'อัตราใหม่'AS TYPE 
+                        ,w1.Approved_Personnel_Type
+                        ,w1.Faculty
+                        ,w1.All_PositionTypes
+                        ,w1.POSITION 
+                        ,w1.New_Position_Number AS Position_Number
+                        ,w1.Fund_FT
+                        ,NULL AS Salary_rate
+                        ,w1.Govt_Fund
+                        ,w1.Division_Revenue
+                        ,w1.OOP_Central_Revenue
+                        ,'1' AS num
+                        ,w1.Name_Surname_If_change
+                        FROM workforce_new_positions_allocation w1
+                        LEFT JOIN workforce_new_positions_allocation_2 w2
+                        ON w1.Account=w2.Account COLLATE utf8mb4_general_ci AND w1.Scenario=w2.Scenario COLLATE utf8mb4_general_ci AND w1.Version=w2.Version COLLATE utf8mb4_general_ci
+                        AND w1.Faculty=w2.Faculty COLLATE utf8mb4_general_ci AND w1.NHR=w2.NHR COLLATE utf8mb4_general_ci AND w1.Personnel_Type=w2.Personnel_Type COLLATE utf8mb4_general_ci
+                        AND w1.All_PositionTypes=w2.All_PositionTypes COLLATE utf8mb4_general_ci AND w1.Position=w2.Position COLLATE utf8mb4_general_ci)
+                        , all_data AS (
+                        SELECT * FROM CURRENT
+                        UNION ALL 
+                        SELECT * FROM NEW)
+                        ,all_data2 AS (
+                        SELECT ad1.*,f.Parent,p.Alias_Default AS parent_name ,f.Alias_Default AS fac FROM all_data ad1
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default,Parent 
+                        FROM Faculty
+                        WHERE parent NOT LIKE '%BU%'
+                        ) f ON ad1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default,Parent 
+                        FROM Faculty
+                        ) p ON f.parent = p.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        )
+                        SELECT a.*
+                        ,act1.Employment_Type
+                        ,IFNULL(NULLIF(a.Name_Surname_If_change, ''), act1.Workers_Name_Surname) AS Workers_Name_Surname
+                        ,act1.Personnel_Group
+                        ,act1.Job_Family
+                        ,act1.POSITION_QUALIFIFCATIONS AS Position_Qualifications
+                        ,act1.Contract_Type
+                        ,act1.Contract_Period_Short_Term
+                        ,act1.Location_Code
+                        ,replace(a.Position_Number,'PN_','') AS Position_Number2
+                        FROM all_data2 a
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(a.Position_Number,'PN_','')=act1.Position_Number                     
+                        ORDER BY a.Faculty,a.Position_Number";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'wf' => $wf
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "kku_wf_annual-allocation_dropdown":
             try {
                 $db = new Database();
                 $conn = $db->connect();
@@ -617,10 +755,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,act1.Contract_Period_Short_Term
                         ,act5.Location_Code
                         FROM all_data2 a
-                        LEFT JOIN actual_data_1 act1
-                        ON a.Position_Number=act1.Position_Number
-                        LEFT JOIN actual_data_5 act5
-                        ON a.Position_Number=act5.Position_Number                        
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON a.Position_Number=act1.Position_Number                     
                         ORDER BY a.Faculty";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();

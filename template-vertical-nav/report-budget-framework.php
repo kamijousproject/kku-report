@@ -218,7 +218,7 @@ thead tr:nth-child(3) th {
                     console.log(response.faculty);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
+                    
 
                         response.wf.forEach((row, index) => {                   
                             const tr = document.createElement('tr');

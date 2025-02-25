@@ -350,10 +350,15 @@
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const plan = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac&& item.fund === fund).map(item => item.plan_name))];
-                //console.log(fac);
+                const planMap = new Map(
+                    alldata
+                        .filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund)
+                        .map(item => [item.plan, item.plan_name]) // [key, value] = [plan, plan_name]
+                );
+                plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
+                //console.log(plan);
                 plan.forEach((row) =>{
-                    $('#dropdown4').append('<option value="'+row+'">'+row+'</option>').prop('disabled', false);
+                    $('#dropdown4').append('<option value="'+row.plan_name+'">'+row.plan+":"+row.plan_name+'</option>').prop('disabled', false);
                 });   
             });
             $('#dropdown4').change(function() {
@@ -366,10 +371,16 @@
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const splan = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac&& item.fund === fund&& item.plan_name === plan).map(item => item.sub_plan_name))];
-                //console.log(fac);
+                //const splan = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac&& item.fund === fund&& item.plan_name === plan).map(item => item.sub_plan_name))];
+                const splanMap = new Map(
+                    alldata
+                        .filter(item => item.fiscal_year === fyear && item.fname === fac&& item.fund === fund&& item.plan_name === plan)
+                        .map(item => [item.subplan, item.sub_plan_name]) // [key, value] = [plan, plan_name]
+                );
+                splan = Array.from(splanMap, ([subplan, sub_plan_name]) => ({ subplan, sub_plan_name }));
+ 
                 splan.forEach((row) =>{
-                    $('#dropdown5').append('<option value="'+row+'">'+row+'</option>').prop('disabled', false);
+                    $('#dropdown5').append('<option value="'+row.sub_plan_name+'">'+row.subplan+":"+row.sub_plan_name+'</option>').prop('disabled', false);
                 });   
             });
             $('#dropdown5').change(function() {

@@ -103,15 +103,15 @@ thead tr:nth-child(3) th {
                                     <thead>
                                         <tr>
                                             <th rowspan="3">ที่</th>
-                                            <th rowspan="3">ส่วนงาน/หน่วยงาน</th>
-                                            <th rowspan="3">ชื่อตำแหน่ง</th>
-                                            <th rowspan="3">ประเภทตำแหน่ง</th>
+                                            <th rowspan="3" nowrap>ส่วนงาน/หน่วยงาน</th>
+                                            <th rowspan="3" nowrap>ชื่อตำแหน่ง</th>
+                                            <th rowspan="3" nowrap>ประเภทตำแหน่ง</th>
                                             <th rowspan="3">Job Family</th>
                                             <th colspan="6">ปีงบประมาณ พ.ศ. 2567</th>
                                             <th colspan="6">ปีงบประมาณ พ.ศ. 2568</th>
                                             <th colspan="6">ปีงบประมาณ พ.ศ. 2569</th>
                                             <th colspan="6">ปีงบประมาณ พ.ศ. 2570</th>
-                                            <th rowspan="3">รวมจำนวนอัตราเกษียณอายุราชการ 4 ปี</th>
+                                            <th rowspan="3" nowrap>รวมจำนวน<br/>อัตราเกษียณ<br/>อายุราชการ 4 ปี</th>
                                         </tr>
                                         <tr>
                                             <!-- ปีงบประมาณ พ.ศ. 2567 -->
@@ -141,17 +141,17 @@ thead tr:nth-child(3) th {
                                         </tr>
                                         <tr>
                                             <!-- ปีงบประมาณ พ.ศ. 2567 -->
-                                            <th>แผ่นดิน</th>
-                                            <th>รายได้</th>
+                                            <th nowrap>แผ่นดิน</th>
+                                            <th nowrap>รายได้</th>
                                             <!-- ปีงบประมาณ พ.ศ. 2568 -->
-                                            <th>แผ่นดิน</th>
-                                            <th>รายได้</th>
+                                            <th nowrap>แผ่นดิน</th>
+                                            <th nowrap>รายได้</th>
                                             <!-- ปีงบประมาณ พ.ศ. 2569 -->
-                                            <th>แผ่นดิน</th>
-                                            <th>รายได้</th>                                           
+                                            <th nowrap>แผ่นดิน</th>
+                                            <th nowrap>รายได้</th>                                           
                                             <!-- ปีงบประมาณ พ.ศ. 2570 -->
-                                            <th>แผ่นดิน</th>
-                                            <th>รายได้</th>                                           
+                                            <th nowrap>แผ่นดิน</th>
+                                            <th nowrap>รายได้</th>                                           
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -179,7 +179,9 @@ thead tr:nth-child(3) th {
             </div>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
         $(document).ready(function() {
             laodData();
@@ -315,206 +317,304 @@ thead tr:nth-child(3) th {
         footer.append(footerRow);
         }
         function exportCSV() {
-        const table = document.getElementById('reportTable');
-        const csvRows = [];
+            const table = document.getElementById('reportTable');
+            const csvRows = [];
 
-        // วนลูปทีละ <tr>
-        for (const row of table.rows) {
-            // เก็บบรรทัดย่อยของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            // วนลูปทีละเซลล์ <td>/<th>
-            for (const cell of row.cells) {
-                let html = cell.innerHTML;
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
 
-                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                html = html.replace(/(&nbsp;)+/g, (match) => {
-                    const count = match.match(/&nbsp;/g).length;
-                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                });
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
 
-                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                html = html.replace(/<br\s*\/?>/gi, '\n');
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                // html = html.replace(/<\/?[^>]+>/g, '');
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
 
-                // 4) แยกเป็น array บรรทัดย่อย
-                const lines = html.split('\n').map(x => x.trimEnd());
-                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
-                if (lines.length > maxSubLine) {
-                    maxSubLine = lines.length;
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
                 }
 
-                cellLines.push(lines);
-            }
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
 
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-                const rowData = [];
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
 
-                // วนลูปแต่ละเซลล์
-                for (const lines of cellLines) {
-                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                    // Escape double quotes
-                    text = text.replace(/"/g, '""');
-                    // ครอบด้วย ""
-                    text = `"${text}"`;
-                    rowData.push(text);
+                    csvRows.push(rowData.join(','));
                 }
-
-                csvRows.push(rowData.join(','));
             }
+
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานอัตรากำลังที่เกษียณอายุราชการในแต่ละปีงบประมาณ (ภาพรวมมหาวิทยาลัย).csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
-        // รวมเป็น CSV + BOM
-        const csvContent = "\uFEFF" + csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'report.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
+        function exportPDF() {
+            const { jsPDF } = window.jspdf;
+            // Using A3 landscape to fit all columns
+            const doc = new jsPDF('l', 'mm', 'a4');
+            
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
 
-    function exportPDF() {
-        const {
-            jsPDF
-        } = window.jspdf;
-        const doc = new jsPDF('landscape');
-
-        // เพิ่มฟอนต์ภาษาไทย
-        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-        doc.setFont("THSarabun");
-
-        // ตั้งค่าฟอนต์และข้อความ
-        doc.setFontSize(12);
-        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-        // ใช้ autoTable สำหรับสร้างตาราง
-        doc.autoTable({
-            html: '#reportTable',
-            startY: 20,
-            styles: {
-                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                fontSize: 10,
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            bodyStyles: {
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            headStyles: {
-                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-        });
-
-        // บันทึกไฟล์ PDF
-        doc.save('รายงาน.pdf');
-    }
-
-    function exportXLS() {
-    const table = document.getElementById('reportTable');
-
-    const rows = [];
-    const merges = {};
-    const skipMap = {};
-
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-        const tr = table.rows[rowIndex];
-        const rowData = [];
-        let colIndex = 0;
-
-        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData.push("");
-                colIndex++;
-            }
-
-            const cell = tr.cells[cellIndex];
-            let cellText = cell.innerText.trim();
-            rowData[colIndex] = cellText;
-
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
-
-            if (rowspan > 1 || colspan > 1) {
-                const mergeRef = {
-                    s: { r: rowIndex, c: colIndex },
-                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                };
-
-                const mergeKey = `merge_${rowIndex}_${colIndex}`;
-                merges[mergeKey] = mergeRef;
-
-                for (let r = 0; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        if (!(r === 0 && c === 0)) {
-                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+            // Configure autoTable with optimized settings
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 20,
+                theme: 'grid',
+                styles: {
+                    font: "THSarabun",
+                    fontSize: 7,
+                    cellPadding: { top: 1, right: 1, bottom: 1, left: 1 },
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 5
+                },
+                headStyles: {
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 7,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 5
+                },
+                // Column widths optimized for retirement report
+                columnStyles: {
+                    0: { cellWidth: 5 },  // ที่
+                    1: { cellWidth: 21 }, // ส่วนงาน/หน่วยงาน
+                    2: { cellWidth: 20 }, // ชื่อตำแหน่ง
+                    3: { cellWidth: 20 }, // ประเภทตำแหน่ง
+                    4: { cellWidth: 18 }, // Job Family
+                    // ปีงบประมาณ พ.ศ. 2567
+                    5: { cellWidth: 8 },  // ข้าราชการ
+                    6: { cellWidth: 8},  // พนง.มข. แผ่นดิน
+                    7: { cellWidth: 8 },  // พนง.มข. รายได้
+                    8: { cellWidth: 8 },  // ลูกจ้างประจำ
+                    9: { cellWidth: 8 },  // ลูกจ้างของ มข.
+                    10: { cellWidth: 8 }, // รวม
+                    // ปีงบประมาณ พ.ศ. 2568
+                    11: { cellWidth: 8 }, // ข้าราชการ
+                    12: { cellWidth: 8 }, // พนง.มข. แผ่นดิน
+                    13: { cellWidth: 8 }, // พนง.มข. รายได้
+                    14: { cellWidth: 8 }, // ลูกจ้างประจำ
+                    15: { cellWidth: 8 }, // ลูกจ้างของ มข.
+                    16: { cellWidth: 8 }, // รวม
+                    // ปีงบประมาณ พ.ศ. 2569
+                    17: { cellWidth: 8 }, // ข้าราชการ
+                    18: { cellWidth: 8 }, // พนง.มข. แผ่นดิน
+                    19: { cellWidth: 8 }, // พนง.มข. รายได้
+                    20: { cellWidth: 8 }, // ลูกจ้างประจำ
+                    21: { cellWidth: 8 }, // ลูกจ้างของ มข.
+                    22: { cellWidth: 8 }, // รวม
+                    // ปีงบประมาณ พ.ศ. 2570
+                    23: { cellWidth: 8 }, // ข้าราชการ
+                    24: { cellWidth: 8 }, // พนง.มข. แผ่นดิน
+                    25: { cellWidth: 8 }, // พนง.มข. รายได้
+                    26: { cellWidth: 8 }, // ลูกจ้างประจำ
+                    27: { cellWidth: 8 }, // ลูกจ้างของ มข.
+                    28: { cellWidth: 8 }, // รวม
+                    // รวม 4 ปี
+                    29: { cellWidth: 8 } // รวมทั้งหมด
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(14);
+                    doc.text('รายงานอัตรากำลังที่เกษียณอายุราชการในแต่ละปีงบประมาณ (ภาพรวมมหาวิทยาลัย)', 20, 10);
+                    
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    /* doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20, 
+                        doc.internal.pageSize.height - 10,
+                        { align: 'right' }
+                    ); */
+                    
+                    // Add current date
+                    const today = new Date();
+                    const dateStr = today.toLocaleDateString('th-TH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                    doc.text('วันที่พิมพ์: ' + dateStr, 10, doc.internal.pageSize.height - 5);
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.lineBreak = true;
+                        
+                        // Properly handle <br> tags in header cells
+                        if (typeof data.cell.raw === 'string' && data.cell.raw.includes('<br>')) {
+                            data.cell.text = data.cell.raw.replace(/<br>/g, '\n');
                         }
                     }
-                }
-            }
-
-            colIndex++;
-        }
-        rows.push(rowData);
-    }
-
-    // Create Workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-
-    // Apply merges
-    ws['!merges'] = Object.values(merges);
-
-    // Apply header styles to the first few rows (all header rows)
-    const totalHeaderRows = table.tHead.rows.length; // Get the number of header rows
-    for (let R = 0; R < totalHeaderRows; R++) {
-        for (let C = 0; C < rows[R].length; C++) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-
-            if (ws[cellRef]) {
-                ws[cellRef].s = {
-                    alignment: { horizontal: "center", vertical: "center" }, // Center text
-                    font: { bold: true, name: "Arial", sz: 12 }, // Bold + Font
-                    fill: { fgColor: { rgb: "FFFFCC" } }, // Light yellow background
-                    border: {
-                        top: { style: "thin", color: { rgb: "000000" } },
-                        bottom: { style: "thin", color: { rgb: "000000" } },
-                        left: { style: "thin", color: { rgb: "000000" } },
-                        right: { style: "thin", color: { rgb: "000000" } }
+                    
+                    // Handle body cells
+                    if (data.section === 'body') {
+                        // First column (ID) - center align
+                        if (data.column.index === 0) {
+                            data.cell.styles.halign = 'center';
+                        }
+                        // Text columns - left align
+                        else if (data.column.index >= 1 && data.column.index <= 4) {
+                            data.cell.styles.halign = 'left';
+                        }
+                        // Number columns - center align
+                        else {
+                            data.cell.styles.halign = 'center';
+                        }
                     }
-                };
-            }
+                    
+                    // Footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.textColor = 'DimGray';
+                        data.cell.styles.fillColor = 'white';
+                        // First column left align
+                        if (data.column.index <= 4) {
+                            data.cell.styles.halign = 'center';
+                        } else {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle text wrapping for cells with <br>
+                willDrawCell: function(data) {
+                    if (data.section === 'head' || data.section === 'body') {
+                        // Replace <br> with newlines for proper rendering
+                        if (typeof data.cell.text === 'string') {
+                            data.cell.text = data.cell.text.replace(/<br\s*\/?>/gi, '\n');
+                        } else if (Array.isArray(data.cell.text)) {
+                            data.cell.text = data.cell.text.map(line => 
+                                typeof line === 'string' ? line.replace(/<br\s*\/?>/gi, '\n') : line
+                            );
+                        }
+                    }
+                },
+                // Use fitted margins
+                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                // Automatically calculate table width
+                tableWidth: 'auto'
+            });
+
+            // Save the PDF
+            doc.save('รายงานอัตรากำลังที่เกษียณอายุราชการในแต่ละปีงบประมาณ.pdf');
         }
-    }
 
-    // Append sheet and write file
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
 
-    // Download file
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.xlsx'; // Change to .xlsx for proper styling support
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
+        function exportXLS() {
+            const table = document.getElementById('reportTable');
+
+            const rows = [];
+            const merges = [];
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const tr = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData.push("");
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let cellText = cell.innerText.trim();
+
+                    // เช็คว่าเป็น Header หรือไม่
+                    const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
+
+                    rowData[colIndex] = {
+                        v: cellText,
+                        s: {
+                            alignment: {
+                                vertical: "top",
+                                horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
+                            },
+                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                        }
+                    };
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (!(r === 0 && c === 0)) {
+                                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
+                        }
+                    }
+
+                    colIndex++;
+                }
+                rows.push(rowData);
+            }
+
+            // สร้าง Workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // นำ merges ไปใช้
+            ws['!merges'] = merges;
+
+            // เพิ่ม Worksheet ลงใน Workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์ Excel
+            XLSX.writeFile(wb, 'รายงานอัตรากำลังที่เกษียณอายุราชการในแต่ละปีงบประมาณ (ภาพรวมมหาวิทยาลัย).xlsx');
+        }
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>

@@ -180,6 +180,9 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
         $(document).ready(function() {
             laodData();
@@ -200,7 +203,7 @@
                     {
                         const tableContainer = document.createElement('div');
                         const table = document.createElement('table');
-
+                        table.setAttribute('id', 't1')
                         // Create the header row with colspan
                         const headerRow = document.createElement('tr');
                         const headerCell = document.createElement('th');
@@ -235,13 +238,13 @@
                                 { value: row.Personnel_Type },
                                 { value: row.All_PositionTypes },
                                 { value: row.Position },
-                                { value: "" },
+                                { value: row.POSITION_QUALIFIFCATIONS },
                                 { value: row.New_Position_No_of_Uni_Staff_Gov },
-                                { value: "" },
-                                { value: row.Salary_rate },
+                                { value: row.LOCATION_CODE },
+                                { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                                 { value: row.Fund_FT },
-                                { value: "" },
-                                { value: "" },
+                                { value: row.CONTRACT_TYPE},
+                                { value: row.HIRING_START_END_DATE },
                                 { value: "" }
                             ];
 
@@ -259,7 +262,7 @@
                         table.appendChild(tableBody);
                         tableContainer.appendChild(table);
                         // Append the table to a container in the HTML (e.g., a div with id="table-container")
-                        document.getElementById('content_table').appendChild(tableContainer);
+                        document.getElementById('content_table').appendChild(table);
                     }
                     if(response.c1.length>0)
                     {
@@ -310,11 +313,11 @@
                             // Define the columns to display
                             const columns = [
                                 { value: index+1 },
-                                { value: row.All_PositionTypes },
-                                { value: row.Position },
-                                { value: row.Position_Qualifications },
-                                { value: row.Position_Number },
-                                { value: row.Salary_rate },
+                                { value: row.all_position_types },
+                                { value: row.POSITION },
+                                { value: row.POSITION_QUALIFIFCATIONS },
+                                { value: row.POSITION_NUMBER },
+                                { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                                 { value: row.Fund_FT },
                                 { value: row.rate_status },
                                 { value: "" }
@@ -385,11 +388,11 @@
                             // Define the columns to display
                             const columns = [
                                 { value: index+1 },
-                                { value: row.All_PositionTypes },
-                                { value: row.Position },
-                                { value: row.Position_Qualifications },
-                                { value: row.Position_Number },
-                                { value: row.Salary_rate },
+                                { value: row.all_position_types },
+                                { value: row.POSITION },
+                                { value: row.POSITION_QUALIFIFCATIONS },
+                                { value: row.POSITION_NUMBER },
+                                { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                                 { value: row.Fund_FT },
                                 { value: row.rate_status },
                                 { value: "" }
@@ -461,13 +464,13 @@
                             // Define the columns to display
                             const columns = [
                                 { value: index+1 },
-                                { value: row.All_PositionTypes },
-                                { value: row.Position },
-                                { value: row.Position_Qualifications },
-                                { value: row.Position_Number },
-                                { value: row.Salary_rate },
+                                { value: row.all_position_types },
+                                { value: row.POSITION },
+                                { value: row.POSITION_QUALIFIFCATIONS },
+                                { value: row.POSITION_NUMBER },
+                                { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                                 { value: row.Fund_FT },
-                                { value: row.Contract_Period_Short_Term },
+                                { value: row.CONTRACT_PERIOD_SHORT_TERM },
                                 { value: row.rate_status },
                                 { value: "" }
                             ];
@@ -538,13 +541,13 @@
                             // Define the columns to display
                             const columns = [
                                 { value: index+1 },
-                                { value: row.All_PositionTypes },
-                                { value: row.Position },
-                                { value: row.Position_Qualifications },
-                                { value: row.Position_Number },
-                                { value: row.Salary_rate },
+                                { value: row.all_position_types },
+                                { value: row.POSITION },
+                                { value: row.POSITION_QUALIFIFCATIONS },
+                                { value: row.POSITION_NUMBER },
+                                { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                                 { value: row.Fund_FT },
-                                { value: row.Contract_Period_Short_Term },
+                                { value: row.CONTRACT_PERIOD_SHORT_TERM },
                                 { value: row.rate_status },
                                 { value: "" }
                             ];
@@ -615,13 +618,13 @@
                             // Define the columns to display
                             const columns = [
                                 { value: index+1 },
-                                { value: row.All_PositionTypes },
-                                { value: row.Position },
-                                { value: row.Position_Qualifications },
-                                { value: row.Position_Number },
-                                { value: row.Salary_rate },
+                                { value: row.all_position_types },
+                                { value: row.POSITION },
+                                { value: row.POSITION_QUALIFIFCATIONS },
+                                { value: row.POSITION_NUMBER },
+                                { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                                 { value: row.Fund_FT },
-                                { value: row.Contract_Period_Short_Term },
+                                { value: row.CONTRACT_PERIOD_SHORT_TERM },
                                 { value: row.rate_status },
                                 { value: "" }
                             ];
@@ -654,92 +657,214 @@
             });
         }
         function exportCSV() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
-            }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+    const tables = document.querySelectorAll('#content_table table');
+    let csvContent = "\uFEFF"; // เพิ่ม BOM สำหรับภาษาไทย
+
+    tables.forEach((table, tableIndex) => {
+        //const title = table.getAttribute('data-title') || `Table ${tableIndex + 1}`;
+        //csvContent += `\n\n${title}\n`; // ตั้งชื่อให้แต่ละตาราง
+        const rows = table.querySelectorAll("tr");
+
+        rows.forEach(row => {
+            const cells = row.querySelectorAll("th, td");
+            const rowData = Array.from(cells).map(cell => `"${cell.innerText.replace(/"/g, '""')}"`);
+            csvContent += rowData.join(",") + "\n";
+        });
+    });
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+    doc.setFont("THSarabun");
+
+    const tables = document.querySelectorAll('#content_table table');
+    let yOffset = 20;
+
+    tables.forEach((table, tableIndex) => {
+        //const title = table.getAttribute('data-title') || `Table ${tableIndex + 1}`;
+        if (yOffset > 250) {  // ถ้าพื้นที่ไม่พอให้ขึ้นหน้าใหม่
+            doc.addPage();
+            yOffset = 10;
         }
 
-        function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+        doc.setFontSize(10);
+        //doc.text(title, 10, yOffset);
+        //yOffset += 5;
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
-
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+        doc.autoTable({
+            html: table,
+            startY: yOffset,
+            theme: 'grid',
+            styles: {
+                    font: "THSarabun",
+                    fontSize: 7,
+                    cellPadding: { top: 1, right: 1, bottom: 1, left: 1 },
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 5
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 7,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 5
                 },
-            });
-
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
-        }
-
-        function exportXLS() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
+            columnStyles: { 0: { cellWidth: 10 }, 1: { cellWidth: 30 } },
+            didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.lineBreak = true;
+                        
+                        // Properly handle <br> tags in header cells
+                        if (typeof data.cell.raw === 'string' && data.cell.raw.includes('<br>')) {
+                            data.cell.text = data.cell.raw.replace(/<br>/g, '\n');
+                        }
+                    }
+                    
+                    // Handle body cells
+                    if (data.section === 'body') {
+                        // First column (ID) - center align
+                        if (data.column.index === 0) {
+                            data.cell.styles.halign = 'center';
+                        }
+                        // Text columns - left align
+                        else if (data.column.index >= 1 && data.column.index <= 4) {
+                            data.cell.styles.halign = 'left';
+                        }
+                        // Number columns - center align
+                        else {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                    
+                    // Footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.textColor = 'DimGray';
+                        data.cell.styles.fillColor = 'white';
+                        // First column left align
+                        if (data.column.index <= 4) {
+                            data.cell.styles.halign = 'center';
+                        } else {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle text wrapping for cells with <br>
+                willDrawCell: function(data) {
+                    if (data.section === 'head' || data.section === 'body') {
+                        // Replace <br> with newlines for proper rendering
+                        if (typeof data.cell.text === 'string') {
+                            data.cell.text = data.cell.text.replace(/<br\s*\/?>/gi, '\n');
+                        } else if (Array.isArray(data.cell.text)) {
+                            data.cell.text = data.cell.text.map(line => 
+                                typeof line === 'string' ? line.replace(/<br\s*\/?>/gi, '\n') : line
+                            );
+                        }
+                    }
+                },
+            didDrawPage: function () {
+                doc.setFontSize(14);
+                doc.text('รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน', 20, 10);
             }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
+        });
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        yOffset = doc.lastAutoTable.finalY;
+    });
+
+    doc.save('รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.pdf');
+}
+function exportXLS() {
+    const tables = document.querySelectorAll('#content_table table'); // ดึงทุก Table
+    const wb = XLSX.utils.book_new();
+    let wsData = [];
+    let merges = [];
+    let rowOffset = 0; // ตำแหน่งแถวปัจจุบันใน Excel
+
+    tables.forEach((table) => {
+        const skipMap = {};
+
+        // ✅ Loop ผ่านทุกแถวของ Table
+        for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+            const tr = table.rows[rowIndex];
+            const rowData = [];
+            let colIndex = 0;
+
+            for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                while (skipMap[`${rowOffset},${colIndex}`]) {
+                    rowData.push(""); 
+                    colIndex++;
+                }
+
+                const cell = tr.cells[cellIndex];
+                let cellText = cell.innerText.trim();
+                const isHeader = cell.tagName.toLowerCase() === "th"; // ✅ ตรวจสอบว่าเป็น Header หรือไม่
+
+                rowData[colIndex] = {
+                    v: cellText,
+                    s: {
+                        alignment: {
+                            vertical: "center",
+                            horizontal: isHeader ? "center" : "left" // ✅ Header ชิดกลาง, Body ชิดซ้าย
+                        },
+                        font: isHeader ? { bold: true } : {} // ✅ Header ตัวหนา
+                    }
+                };
+
+                const rowspan = cell.rowSpan || 1;
+                const colspan = cell.colSpan || 1;
+
+                if (rowspan > 1 || colspan > 1) {
+                    merges.push({
+                        s: { r: rowOffset, c: colIndex },
+                        e: { r: rowOffset + rowspan - 1, c: colIndex + colspan - 1 }
+                    });
+
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            if (!(r === 0 && c === 0)) {
+                                skipMap[`${rowOffset + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                }
+                colIndex++;
+            }
+            wsData.push(rowData);
+            rowOffset++;
         }
+
+        // ✅ เพิ่มแถวว่างเพื่อเว้นระยะห่างระหว่างตาราง
+        wsData.push([]);
+        rowOffset++;
+    });
+
+    // ✅ สร้าง Worksheet และนำ merges ไปใช้
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+    ws['!merges'] = merges;
+    ws['!cols'] = new Array(wsData[0].length).fill({ width: 15 });
+
+    // ✅ เพิ่ม Sheet เดียว และ Export
+    XLSX.utils.book_append_sheet(wb, ws, "รายงาน");
+    XLSX.writeFile(wb, 'รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.xlsx');
+}
+
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
