@@ -232,8 +232,7 @@ END AS Pre_Release_Amount,
     $query .= " AND ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
 
     $query .= " ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
-                CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
-                CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
+ac.sub_type ASC, 
                 bap.`Account` ASC ";
 
     $stmt = $conn->prepare($query);
@@ -415,9 +414,15 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     // เก็บข้อมูลของ Faculty
                                                     if (!isset($summary[$Faculty])) {
                                                         $summary[$Faculty] = [
-                                                            'Faculty_name' => $row['Faculty'],
-                                                            'FacultyName' => $row['Faculty_name'],
-
+                                                            'Faculty_name' => $row['Faculty'] ?? '',
+                                                            'FacultyName' => $row['Faculty_name'] ?? '',
+                                                            'Allocated_Total_Amount_Quantity' => 0,
+                                                            'Release_Amount' => 0,
+                                                            'Pre_Release_Amount' => 0,
+                                                            'Scenario1' => 0,
+                                                            'Scenario2' => 0,
+                                                            'Scenario3' => 0,
+                                                            'Scenario4' => 0,
                                                             'plans' => [], // เก็บข้อมูลของ Plan
                                                         ];
                                                     }
@@ -425,7 +430,14 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     // เก็บข้อมูลของ Plan
                                                     if (!isset($summary[$Faculty]['plans'][$plan])) {
                                                         $summary[$Faculty]['plans'][$plan] = [
-                                                            'PlanName' => $row['plan_name'],
+                                                            'PlanName' => $row['plan_name'] ?? '',
+                                                            'Allocated_Total_Amount_Quantity' => 0,
+                                                            'Release_Amount' => 0,
+                                                            'Pre_Release_Amount' => 0,
+                                                            'Scenario1' => 0,
+                                                            'Scenario2' => 0,
+                                                            'Scenario3' => 0,
+                                                            'Scenario4' => 0,
                                                             'sub_plans' => [], // เก็บข้อมูลของ Sub_Plan
                                                         ];
                                                     }
@@ -433,8 +445,15 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     // เก็บข้อมูลของ Sub_Plan
                                                     if (!isset($summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan])) {
                                                         $summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan] = [
-                                                            'Sub_Plan' => $row['Sub_Plan'],
-                                                            'SubPlanName' => $row['sub_plan_name'],
+                                                            'Sub_Plan' => $row['Sub_Plan'] ?? '',
+                                                            'SubPlanName' => $row['sub_plan_name'] ?? '',
+                                                            'Allocated_Total_Amount_Quantity' => 0,
+                                                            'Release_Amount' => 0,
+                                                            'Pre_Release_Amount' => 0,
+                                                            'Scenario1' => 0,
+                                                            'Scenario2' => 0,
+                                                            'Scenario3' => 0,
+                                                            'Scenario4' => 0,
                                                             'projects' => [], // เก็บข้อมูลของ Project
                                                         ];
                                                     }
@@ -442,6 +461,13 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     // เก็บข้อมูลของ Project
                                                     if (!isset($summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project])) {
                                                         $summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project] = [
+                                                            'Allocated_Total_Amount_Quantity' => 0,
+                                                            'Release_Amount' => 0,
+                                                            'Pre_Release_Amount' => 0,
+                                                            'Scenario1' => 0,
+                                                            'Scenario2' => 0,
+                                                            'Scenario3' => 0,
+                                                            'Scenario4' => 0,
                                                             'sub_types' => [], // เก็บข้อมูลของ Sub_Type
                                                         ];
                                                     }
@@ -449,15 +475,47 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     // เก็บข้อมูลของ Sub_Type
                                                     if (!isset($summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType])) {
                                                         $summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType] = [
-                                                            'a2' => $row['a2'],
+                                                            'a2' => $row['a2'] ?? '',
+                                                            'Allocated_Total_Amount_Quantity' => 0,
+                                                            'Release_Amount' => 0,
+                                                            'Pre_Release_Amount' => 0,
+                                                            'Scenario1' => 0,
+                                                            'Scenario2' => 0,
+                                                            'Scenario3' => 0,
+                                                            'Scenario4' => 0,
+                                                            'Reason' => $row['Reason'] ?? '',
                                                             'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
 
+                                                    // รวมข้อมูลของ Faculty
+                                                    $summary[$Faculty]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
+                                                    $summary[$Faculty]['Release_Amount'] += $row['Release_Amount'];
+                                                    $summary[$Faculty]['Scenario1'] += $row['Scenario1'];
+                                                    $summary[$Faculty]['Scenario2'] += $row['Scenario2'];
+                                                    $summary[$Faculty]['Scenario3'] += $row['Scenario3'];
+                                                    $summary[$Faculty]['Scenario4'] += $row['Scenario4'];
+
+                                                    // รวมข้อมูลของ plans
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Release_Amount'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Scenario1'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Scenario2'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Scenario3'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Scenario4'];
+
+                                                    // รวมข้อมูลของ plans
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Release_Amount'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Scenario1'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Scenario2'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Scenario3'];
+                                                    $summary[$Faculty]['plans'][$plans]['Allocated_Total_Amount_Quantity'] += $row['Scenario4'];
+
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
-                                                        : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
+                                                        ? "<strong>" . htmlspecialchars($row['Account'] ?? '') . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                        : "<strong>" . htmlspecialchars($row['Account'] ?? '') . "</strong>";
 
                                                     $summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['kku_items'][] = [
                                                         'name' => $kkuItemName,
@@ -467,14 +525,14 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                 // แสดงผลลัพธ์ในรูปแบบตาราง
                                                 foreach ($summary as $Faculty => $FacultyData) {
                                                     echo "<tr>";
-                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($FacultyData['FacultyName']) . "</strong></td></tr>";
+                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($FacultyData['FacultyName'] ?? '') . "</strong></td></tr>";
                                                     echo "</tr>";
                                                     foreach ($FacultyData['plans'] as $plan => $planData) {
                                                         echo "<tr>";
                                                         $cleanedSubPlan = preg_replace('/^SP_/', '', $plan);
 
                                                         // แสดงผลข้อมูล
-                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . htmlspecialchars($planData['PlanName']) . "</strong></td></tr>";
+                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . htmlspecialchars($planData['PlanName'] ?? '') . "</strong></td></tr>";
                                                         echo "</tr>";
                                                         foreach ($planData['sub_plans'] as $subPlan => $subPlanData) {
                                                             echo "<tr>";
@@ -482,21 +540,19 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                             $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
 
                                                             // แสดงผลข้อมูล
-                                                            echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subPlanData['SubPlanName']) . "<br></td>";
+                                                            echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subPlanData['SubPlanName'] ?? '') . "<br></td>";
 
                                                             echo "</tr>";
                                                             foreach ($subPlanData['projects'] as $project => $projectData) {
-
                                                                 echo "<tr>";
                                                                 echo "<td style='text-align: left; '>" . htmlspecialchars($project) . "</strong></td></tr>";
                                                                 echo "</tr>";
                                                                 foreach ($projectData['sub_types'] as $subType => $subTypeData) {
-                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($subTypeData['a2']) . "</strong></td></tr>";
+                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($subTypeData['a2'] ?? '') . "</strong></td></tr>";
 
                                                                     foreach ($subTypeData['kku_items'] as $kkuItem) {
                                                                         echo "<tr>";
                                                                         echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $kkuItem['name'] . "</td>";
-
                                                                         echo "</tr>";
                                                                     }
                                                                 }

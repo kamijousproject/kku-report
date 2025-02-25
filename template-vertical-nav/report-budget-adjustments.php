@@ -170,8 +170,8 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
     bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
     bap.KKU_Item_Name, ft.Alias_Default
     ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
-                CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
-                CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
+                ac.sub_type ASC, 
+                
                 bap.`Account` ASC";
 
     // เตรียมคำสั่ง SQL

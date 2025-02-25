@@ -146,8 +146,7 @@ function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
             bap.KKU_Item_Name
         ORDER BY 
             bap.Faculty ASC, 
-            CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
-            CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
+            ac.sub_type ASC, 
             bap.`Account` ASC
         LIMIT :limit OFFSET :offset";
 
