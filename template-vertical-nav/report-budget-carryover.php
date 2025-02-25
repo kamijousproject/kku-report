@@ -292,242 +292,246 @@ function fetchFacultyData($conn)
 
                                         <?php
 
-                                        function formatNumber($number)
-                                        {
-                                            return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
-                                        }
+function formatNumber($number)
+{
+    return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
+}
 
-                                        function removeLeadingNumbers($text)
-                                        {
-                                            // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
-                                            return preg_replace('/^[\d.]+\s*/', '', $text);
-                                        }
+function removeLeadingNumbers($text)
+{
+    // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
+    return preg_replace('/^[\d.]+\s*/', '', $text);
+}
 
-                                        $previousType = "";
-                                        $previousSubType = "";
-                                        $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+$previousType = "";
+$previousSubType = "";
+$selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 
-                                        $results = fetchBudgetData($conn, $selectedFaculty);
+$results = fetchBudgetData($conn, $selectedFaculty);
 
-                                        // ตรวจสอบว่า $results มีข้อมูลหรือไม่
-                                        if (isset($results) && is_array($results) && count($results) > 0) {
-                                            // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
-                                            $summary = [];
-                                            foreach ($results as $row) {
-                                                $type = $row['type'];
-                                                $sub_type = $row['sub_type'];
+// ตรวจสอบว่า $results มีข้อมูลหรือไม่
+if (isset($results) && is_array($results) && count($results) > 0) {
+    // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
+    $summary = [];
+    foreach ($results as $row) {
+        $Alias_Default = $row['Alias_Default'];
+        $type = $row['type'];
+        $sub_type = $row['sub_type'];
 
-                                                if (!isset($summary[$type])) {
-                                                    $summary[$type] = [
-                                                        'type' => $row['type'],
-                                                        'a1' => $row['a1'],
-                                                        'Total_Amount_2567_FN06' => 0,
-                                                        'Total_Amount_2567_FN08' => 0,
-                                                        'Total_Amount_2567_FN02' => 0,
-                                                        'Total_Amount_2567_SUM' => 0,
-                                                        'Total_Amount_2568_FN06' => 0,
-                                                        'Total_Amount_2568_FN08' => 0,
-                                                        'Total_Amount_2568_FN02' => 0,
-                                                        'Total_Amount_2568_SUM' => 0,
-                                                        'Difference_2568_2567' => 0,
-                                                        'Percentage_2568_to_2567' => 0,
-                                                        'sub_type' => [], // เก็บข้อมูลของ Sub_Plan
-                                                    ];
-                                                }
-                                                // เก็บข้อมูลของ Sub_Plan
-                                                if (!isset($summary[$type]['sub_type'][$sub_type])) {
-                                                    $summary[$type]['sub_type'][$sub_type] = [
-                                                        'sub_type' => $row['sub_type'],
-                                                        'a2' => $row['a2'],
-                                                        'Total_Amount_2567_FN06' => 0,
-                                                        'Total_Amount_2567_FN08' => 0,
-                                                        'Total_Amount_2567_FN02' => 0,
-                                                        'Total_Amount_2567_SUM' => 0,
-                                                        'Total_Amount_2568_FN06' => 0,
-                                                        'Total_Amount_2568_FN08' => 0,
-                                                        'Total_Amount_2568_FN02' => 0,
-                                                        'Total_Amount_2568_SUM' => 0,
-                                                        'Difference_2568_2567' => 0,
-                                                        'Percentage_2568_to_2567' => 0,
-                                                        'kku_items' => [], // เก็บข้อมูลของ Sub_Plan
-                                                    ];
-                                                }
-                                                // รวมข้อมูลของ type
-                                                $summary[$type]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$type]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$type]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$type]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$type]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$type]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+        // Initialize the Alias_Default array if it doesn't exist
+        if (!isset($summary[$Alias_Default])) {
+            $summary[$Alias_Default] = [
+                'Alias_Default' => $row['Alias_Default'],
+                'Total_Amount_2567_FN06' => 0,
+                'Total_Amount_2567_FN08' => 0,
+                'Total_Amount_2567_FN02' => 0,
+                'Total_Amount_2567_SUM' => 0,
+                'Total_Amount_2568_FN06' => 0,
+                'Total_Amount_2568_FN08' => 0,
+                'Total_Amount_2568_FN02' => 0,
+                'Total_Amount_2568_SUM' => 0,
+                'Difference_2568_2567' => 0,
+                'Percentage_2568_to_2567' => 0,
+                'type' => [], // เก็บข้อมูลของ Sub_Plan
+            ];
+        }
 
-                                                // รวมข้อมูลของ Subtype
-                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$type]['sub_type'][$sub_type]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+        // Initialize the type array if it doesn't exist
+        if (!isset($summary[$Alias_Default]['type'][$type])) {
+            $summary[$Alias_Default]['type'][$type] = [
+                'type' => $row['type'],
+                'a1' => $row['a1'],
+                'Total_Amount_2567_FN06' => 0,
+                'Total_Amount_2567_FN08' => 0,
+                'Total_Amount_2567_FN02' => 0,
+                'Total_Amount_2567_SUM' => 0,
+                'Total_Amount_2568_FN06' => 0,
+                'Total_Amount_2568_FN08' => 0,
+                'Total_Amount_2568_FN02' => 0,
+                'Total_Amount_2568_SUM' => 0,
+                'Difference_2568_2567' => 0,
+                'Percentage_2568_to_2567' => 0,
+                'sub_type' => [], // เก็บข้อมูลของ Sub_Plan
+            ];
+        }
 
+        // Initialize the sub_type array if it doesn't exist
+        if (!isset($summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type])) {
+            $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type] = [
+                'sub_type' => $row['sub_type'],
+                'a2' => $row['a2'],
+                'Total_Amount_2567_FN06' => 0,
+                'Total_Amount_2567_FN08' => 0,
+                'Total_Amount_2567_FN02' => 0,
+                'Total_Amount_2567_SUM' => 0,
+                'Total_Amount_2568_FN06' => 0,
+                'Total_Amount_2568_FN08' => 0,
+                'Total_Amount_2568_FN02' => 0,
+                'Total_Amount_2568_SUM' => 0,
+                'Difference_2568_2567' => 0,
+                'Percentage_2568_to_2567' => 0,
+                'kku_items' => [], // เก็บข้อมูลของ Sub_Plan
+            ];
+        }
 
-                                                // เก็บข้อมูลของ KKU_Item_Name
-                                                $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                    ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
-                                                    : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
-                                                $summary[$type]['sub_type'][$sub_type]['kku_items'][] = [
-                                                    'name' => $kkuItemName,
-                                                    'Total_Amount_2567_FN06' => $row['Total_Amount_2567_FN06'],
-                                                    'Total_Amount_2567_FN08' => $row['Total_Amount_2567_FN08'],
-                                                    'Total_Amount_2567_FN02' => $row['Total_Amount_2567_FN02'],
-                                                    'Total_Amount_2567_SUM' => $row['Total_Amount_2567_SUM'],
-                                                    'Total_Amount_2568_FN06' => $row['Total_Amount_2568_FN06'],
-                                                    'Total_Amount_2568_FN08' => $row['Total_Amount_2568_FN08'],
-                                                    'Total_Amount_2568_FN02' => $row['Total_Amount_2568_FN02'],
-                                                    'Total_Amount_2568_SUM' => $row['Total_Amount_2568_SUM'],
-                                                    'Difference_2568_2567' => $row['Difference_2568_2567'],
-                                                    'Percentage_2568_to_2567' => $row['Percentage_2568_to_2567'],
-                                                ];
+        // รวมข้อมูลของ Alias_Default
+        $summary[$Alias_Default]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+        $summary[$Alias_Default]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+        $summary[$Alias_Default]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+        $summary[$Alias_Default]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+        $summary[$Alias_Default]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+        $summary[$Alias_Default]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
-                                            }
-                                            // แสดงผลลัพธ์
-                                            foreach ($summary as $type => $data) {
-                                                // แสดงผลรวมของ Plan
-                                                echo "<tr>";
-                                                $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $type);
+        // รวมข้อมูลของ type
+        $summary[$Alias_Default]['type'][$type]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+        $summary[$Alias_Default]['type'][$type]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+        $summary[$Alias_Default]['type'][$type]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+        $summary[$Alias_Default]['type'][$type]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+        $summary[$Alias_Default]['type'][$type]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+        $summary[$Alias_Default]['type'][$type]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
-                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                echo "<td style='text-align: left; '>" . htmlspecialchars($data['a1']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+        // รวมข้อมูลของ Subtype
+        $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+        $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+        $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+        $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+        $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+        $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
-                                                echo "<td>" . formatNumber($data['Total_Amount_2567_FN06']) . "</td>";
-                                                echo "<td>" . formatNumber($data['Total_Amount_2567_FN08']) . "</td>";
-                                                echo "<td>" . formatNumber($data['Total_Amount_2567_FN02']) . "</td>";
-                                                $total1 = $data['Total_Amount_2567_FN06'] + $data['Total_Amount_2567_FN08'] + $data['Total_Amount_2567_FN02'];
-                                                echo "<td>" . formatNumber($total1) . "</td>";
-                                                echo "<td>" . formatNumber($data['Total_Amount_2568_FN06']) . "</td>";
-                                                echo "<td>" . formatNumber($data['Total_Amount_2568_FN08']) . "</td>";
-                                                echo "<td>" . formatNumber($data['Total_Amount_2568_FN02']) . "</td>";
-                                                $total2 = $data['Total_Amount_2568_FN06'] + $data['Total_Amount_2568_FN08'] + $data['Total_Amount_2568_FN02'];
-                                                echo "<td>" . formatNumber($total2) . "</td>";
-                                                $Difference = $total2 - $total1;
-                                                echo "<td>" . formatNumber($Difference) . "</td>";
-                                                $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
-                                                echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+        // เก็บข้อมูลของ KKU_Item_Name
+        $kkuItemName = (!empty($row['KKU_Item_Name']))
+            ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+            : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
+        $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['kku_items'][] = [
+            'name' => $kkuItemName,
+            'Total_Amount_2567_FN06' => $row['Total_Amount_2567_FN06'],
+            'Total_Amount_2567_FN08' => $row['Total_Amount_2567_FN08'],
+            'Total_Amount_2567_FN02' => $row['Total_Amount_2567_FN02'],
+            'Total_Amount_2567_SUM' => $row['Total_Amount_2567_SUM'],
+            'Total_Amount_2568_FN06' => $row['Total_Amount_2568_FN06'],
+            'Total_Amount_2568_FN08' => $row['Total_Amount_2568_FN08'],
+            'Total_Amount_2568_FN02' => $row['Total_Amount_2568_FN02'],
+            'Total_Amount_2568_SUM' => $row['Total_Amount_2568_SUM'],
+            'Difference_2568_2567' => $row['Difference_2568_2567'],
+            'Percentage_2568_to_2567' => $row['Percentage_2568_to_2567'],
+        ];
+    }
 
-                                                echo "</tr>";
-                                                foreach ($data['sub_type'] as $sub_type => $SubTypeData) {
-                                                    // แสดงผลรวมของ Plan
-                                                    echo "<tr>";
-                                                    $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $sub_type);
+    // แสดงผลลัพธ์
+    foreach ($summary as $Alias_Default => $data) {
+        // แสดงผลรวมของ Plan
+        echo "<tr>";
+        $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $Alias_Default);
 
-                                                    // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($SubTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+        // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+        echo "<td style='text-align: left;'><strong>" . htmlspecialchars($cleanedSubType) . "<br></td>";
 
-                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN06']) . "</td>";
-                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN08']) . "</td>";
-                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN02']) . "</td>";
-                                                    $total1 = $SubTypeData['Total_Amount_2567_FN06'] + $SubTypeData['Total_Amount_2567_FN08'] + $SubTypeData['Total_Amount_2567_FN02'];
-                                                    echo "<td>" . formatNumber($total1) . "</td>";
-                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN06']) . "</td>";
-                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN08']) . "</td>";
-                                                    echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN02']) . "</td>";
-                                                    $total2 = $SubTypeData['Total_Amount_2568_FN06'] + $SubTypeData['Total_Amount_2568_FN08'] + $SubTypeData['Total_Amount_2568_FN02'];
-                                                    echo "<td>" . formatNumber($total2) . "</td>";
-                                                    $Difference = $total2 - $total1;
-                                                    echo "<td>" . formatNumber($Difference) . "</td>";
-                                                    $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
-                                                    echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+        // Check if the keys exist before accessing them
+        echo "<td>" . (isset($data['Total_Amount_2567_FN06']) ? formatNumber($data['Total_Amount_2567_FN06']) : '0') . "</td>";
+        echo "<td>" . (isset($data['Total_Amount_2567_FN08']) ? formatNumber($data['Total_Amount_2567_FN08']) : '0') . "</td>";
+        echo "<td>" . (isset($data['Total_Amount_2567_FN02']) ? formatNumber($data['Total_Amount_2567_FN02']) : '0') . "</td>";
 
-                                                    echo "</tr>";
+        $total1 = (isset($data['Total_Amount_2567_FN06']) ? $data['Total_Amount_2567_FN06'] : 0) +
+                 (isset($data['Total_Amount_2567_FN08']) ? $data['Total_Amount_2567_FN08'] : 0) +
+                 (isset($data['Total_Amount_2567_FN02']) ? $data['Total_Amount_2567_FN02'] : 0);
+        echo "<td>" . formatNumber($total1) . "</td>";
 
-                                                    // แสดงข้อมูล KKU_Item_Name
-                                                    foreach ($SubTypeData['kku_items'] as $kkuItem) {
-                                                        echo "<tr>";
+        echo "<td>" . (isset($data['Total_Amount_2568_FN06']) ? formatNumber($data['Total_Amount_2568_FN06']) : '0') . "</td>";
+        echo "<td>" . (isset($data['Total_Amount_2568_FN08']) ? formatNumber($data['Total_Amount_2568_FN08']) : '0') . "</td>";
+        echo "<td>" . (isset($data['Total_Amount_2568_FN02']) ? formatNumber($data['Total_Amount_2568_FN02']) : '0') . "</td>";
 
-                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "<br></td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_SUM']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN06']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN08']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN02']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_SUM']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
-                                                        echo "<td>" . formatNumber($kkuItem['Percentage_2568_to_2567']) . "</td>";
+        $total2 = (isset($data['Total_Amount_2568_FN06']) ? $data['Total_Amount_2568_FN06'] : 0) +
+                  (isset($data['Total_Amount_2568_FN08']) ? $data['Total_Amount_2568_FN08'] : 0) +
+                  (isset($data['Total_Amount_2568_FN02']) ? $data['Total_Amount_2568_FN02'] : 0);
+        echo "<td>" . formatNumber($total2) . "</td>";
 
-                                                        echo "</tr>";
-                                                    }
-                                                }
-                                            }
+        $Difference = $total2 - $total1;
+        echo "<td>" . formatNumber($Difference) . "</td>";
 
-                                        } else {
-                                            echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
-                                        }
+        $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+        echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                        /*
-                                        // ตัวแปรเก็บค่าของแถวก่อนหน้า
-                                        $previousType = "";
-                                        $previousSubType = "";
-                                        $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+        echo "</tr>";
 
-                                        $results = fetchBudgetData($conn, $selectedFaculty);
+        // แสดงข้อมูลของ type
+        if (isset($data['type']) && is_array($data['type'])) {
+            foreach ($data['type'] as $type => $datatype) {
+                echo "<tr>";
+                $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $type);
 
-                                        // ตรวจสอบว่า $results มีข้อมูลหรือไม่
-                                        if (isset($results) && is_array($results) && count($results) > 0) {
-                                            foreach ($results as $row) {
-                                                echo "<tr>";
-                                                echo "<td style='text-align: left;'>";
+                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+                echo "<td style='text-align: left; '>" . htmlspecialchars($datatype['a1']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
 
-                                                // เช็คและแสดง Type ถ้าเปลี่ยนแปลง
-                                                if ($row['a1'] != $previousType) {
-                                                    // ลบตัวเลขและจุดจาก type
-                                                    $cleanedType = preg_replace('/[0-9.]/', '', $row['type']);
-                                                    echo "<strong>" . htmlspecialchars($row['a1']) . "</strong> : " . htmlspecialchars($cleanedType) . "<br>";
-                                                    $previousType = $row['a1'];
-                                                    $previousSubType = "";
-                                                }
+                echo "<td>" . formatNumber($datatype['Total_Amount_2567_FN06']) . "</td>";
+                echo "<td>" . formatNumber($datatype['Total_Amount_2567_FN08']) . "</td>";
+                echo "<td>" . formatNumber($datatype['Total_Amount_2567_FN02']) . "</td>";
+                $total1 = $datatype['Total_Amount_2567_FN06'] + $datatype['Total_Amount_2567_FN08'] + $datatype['Total_Amount_2567_FN02'];
+                echo "<td>" . formatNumber($total1) . "</td>";
+                echo "<td>" . formatNumber($datatype['Total_Amount_2568_FN06']) . "</td>";
+                echo "<td>" . formatNumber($datatype['Total_Amount_2568_FN08']) . "</td>";
+                echo "<td>" . formatNumber($datatype['Total_Amount_2568_FN02']) . "</td>";
+                $total2 = $datatype['Total_Amount_2568_FN06'] + $datatype['Total_Amount_2568_FN08'] + $datatype['Total_Amount_2568_FN02'];
+                echo "<td>" . formatNumber($total2) . "</td>";
+                $Difference = $total2 - $total1;
+                echo "<td>" . formatNumber($Difference) . "</td>";
+                $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                                // เช็คและแสดง Sub Type ถ้าเปลี่ยนแปลง
-                                                if ($row['a2'] != $previousSubType) {
-                                                    // ลบตัวเลขและจุดจาก sub_type
-                                                    $cleanedSubType = preg_replace('/[0-9.]/', '', $row['sub_type']);
-                                                    echo str_repeat("&nbsp;", 16) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($cleanedSubType) . "<br>";
-                                                    $previousSubType = $row['a2'];
-                                                }
+                echo "</tr>";
 
+                // แสดงข้อมูลของ sub_type
+                if (isset($datatype['sub_type']) && is_array($datatype['sub_type'])) {
+                    foreach ($datatype['sub_type'] as $sub_type => $SubTypeData) {
+                        echo "<tr>";
+                        $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $sub_type);
 
-                                                // เช็คและกำหนดค่า kkuItemName
-                                                $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                    ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
-                                                    : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
+                        // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($SubTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
 
-                                                // แสดงผล
-                                                echo str_repeat("&nbsp;", 32) . $kkuItemName;
-                                                echo "</td>";
+                        echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN06']) . "</td>";
+                        echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN08']) . "</td>";
+                        echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN02']) . "</td>";
+                        $total1 = $SubTypeData['Total_Amount_2567_FN06'] + $SubTypeData['Total_Amount_2567_FN08'] + $SubTypeData['Total_Amount_2567_FN02'];
+                        echo "<td>" . formatNumber($total1) . "</td>";
+                        echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN06']) . "</td>";
+                        echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN08']) . "</td>";
+                        echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN02']) . "</td>";
+                        $total2 = $SubTypeData['Total_Amount_2568_FN06'] + $SubTypeData['Total_Amount_2568_FN08'] + $SubTypeData['Total_Amount_2568_FN02'];
+                        echo "<td>" . formatNumber($total2) . "</td>";
+                        $Difference = $total2 - $total1;
+                        echo "<td>" . formatNumber($Difference) . "</td>";
+                        $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                        echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                                // แสดงยอดเงิน
-                                                echo "<td>" . number_format($row['Total_Amount_2567_FN06'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Total_Amount_2567_FN08'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Total_Amount_2567_FN02'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Total_Amount_2567_SUM'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Total_Amount_2568_FN06'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Total_Amount_2568_FN08'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Total_Amount_2568_FN02'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Total_Amount_2568_SUM'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Difference_2568_2567'], 2) . "</td>";
-                                                echo "<td>" . number_format($row['Percentage_2568_to_2567'], 2) . "</td>";
+                        echo "</tr>";
 
-
-                                                echo "</tr>";
-
-                                                // อัปเดตตัวแปรก่อนหน้า
-                                                $previousType = $row['a1'];
-                                                $previousSubType = $row['a2'];
-                                            }
-                                        } else {
-                                            echo "<tr><td colspan='8'>ไม่มีข้อมูลที่ค้นหามา</td></tr>";
-                                        }
-*/
-                                        ?>
+                        // แสดงข้อมูล KKU_Item_Name
+                        if (isset($SubTypeData['kku_items']) && is_array($SubTypeData['kku_items'])) {
+                            foreach ($SubTypeData['kku_items'] as $kkuItem) {
+                                echo "<tr>";
+                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "<br></td>";
+                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_SUM']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN06']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN08']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN02']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_SUM']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
+                                echo "<td>" . formatNumber($kkuItem['Percentage_2568_to_2567']) . "</td>";
+                                echo "</tr>";
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+} else {
+    echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+}
+?>
                                     </table>
                                     <script>
                                         // การส่งค่าของ selectedFaculty ไปยัง JavaScript
