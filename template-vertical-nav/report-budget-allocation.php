@@ -425,7 +425,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     // เก็บข้อมูลของ Plan
                                                     if (!isset($summary[$Faculty]['plans'][$plan])) {
                                                         $summary[$Faculty]['plans'][$plan] = [
-                                                            'Plan' => $row['Plan'],
+                                                            'PlanName' => $row['plan_name'],
                                                             'sub_plans' => [], // เก็บข้อมูลของ Sub_Plan
                                                         ];
                                                     }
@@ -466,28 +466,36 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
 
                                                 // แสดงผลลัพธ์ในรูปแบบตาราง
                                                 foreach ($summary as $Faculty => $FacultyData) {
+                                                    echo "<tr>";
                                                     echo "<td style='text-align: left;'><strong>" . htmlspecialchars($FacultyData['FacultyName']) . "</strong></td></tr>";
-
+                                                    echo "</tr>";
                                                     foreach ($FacultyData['plans'] as $plan => $planData) {
-                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($planData['Plan']) . "</strong></td></tr>";
+                                                        echo "<tr>";
+                                                        $cleanedSubPlan = preg_replace('/^SP_/', '', $plan);
 
+                                                        // แสดงผลข้อมูล
+                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . htmlspecialchars($planData['PlanName']) . "</strong></td></tr>";
+                                                        echo "</tr>";
                                                         foreach ($planData['sub_plans'] as $subPlan => $subPlanData) {
+                                                            echo "<tr>";
                                                             // ลบ 'SP_' ที่อยู่หน้าสุดของข้อความ
                                                             $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
 
                                                             // แสดงผลข้อมูล
                                                             echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subPlanData['SubPlanName']) . "<br></td>";
 
-
+                                                            echo "</tr>";
                                                             foreach ($subPlanData['projects'] as $project => $projectData) {
-                                                                echo "<td style='text-align: left; '>" . htmlspecialchars($project) . "</strong></td></tr>";
 
+                                                                echo "<tr>";
+                                                                echo "<td style='text-align: left; '>" . htmlspecialchars($project) . "</strong></td></tr>";
+                                                                echo "</tr>";
                                                                 foreach ($projectData['sub_types'] as $subType => $subTypeData) {
-                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subTypeData['a2']) . "</strong></td></tr>";
+                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($subTypeData['a2']) . "</strong></td></tr>";
 
                                                                     foreach ($subTypeData['kku_items'] as $kkuItem) {
                                                                         echo "<tr>";
-                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "</td>";
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $kkuItem['name'] . "</td>";
 
                                                                         echo "</tr>";
                                                                     }
