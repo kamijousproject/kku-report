@@ -101,8 +101,7 @@
                                                 pj.project_name,
                                                 acc.type,
                                                 acc.sub_type,
-                                                abp.KKU_Item_Name
-                                            LIMIT 20";
+                                                abp.KKU_Item_Name";
 
                                     try {
                                         $stmt = $conn->prepare($query);
@@ -431,26 +430,18 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
         function exportCSV() {
-            const rows = [];
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
-            }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
+            const wb = XLSX.utils.table_to_book(table, {
+                sheet: "รายงาน",
+                raw: true
             });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.writeFile(wb, 'รายงานแสดงการเปรียบเทียบการประมาณการรายจ่ายกับจ่ายจริง.csv', {
+                bookType: 'csv',
+                type: 'array'
+            });
         }
 
         function exportPDF() {
@@ -491,33 +482,15 @@
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            doc.save('รายงานแสดงการเปรียบเทียบการประมาณการรายจ่ายกับจ่ายจริง.pdf');
         }
 
         function exportXLS() {
-            const rows = [];
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
-            }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
+            const wb = XLSX.utils.table_to_book(table, {
+                sheet: "รายงาน"
             });
-            xlsContent += "</table>";
-
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.writeFile(wb, 'รายงานแสดงการเปรียบเทียบการประมาณการรายจ่ายกับจ่ายจริง.xlsx');
         }
     </script>
     <!-- Common JS -->
