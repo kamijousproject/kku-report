@@ -58,12 +58,12 @@
                                 $selected_fund = isset($_GET['fund']) ? $_GET['fund'] : '';
 
                                 // WHERE Clause แบบ Dynamic
-                                $where_clause = "WHERE 1=1";
+                                $where_clause = "WHERE 1=1 AND acc.type LIKE '%ค่าใช้จ่าย%'";
                                 if ($selected_faculty !== '') {
-                                    $where_clause .= " AND Faculty.Faculty = :faculty";
+                                    $where_clause .= " AND bpanbp.Faculty = :faculty AND acc.type LIKE '%ค่าใช้จ่าย%'";
                                 }
                                 if ($selected_fund !== '') {
-                                    $where_clause .= " AND abp.Fund = :fund";
+                                    $where_clause .= " AND bpanbp.Fund = :fund AND acc.type LIKE '%ค่าใช้จ่าย%'";
                                 }
 
                                 // ฟังก์ชันดึงข้อมูล
@@ -149,8 +149,7 @@
                                                 LEFT JOIN plan p ON bpanbp.Plan = p.plan_id
                                                 LEFT JOIN sub_plan sp ON bpanbp.Sub_Plan = sp.sub_plan_id
                                                 LEFT JOIN project pr ON bpanbp.Project = pr.project_id
-                                            WHERE
-                                                acc.type LIKE '%ค่าใช้จ่าย%'";
+                                                $where_clause";
 
                                     try {
                                         $stmt = $conn->prepare($query);
