@@ -449,8 +449,8 @@
                     let buddhistYear = convertFYtoBuddhistYear(fyear);
                     let fac = $('#dropdown2').val();
                     let fund = $('#dropdown3').val();
-                    let plan = $('#dropdown4').val();
-                    let subplan = $('#dropdown5').val();
+                    let plan = $('#dropdown4 option:selected').text();
+                    let subplan = $('#dropdown5 option:selected').text();
                     let project = $('#dropdown6').val();
                     let scenario = $('#dropdown7').val();
                     let etype = $('#dropdown8').val();

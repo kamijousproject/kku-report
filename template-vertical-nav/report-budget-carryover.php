@@ -85,7 +85,7 @@ include '../server/connectdb.php';
 $db = new Database();
 $conn = $db->connect();
 
-function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
+function fetchBudgetData($conn, $faculty = null)
 {
     try {
         $query = "SELECT 
@@ -131,8 +131,9 @@ function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
             AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
             AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)";
 
+        // เพิ่มเงื่อนไข WHERE เฉพาะเมื่อมีการเลือก Faculty
         if ($faculty) {
-            $query .= " AND bap.Faculty = :faculty";
+            $query .= " WHERE bap.Faculty = :faculty";
         }
 
         $query .= " GROUP BY 
@@ -157,9 +158,6 @@ function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
             $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
         }
 
-        // Binding limit and offset
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -257,11 +255,7 @@ function fetchFacultyData($conn)
 
                                 <script>
                                     function validateForm() {
-                                        var faculty = document.getElementById('faculty').value;
-                                        if (faculty == '') {
-                                            alert('กรุณาเลือกส่วนงาน/หน่วยงาน');
-                                            return false;
-                                        }
+                                        // ไม่ต้องตรวจสอบการเลือก Faculty
                                         return true;
                                     }
                                 </script>
@@ -306,12 +300,7 @@ function fetchFacultyData($conn)
                                         $previousType = "";
                                         $previousSubType = "";
                                         $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-
-                                        // ดึงข้อมูล faculty จากฐานข้อมูล
-                                        $faculties = fetchFacultyData($conn);
-
-                                        // ตรวจสอบว่ามีการเลือก faculty หรือไม่
-                                        $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                        $results = fetchBudgetData($conn, $selectedFaculty);
 
                                         // ดึงข้อมูล budget โดยส่งค่า faculty ที่เลือก (หรือ null ถ้าไม่เลือก)
                                         $results = fetchBudgetData($conn, $selectedFaculty);
