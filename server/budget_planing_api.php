@@ -767,7 +767,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 LEFT JOIN sub_plan sp
                 ON t.subplan=replace(sp.sub_plan_id,'SP_','')
                 LEFT JOIN project pro
-                ON t.project=pro.project_id)
+                ON t.project=pro.project_id
+					 ORDER BY t.smain)
                 SELECT* FROM t8";
 
                 $cmd = $conn->prepare($sql);
