@@ -146,7 +146,8 @@ function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
             bap.KKU_Item_Name
         ORDER BY 
             bap.Faculty ASC, 
-            ac.sub_type ASC, 
+            CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
+            CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
             bap.`Account` ASC
         LIMIT :limit OFFSET :offset";
 
@@ -306,9 +307,16 @@ function fetchFacultyData($conn)
                                         $previousSubType = "";
                                         $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 
+                                        // ดึงข้อมูล faculty จากฐานข้อมูล
+                                        $faculties = fetchFacultyData($conn);
+
+                                        // ตรวจสอบว่ามีการเลือก faculty หรือไม่
+                                        $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+
+                                        // ดึงข้อมูล budget โดยส่งค่า faculty ที่เลือก (หรือ null ถ้าไม่เลือก)
                                         $results = fetchBudgetData($conn, $selectedFaculty);
 
-                                        // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                        // แสดงข้อมูลในตาราง
                                         if (isset($results) && is_array($results) && count($results) > 0) {
                                             // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
                                             $summary = [];

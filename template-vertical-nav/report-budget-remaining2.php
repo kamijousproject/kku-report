@@ -211,13 +211,7 @@
                                 <br/>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                                <th colspan="22" style="text-align: center;">
-                                                    รายงานสรุปยอดงบประมาณคงเหลือ</th>
-                                            </tr>
-                                        
-                                        </thead>
+
                                         <thead>
                                             <tr>
                                                 <th rowspan="2">ค่าใช้จ่าย</th>
@@ -358,7 +352,7 @@
                 plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
                 //console.log(plan);
                 plan.forEach((row) =>{
-                    $('#dropdown4').append('<option value="'+row.plan_name+'">'+row.plan+":"+row.plan_name+'</option>').prop('disabled', false);
+                    $('#dropdown4').append('<option value="'+row.plan_name+'">'+row.plan+" : "+row.plan_name+'</option>').prop('disabled', false);
                 });   
             });
             $('#dropdown4').change(function() {
@@ -380,7 +374,7 @@
                 splan = Array.from(splanMap, ([subplan, sub_plan_name]) => ({ subplan, sub_plan_name }));
  
                 splan.forEach((row) =>{
-                    $('#dropdown5').append('<option value="'+row.sub_plan_name+'">'+row.subplan+":"+row.sub_plan_name+'</option>').prop('disabled', false);
+                    $('#dropdown5').append('<option value="'+row.sub_plan_name+'">'+row.subplan+" : "+row.sub_plan_name+'</option>').prop('disabled', false);
                 });   
             });
             $('#dropdown5').change(function() {
@@ -434,13 +428,105 @@
                 });   
             });
 
-            $('#dropdown8').change(function() {
+
+            $('#dropdown8').change(function () {
                 if ($(this).val()) {
                     $('#submitBtn').prop('disabled', false);
+
+                 
+                    let fyear = $('#dropdown1').val();
+                    function convertFYtoBuddhistYear(fyear) {
+                        if (fyear.startsWith('FY')) {
+                           
+                            const fiscalYear = parseInt(fyear.slice(2), 10);
+                           
+                            return fiscalYear + 2543;
+                        }
+                        return fyear;  
+                    }
+
+                    
+                    let buddhistYear = convertFYtoBuddhistYear(fyear);
+                    let fac = $('#dropdown2').val();
+                    let fund = $('#dropdown3').val();
+                    let plan = $('#dropdown4').val();
+                    let subplan = $('#dropdown5').val();
+                    let project = $('#dropdown6').val();
+                    let scenario = $('#dropdown7').val();
+                    let etype = $('#dropdown8').val();
+
+                    
+                    $('#reportTable thead').empty();
+
+                   
+                    $('#reportTable thead').append(`
+               <tr>
+                <th style="text-align: left;" colspan="19">รายงานสรุปยอดงบประมาณคงเหลือ
+</th>
+            </tr>
+            <tr>
+                <th style="text-align: left;" colspan="19">ปีงบประมาณ : ${fyear}</th>
+            </tr>
+            
+             <tr>
+                <th style="text-align: left;" colspan="19">ปีบริหารงบประมาณ  : ${buddhistYear}</th>
+            </tr>
+
+             <tr>
+                <th style="text-align: left;" colspan="19">ประเภทงบประมาณ : ${scenario}</th>
+            </tr>
+            <tr>
+                <th style="text-align: left;" colspan="19">แหล่งเงิน : ${fund}</th>
+            </tr>
+                        <tr>
+                <th style="text-align: left;" colspan="19">ส่วนงาน/หน่วยงาน : ${fac}</th>
+            </tr>
+            <tr>
+                <th style="text-align: left;" colspan="19">แผนงาน(ผลผลิต) [Plan] : ${plan}</th>
+            </tr>
+            <tr>
+                <th style="text-align: left;" colspan="19">แผนงานย่อย(ผลผลิตย่อย/กิจกรรม) [Sub plan] : ${subplan}</th>
+            </tr>
+            <tr>
+                <th style="text-align: left;" colspan="19">โครงการ [Project] : ${project}</th>
+            </tr>
+           
+
+                                                        <tr>
+                                                <th rowspan="2">ค่าใช้จ่าย</th>
+                                                <th colspan="4">ยอดรวมงบประมาณ</th>
+                                                <th colspan="8">เงินประจำงวด</th>
+                                                <th colspan="2">ผูกพัน</th>
+                                                <th colspan="2">ผูกพันงบประมาณตามข้อตกลง/สัญญา</th>
+                                                <th rowspan="2">จำนวนงบประมาณเบิกจ่าย</th>
+                                                <th rowspan="2">เบิกงบประมาณเกินส่งคืน</th>
+                                            </tr>
+                                            <tr>
+                                                <th>จำนวนงบประมาณ</th>
+                                                <th>จำนวนงบประมาณโอนเข้า</th>
+                                                <th>จำนวนงบประมาณโอนออก</th>
+                                                <th>คงเหลือไม่อนุมัติงวดเงิน</th>
+                                                <th>ผูกพันงบประมาณ</th>
+                                                <th>ร้อยละ</th>
+                                                <th>คงเหลือหลังผูกพันงบประมาณ</th>
+                                                <th>ร้อยละ</th>
+                                                <th>เบิกจ่ายงบประมาณ</th>
+                                                <th>ร้อยละ</th>
+                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
+                                                <th>ร้อยละ</th>
+                                                <th>จำนวนงบประมาณ</th>
+                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
+                                                <th>จำนวนงบประมาณ</th>
+                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
+                                            </tr>
+        `);
                 } else {
                     $('#submitBtn').prop('disabled', true);
                 }
             });
+
+
+
 
 
             $('#submitBtn').click(function() {
