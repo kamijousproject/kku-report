@@ -169,9 +169,13 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
     $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
     bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
     bap.KKU_Item_Name, ft.Alias_Default
-    ORDER BY CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED) ASC, pj.project_name ASC";
+    ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
+                CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) ASC, 
+                CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) ASC, 
+                bap.`Account` ASC";
 
     // เตรียมคำสั่ง SQL
+    
     $stmt = $conn->prepare($query);
 
     // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
@@ -522,7 +526,7 @@ function fetchYearsData($conn)
                                                         // แสดงผลรวมของแต่ละ Project
                                                         foreach ($subData['projects'] as $project => $projectData) {
                                                             echo "<tr>";
-                                                            echo "<td style='text-align: left; '>" . htmlspecialchars($project) . "<br></td>";
+                                                            echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($project) . "<br></td>";
                                                             echo "<td>" . formatNumber($projectData['Total_Amount_2566']) . "</td>";
                                                             echo "<td>" . formatNumber($projectData['Total_Amount_2567']) . "</td>";
                                                             echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_2567']) . "</td>";
@@ -544,7 +548,7 @@ function fetchYearsData($conn)
                                                                 $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $subType);
 
                                                                 // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($subTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
                                                                 echo "<td>" . formatNumber($subTypeData['Total_Amount_2566']) . "</td>";
                                                                 echo "<td>" . formatNumber($subTypeData['Total_Amount_2567']) . "</td>";
                                                                 echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_2567']) . "</td>";
@@ -563,7 +567,7 @@ function fetchYearsData($conn)
                                                                 foreach ($subTypeData['kku_items'] as $kkuItem) {
                                                                     echo "<tr>";
 
-                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "<br></td>";
+                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $kkuItem['name'] . "<br></td>";
                                                                     echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
                                                                     echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
                                                                     echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2567']) . "</td>";

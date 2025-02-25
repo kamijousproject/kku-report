@@ -121,9 +121,9 @@ function fetchScenarioData($conn, $scenarioColumnValue, $selectedScenario)
         bap.Service,
         bap.Plan,
         p.plan_name,
-        bap.Faculty,
+        bap.Faculty AS Faculty_Id,
         ft.Faculty,
-        ft.Alias_Default AS FacultyName,
+        ft.Alias_Default AS Faculty_name,
         bap.Project,
         pj.project_id,
         pj.project_name,
@@ -378,7 +378,18 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                             </tr>
                                         </thead>
                                         <tbody>
+
                                             <?php
+                                            function formatNumber($number)
+                                            {
+                                                return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
+                                            }
+
+                                            function removeLeadingNumbers($text)
+                                            {
+                                                // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
+                                                return preg_replace('/^[\d.]+\s*/', '', $text);
+                                            }
 
                                             // ตัวแปรเก็บค่าของแถวก่อนหน้า
                                             $previousPlan = "";
@@ -387,7 +398,109 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                             $previousType = "";
                                             $previousSubType = "";
 
-                                            if (!empty($results)) {
+                                            // Fetch data from the database
+                                            $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selectedScenario: $selectedScenario);
+
+                                            // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                            if (isset($results) && is_array($results) && count($results) > 0) {
+                                                $summary = [];
+                                                foreach ($results as $row) {
+                                                    $Faculty = $row["Faculty_Id"];
+                                                    $plan = $row['Plan'];
+                                                    $subPlan = $row['Sub_Plan'];
+                                                    $project = $row['project_name'];
+                                                    $Type = $row['type'];
+                                                    $subType = $row['sub_type'];
+
+                                                    // เก็บข้อมูลของ Faculty
+                                                    if (!isset($summary[$Faculty])) {
+                                                        $summary[$Faculty] = [
+                                                            'Faculty_name' => $row['Faculty'],
+                                                            'FacultyName' => $row['Faculty_name'],
+
+                                                            'plans' => [], // เก็บข้อมูลของ Plan
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ Plan
+                                                    if (!isset($summary[$Faculty]['plans'][$plan])) {
+                                                        $summary[$Faculty]['plans'][$plan] = [
+                                                            'Plan' => $row['Plan'],
+                                                            'sub_plans' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ Sub_Plan
+                                                    if (!isset($summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan])) {
+                                                        $summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan] = [
+                                                            'Sub_Plan' => $row['Sub_Plan'],
+                                                            'SubPlanName' => $row['sub_plan_name'],
+                                                            'projects' => [], // เก็บข้อมูลของ Project
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ Project
+                                                    if (!isset($summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project])) {
+                                                        $summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project] = [
+                                                            'sub_types' => [], // เก็บข้อมูลของ Sub_Type
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ Sub_Type
+                                                    if (!isset($summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType])) {
+                                                        $summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType] = [
+                                                            'a2' => $row['a2'],
+                                                            'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ KKU_Item_Name
+                                                    $kkuItemName = (!empty($row['KKU_Item_Name']))
+                                                        ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                        : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
+
+                                                    $summary[$Faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['kku_items'][] = [
+                                                        'name' => $kkuItemName,
+                                                    ];
+                                                }
+
+                                                // แสดงผลลัพธ์ในรูปแบบตาราง
+                                                foreach ($summary as $Faculty => $FacultyData) {
+                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($FacultyData['FacultyName']) . "</strong></td></tr>";
+
+                                                    foreach ($FacultyData['plans'] as $plan => $planData) {
+                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($planData['Plan']) . "</strong></td></tr>";
+
+                                                        foreach ($planData['sub_plans'] as $subPlan => $subPlanData) {
+                                                            // ลบ 'SP_' ที่อยู่หน้าสุดของข้อความ
+                                                            $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
+
+                                                            // แสดงผลข้อมูล
+                                                            echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subPlanData['SubPlanName']) . "<br></td>";
+
+
+                                                            foreach ($subPlanData['projects'] as $project => $projectData) {
+                                                                echo "<td style='text-align: left; '>" . htmlspecialchars($project) . "</strong></td></tr>";
+
+                                                                foreach ($projectData['sub_types'] as $subType => $subTypeData) {
+                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subTypeData['a2']) . "</strong></td></tr>";
+
+                                                                    foreach ($subTypeData['kku_items'] as $kkuItem) {
+                                                                        echo "<tr>";
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "</td>";
+
+                                                                        echo "</tr>";
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                echo "<tr><td colspan='11' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                            }
+
+                                            /*if (!empty($results)) {
                                                 foreach ($results as $row) {
                                                     echo "<tr>";
                                                     echo "<td style='text-align: left;'>";
@@ -501,7 +614,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                 }
                                             } else {
                                                 echo "<tr><td colspan='8'>ไม่พบข้อมูล</td></tr>";
-                                            }
+                                            }*/
                                             ?>
 
                                         </tbody>
@@ -529,277 +642,277 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
     </div>
     <script>
 
-function exportCSV() {
-        const table = document.getElementById('reportTable');
-        const csvRows = [];
+        function exportCSV() {
+            const table = document.getElementById('reportTable');
+            const csvRows = [];
 
-        // วนลูปทีละ <tr>
-        for (const row of table.rows) {
-            // เก็บบรรทัดย่อยของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            // วนลูปทีละเซลล์ <td>/<th>
-            for (const cell of row.cells) {
-                let html = cell.innerHTML;
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
 
-                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                html = html.replace(/(&nbsp;)+/g, (match) => {
-                    const count = match.match(/&nbsp;/g).length;
-                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                });
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
 
-                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                html = html.replace(/<br\s*\/?>/gi, '\n');
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                // html = html.replace(/<\/?[^>]+>/g, '');
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
 
-                // 4) แยกเป็น array บรรทัดย่อย
-                const lines = html.split('\n').map(x => x.trimEnd());
-                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
-                if (lines.length > maxSubLine) {
-                    maxSubLine = lines.length;
-                }
-
-                cellLines.push(lines);
-            }
-
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-                const rowData = [];
-
-                // วนลูปแต่ละเซลล์
-                for (const lines of cellLines) {
-                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                    // Escape double quotes
-                    text = text.replace(/"/g, '""');
-                    // ครอบด้วย ""
-                    text = `"${text}"`;
-                    rowData.push(text);
-                }
-
-                csvRows.push(rowData.join(','));
-            }
-        }
-
-        // รวมเป็น CSV + BOM
-        const csvContent = "\uFEFF" + csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'report.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
-
-    function exportPDF() {
-        const {
-            jsPDF
-        } = window.jspdf;
-        const doc = new jsPDF('landscape');
-
-        // เพิ่มฟอนต์ภาษาไทย
-        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-        doc.setFont("THSarabun");
-
-        // ตั้งค่าฟอนต์และข้อความ
-        doc.setFontSize(12);
-        doc.text("รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ", 10, 500);
-
-        // ใช้ autoTable สำหรับสร้างตาราง
-        doc.autoTable({
-            html: '#reportTable',
-            startY: 20,
-            styles: {
-                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                fontSize: 10,
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            bodyStyles: {
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            headStyles: {
-                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-        });
-
-        // บันทึกไฟล์ PDF
-        doc.save('รายงาน.pdf');
-    }
-
-    function exportXLS() {
-    const table = document.getElementById('reportTable');
-
-    // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
-    const { theadRows, theadMerges } = parseThead(table.tHead);
-
-    // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
-    const tbodyRows = parseTbody(table.tBodies[0]);
-
-    // รวม rows ทั้งหมด: thead + tbody
-    const allRows = [...theadRows, ...tbodyRows];
-
-    // สร้าง Workbook + Worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(allRows);
-
-    // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
-    ws['!merges'] = theadMerges;
-
-    // ตั้งค่า vertical-align: bottom ให้ทุกเซลล์
-    applyCellStyles(ws, "bottom");
-
-    // เพิ่ม worksheet ลงใน workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-    // เขียนไฟล์เป็น .xlsx (แทน .xls เพื่อรองรับ style)
-    const excelBuffer = XLSX.write(wb, {
-        bookType: 'xlsx',
-        type: 'array'
-    });
-
-    // สร้าง Blob + ดาวน์โหลด
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
-
-/**
- * -----------------------
- * 1) parseThead: รองรับ merge
- * -----------------------
- */
-function parseThead(thead) {
-    const theadRows = [];
-    const theadMerges = [];
-
-    if (!thead) {
-        return { theadRows, theadMerges };
-    }
-
-    const skipMap = {};
-
-    for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
-        const tr = thead.rows[rowIndex];
-        const rowData = [];
-        let colIndex = 0;
-
-        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData[colIndex] = "";
-                colIndex++;
-            }
-
-            const cell = tr.cells[cellIndex];
-            let text = cell.innerHTML
-                .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
-                .replace(/<br\s*\/?>/gi, ' ')
-                .replace(/<\/?[^>]+>/g, '')
-                .trim();
-
-            rowData[colIndex] = text;
-
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
-
-            if (rowspan > 1 || colspan > 1) {
-                theadMerges.push({
-                    s: { r: rowIndex, c: colIndex },
-                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                });
-
-                for (let r = 0; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        if (r === 0 && c === 0) continue;
-                        skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
                     }
+
+                    cellLines.push(lines);
+                }
+
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
+
+                    csvRows.push(rowData.join(','));
                 }
             }
-            colIndex++;
+
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
-        theadRows.push(rowData);
-    }
 
-    return { theadRows, theadMerges };
-}
+        function exportPDF() {
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF('landscape');
 
-/**
- * -----------------------
- * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
- * -----------------------
- */
-function parseTbody(tbody) {
-    const rows = [];
+            // เพิ่มฟอนต์ภาษาไทย
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
 
-    if (!tbody) return rows;
+            // ตั้งค่าฟอนต์และข้อความ
+            doc.setFontSize(12);
+            doc.text("รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ", 10, 500);
 
-    for (const tr of tbody.rows) {
-        const cellLines = [];
-        let maxSubLine = 1;
-
-        for (const cell of tr.cells) {
-            let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
-                const count = match.match(/&nbsp;/g).length;
-                return ' '.repeat(count);
+            // ใช้ autoTable สำหรับสร้างตาราง
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 20,
+                styles: {
+                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
+                    fontSize: 10,
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                },
+                bodyStyles: {
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                },
+                headStyles: {
+                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
+                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                },
             });
-            html = html.replace(/<br\s*\/?>/gi, '\n');
-            html = html.replace(/<\/?[^>]+>/g, '');
 
-            const lines = html.split('\n').map(x => x.trimEnd());
-            if (lines.length > maxSubLine) {
-                maxSubLine = lines.length;
+            // บันทึกไฟล์ PDF
+            doc.save('รายงาน.pdf');
+        }
+
+        function exportXLS() {
+            const table = document.getElementById('reportTable');
+
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+            const { theadRows, theadMerges } = parseThead(table.tHead);
+
+            // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
+            const tbodyRows = parseTbody(table.tBodies[0]);
+
+            // รวม rows ทั้งหมด: thead + tbody
+            const allRows = [...theadRows, ...tbodyRows];
+
+            // สร้าง Workbook + Worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+            // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+            ws['!merges'] = theadMerges;
+
+            // ตั้งค่า vertical-align: bottom ให้ทุกเซลล์
+            applyCellStyles(ws, "bottom");
+
+            // เพิ่ม worksheet ลงใน workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์เป็น .xlsx (แทน .xls เพื่อรองรับ style)
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xlsx',
+                type: 'array'
+            });
+
+            // สร้าง Blob + ดาวน์โหลด
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * -----------------------
+         * 1) parseThead: รองรับ merge
+         * -----------------------
+         */
+        function parseThead(thead) {
+            const theadRows = [];
+            const theadMerges = [];
+
+            if (!thead) {
+                return { theadRows, theadMerges };
             }
-            cellLines.push(lines);
-        }
 
-        for (let i = 0; i < maxSubLine; i++) {
-            const rowData = [];
-            for (const lines of cellLines) {
-                rowData.push(lines[i] || '');
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+                const tr = thead.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let text = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
+                        .replace(/<br\s*\/?>/gi, ' ')
+                        .replace(/<\/?[^>]+>/g, '')
+                        .trim();
+
+                    rowData[colIndex] = text;
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        theadMerges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r === 0 && c === 0) continue;
+                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                    colIndex++;
+                }
+                theadRows.push(rowData);
             }
-            rows.push(rowData);
+
+            return { theadRows, theadMerges };
         }
-    }
 
-    return rows;
-}
+        /**
+         * -----------------------
+         * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+         * -----------------------
+         */
+        function parseTbody(tbody) {
+            const rows = [];
 
-/**
- * -----------------------
- * 3) applyCellStyles: ตั้งค่า vertical-align ให้ทุก cell
- * -----------------------
- */
-function applyCellStyles(ws, verticalAlign) {
-    if (!ws['!ref']) return;
+            if (!tbody) return rows;
 
-    const range = XLSX.utils.decode_range(ws['!ref']);
-    for (let R = range.s.r; R <= range.e.r; ++R) {
-        for (let C = range.s.c; C <= range.e.c; ++C) {
-            const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
-            if (!ws[cell_address]) continue;
+            for (const tr of tbody.rows) {
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            if (!ws[cell_address].s) ws[cell_address].s = {};
-            ws[cell_address].s.alignment = { vertical: verticalAlign };
+                for (const cell of tr.cells) {
+                    let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return ' '.repeat(count);
+                    });
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
+                    html = html.replace(/<\/?[^>]+>/g, '');
+
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+                    cellLines.push(lines);
+                }
+
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+                    for (const lines of cellLines) {
+                        rowData.push(lines[i] || '');
+                    }
+                    rows.push(rowData);
+                }
+            }
+
+            return rows;
         }
-    }
-}
+
+        /**
+         * -----------------------
+         * 3) applyCellStyles: ตั้งค่า vertical-align ให้ทุก cell
+         * -----------------------
+         */
+        function applyCellStyles(ws, verticalAlign) {
+            if (!ws['!ref']) return;
+
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                    if (!ws[cell_address]) continue;
+
+                    if (!ws[cell_address].s) ws[cell_address].s = {};
+                    ws[cell_address].s.alignment = { vertical: verticalAlign };
+                }
+            }
+        }
 
 
     </script>
