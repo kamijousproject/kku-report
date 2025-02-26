@@ -1,11 +1,24 @@
 import os
+import sys
 import pandas as pd
 import pymysql
 
-# กำหนด path ของไฟล์ CSV
-current_dir = os.path.dirname(__file__)
-# แก้เป็นชื่อไฟล์จริงของคุณ
-file_path = os.path.join(current_dir, 'test.csv')
+# # กำหนด path ของไฟล์ CSV
+# current_dir = os.path.dirname(__file__)
+# # แก้เป็นชื่อไฟล์จริงของคุณ
+# file_path = os.path.join(current_dir, 'test.csv')
+
+# ตรวจสอบว่ามีพารามิเตอร์ไฟล์ CSV ที่ส่งมาหรือไม่
+if len(sys.argv) < 2:
+    print("Error: No CSV file provided.")
+    sys.exit(1)
+
+file_path = sys.argv[1]
+
+# ตรวจสอบว่าไฟล์ CSV มีอยู่จริงหรือไม่
+if not os.path.exists(file_path):
+    print(f"Error: File '{file_path}' not found.")
+    sys.exit(1)
 
 # กำหนดค่าการเชื่อมต่อฐานข้อมูล
 str_hosting = '110.164.146.250'
@@ -83,4 +96,4 @@ conn.commit()
 cursor.close()
 conn.close()
 
-print("✅ Insert ข้อมูลเรียบร้อยแล้ว และลบข้อมูลที่ไม่ต้องการออกไป!")
+print("SUCCESS")

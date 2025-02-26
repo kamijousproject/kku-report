@@ -54,6 +54,7 @@
                                             <option value="">-- กรุณาเลือกประเภทไฟล์ --</option>
                                             <optgroup label="Budget Planning">
                                                 <option value="budget_planning_actual">Budget Planning Actual</option>
+                                                <option value="GLTrialBalance">General trial balance</option>
                                                 <option value="budget_planning_allocated_annual_budget_plan">Allocated annual budget plan</option>
                                                 <option value="budget_planning_annual_budget_plan">Annual budget plan</option>
                                                 <option value="budget_planning_disbursement_budget_plan_anl_release">Disbursement budget plan annual release</option>

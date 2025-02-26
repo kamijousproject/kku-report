@@ -33,6 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         "budget_planning_project_kpi" => __DIR__ . "/budget_planing/insert_budget_planning_project_kpi.py",
         "budget_planning_sub_plan_kpi_progress" => __DIR__ . "/budget_planing/insert_budget_planning_sub_plan_kpi_progress.py",
         "budget_planning_subplan_kpi" => __DIR__ . "/budget_planing/insert_budget_planning_subplan_kpi.py",
+        "GLTrialBalance" => __DIR__ . "/budget_planing/insert_budget_planning_actual_2.py",
 
         "workforce_4year_plan" => __DIR__ . "/workforce/insert_workforce_4year_plan.py",
         "workforce_current_position_request" => __DIR__ . "/workforce/insert_workforce_current_position_request.py",
