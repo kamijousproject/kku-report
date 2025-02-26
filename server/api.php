@@ -125,14 +125,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             pkpp.Faculty,
                             Faculty.Alias_Default AS fa_name,
                             REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
-                            si.pilar_name AS si_name,
+                            si.pillar_name AS si_name,
                             pkpp.Strategic_Object,
                             pkpp.Strategic_Project,
                             ksp.ksp_name,
-                            pkpp.Progress_Status
+                            pkpp.Progress_Status,
+                            pkpp.Strategic_Project_Progress_Details
                         FROM planning_kku_project_progress AS pkpp
                         LEFT JOIN ksp ON ksp.ksp_id = TRIM(pkpp.Strategic_Project)
-                        LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI')
+                        LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI')
                         LEFT JOIN Faculty ON Faculty.Faculty = pkpp.Faculty
 
                         UNION ALL 
@@ -141,20 +142,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             pfpp.Faculty,
                             f.Alias_Default AS fa_name,
                             REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
-                            si.pilar_name AS si_name,
+                            si.pillar_name AS si_name,
                             pfpp.Strategic_Object,
                             pfpp.Strategic_Project,
                             ksp.ksp_name,
-                            pfpp.Progress_Status
+                            pfpp.Progress_Status,
+                            pfpp.Strategic_Project_Progress_Details
                         FROM planning_faculty_project_progress AS pfpp
                         LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfpp.Strategic_Project)
-                        LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI')
+                        LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI')
                         LEFT JOIN (
                             SELECT DISTINCT Faculty, Alias_Default
                             FROM Faculty
                         ) AS f ON pfpp.Faculty = f.Faculty
 
-                        ORDER BY fa_name, si_code, Strategic_Project;";
+                        ORDER BY fa_name, si_code, Strategic_Project";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);

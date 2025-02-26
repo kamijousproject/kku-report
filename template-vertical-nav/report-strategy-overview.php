@@ -118,7 +118,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
+                    // console.log(response.plan);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 

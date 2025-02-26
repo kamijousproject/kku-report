@@ -91,7 +91,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
+                    // console.log(response.plan);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
@@ -127,7 +127,7 @@
 
                         if (row.Progress_Status === "Not Started") {
                             const td6 = document.createElement('td');
-                            td6.innerHTML = `<span class="badge badge-secondary">X</span>`;
+                            td6.innerHTML = `<span class="badge badge-secondary">X</span><br>`+row.Strategic_Project_Progress_Details;
                             tr.appendChild(td6);
 
                             const td7 = document.createElement('td');
@@ -149,7 +149,7 @@
                             tr.appendChild(td6);
 
                             const td7 = document.createElement('td');
-                            td7.innerHTML = `<span class="badge badge-primary">X</span>`;
+                            td7.innerHTML = `<span class="badge badge-primary">X</span><br>`+row.Strategic_Project_Progress_Details;
                             tr.appendChild(td7);
 
                             const td8 = document.createElement('td');
@@ -171,7 +171,7 @@
                             tr.appendChild(td7);
 
                             const td8 = document.createElement('td');
-                            td8.innerHTML = `<span class="badge badge-success">X</span>`;
+                            td8.innerHTML = `<span class="badge badge-success">X</span><br>`+row.Strategic_Project_Progress_Details;
                             tr.appendChild(td8);
 
                             const td9 = document.createElement('td');
@@ -193,7 +193,7 @@
                             tr.appendChild(td8);
 
                             const td9 = document.createElement('td');
-                            td9.innerHTML = `<span class="badge badge-danfer">X</span>`;
+                            td9.innerHTML = `<span class="badge badge-danger">X</span><br>`+row.Strategic_Project_Progress_Details;
                             tr.appendChild(td9);
                         }
 
