@@ -133,8 +133,11 @@ thead tr:nth-child(3) th {
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.28/dist/jspdf.plugin.autotable.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
     <script>
         $(document).ready(function() {
             laodData();
@@ -330,140 +333,255 @@ response.wf.forEach((row, index) => {
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
     }
-
-    function exportPDF() {
-        const {
-            jsPDF
-        } = window.jspdf;
-        const doc = new jsPDF('landscape');
-
-        // เพิ่มฟอนต์ภาษาไทย
-        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-        doc.setFont("THSarabun");
-
-        // ตั้งค่าฟอนต์และข้อความ
-        doc.setFontSize(12);
-        doc.text("รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง", 10, 10);
-
-        // ใช้ autoTable สำหรับสร้างตาราง
-        doc.autoTable({
-            html: '#reportTable',
-            startY: 20,
-            styles: {
-                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                fontSize: 10,
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            bodyStyles: {
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            headStyles: {
-                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-        });
-
-        // บันทึกไฟล์ PDF
-        doc.save('รายงาน.pdf');
-    }
-
-    function exportXLS() {
-    const table = document.getElementById('reportTable');
-
-    const rows = [];
-    const merges = {};
-    const skipMap = {};
-
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-        const tr = table.rows[rowIndex];
-        const rowData = [];
-        let colIndex = 0;
-
-        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData.push("");
-                colIndex++;
-            }
-
-            const cell = tr.cells[cellIndex];
-            let cellText = cell.innerText.trim();
-            rowData[colIndex] = cellText;
-
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
-
-            if (rowspan > 1 || colspan > 1) {
-                const mergeRef = {
-                    s: { r: rowIndex, c: colIndex },
-                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                };
-
-                const mergeKey = `merge_${rowIndex}_${colIndex}`;
-                merges[mergeKey] = mergeRef;
-
-                for (let r = 0; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        if (!(r === 0 && c === 0)) {
-                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
-                        }
+    
+    function prepareTableData() {
+            const table = document.getElementById('reportTable');
+            const headers = [];
+            const body = [];
+            
+            // ดึงข้อมูลส่วนหัวตาราง
+            const headerRow = table.querySelector('thead tr');
+            headerRow.querySelectorAll('th').forEach(th => {
+                headers.push(th.textContent.trim());
+            });
+            
+            // ดึงข้อมูลและจัดการกับ rowspan/colspan
+            const rows = table.querySelectorAll('tbody tr');
+            let rowspanTracker = {};
+            
+            rows.forEach((row, rowIndex) => {
+                const rowData = [];
+                let dataIndex = 0;
+                
+                // เพิ่มเซลล์ที่มี rowspan จากแถวก่อนหน้า
+                for (let i = 0; i < headers.length; i++) {
+                    if (rowspanTracker[i] && rowspanTracker[i].count > 0) {
+                        rowData.push({
+                            content: rowspanTracker[i].content,
+                            rowSpan: 0, // นับไปแล้วในแถวก่อนหน้า
+                            colSpan: 1
+                        });
+                        rowspanTracker[i].count--;
+                        dataIndex++;
                     }
                 }
-            }
-
-            colIndex++;
-        }
-        rows.push(rowData);
-    }
-
-    // Create Workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-
-    // Apply merges
-    ws['!merges'] = Object.values(merges);
-
-    // Apply header styles to the first few rows (all header rows)
-    const totalHeaderRows = table.tHead.rows.length; // Get the number of header rows
-    for (let R = 0; R < totalHeaderRows; R++) {
-        for (let C = 0; C < rows[R].length; C++) {
-            const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
-
-            if (ws[cellRef]) {
-                ws[cellRef].s = {
-                    alignment: { horizontal: "center", vertical: "center" }, // Center text
-                    font: { bold: true, name: "Arial", sz: 12 }, // Bold + Font
-                    fill: { fgColor: { rgb: "FFFFCC" } }, // Light yellow background
-                    border: {
-                        top: { style: "thin", color: { rgb: "000000" } },
-                        bottom: { style: "thin", color: { rgb: "000000" } },
-                        left: { style: "thin", color: { rgb: "000000" } },
-                        right: { style: "thin", color: { rgb: "000000" } }
+                
+                // ประมวลผลเซลล์ในแถวปัจจุบัน
+                row.querySelectorAll('td').forEach((cell, cellIndex) => {
+                    // หาตำแหน่งที่ถูกต้องโดยพิจารณา rowspan
+                    while (rowData[dataIndex] !== undefined) {
+                        dataIndex++;
                     }
-                };
+                    
+                    const rowspan = parseInt(cell.getAttribute('rowspan')) || 1;
+                    const colspan = parseInt(cell.getAttribute('colspan')) || 1;
+                    
+                    rowData[dataIndex] = {
+                        content: cell.textContent.trim(),
+                        rowSpan: rowspan,
+                        colSpan: colspan
+                    };
+                    
+                    // ติดตาม rowspan สำหรับแถวต่อไป
+                    if (rowspan > 1) {
+                        rowspanTracker[dataIndex] = {
+                            content: cell.textContent.trim(),
+                            count: rowspan - 1
+                        };
+                    }
+                    
+                    dataIndex += colspan;
+                });
+                
+                body.push(rowData);
+            });
+            
+            return { headers, body };
+        }
+
+        // ฟังก์ชันสร้าง PDF ด้วย jsPDF และ AutoTable
+        function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+
+    // Add Thai font
+    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+    doc.setFont("THSarabun");
+
+    // ก่อนสร้างตาราง เราต้องแปลงข้อมูลจากตาราง HTML
+    const tableElement = document.getElementById('reportTable');
+    const tableRows = Array.from(tableElement.querySelectorAll('tr'));
+    
+    // สร้างข้อมูลสำหรับ autoTable โดยรวมค่า rowspan ด้วย
+    const tableData = [];
+    const tableHeaders = [];
+    
+    // ดึงข้อมูลหัวตาราง
+    const headerCells = tableRows[0].querySelectorAll('th');
+    headerCells.forEach(cell => {
+        tableHeaders.push(cell.textContent.trim());
+    });
+    
+    // สร้างอาร์เรย์เก็บข้อมูลการรวมแถว (rowspan)
+    let spanningCells = {}; // เก็บข้อมูล cell ที่มีการรวมแถว
+    
+    // แปลงข้อมูลแถวให้เป็นรูปแบบที่ autoTable รองรับ
+    for (let i = 1; i < tableRows.length; i++) { // เริ่มที่ 1 เพื่อข้ามหัวตาราง
+        const row = tableRows[i];
+        const cells = row.querySelectorAll('td');
+        const rowData = {};
+        
+        let cellIndex = 0;
+        for (let j = 0; j < headerCells.length; j++) {
+            // ตรวจสอบว่ามี cell ที่ถูก span มาจากแถวก่อนหน้าหรือไม่
+            if (spanningCells[j] && spanningCells[j].rowsLeft > 0) {
+                rowData[tableHeaders[j]] = spanningCells[j].content;
+                spanningCells[j].rowsLeft--;
+                continue;
+            }
+            
+            // ถ้าไม่มี cell ที่ถูก span มา ให้ใช้ cell ปัจจุบัน
+            const cell = cells[cellIndex++];
+            if (!cell) continue; // กรณีไม่มี cell นี้ให้ข้าม
+            
+            const content = cell.textContent.trim();
+            rowData[tableHeaders[j]] = content;
+            
+            // บันทึกข้อมูล rowspan หากมี
+            if (cell.hasAttribute('rowspan')) {
+                const rowSpan = parseInt(cell.getAttribute('rowspan'));
+                if (rowSpan > 1) {
+                    spanningCells[j] = {
+                        content: content,
+                        rowsLeft: rowSpan - 1
+                    };
+                }
             }
         }
+        
+        tableData.push(rowData);
     }
 
-    // Append sheet and write file
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-    const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-
-    // Download file
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.xlsx'; // Change to .xlsx for proper styling support
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    doc.autoTable({
+        head: [tableHeaders],
+        body: tableData.map(row => tableHeaders.map(header => row[header] || '')),
+        startY: 20,
+        theme: 'grid',
+        styles: {
+            font: "THSarabun",
+            fontSize: 7,
+            cellPadding: 1,
+            lineWidth: 0.1,
+            lineColor: [0, 0, 0],
+            minCellHeight: 5
+        },
+        headStyles: {
+            fillColor: [220, 230, 241],
+            textColor: [0, 0, 0],
+            fontSize: 7,
+            fontStyle: 'bold',
+            halign: 'center',
+            valign: 'middle'
+        },
+        columnStyles: {
+            0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
+        },
+        didParseCell: function(data) {
+            if (data.section === 'body' && data.column.index === 0) {
+                data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
+            }
+        },
+        willDrawCell: function(data) {
+            // ตรวจสอบว่าเป็นเซลล์ที่ต้องซ่อนเส้นขอบด้านล่างหรือไม่ (เนื่องจากมี rowspan)
+            if (data.section === 'body') {
+                const rowIndex = data.row.index;
+                const colIndex = data.column.index;
+                
+                // ถ้าเซลล์นี้เป็นส่วนหนึ่งของ rowspan ให้ซ่อนเส้นขอบด้านล่าง
+                if (spanningCells[colIndex] && spanningCells[colIndex].rowsLeft > 0 && 
+                    rowIndex < tableData.length - 1) {
+                    // ซ่อนเส้นขอบด้านล่าง
+                    data.cell.styles.lineWidth = [0.1, 0.1, 0, 0.1]; // [top, right, bottom, left]
+                }
+            }
+        },
+        margin: { top: 15, right: 5, bottom: 10, left: 5 },
+        tableWidth: 'auto'
+    });
+    doc.save('รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง.pdf');
 }
+    function exportXLS() {
+            const table = document.getElementById('reportTable');
+
+            const rows = [];
+            const merges = [];
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const tr = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData.push("");
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let cellText = cell.innerText.trim();
+
+                    // เช็คว่าเป็น Header หรือไม่
+                    const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
+
+                    rowData[colIndex] = {
+                        v: cellText,
+                        s: {
+                            alignment: {
+                                vertical: "top",
+                                horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
+                            },
+                            font: isHeader ? {  } : {} // **ทำให้ Header ตัวหนา**
+                        }
+                    };
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (!(r === 0 && c === 0)) {
+                                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
+                        }
+                    }
+
+                    colIndex++;
+                }
+                rows.push(rowData);
+            }
+
+            // สร้าง Workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // นำ merges ไปใช้
+            ws['!merges'] = merges;
+
+            // เพิ่ม Worksheet ลงใน Workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์ Excel
+            XLSX.writeFile(wb, 'รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง.xlsx');
+        }
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>

@@ -198,7 +198,7 @@
                             tr.appendChild(tdPosition);
 
                             const tdC1 = document.createElement('td');
-                            tdC1.textContent = sums.position_count;
+                            tdC1.textContent = sums.position_count.toLocaleString();
                             tdC1.style.backgroundColor = '#f7f7f7';
                             tr.appendChild(tdC1);
 

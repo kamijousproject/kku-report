@@ -1,7 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>     
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
 
+.content-body {
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto; /* Scrollable content only inside table */
+    max-height: 60vh; /* Set a fixed height */
+    border: 1px solid #ccc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+thead tr:nth-child(1) th {
+    position: sticky;
+    top: 0;
+    background: #f4f4f4;
+    z-index: 1000;
+}
+
+thead tr:nth-child(2) th {
+    position: sticky;
+    top: 45px; /* Adjust height based on previous row */
+    background: #f4f4f4;
+    z-index: 999;
+}
+
+thead tr:nth-child(3) th {
+    position: sticky;
+    top: 105px; /* Adjust height based on previous rows */
+    background: #f4f4f4;
+    z-index: 998;
+}
+
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -33,6 +94,10 @@
                                 <div class="card-title">
                                     <h4>รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน</h4>
                                 </div>
+                                <label for="category">เลือกส่วนงาน:</label>
+                                <select name="category" id="category" onchange="fetchData()">
+                                    <option value="">-- Loading Categories --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                     <thead>
@@ -43,7 +108,7 @@
                                             <th colspan="6">ประเภทวิชาการ</th>
                                             <th colspan="2">ประเภทวิจัย</th>
                                             <th colspan="14">ประเภทสนับสนุน</th>
-                                            <th rowspan="2">รวมกรอบอัตราพึงมีทั้งหมด</th>
+                                            <th rowspan="2" nowrap>รวมกรอบอัตรา<br/>พึงมีทั้งหมด</th>
                                         </tr>
                                         <tr>
                                             <!-- ประเภทบริหาร -->
@@ -51,13 +116,13 @@
                                             <th>กรอบที่พึงมี</th>
                                             <!-- ประเภทวิชาการ -->
                                             <th>อัตราปัจจุบัน</th>
-                                            <th>กรอบพึงมีวิชาการตามแผน 2563-2566</th>
+                                            <th nowrap>กรอบพึงมีวิชาการ<br/>ตามแผน 2563-2566</th>
                                             <th>เกณฑ์ FTES</th>
-                                            <th>เกณฑ์ภาระงานวิจัย</th>
-                                            <th>เกณฑ์ภาระงานบริการวิชาการ</th>
+                                            <th nowrap>เกณฑ์ภาระ<br/>งานวิจัย</th>
+                                            <th nowrap>เกณฑ์ภาระงาน<br/>บริการวิชาการ</th>
                                             <th>รวมวิชาการ</th>
                                             <!-- ประเภทวิจัย -->
-                                            <th>เกณฑ์ภาระงานวิจัย</th>
+                                            <th nowrap>เกณฑ์ภาระ<br/>งานวิจัย</th>
                                             <th>รวมวิจัย</th>
                                             <!-- ประเภทสนับสนุน -->
                                             <th>Healthcare Services</th>
@@ -77,30 +142,7 @@
                                         </tr>
                                     </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>1</td>
-                                                <td>คณะวิทยาศาสตร์</td>
-                                                <td>20</td>
-                                                <td>25</td>
-                                                <td>30</td>
-                                                <td>35</td>
-                                                <td>15</td>
-                                                <td>45</td>
-                                                <td>10</td>
-                                                <td>20</td>
-                                            </tr>
-                                            <tr>
-                                                <td>2</td>
-                                                <td>คณะวิศวกรรมศาสตร์</td>
-                                                <td>15</td>
-                                                <td>20</td>
-                                                <td>25</td>
-                                                <td>30</td>
-                                                <td>12</td>
-                                                <td>37</td>
-                                                <td>8</td>
-                                                <td>18</td>
-                                            </tr>
+                                            
                                         </tbody>
                                         <tfoot>
                                             
@@ -123,91 +165,122 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function() {
-            laodData();
-            
-        });
-
-        function laodData() {
             $.ajax({
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'kku_wf_4year-workload'
+                    'command': 'kku_wf_staff-requests_current'
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.wf);
-                    console.log(response.faculty);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
-                    response.wf.forEach((row, index) => {                   
-                        const tr = document.createElement('tr');
-
-                        const columns = [
-                                { key: 'No', value: index+1 },
-                                { key: 'Alias_Default', value: row.Alias_Default },
-                                
-                                { key: 'Actual_type1', value: row.Actual_type1 },
-                                { key: 'wf_type1', value: row.wf_type1 },
-                                
-                                { key: 'Actual_type2', value: row.Actual_type2 },
-                                { key: 'wf_plan', value: "" },
-                                { key: 'sum_FTES', value: row.sum_FTES },
-                                
-                                { key: 'sum_RWC', value: row.sum_RWC },
-                                { key: 'sum_WCAS', value: row.sum_WCAS },
-                                
-                                { key: 'total_type2', value:  parseInt(row.Actual_type2) +parseInt(row.sum_FTES) +parseInt(row.sum_RWC) +parseInt(row.sum_WCAS) },
-                                { key: 'sum_RWC2', value: row.sum_RWC2 },
-                                
-                                { key: 'sum_RWC2', value: row.sum_RWC2 },
-
-                                { key: 'j1', value: row.j1 },        
-                                { key: 'j2', value: row.j2 },
-                                { key: 'j3', value: row.j3 },
-                                { key: 'j4', value: row.j4},
-                                { key: 'j5', value: row.j5 },
-                                { key: 'j6', value: row.j6 },
-                                { key: 'j7', value: row.j7 },
-                                { key: 'j8', value: row.j8},
-                                { key: 'j9', value: row.j9 },
-                                { key: 'j10', value: row.j10 },
-                                { key: 'j11', value: row.j11 },
-                                { key: 'j12', value: row.j12 },        
-                                { key: 'j13', value: row.j13 },
-                                { key: 'j14', value: parseInt(row.j1) + 
-                                                        parseInt(row.j2) + 
-                                                        parseInt(row.j3) + 
-                                                        parseInt(row.j4) + 
-                                                        parseInt(row.j5) + 
-                                                        parseInt(row.j6) + 
-                                                        parseInt(row.j7) + 
-                                                        parseInt(row.j8) + 
-                                                        parseInt(row.j9) + 
-                                                        parseInt(row.j10) + 
-                                                        parseInt(row.j11) + 
-                                                        parseInt(row.j12) + 
-                                                        parseInt(row.j13) },
-                                { key: 'j15', value: "0"},
-                            ];
-
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            tr.appendChild(td);
-                        });
-                        tableBody.appendChild(tr);     
+                    data_current=response.wf;
+                    //console.log(data_current);
+                    $.ajax({
+                        type: "POST",
+                        url: "../server/workforce_api.php",
+                        data: {
+                            'command': 'kku_wf_4year-workload'
+                        },
+                        dataType: "json",
+                        success: function(response) {
+                            all_data=response.wf;
+                            //console.log(data_current);
+                            //console.log(data_new);                           
+                            const fac = [...new Set(all_data.map(item => item.pname))];
+                            let dropdown = document.getElementById("category");
+                            dropdown.innerHTML = '<option value="">-- Select --</option>';
+                            fac.forEach(category => {
+                                let option = document.createElement("option");
+                                option.value = category;
+                                option.textContent = category;
+                                dropdown.appendChild(option);
+                            });
+                        },
+                        error: function(jqXHR, exception) {
+                            console.error("Error: " + exception);
+                            responseError(jqXHR, exception);
+                        }
                     });
-                    calculateSum();
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
             });
+            
+        });
+
+        function fetchData() {
+            let category = document.getElementById("category").value;
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            let data = all_data.filter(item=>item.pname===category);
+            data.forEach((row, index) => {                   
+                const tr = document.createElement('tr');
+
+                const columns = [
+                        { key: 'No', value: index+1 },
+                        { key: 'Alias_Default', value: row.Alias_Default  },
+                        
+                        { key: 'Actual_type1', value: row.Actual_type1||0 },
+                        { key: 'wf_type1', value: row.wf_type1 ||0},
+                        
+                        { key: 'Actual_type2', value: row.Actual_type2 ||0},
+                        { key: 'wf_plan', value: "" ||0},
+                        { key: 'sum_FTES', value: row.sum_FTES ||0},
+                        
+                        { key: 'sum_RWC', value: row.sum_RWC ||0},
+                        { key: 'sum_WCAS', value: row.sum_WCAS ||0},
+                        
+                        { key: 'total_type2', value:  parseInt(row.Actual_type2||0) +parseInt(row.sum_FTES||0) +parseInt(row.sum_RWC||0) +parseInt(row.sum_WCAS||0) },
+                        { key: 'sum_RWC2', value: row.sum_RWC2 ||0},
+                        
+                        { key: 'sum_RWC2', value: row.sum_RWC2 ||0},
+
+                        { key: 'j1', value: (row.j1 ||0).toLocaleString()},        
+                        { key: 'j2', value: (row.j2 ||0).toLocaleString()},
+                        { key: 'j3', value: (row.j3 ||0).toLocaleString()},
+                        { key: 'j4', value: (row.j4||0).toLocaleString()},
+                        { key: 'j5', value: (row.j5 ||0).toLocaleString()},
+                        { key: 'j6', value: (row.j6 ||0).toLocaleString()},
+                        { key: 'j7', value: (row.j7 ||0).toLocaleString()},
+                        { key: 'j8', value: (row.j8||0).toLocaleString()},
+                        { key: 'j9', value: (row.j9 ||0).toLocaleString()},
+                        { key: 'j10', value: (row.j10 ||0).toLocaleString()},
+                        { key: 'j11', value: (row.j11 ||0).toLocaleString()},
+                        { key: 'j12', value: (row.j12 ||0).toLocaleString()},        
+                        { key: 'j13', value: (row.j13 ||0).toLocaleString()},
+                        { key: 'j14', value: (parseInt(row.j1 ||0) + 
+                                                parseInt(row.j2 ||0) + 
+                                                parseInt(row.j3 ||0) + 
+                                                parseInt(row.j4 ||0) + 
+                                                parseInt(row.j5 ||0) + 
+                                                parseInt(row.j6 ||0) + 
+                                                parseInt(row.j7 ||0) + 
+                                                parseInt(row.j8 ||0) + 
+                                                parseInt(row.j9 ||0) + 
+                                                parseInt(row.j10 ||0) + 
+                                                parseInt(row.j11 ||0) + 
+                                                parseInt(row.j12 ||0) + 
+                                                parseInt(row.j13 ||0)).toLocaleString() },
+                        { key: 'j15', value: "0"},
+                    ];
+
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col.value;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);     
+            });
+            calculateSum();
+
         }
         function calculateSum() {
         const table = document.querySelector('table');
@@ -226,108 +299,241 @@
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
             cells.forEach((cell, index) => {
+            const value = parseFloat(cell.textContent.replace(/,/g, '')) || 0;
             if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
-                sums[index - 2] += parseFloat(cell.textContent) || 0;
+                sums[index - 2] += parseFloat(value) || 0;
             }
             });
         });
 
         // เพิ่มผลรวมลงใน footer
         sums.forEach(sum => {
-            footerRow.innerHTML += `<td>${sum}</td>`;
+            footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
         });
 
         // เพิ่มแถว footer ลงในตาราง
-        footer.appendChild(footerRow);
+        footer.innerHTML='';
+        footer.append(footerRow);
         }
 
         function exportCSV() {
-            const rows = [];
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
+            const csvRows = [];
+
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
+
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
+
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
+
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
+
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
+
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
+                }
+
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
+
+                    csvRows.push(rowData.join(','));
+                }
             }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
+
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = 'รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
+    // Add Thai font
+    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+    doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+    doc.autoTable({
+        html: '#reportTable',
+        startY: 10,
+        theme: 'grid',
+        styles: {
+            font: "THSarabun",
+            fontSize: 7, 
+            cellPadding: 1, 
+            lineWidth: 0.1,
+            lineColor: [0, 0, 0],
+            minCellHeight: 6
+        },
+        headStyles: {
+            fillColor: [220, 230, 241],
+            textColor: [0, 0, 0],
+            fontSize: 7,
+            fontStyle: 'bold',
+            halign: 'center',
+            valign: 'middle'
+        },
+        columnStyles: {
+            0: { cellWidth: 8, halign: 'center' }, // คอลัมน์ "ที่"
+            1: { cellWidth: 30, halign: 'left' }, // ส่วนงาน
+            2: { cellWidth: 10, halign: 'center' }, // ประเภทบริหาร (อัตราปัจจุบัน)
+            3: { cellWidth: 10, halign: 'center' }, // ประเภทบริหาร (กรอบที่พึงมี)
+            4: { cellWidth: 10, halign: 'center' }, // วิชาการ (อัตราปัจจุบัน)
+            5: { cellWidth: 10, halign: 'center' }, // วิชาการ (แผน 2563-2566)
+            6: { cellWidth: 10, halign: 'center' }, // FTES
+            7: { cellWidth: 10, halign: 'center' }, // ภาระงานวิจัย
+            8: { cellWidth: 10, halign: 'center' }, // ภาระงานบริการวิชาการ
+            9: { cellWidth: 10, halign: 'center' }, // รวมวิชาการ
+            10: { cellWidth: 10, halign: 'center' }, // เกณฑ์ภาระงานวิจัย
+            11: { cellWidth: 10, halign: 'center' }, // รวมวิจัย
+            12: { cellWidth: 10, halign: 'center' }, // Healthcare Services
+            13: { cellWidth: 10, halign: 'center' }, // Student and Faculty Services
+            14: { cellWidth: 10, halign: 'center' }, // Technical and Research services
+            15: { cellWidth: 10, halign: 'center' }, // Internationalization
+            16: { cellWidth: 10, halign: 'center' }, // Human Resources
+            17: { cellWidth: 10, halign: 'center' }, // Administration
+            18: { cellWidth: 10, halign: 'center' }, // Legal, Compliance and Protection
+            19: { cellWidth: 10, halign: 'center' }, // Strategic Management
+            20: { cellWidth: 10, halign: 'center' }, // Information Technology
+            21: { cellWidth: 10, halign: 'center' }, // Infrastructure and Facility Services
+            22: { cellWidth: 10, halign: 'center' }, // Communication and Relation Management
+            23: { cellWidth: 10, halign: 'center' }, // Cultural Affair
+            24: { cellWidth: 10, halign: 'center' }, // Financial Services
+            25: { cellWidth: 10, halign: 'center' }, // รวมประเภทสนับสนุน
+            26: { cellWidth: 10, halign: 'center' }, // รวมทั้งหมด
+        },
+        didParseCell: function(data) {
+            if (data.section === 'body') {
+                if (data.column.index === 1) {
+                    data.cell.styles.halign = 'left'; // จัดข้อความของ "ส่วนงาน" ให้อยู่ชิดซ้าย
+                } else {
+                    data.cell.styles.halign = 'center'; // ข้อความอื่นให้อยู่กึ่งกลาง
+                }
+            }
+        },
+        margin: { top: 15, right: 10, bottom: 10, left: 5 },
+        tableWidth: 'auto' // ปรับตารางให้อยู่ในขนาดของ A4
+    });
 
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-            });
+    doc.save('รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน.pdf');
+}
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
-        }
+
+
+
 
         function exportXLS() {
-            const rows = [];
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
-            }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            const rows = [];
+            const merges = [];
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const tr = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData.push("");
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let cellText = cell.innerText.trim();
+
+                    // เช็คว่าเป็น Header หรือไม่
+                    const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
+
+                    rowData[colIndex] = {
+                        v: cellText,
+                        s: {
+                            alignment: {
+                                vertical: "top",
+                                horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
+                            },
+                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                        }
+                    };
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (!(r === 0 && c === 0)) {
+                                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                                }
+                            }
+                        }
+                    }
+
+                    colIndex++;
+                }
+                rows.push(rowData);
+            }
+
+            // สร้าง Workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(rows);
+
+            // นำ merges ไปใช้
+            ws['!merges'] = merges;
+
+            // เพิ่ม Worksheet ลงใน Workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์ Excel
+            XLSX.writeFile(wb, 'รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน.xlsx');
         }
+    </script>
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>

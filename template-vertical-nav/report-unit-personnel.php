@@ -324,7 +324,7 @@ thead tr:nth-child(3) th {
 
         // เพิ่มผลรวมลงใน footer
         sums.forEach(sum => {
-            footerRow.innerHTML += `<td>${sum}</td>`;
+            footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
         });
 
         // เพิ่มแถว footer ลงในตาราง

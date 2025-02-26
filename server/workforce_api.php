@@ -476,10 +476,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,POSITION COLLATE UTF8MB4_GENERAL_CI AS POSITION
                         ,replace(Position_Number,'PN_','') COLLATE UTF8MB4_GENERAL_CI AS Position_Number
                         ,Fund_FT COLLATE UTF8MB4_GENERAL_CI AS Fund_FT
-                        ,Salary_rate COLLATE UTF8MB4_GENERAL_CI AS Salary_rate
-                        ,Govt_Fund COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
-                        ,Division_Revenue COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
-                        ,OOP_Central_Revenue COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
+                        ,COALESCE(Salary_rate,0) COLLATE UTF8MB4_GENERAL_CI AS Salary_rate
+                        ,COALESCE(Govt_Fund,0) COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
+                        ,COALESCE(Division_Revenue,0) COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
+                        ,COALESCE(OOP_Central_Revenue,0) COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
                         FROM workforce_current_positions_allocation)
                         , NEW AS (
                         SELECT 'อัตราใหม่'AS TYPE 
@@ -489,7 +489,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,POSITION 
                         ,NULL AS Position_Number
                         ,Fund_FT
-                        ,NULL AS Salary_rate
+                        ,0 AS Salary_rate
                         ,Govt_Fund
                         ,Division_Revenue
                         ,OOP_Central_Revenue
@@ -782,24 +782,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH act1 AS (
-                        SELECT Faculty,All_PositionTypes,COUNT(*) AS count_staff 
-                        FROM actual_data_1 
-                        WHERE All_PositionTypes!='No Position Type' AND Faculty!='00000'
-                        GROUP BY Faculty,All_PositionTypes)
+                        SELECT Faculty,all_position_types,COUNT(*) AS count_staff 
+                        FROM workforce_hcm_actual 
+                        WHERE all_position_types!='No Position Type' AND Faculty!='00000'
+                        GROUP BY Faculty,all_position_types)
                         ,transform_data AS (
                         SELECT Faculty 
-                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type1
-                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type2
-                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type3
-                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type4
+                        ,sum(CASE WHEN all_position_types = 'บริหาร' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type1
+                        ,sum(CASE WHEN all_position_types = 'วิชาการ' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type2
+                        ,sum(CASE WHEN all_position_types = 'วิจัย' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type3
+                        ,sum(CASE WHEN all_position_types = 'สนับสนุน' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type4
                         FROM act1
                         GROUP BY Faculty)
                         ,4year AS (
-                        SELECT Faculty 
+                        SELECT Faculty AS fac2
                         ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(wf, 0) ELSE 0 END) AS wf_type1
                         ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(wf, 0) ELSE 0 END) AS wf_type2
                         ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(wf, 0) ELSE 0 END) AS wf_type3
-                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(wf, 0) ELSE 0 END) AS wf_type4
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Healthcare Services' THEN COALESCE(wf, 0) ELSE 0 END) AS j1
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Student and Faculty Services' THEN COALESCE(wf, 0) ELSE 0 END) AS j2
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Technical and Research services' THEN COALESCE(wf, 0) ELSE 0 END) AS j3
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Internationalization' THEN COALESCE(wf, 0) ELSE 0 END) AS j4
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Human Resources' THEN COALESCE(wf, 0) ELSE 0 END) AS j5
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Administration' THEN COALESCE(wf, 0) ELSE 0 END) AS j6
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Legal, Compliance and Protection' THEN COALESCE(wf, 0) ELSE 0 END) AS j7
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Strategic Management' THEN COALESCE(wf, 0) ELSE 0 END) AS j8
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='information Technology' THEN COALESCE(wf, 0) ELSE 0 END) AS j9
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Infrastructure and Facility Services' THEN COALESCE(wf, 0) ELSE 0 END) AS j10
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Communication and Relation Management' THEN COALESCE(wf, 0) ELSE 0 END) AS j11
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Cultural Affair' THEN COALESCE(wf, 0) ELSE 0 END) AS j12
+                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน'AND Job_Family='Financial Services' THEN COALESCE(wf, 0) ELSE 0 END) AS j13
                         ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(FTES_criteria, 0) ELSE 0 END) AS sum_FTES
                         ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(Research_Workload_Criteria, 0) ELSE 0 END) AS sum_RWC
                         ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(Workload_Criteria_Academic_Services, 0) ELSE 0 END) AS sum_WCAS
@@ -807,18 +819,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM workforce_4year_plan
                         GROUP BY Faculty)
                         ,ty AS (
-                        SELECT td.*,y.wf_type1,y.wf_type2,y.wf_type3,y.wf_type4,y.sum_FTES,y.sum_RWC,y.sum_WCAS,y.sum_RWC2
+                        SELECT td.*,y.*
                         FROM transform_data td
                         LEFT JOIN 4year y
-                        ON td.faculty = y.faculty COLLATE UTF8MB4_GENERAL_CI
+                        ON td.faculty = y.fac2 COLLATE UTF8MB4_GENERAL_CI
                         )
 
 
-                        SELECT ty.*,f.Alias_Default FROM ty
+                        SELECT ty.*,f.Alias_Default,f2.Alias_Default AS pname FROM ty
                         LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
+                        WHERE parent LIKE 'Faculty%'
                         ) f ON ty.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN Faculty f2
+                        ON f.parent=f2.Faculty
                         WHERE ty.wf_type1 IS NOT NULL 
                         ORDER BY ty.faculty";
                 $cmd = $conn->prepare($sql);
@@ -916,12 +931,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "SELECT w.*,f.Alias_Default
+                $sql = "SELECT w.*,f.Alias_Default,f2.Alias_Default as pname
                         FROM workforce_new_position_request w
                         LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
-                        ) f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI";
+                        where parent like 'Faculty%'
+                        ) f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        left join Faculty f2
+                        on f.parent=f2.faculty";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -953,25 +971,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,Performance_Evaluation_Percentage,Performance_Evaluation
                         FROM workforce_current_position_request)
                         ,act1 AS (
-                        SELECT a1.faculty,a1.Position_Number,a1.Workers_Name_Surname,a1.Personnel_Type,a1.Employment_Type,a1.`Position`,a1.Job_Family,a1.All_PositionTypes,a1.Personnel_Group,a1.Contract_Type,a1.Contract_Period_Short_Term,a1.Position_Qualifications,w1.Wish_to_Continue_Employement,w1.Performance_Evaluation_Percentage,w1.Performance_Evaluation,w1.type
+                        SELECT a1.faculty,a1.Position_Number,a1.Workers_Name_Surname,a1.Personnel_Type,a1.Employment_Type,a1.`Position`
+								,a1.Job_Family,a1.all_position_types as All_PositionTypes,a1.Personnel_Group
+								,a1.Contract_Type,a1.Contract_Period_Short_Term
+								,a1.POSITION_QUALIFIFCATIONS as Position_Qualifications,w1.Wish_to_Continue_Employement
+								,w1.Performance_Evaluation_Percentage,w1.Performance_Evaluation,w1.type
+								,a1.rate_status,a1.salary_rate,a1.fund_ft,a1.govt_fund,a1.division_revenue,a1.oop_central_revenue
+								,a1.Vacant_From_Which_Date,a1.Hiring_Start_End_Date,a1.Position_Status
+								,a1.Location_Code,NULL AS Requested_HC_unit
                         FROM w1
-                        LEFT JOIN actual_data_1 a1
-                        ON w1.Position_Number=a1.Position_Number)
-                        ,act2 AS (
-                        SELECT act1.*,a2.rate_status,a2.salary_rate,a2.fund_ft,a2.govt_fund,a2.division_revenue,a2.oop_central_revenue
-                        FROM act1
-                        LEFT JOIN actual_data_2 a2
-                        ON act1.Position_Number=a2.position_number)
-                        ,act4 AS (
-                        SELECT act2.*,a4.Vacant_From_Which_Date,a4.Hiring_Start_End_Date,a4.Position_Status
-                        FROM act2
-                        LEFT JOIN actual_data_4 a4
-                        ON act2.Position_Number=a4.position_number)
-                        ,act5 AS (
-                        SELECT act4.*,a5.Location_Code,NULL AS Requested_HC_unit
-                        FROM act4
-                        LEFT JOIN actual_data_5 a5
-                        ON act4.Position_Number=a5.Position_Number)
+                        LEFT JOIN workforce_hcm_actual a1
+                        ON replace(w1.Position_Number,'PN_','')=a1.Position_Number)
+                        
                         ,w2 AS (
                         SELECT 
                             Faculty COLLATE utf8mb4_general_ci AS faculty,
@@ -1003,15 +1014,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             Requested_HC_unit
                         FROM workforce_new_position_request)
                         ,all_data AS (
-                        SELECT * FROM act5
+                        SELECT * FROM act1
                         UNION ALL
                         SELECT * FROM w2
                         )
-                        SELECT a.*,f.Alias_Default FROM all_data a
+                        SELECT a.*,f.Alias_Default ,f2.Alias_Default as pname FROM all_data a
                         LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
+                        where parent like 'Faculty%'
                         ) f ON a.faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        left join Faculty f2
+                        on f.parent=f2.faculty
                         ORDER BY faculty";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -1137,28 +1151,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $slt = $_POST["slt"];
+                //$slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS (
                         SELECT faculty,Position_Number
                         FROM workforce_current_position_request)
                         , t2 AS (
-                        SELECT t.*,a.Personnel_Type,a.All_PositionTypes,a.Position,a.Employment_Type,a.Contract_Type,a2.fund_ft
+                        SELECT t.*,a.Personnel_Type,a.all_position_types AS All_PositionTypes,a.Position,a.Employment_Type,a.Contract_Type,a.fund_ft
                         FROM t1 t
-                        LEFT JOIN actual_data_1 a
-                        ON t.Position_Number=a.Position_Number
-                        LEFT JOIN actual_data_2 a2
-                        ON t.Position_Number=a2.position_number)
+                        LEFT JOIN workforce_hcm_actual a
+                        ON replace(t.Position_Number,'PN_','')=a.Position_Number)
                         , t3 AS (
                         SELECT faculty,Position_Number,All_PositionTypes,POSITION,Employment_Type,Contract_Type
                         ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND fund_ft='เงินรายได้' then 'พนักงานมหาวิทยาลัยงบประมาณเงินรายได้'
                         ELSE Personnel_Type END AS Personnel_Type
                         FROM t2
                         )
-                        SELECT t3.*,f2.parent FROM t3
-                        LEFT JOIN Faculty f2
+                        SELECT t3.*,f2.parent,f3.Alias_Default AS pname FROM t3
+                        LEFT JOIN (SELECT * from Faculty
+								WHERE parent LIKE 'Faculty%') f2
                         ON f2.Faculty=t3.faculty
-                        where f2.parent ='".$slt."'";
+                        LEFT JOIN Faculty f3
+                        ON f2.parent=f3.Faculty";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -1180,16 +1194,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $slt = $_POST["slt"];
+                //$slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "SELECT w.faculty,All_PositionTypes,POSITION,Employment_Type,Contract_Type
+                $sql = "SELECT w.faculty,NULL AS Position_Number,All_PositionTypes,position,Employment_Type,Contract_Type
                         ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND Fund_FT='เงินงบประมาณ' then 'พนักงานมหาวิทยาลัยงบประมาณเงินงบประมาณ'
                         when Personnel_Type='พนักงานมหาวิทยาลัย' AND Fund_FT='เงินรายได้' then 'พนักงานมหาวิทยาลัยงบประมาณเงินรายได้'
                         ELSE Personnel_Type END AS Personnel_Type
+                        ,f2.parent,f3.Alias_Default AS pname
                         FROM workforce_new_position_request w
-                        LEFT JOIN Faculty f2
+                        LEFT JOIN (SELECT * from Faculty
+								WHERE parent LIKE 'Faculty%') f2
                         ON f2.Faculty=w.faculty COLLATE utf8mb4_general_ci
-                        where f2.parent ='".$slt."'";
+                        LEFT JOIN Faculty f3
+                        ON f2.parent=f3.Faculty ";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
