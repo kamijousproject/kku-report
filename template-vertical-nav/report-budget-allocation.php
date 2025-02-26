@@ -622,7 +622,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         }
                                                         echo "<tr>";
                                                         // แสดงผลข้อมูล
-                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . htmlspecialchars($planData['PlanName'] ?? '') . "</strong></td>";
+                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($cleanedSubPlan) . htmlspecialchars($planData['PlanName'] ?? '') . "</strong></td>";
                                                         // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                         echo "<td>" . formatNumber($planData['Allocated_Total_Amount_Quantity']) . "</td>";
                                                         echo "<td>" . formatNumber($planData['Pre_Release_Amount']) . "</td>";
@@ -701,7 +701,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                                         break;
                                                                 }
                                                                 echo "<tr>";
-                                                                echo "<td style='text-align: left; '>" . htmlspecialchars($project) . "</strong></td>";
+                                                                echo "<td style='text-align: left; '>". str_repeat("&nbsp;", 24)  . htmlspecialchars($project) . "</strong></td>";
                                                                 // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                                 echo "<td>" . formatNumber($projectData['Allocated_Total_Amount_Quantity']) . "</td>";
                                                                 echo "<td>" . formatNumber($projectData['Pre_Release_Amount']) . "</td>";
@@ -739,7 +739,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
 
                                                                     // แสดงข้อมูลของ Sub_Type
                                                                     echo "<tr>";
-                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($subTypeData['a2'] ?? '') . ' : ' . htmlspecialchars($cleanedSubType ?? '') . "</td>";
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($subTypeData['a2'] ?? '') . ' : ' . htmlspecialchars($cleanedSubType ?? '') . "</td>";
                                                                     // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                                     echo "<td>" . formatNumber($subTypeData['Allocated_Total_Amount_Quantity']) . "</td>";
                                                                     echo "<td>" . formatNumber($subTypeData['Pre_Release_Amount']) . "</td>";
@@ -754,7 +754,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
 
                                                                     foreach ($subTypeData['kku_items'] as $kkuItem) {
                                                                         echo "<tr>";
-                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "</td>";
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $kkuItem['name'] . "</td>";
 
                                                                         $preReleaseAmount = $kkuItem['Pre_Release_Amount'];
 
