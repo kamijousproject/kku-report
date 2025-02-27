@@ -191,6 +191,7 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function() {
             laodData();
         });
@@ -200,16 +201,18 @@ thead tr:nth-child(3) th {
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'list-faculty'
+                    'command': 'kku_wf_unit-personnel'
                 },
                 dataType: "json",
                 success: function(response) {
+                    all_data=response.wf;                                             
+                    const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
-                    response.wf.forEach(category => {
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
                         let option = document.createElement("option");
-                        option.value = category.Parent;
-                        option.textContent = category.Alias_Default;
+                        option.value = category;
+                        option.textContent = category;
                         dropdown.appendChild(option);
                     });
                 },
@@ -221,83 +224,74 @@ thead tr:nth-child(3) th {
         }
 
         function fetchData() {
-            $.ajax({
-                type: "POST",
-                url: "../server/workforce_api.php",
-                data: {
-                    'command': 'kku_wf_unit-personnel'
-                },
-                dataType: "json",
-                success: function(response) {
-                    let category = document.getElementById("category").value;
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            
+            let category = document.getElementById("category").value;
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            let data;
+            if(category=="all"){
+                data=all_data
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+                data.forEach((row, index) => {                   
+                    const tr = document.createElement('tr');
 
-                        let data=response.wf.filter(r => r.parent === category)
-                        data.forEach((row, index) => {                   
-                            const tr = document.createElement('tr');
+                    const columns = [
+                        { key: 'No', value: index+1 },
+                        { key: 'Alias_Default', value: row.Alias_Default },
+                        
+                        { key: 'c1', value: row.c1 },
+                        { key: 'c2', value: row.c2 },
+                        { key: 'sum1', value: parseInt(row.c1)+parseInt(row.c2) },
+                        
+                        { key: 'c3', value: row.c3 },
+                        
+                        { key: 'c4', value: row.c4 },
+                        { key: 'c5', value: row.c5 },
+                        { key: 'c6', value: row.c6 },
+                        { key: 'c7', value: row.c7 },
+                        { key: 'c8', value: row.c8 },
+                        { key: 'c9', value: row.c9 },
+                        { key: 'c10', value: row.c10 },
+                        { key: 'sum2', value: parseInt(row.c4)+parseInt(row.c5)+parseInt(row.c7)+parseInt(row.c9) },
+                        { key: 'sum3', value: parseInt(row.c6)+parseInt(row.c8)+parseInt(row.c10) },
+                        { key: 'sum4', value: parseInt(row.c4)+parseInt(row.c5)+parseInt(row.c6)+parseInt(row.c7)+parseInt(row.c8)+parseInt(row.c9)+parseInt(row.c10) },
+                        
+                        { key: 'c11', value: row.c11 },
+                        { key: 'c12', value: row.c12 },
+                        { key: 'c13', value: row.c13 },
+                        { key: 'c14', value: row.c14 },                                
+                        { key: 'c15', value: row.c15 },
+                        { key: 'c16', value: row.c16 },                               
+                        { key: 'c17', value: row.c17 },
+                        { key: 'sum5', value: parseInt(row.c11)+parseInt(row.c12)+parseInt(row.c14)+parseInt(row.c16) },
+                        { key: 'sum6', value: parseInt(row.c13)+parseInt(row.c15)+parseInt(row.c17) },
+                        { key: 'sum7', value: parseInt(row.c11)+parseInt(row.c12)+parseInt(row.c13)+parseInt(row.c14)+parseInt(row.c15)+parseInt(row.c16)+parseInt(row.c17) },
 
-                            const columns = [
-                                { key: 'No', value: index+1 },
-                                { key: 'Alias_Default', value: row.Alias_Default },
-                                
-                                { key: 'c1', value: row.c1 },
-                                { key: 'c2', value: row.c2 },
-                                { key: 'sum1', value: parseInt(row.c1)+parseInt(row.c2) },
-                                
-                                { key: 'c3', value: row.c3 },
-                                
-                                { key: 'c4', value: row.c4 },
-                                { key: 'c5', value: row.c5 },
-                                { key: 'c6', value: row.c6 },
-                                { key: 'c7', value: row.c7 },
-                                { key: 'c8', value: row.c8 },
-                                { key: 'c9', value: row.c9 },
-                                { key: 'c10', value: row.c10 },
-                                { key: 'sum2', value: parseInt(row.c4)+parseInt(row.c5)+parseInt(row.c7)+parseInt(row.c9) },
-                                { key: 'sum3', value: parseInt(row.c6)+parseInt(row.c8)+parseInt(row.c10) },
-                                { key: 'sum4', value: parseInt(row.c4)+parseInt(row.c5)+parseInt(row.c6)+parseInt(row.c7)+parseInt(row.c8)+parseInt(row.c9)+parseInt(row.c10) },
-                                
-                                { key: 'c11', value: row.c11 },
-                                { key: 'c12', value: row.c12 },
-                                { key: 'c13', value: row.c13 },
-                                { key: 'c14', value: row.c14 },                                
-                                { key: 'c15', value: row.c15 },
-                                { key: 'c16', value: row.c16 },                               
-                                { key: 'c17', value: row.c17 },
-                                { key: 'sum5', value: parseInt(row.c11)+parseInt(row.c12)+parseInt(row.c14)+parseInt(row.c16) },
-                                { key: 'sum6', value: parseInt(row.c13)+parseInt(row.c15)+parseInt(row.c17) },
-                                { key: 'sum7', value: parseInt(row.c11)+parseInt(row.c12)+parseInt(row.c13)+parseInt(row.c14)+parseInt(row.c15)+parseInt(row.c16)+parseInt(row.c17) },
+                        { key: 'c18', value: row.c18 },                                
+                        { key: 'c19', value: row.c19 },
+                        { key: 'c20', value: row.c20 },                               
+                        { key: 'c21', value: row.c21 },
+                        { key: 'sum8', value: parseInt(row.c18)+parseInt(row.c20) },
+                        { key: 'sum9', value: parseInt(row.c19)+parseInt(row.c21)},
+                        { key: 'sum10', value: parseInt(row.c18)+parseInt(row.c19)+parseInt(row.c20)+parseInt(row.c21)},
+                        
+                        
+                    ];
 
-                                { key: 'c18', value: row.c18 },                                
-                                { key: 'c19', value: row.c19 },
-                                { key: 'c20', value: row.c20 },                               
-                                { key: 'c21', value: row.c21 },
-                                { key: 'sum8', value: parseInt(row.c18)+parseInt(row.c20) },
-                                { key: 'sum9', value: parseInt(row.c19)+parseInt(row.c21)},
-                                { key: 'sum10', value: parseInt(row.c18)+parseInt(row.c19)+parseInt(row.c20)+parseInt(row.c21)},
-                                
-                                
-                            ];
-
-                            columns.forEach(col => {
-                                const td = document.createElement('td');
-                                td.textContent = col.value;
-                                tr.appendChild(td);
-                            });
+                    columns.forEach(col => {
+                        const td = document.createElement('td');
+                        td.textContent = col.value;
+                        tr.appendChild(td);
+                    });
 
 
-                            tableBody.appendChild(tr);
-                            
-                        });
-                        calculateSum();
-
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
-                }
-            });
+                    tableBody.appendChild(tr);
+                    
+                });
+                calculateSum();     
         }
         function calculateSum() {
         const table = document.querySelector('table');

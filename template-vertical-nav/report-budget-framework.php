@@ -173,6 +173,7 @@ thead tr:nth-child(3) th {
 </body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function() {
             laodData();
             
@@ -183,16 +184,18 @@ thead tr:nth-child(3) th {
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'list-faculty'
+                    'command': 'kku_wf_budget-framework'
                 },
                 dataType: "json",
                 success: function(response) {
+                    all_data=response.wf;                                             
+                    const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
-                    response.wf.forEach(category => {
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
                         let option = document.createElement("option");
-                        option.value = category.Parent;
-                        option.textContent = category.Alias_Default;
+                        option.value = category;
+                        option.textContent = category;
                         dropdown.appendChild(option);
                     });
                 },
@@ -205,77 +208,66 @@ thead tr:nth-child(3) th {
         }
         function fetchData() {
             let category = document.getElementById("category").value;
-            $.ajax({
-                type: "POST",
-                url: "../server/workforce_api.php",
-                data: {
-                    'command': 'kku_wf_budget-framework',
-                    'slt':category
-                },
-                dataType: "json",
-                success: function(response) {
-                    console.log(response.wf);
-                    console.log(response.faculty);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            
+            let data;
+            if(category=="all"){
+                data=all_data
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+            data.forEach((row, index) => {                   
+                const tr = document.createElement('tr');
+
+                const columns = [
+                    { key: 'No', value: index+1 },
+                    { key: 'Alias_Default', value: row.Alias_Default },
                     
+                    { key: 'TYPE1_fund1_num', value: (parseInt(row.TYPE1_fund1_num)).toLocaleString() },
+                    { key: 'TYPE1_fund1', value: (parseInt(row.TYPE1_fund1)).toLocaleString() },
+                    
+                    { key: 'TYPE1_fund2_num', value: (parseInt(row.TYPE1_fund2_num)).toLocaleString() },
+                    { key: 'TYPE1_fund2', value: (parseInt(row.TYPE1_fund2)).toLocaleString() },
+                    
+                    { key: 'TYPE2_fund1_num', value: (parseInt(row.TYPE2_fund1_num)).toLocaleString() },
+                    { key: 'TYPE2_fund1', value: (parseInt(row.TYPE2_fund1)).toLocaleString() },
+                    
+                    { key: 'TYPE2_fund2_num', value: (parseInt(row.TYPE2_fund2_num)).toLocaleString() },
+                    { key: 'TYPE2_fund2', value: (parseInt(row.TYPE2_fund2)).toLocaleString() },
+                    
+                    { key: 'TYPE3_fund1_num', value: (parseInt(row.TYPE3_fund1_num)).toLocaleString() },
+                    { key: 'TYPE3_fund1', value: (parseInt(row.TYPE3_fund1)).toLocaleString() },
+                    
+                    { key: 'TYPE3_fund2_num', value: (parseInt(row.TYPE3_fund2_num)).toLocaleString() },
+                    { key: 'TYPE3_fund2', value: (parseInt(row.TYPE3_fund2)).toLocaleString() },
+                    
+                    { key: 'TYPE4_fund1_num', value: (parseInt(row.TYPE4_fund1_num)).toLocaleString() },
+                    { key: 'TYPE4_fund1', value: (parseInt(row.TYPE4_fund1)).toLocaleString() },
+                    
+                    { key: 'TYPE4_fund2_num', value: (parseInt(row.TYPE4_fund2_num)).toLocaleString() },
+                    { key: 'TYPE4_fund2', value: (parseInt(row.TYPE4_fund2)).toLocaleString() },
+                    
+                    { key: 'sum_fund1_num', value: (parseInt(row.TYPE1_fund1_num)+parseInt(row.TYPE2_fund1_num)+parseInt(row.TYPE3_fund1_num)+parseInt(row.TYPE4_fund1_num)).toLocaleString() },
+                    { key: 'sum_fund1', value: (parseInt(row.TYPE1_fund1)+parseInt(row.TYPE2_fund1)+parseInt(row.TYPE3_fund1)+parseInt(row.TYPE4_fund1)).toLocaleString() },
+                    
+                    { key: 'sum_fund2_num', value: (parseInt(row.TYPE1_fund2_num)+parseInt(row.TYPE2_fund2_num)+parseInt(row.TYPE3_fund2_num)+parseInt(row.TYPE4_fund2_num)).toLocaleString()},
+                    { key: 'sum_fund2', value: (parseInt(row.TYPE1_fund2)+parseInt(row.TYPE2_fund2)+parseInt(row.TYPE3_fund2)+parseInt(row.TYPE4_fund2)).toLocaleString() },
+                ];
 
-                        response.wf.forEach((row, index) => {                   
-                            const tr = document.createElement('tr');
-
-                            const columns = [
-                                { key: 'No', value: index+1 },
-                                { key: 'Alias_Default', value: row.Alias_Default },
-                                
-                                { key: 'TYPE1_fund1_num', value: (parseInt(row.TYPE1_fund1_num)).toLocaleString() },
-                                { key: 'TYPE1_fund1', value: (parseInt(row.TYPE1_fund1)).toLocaleString() },
-                                
-                                { key: 'TYPE1_fund2_num', value: (parseInt(row.TYPE1_fund2_num)).toLocaleString() },
-                                { key: 'TYPE1_fund2', value: (parseInt(row.TYPE1_fund2)).toLocaleString() },
-                                
-                                { key: 'TYPE2_fund1_num', value: (parseInt(row.TYPE2_fund1_num)).toLocaleString() },
-                                { key: 'TYPE2_fund1', value: (parseInt(row.TYPE2_fund1)).toLocaleString() },
-                                
-                                { key: 'TYPE2_fund2_num', value: (parseInt(row.TYPE2_fund2_num)).toLocaleString() },
-                                { key: 'TYPE2_fund2', value: (parseInt(row.TYPE2_fund2)).toLocaleString() },
-                                
-                                { key: 'TYPE3_fund1_num', value: (parseInt(row.TYPE3_fund1_num)).toLocaleString() },
-                                { key: 'TYPE3_fund1', value: (parseInt(row.TYPE3_fund1)).toLocaleString() },
-                                
-                                { key: 'TYPE3_fund2_num', value: (parseInt(row.TYPE3_fund2_num)).toLocaleString() },
-                                { key: 'TYPE3_fund2', value: (parseInt(row.TYPE3_fund2)).toLocaleString() },
-                                
-                                { key: 'TYPE4_fund1_num', value: (parseInt(row.TYPE4_fund1_num)).toLocaleString() },
-                                { key: 'TYPE4_fund1', value: (parseInt(row.TYPE4_fund1)).toLocaleString() },
-                                
-                                { key: 'TYPE4_fund2_num', value: (parseInt(row.TYPE4_fund2_num)).toLocaleString() },
-                                { key: 'TYPE4_fund2', value: (parseInt(row.TYPE4_fund2)).toLocaleString() },
-                                
-                                { key: 'sum_fund1_num', value: (parseInt(row.TYPE1_fund1_num)+parseInt(row.TYPE2_fund1_num)+parseInt(row.TYPE3_fund1_num)+parseInt(row.TYPE4_fund1_num)).toLocaleString() },
-                                { key: 'sum_fund1', value: (parseInt(row.TYPE1_fund1)+parseInt(row.TYPE2_fund1)+parseInt(row.TYPE3_fund1)+parseInt(row.TYPE4_fund1)).toLocaleString() },
-                                
-                                { key: 'sum_fund2_num', value: (parseInt(row.TYPE1_fund2_num)+parseInt(row.TYPE2_fund2_num)+parseInt(row.TYPE3_fund2_num)+parseInt(row.TYPE4_fund2_num)).toLocaleString()},
-                                { key: 'sum_fund2', value: (parseInt(row.TYPE1_fund2)+parseInt(row.TYPE2_fund2)+parseInt(row.TYPE3_fund2)+parseInt(row.TYPE4_fund2)).toLocaleString() },
-                            ];
-
-                            columns.forEach(col => {
-                                const td = document.createElement('td');
-                                td.textContent = col.value;
-                                tr.appendChild(td);
-                            });
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col.value;
+                    tr.appendChild(td);
+                });
 
 
-                            tableBody.appendChild(tr);
-                            
-                        });
-                        calculateSum();
-
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
-                }
+                tableBody.appendChild(tr);
+                
             });
+            calculateSum();              
         }
         function calculateSum() {
         const table = document.querySelector('table');

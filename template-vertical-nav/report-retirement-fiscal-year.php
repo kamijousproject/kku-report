@@ -183,6 +183,7 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function() {
             laodData();
             
@@ -193,16 +194,18 @@ thead tr:nth-child(3) th {
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'list-faculty'
+                    'command': 'kku_wf_retirement-fiscal-year'
                 },
                 dataType: "json",
                 success: function(response) {
+                    all_data=response.wf;                                             
+                    const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
-                    response.wf.forEach(category => {
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
                         let option = document.createElement("option");
-                        option.value = category.Parent;
-                        option.textContent = category.Alias_Default;
+                        option.value = category;
+                        option.textContent = category;
                         dropdown.appendChild(option);
                     });
                 },
@@ -215,73 +218,65 @@ thead tr:nth-child(3) th {
         }
         function fetchData() {
             let category = document.getElementById("category").value;
-            $.ajax({
-                type: "POST",
-                url: "../server/workforce_api.php",
-                data: {
-                    'command': 'kku_wf_retirement-fiscal-year',
-                    'slt':category
-                },
-                dataType: "json",
-                success: function(response) {
-                    console.log(response.wf);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-                    
-                    response.wf.forEach((row, index) => {                   
-                        const tr = document.createElement('tr');
-                        var sum1=parseInt(row.p1 ?? 0)+parseInt(row.p2?? 0)+parseInt(row.p3?? 0)+parseInt(row.p4?? 0)+parseInt(row.p5?? 0);
-                        var sum2=parseInt(row.p1_y2?? 0)+parseInt(row.p2_y2?? 0)+parseInt(row.p3_y2?? 0)+parseInt(row.p4_y2?? 0)+parseInt(row.p5_y2?? 0);
-                        var sum3=parseInt(row.p1_y3?? 0)+parseInt(row.p2_y3?? 0)+parseInt(row.p3_y3?? 0)+parseInt(row.p4_y3?? 0)+parseInt(row.p5_y3?? 0);
-                        var sum4=parseInt(row.p1_y4?? 0)+parseInt(row.p2_y4?? 0)+parseInt(row.p3_y4?? 0)+parseInt(row.p4_y4?? 0)+parseInt(row.p5_y4?? 0);
-                        var sum5=sum1+sum2+sum3+sum4;                      
-                        const columns = [
-                            { key: 'No', value: index+1 },
-                            { key: 'Faculty', value: row.Alias_Default??row.Alias_Default_y2??row.Alias_Default_y3??row.Alias_Default_y4 },                           
-                            { key: 'Position', value: row.POSITION??row.POSITION_y2??row.POSITION_y3??row.POSITION_y4 },
-                            { key: 'personnel_type', value: row.all_position_types??row.all_position_types_y2??row.all_position_types_y3??row.all_position_types_y4 },  
-                            { key: 'Job_Family', value: row.Job_Family??row.Job_Family_y2??row.Job_Family_y3??row.Job_Family_y4 },
-                            { key: 'p1', value: row.p1?? 0 },                            
-                            { key: 'p2', value: row.p2 ?? 0},
-                            { key: 'p3', value: row.p3 ?? 0},
-                            { key: 'p4', value: row.p4 ?? 0},     
-                            { key: 'p5', value: row.p5 ?? 0},      
-                            { key: 'sum1', value: sum1 },
-                            { key: 'p1_y2', value: row.p1_y2 ?? 0},                            
-                            { key: 'p2_y2', value: row.p2_y2 ?? 0},
-                            { key: 'p3_y2', value: row.p3_y2 ?? 0},
-                            { key: 'p4_y2', value: row.p4_y2 ?? 0},     
-                            { key: 'p5_y2', value: row.p5_y2 ?? 0},      
-                            { key: 'sum2', value: sum2 },
-                            { key: 'p1_y3', value: row.p1_y3 ?? 0},                            
-                            { key: 'p2_y3', value: row.p2_y3 ?? 0},
-                            { key: 'p3_y3', value: row.p3_y3 ?? 0},
-                            { key: 'p4_y3', value: row.p4_y3 ?? 0},     
-                            { key: 'p5_y3', value: row.p5_y3 ?? 0},      
-                            { key: 'sum3', value: sum3 },
-                            { key: 'p1_y4', value: row.p1_y4 ?? 0},                            
-                            { key: 'p2_y4', value: row.p2_y4 ?? 0},
-                            { key: 'p3_y4', value: row.p3_y4 ?? 0},
-                            { key: 'p4_y4', value: row.p4_y4 ?? 0},     
-                            { key: 'p5_y4', value: row.p5_y4 ?? 0},      
-                            { key: 'sum4', value: sum4 },    
-                            { key: 'sum5', value: sum5 },                                                                         
-                        ];
+            
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            let data;
+            if(category=="all"){
+                data=all_data
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+            data.forEach((row, index) => {                   
+                const tr = document.createElement('tr');
+                var sum1=parseInt(row.p1 ?? 0)+parseInt(row.p2?? 0)+parseInt(row.p3?? 0)+parseInt(row.p4?? 0)+parseInt(row.p5?? 0);
+                var sum2=parseInt(row.p1_y2?? 0)+parseInt(row.p2_y2?? 0)+parseInt(row.p3_y2?? 0)+parseInt(row.p4_y2?? 0)+parseInt(row.p5_y2?? 0);
+                var sum3=parseInt(row.p1_y3?? 0)+parseInt(row.p2_y3?? 0)+parseInt(row.p3_y3?? 0)+parseInt(row.p4_y3?? 0)+parseInt(row.p5_y3?? 0);
+                var sum4=parseInt(row.p1_y4?? 0)+parseInt(row.p2_y4?? 0)+parseInt(row.p3_y4?? 0)+parseInt(row.p4_y4?? 0)+parseInt(row.p5_y4?? 0);
+                var sum5=sum1+sum2+sum3+sum4;                      
+                const columns = [
+                    { key: 'No', value: index+1 },
+                    { key: 'Faculty', value: row.Alias_Default??row.Alias_Default_y2??row.Alias_Default_y3??row.Alias_Default_y4 },                           
+                    { key: 'Position', value: row.POSITION??row.POSITION_y2??row.POSITION_y3??row.POSITION_y4 },
+                    { key: 'personnel_type', value: row.all_position_types??row.all_position_types_y2??row.all_position_types_y3??row.all_position_types_y4 },  
+                    { key: 'Job_Family', value: row.Job_Family??row.Job_Family_y2??row.Job_Family_y3??row.Job_Family_y4 },
+                    { key: 'p1', value: row.p1?? 0 },                            
+                    { key: 'p2', value: row.p2 ?? 0},
+                    { key: 'p3', value: row.p3 ?? 0},
+                    { key: 'p4', value: row.p4 ?? 0},     
+                    { key: 'p5', value: row.p5 ?? 0},      
+                    { key: 'sum1', value: sum1 },
+                    { key: 'p1_y2', value: row.p1_y2 ?? 0},                            
+                    { key: 'p2_y2', value: row.p2_y2 ?? 0},
+                    { key: 'p3_y2', value: row.p3_y2 ?? 0},
+                    { key: 'p4_y2', value: row.p4_y2 ?? 0},     
+                    { key: 'p5_y2', value: row.p5_y2 ?? 0},      
+                    { key: 'sum2', value: sum2 },
+                    { key: 'p1_y3', value: row.p1_y3 ?? 0},                            
+                    { key: 'p2_y3', value: row.p2_y3 ?? 0},
+                    { key: 'p3_y3', value: row.p3_y3 ?? 0},
+                    { key: 'p4_y3', value: row.p4_y3 ?? 0},     
+                    { key: 'p5_y3', value: row.p5_y3 ?? 0},      
+                    { key: 'sum3', value: sum3 },
+                    { key: 'p1_y4', value: row.p1_y4 ?? 0},                            
+                    { key: 'p2_y4', value: row.p2_y4 ?? 0},
+                    { key: 'p3_y4', value: row.p3_y4 ?? 0},
+                    { key: 'p4_y4', value: row.p4_y4 ?? 0},     
+                    { key: 'p5_y4', value: row.p5_y4 ?? 0},      
+                    { key: 'sum4', value: sum4 },    
+                    { key: 'sum5', value: sum5 },                                                                         
+                ];
 
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            tr.appendChild(td);
-                        });
-                        tableBody.appendChild(tr);
-                    });
-                    calculateSum();
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
-                }
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col.value;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);
             });
+            calculateSum();
+                
         }
         function calculateSum() {
         const table = document.querySelector('table');

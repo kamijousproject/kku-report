@@ -147,6 +147,7 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function() {
             laodData();
             
@@ -157,16 +158,19 @@
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'list-faculty'
+                    'command': 'kku_wf_4year-framework'
                 },
                 dataType: "json",
                 success: function(response) {
+                    all_data=response.wf;                                             
+                    const fac = [...new Set(all_data.map(item => item.pname))];
+                    console.log(fac);
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
-                    response.wf.forEach(category => {
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
                         let option = document.createElement("option");
-                        option.value = category.Parent;
-                        option.textContent = category.Alias_Default;
+                        option.value = category;
+                        option.textContent = category;
                         dropdown.appendChild(option);
                     });
                 },
@@ -180,87 +184,75 @@
         function fetchData() {
             let category = document.getElementById("category").value;
             //let resultDiv = document.getElementById("result");
-            console.log(category);
-            $.ajax({
-                type: "POST",
-                url: "../server/workforce_api.php",
-                data: {
-                    'command': 'kku_wf_4year-framework',
-                    'slt':category
-                },
-                dataType: "json",
-                success: function(response) {
-                    console.log(response.wf);
-                    console.log(response.faculty);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            let data;
+            if(category=="all"){
+                data=all_data
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+             
+            data.forEach((row, index) => {                   
+                const tr = document.createElement('tr');
+
+                const columns = [
+                    { key: 'Alias_Default', value: row.Alias_Default },
+                    { key: 'TYPE1_year1', value: (parseInt(row.TYPE1_year1)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE2_year1', value: (parseInt(row.TYPE2_year1)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE3_year1', value: (parseInt(row.TYPE3_year1)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE4_year1', value: (parseInt(row.TYPE4_year1)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'sum_year1', value: (parseInt(row.TYPE1_year1) + parseInt(row.TYPE2_year1) + parseInt(row.TYPE3_year1) + parseInt(row.TYPE4_year1)).toLocaleString() },
+                    { key: 'actual_year1', value: "0" },
+                    { key: 'TYPE1_year2', value: (parseInt(row.TYPE1_year2)).toLocaleString() },
+                    { key: 'Actual_type1', value: (parseInt(row.Actual_type1)).toLocaleString() },
+                    { key: 'TYPE2_year2', value: (parseInt(row.TYPE2_year2)).toLocaleString() },
+                    { key: 'Actual_type2', value: (parseInt(row.Actual_type2)).toLocaleString() },
+                    { key: 'TYPE3_year2', value: (parseInt(row.TYPE3_year2)).toLocaleString() },
+                    { key: 'Actual_type3', value: (parseInt(row.Actual_type3)).toLocaleString() },
+                    { key: 'TYPE4_year2', value: (parseInt(row.TYPE4_year2)).toLocaleString() },
+                    { key: 'Actual_type4', value: (parseInt(row.Actual_type4)).toLocaleString() },
+                    { key: 'sum_year2', value: (parseInt(row.TYPE1_year2) + parseInt(row.TYPE2_year2) + parseInt(row.TYPE3_year2) + parseInt(row.TYPE4_year2)).toLocaleString() },
+                    { key: 'actual_year2', value: (parseInt(row.Actual_type1) + parseInt(row.Actual_type2) + parseInt(row.Actual_type3) + parseInt(row.Actual_type4)).toLocaleString() },
+                    { key: 'TYPE1_year3', value: (parseInt(row.TYPE1_year3)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE2_year3', value: (parseInt(row.TYPE2_year3)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE3_year3', value: (parseInt(row.TYPE3_year3)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE4_year3', value: (parseInt(row.TYPE4_year3)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'sum_year3', value: (parseInt(row.TYPE1_year3) + parseInt(row.TYPE2_year3) + parseInt(row.TYPE3_year3) + parseInt(row.TYPE4_year3)).toLocaleString() },
+                    { key: 'actual_year3', value: "0" },
+                    { key: 'TYPE1_year4', value: (parseInt(row.TYPE1_year4)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE2_year4', value: (parseInt(row.TYPE2_year4)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE3_year4', value: (parseInt(row.TYPE3_year4)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'TYPE4_year4', value: (parseInt(row.TYPE4_year4)).toLocaleString() },
+                    { key: '0', value: "0" },
+                    { key: 'sum_year4', value: (parseInt(row.TYPE1_year4) + parseInt(row.TYPE2_year4) + parseInt(row.TYPE3_year4) + parseInt(row.TYPE4_year4)).toLocaleString() },
+                    { key: 'actual_year4', value: "0" }
+                ];
+
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col.value;
+                    tr.appendChild(td);
+                });
 
 
-                        response.wf.forEach((row, index) => {                   
-                            const tr = document.createElement('tr');
-
-                            const columns = [
-                                { key: 'Alias_Default', value: row.Alias_Default },
-                                { key: 'TYPE1_year1', value: (parseInt(row.TYPE1_year1)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE2_year1', value: (parseInt(row.TYPE2_year1)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE3_year1', value: (parseInt(row.TYPE3_year1)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE4_year1', value: (parseInt(row.TYPE4_year1)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'sum_year1', value: (parseInt(row.TYPE1_year1) + parseInt(row.TYPE2_year1) + parseInt(row.TYPE3_year1) + parseInt(row.TYPE4_year1)).toLocaleString() },
-                                { key: 'actual_year1', value: "0" },
-                                { key: 'TYPE1_year2', value: (parseInt(row.TYPE1_year2)).toLocaleString() },
-                                { key: 'Actual_type1', value: (parseInt(row.Actual_type1)).toLocaleString() },
-                                { key: 'TYPE2_year2', value: (parseInt(row.TYPE2_year2)).toLocaleString() },
-                                { key: 'Actual_type2', value: (parseInt(row.Actual_type2)).toLocaleString() },
-                                { key: 'TYPE3_year2', value: (parseInt(row.TYPE3_year2)).toLocaleString() },
-                                { key: 'Actual_type3', value: (parseInt(row.Actual_type3)).toLocaleString() },
-                                { key: 'TYPE4_year2', value: (parseInt(row.TYPE4_year2)).toLocaleString() },
-                                { key: 'Actual_type4', value: (parseInt(row.Actual_type4)).toLocaleString() },
-                                { key: 'sum_year2', value: (parseInt(row.TYPE1_year2) + parseInt(row.TYPE2_year2) + parseInt(row.TYPE3_year2) + parseInt(row.TYPE4_year2)).toLocaleString() },
-                                { key: 'actual_year2', value: (parseInt(row.Actual_type1) + parseInt(row.Actual_type2) + parseInt(row.Actual_type3) + parseInt(row.Actual_type4)).toLocaleString() },
-                                { key: 'TYPE1_year3', value: (parseInt(row.TYPE1_year3)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE2_year3', value: (parseInt(row.TYPE2_year3)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE3_year3', value: (parseInt(row.TYPE3_year3)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE4_year3', value: (parseInt(row.TYPE4_year3)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'sum_year3', value: (parseInt(row.TYPE1_year3) + parseInt(row.TYPE2_year3) + parseInt(row.TYPE3_year3) + parseInt(row.TYPE4_year3)).toLocaleString() },
-                                { key: 'actual_year3', value: "0" },
-                                { key: 'TYPE1_year4', value: (parseInt(row.TYPE1_year4)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE2_year4', value: (parseInt(row.TYPE2_year4)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE3_year4', value: (parseInt(row.TYPE3_year4)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'TYPE4_year4', value: (parseInt(row.TYPE4_year4)).toLocaleString() },
-                                { key: '0', value: "0" },
-                                { key: 'sum_year4', value: (parseInt(row.TYPE1_year4) + parseInt(row.TYPE2_year4) + parseInt(row.TYPE3_year4) + parseInt(row.TYPE4_year4)).toLocaleString() },
-                                { key: 'actual_year4', value: "0" }
-                            ];
-
-                            columns.forEach(col => {
-                                const td = document.createElement('td');
-                                td.textContent = col.value;
-                                tr.appendChild(td);
-                            });
-
-
-                            tableBody.appendChild(tr);
-                            
-                        });
-                        calculateSum();
-
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
-                }
+                tableBody.appendChild(tr);
+                
             });
+            calculateSum();
         }
         function calculateSum() {
         const table = document.querySelector('table');

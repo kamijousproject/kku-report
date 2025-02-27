@@ -573,7 +573,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN pilars2 p
                         ON b2.KKU_Strategic_Plan_LOV=p.pillar_id
                         LEFT JOIN okr ok
-                        ON b2.OKRs_LOV=ok.okr_id)
+                        ON replace(b2.OKRs_LOV,'_','-')=ok.okr_id)
                         ,t4 AS (
                         SELECT t.*,pl.plan_name,sp.sub_plan_name
                         FROM t3 t

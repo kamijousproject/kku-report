@@ -107,7 +107,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH position_summary AS (
                             SELECT 
@@ -139,7 +138,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             FROM workforce_4year_plan w
                             LEFT JOIN Faculty f
                             ON w.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
-                            WHERE f.parent =:slt
                             GROUP BY Faculty
                         ),
 
@@ -190,13 +188,18 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ac.Actual_type2,
                             ac.Actual_type3,
                             ac.Actual_type4,
-                            f.Alias_Default
+                            f.Alias_Default,
+                            f2.Alias_Default AS pname
                         FROM position_summary ps
                         LEFT JOIN actual_counts ac ON ps.Faculty = ac.Faculty COLLATE utf8mb4_general_ci
                         LEFT JOIN (
-                            SELECT DISTINCT Faculty, Alias_Default 
-                            FROM Faculty
-                        ) f ON ps.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON ps.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
                         GROUP BY 
                             ps.Faculty,
                             ps.TYPE1,
@@ -207,10 +210,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ac.Actual_type1,
                             ac.Actual_type2,
                             ac.Actual_type3,
-                            ac.Actual_type4
+                            ac.Actual_type4,
+                            f2.Alias_Default
                         ORDER BY ps.Faculty";
                 $cmd = $conn->prepare($sql);
-                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -231,7 +234,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $slt = $_POST["slt"];
+                //$slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS(
                         SELECT w.Faculty
@@ -242,13 +245,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM workforce_hcm_actual w
                         LEFT JOIN Faculty f
                         ON w.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
-                        WHERE all_position_types IS NOT NULL and (fund_ft ='เงินงบประมาณ' OR fund_ft='เงินรายได้') AND w.Faculty !='00000' AND f.parent =:slt
+                        WHERE all_position_types IS NOT NULL and (fund_ft ='เงินงบประมาณ' OR fund_ft='เงินรายได้') AND w.Faculty !='00000'
                         GROUP BY Faculty
                         ,all_position_types
                         ,fund_ft
                         ORDER BY Faculty)
 
-                        SELECT f.Alias_Default
+                        SELECT f.Alias_Default,f2.Alias_Default as pname
                         ,sum(case when all_position_types='บริหาร' AND fund_ft='เงินงบประมาณ' then salary_rate ELSE 0 END) AS TYPE1_fund1
                         ,sum(case when all_position_types='บริหาร' AND fund_ft='เงินรายได้' then salary_rate ELSE 0 END) AS TYPE1_fund2
                         ,sum(case when all_position_types='วิชาการ' AND fund_ft='เงินงบประมาณ' then salary_rate ELSE 0 END) AS TYPE2_fund1
@@ -267,14 +270,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when all_position_types='สนับสนุน' AND fund_ft='เงินงบประมาณ' then num_position_types ELSE 0 END) AS TYPE4_fund1_num
                         ,sum(case when all_position_types='สนับสนุน' AND fund_ft='เงินรายได้' then num_position_types ELSE 0 END) AS TYPE4_fund2_num
                         FROM t1 ad
-                        LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
+                        LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
-                        ) f ON ad.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        GROUP BY f.Alias_Default
-                        ORDER BY f.Alias_Default ";
+                        where parent like 'Faculty%') f ON ad.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        WHERE f.Alias_Default IS NOT null
+                        GROUP BY f.Alias_Default,f2.Alias_Default
+                        
+                        ORDER BY f.Alias_Default";
                 $cmd = $conn->prepare($sql);
-                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
+                //$cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -337,7 +345,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     UNION ALL
                     SELECT * FROM ad2)
 
-                    SELECT f.Alias_Default,f.parent
+                    SELECT f.Alias_Default,f.parent,f2.Alias_Default as pname
                     ,sum(case when t1.Personnel_Type='ข้าราชการ'AND t1.all_position_types='วิชาการ' then total_person ELSE 0 END) AS c1
                     ,sum(case when t1.Personnel_Type='ข้าราชการ'AND t1.all_position_types='สนับนสุน' then total_person ELSE 0 END) AS c2
                     ,sum(case when t1.Personnel_Type='ลูกจ้างประจำ'AND t1.all_position_types='สนับสนุน' then total_person ELSE 0 END) AS c3
@@ -360,11 +368,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     ,sum(case when t1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'AND t1.all_position_types='สนับสนุน' AND t1.rate_status='คนครอง'then t1.total_person ELSE 0 END) AS c20
                     ,sum(case when t1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'AND t1.all_position_types='สนับสนุน' AND t1.rate_status='อัตราว่าง'then t1.total_person ELSE 0 END) AS c21
                     FROM t1
-                    LEFT JOIN (
-                    SELECT DISTINCT Faculty, Alias_Default ,parent
+                    LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default ,parent
                     FROM Faculty
-                    WHERE parent LIKE 'Faculty%') f ON t1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                    GROUP BY f.Alias_Default,f.parent
+                    where parent like 'Faculty%') f 
+                    ON t1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                    LEFT JOIN (
+                    SELECT DISTINCT Faculty, Alias_Default
+                    FROM Faculty) f2 
+                    ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
+                    WHERE f.Alias_Default IS NOT null
+                    GROUP BY f.Alias_Default,f.parent,f2.Alias_Default
                     ORDER BY f.Alias_Default";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -427,7 +440,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $slt = $_POST["slt"];
+                //$slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "SELECT distinct COALESCE(f.Alias_Default,act1.Faculty) AS faculty
                         ,act1.Personnel_Type
@@ -437,15 +450,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,act1.all_position_types
                         ,act1.Job_Family
                         ,act4.Retirement_Date
+                        ,f2.Alias_Default as pname
                         FROM workforce_hcm_actual act1
                         LEFT JOIN workforce_hcm_actual act4
                         ON act1.Position_Number=act4.Position_Number
-                        LEFT JOIN Faculty f
+                        LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f 
                         ON act1.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        where act1.Faculty!='00000' and f.parent =:slt
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        WHERE act1.Faculty!='00000' and f.Alias_Default IS NOT null
                         ORDER BY COALESCE(f.Alias_Default,act1.Faculty),Replace(act1.Position_Number,'PN_','')";
                 $cmd = $conn->prepare($sql);
-                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
+                //$cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -1228,7 +1248,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $slt = $_POST["slt"];
+                //$slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 /* $sql = "WITH act1 AS(
                         SELECT w.Faculty
@@ -1386,7 +1406,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM workforce_hcm_actual w
                         LEFT JOIN Faculty f
                             ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        WHERE w.Faculty!='00000' AND (Personnel_Type='ข้าราชการ'OR Personnel_Type='ลูกจ้างของมหาวิทยาลัย'OR Personnel_Type='ลูกจ้างประจำ'OR Personnel_Type='พนักงานมหาวิทยาลัย')and f.parent =:slt) 
+                        WHERE w.Faculty!='00000' AND (Personnel_Type='ข้าราชการ'OR Personnel_Type='ลูกจ้างของมหาวิทยาลัย'OR Personnel_Type='ลูกจ้างประจำ'OR Personnel_Type='พนักงานมหาวิทยาลัย')) 
                         ,t2 AS (
                         SELECT distinct t1.*,act4.Retirement_Date,f2.Alias_Default
                         FROM act1 t1
@@ -1521,10 +1541,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         WHERE t.Faculty IS NULL)
 
 
-                        SELECT * FROM t14
-                        ORDER BY t14.faculty,t14.y";
+                        SELECT t.* ,f2.Alias_Default AS pname
+								FROM t14 t
+                        LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f 
+								ON (t.Faculty = f.Faculty OR t.Faculty_y2 = f.Faculty OR t.Faculty_y3 = f.Faculty OR t.Faculty_y4 = f.Faculty  ) COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        ORDER BY f2.Alias_Default,t.faculty,t.Faculty_y2,t.Faculty_y3,t.Faculty_y4,t.y";
                 $cmd = $conn->prepare($sql);
-                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
+                //$cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;

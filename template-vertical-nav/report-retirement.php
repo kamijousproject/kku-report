@@ -143,6 +143,7 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function() {
             laodData();
             
@@ -153,16 +154,18 @@ thead tr:nth-child(3) th {
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'list-faculty'
+                    'command': 'kku_wf_retirement'
                 },
                 dataType: "json",
                 success: function(response) {
+                    all_data=response.wf;                                             
+                    const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
-                    response.wf.forEach(category => {
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
                         let option = document.createElement("option");
-                        option.value = category.Parent;
-                        option.textContent = category.Alias_Default;
+                        option.value = category;
+                        option.textContent = category;
                         dropdown.appendChild(option);
                     });
                 },
@@ -175,54 +178,43 @@ thead tr:nth-child(3) th {
         }
         function fetchData() {
             let category = document.getElementById("category").value;
-            $.ajax({
-                type: "POST",
-                url: "../server/workforce_api.php",
-                data: {
-                    'command': 'kku_wf_retirement',
-                    'slt':category
-                },
-                dataType: "json",
-                success: function(response) {
-                    //console.log(response.wf);
-                    //console.log(response.faculty);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            let data;
+            if(category=="all"){
+                data=all_data
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+            data.forEach((row, index) => {                   
+                const tr = document.createElement('tr');
 
-                    response.wf.forEach((row, index) => {                   
-                        const tr = document.createElement('tr');
+                const columns = [
+                    { key: 'No', value: index+1 },
+                    { key: 'Faculty', value: row.faculty },                           
+                    { key: 'personnel_type', value: row.Personnel_Type },
+                    { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },  
+                    { key: 'Position', value: row.Position },
+                    { key: 'Position_Number', value: row.Position_Number },                            
+                    { key: 'All_PositionTypes', value: row.All_PositionTypes },
+                    { key: 'Job_Family', value: row.Job_Family },
+                    { key: 'Retirement_Date', value: row.Retirement_Date, nowrap: true },                                                                                   
+                ];
 
-                        const columns = [
-                            { key: 'No', value: index+1 },
-                            { key: 'Faculty', value: row.faculty },                           
-                            { key: 'personnel_type', value: row.Personnel_Type },
-                            { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },  
-                            { key: 'Position', value: row.Position },
-                            { key: 'Position_Number', value: row.Position_Number },                            
-                            { key: 'All_PositionTypes', value: row.All_PositionTypes },
-                            { key: 'Job_Family', value: row.Job_Family },
-                            { key: 'Retirement_Date', value: row.Retirement_Date, nowrap: true },                                                                                   
-                        ];
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col.value;
+                    
+                    if (col.nowrap) {
+                        td.classList.add("nowrap");
+                    }
 
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            
-                            if (col.nowrap) {
-                                td.classList.add("nowrap");
-                            }
-
-                            tr.appendChild(td);
-                        });
-                        tableBody.appendChild(tr);     
-                    });
-
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
-                }
-            });
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);     
+            });    
         }
         function exportCSV() {
             const table = document.getElementById('reportTable');
