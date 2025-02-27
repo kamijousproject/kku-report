@@ -1,23 +1,27 @@
 <?php
-include '../server/connectdb.php';
+include 'connectdb.php';
 include 'functions.php'; // นำเข้าฟังก์ชันที่เราสร้าง
 
 $database = new Database();
 $conn = $database->connect();
-
-function formatAccountDescription($description)
+function formatAccountData($account, $description)
 {
-    // ลบเครื่องหมาย \ และช่องว่างพิเศษออกจากข้อความ
+    // 1. จัดรูปแบบ account (เลขที่ 3 - เลขที่ 1)
+    $accountParts = explode('-', $account);
+    $formattedAccount = isset($accountParts[3], $accountParts[1]) ? "{$accountParts[3]}-{$accountParts[1]}" : $account;
+
+    // 2. ลบเครื่องหมาย \ และช่องว่างพิเศษออกจาก description
     $cleanedDescription = preg_replace('/\\\\/', '', $description);
 
-    // ใช้ regex ดึงเฉพาะส่วนที่ต้องการ
+    // 3. ใช้ regex ดึงเฉพาะส่วนที่ต้องการจาก account_description
     if (preg_match('/(บัญชี[^-]+)-([^\\-]+)-([^\\-]+)/u', $cleanedDescription, $matches)) {
-        return trim("{$matches[1]}-{$matches[2]}-{$matches[3]}");
+        $formattedDescription = trim("{$matches[1]}-{$matches[2]}-{$matches[3]}");
     } else {
-        return trim($cleanedDescription); // ถ้าไม่ตรงเงื่อนไขให้แสดงค่าเดิม
+        $formattedDescription = trim($cleanedDescription); // ถ้าไม่ตรงเงื่อนไขให้แสดงค่าเดิม
     }
-}
 
+    return [$formattedAccount, $formattedDescription];
+}
 // Query ดึงข้อมูลทั้งหมด
 $query = "SELECT 
             account, 
@@ -46,9 +50,11 @@ fputcsv($output, ['รหัสบัญชี', 'ชื่อบัญชี', 
 
 // เขียนข้อมูล
 foreach ($data as $row) {
+    list($formattedAccount, $formattedDescription) = formatAccountData($row['account'], $row['account_description']);
+
     fputcsv($output, [
-        $row['account'],
-        formatAccountDescription($row['account_description']), // ใช้ฟังก์ชัน
+        $formattedAccount,
+        $formattedDescription,
         '-',
         '-',
         $row['prior_periods_debit'],
