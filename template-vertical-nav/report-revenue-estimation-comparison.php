@@ -740,7 +740,12 @@ function fetchYearsData($conn)
                                             <tr>
                                                 <th colspan="31" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
-                                                        <?php echo "ส่วนงาน / หน่วยงาน: " . $selectedFacultyName; ?>
+
+                                                    
+                                                        <?php 
+                                                        $facultyData = str_replace('-', ':', $selectedFacultyName);
+                                                      
+                                                        echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
                                                     </span>
                                                 </th>
                                             </tr>
