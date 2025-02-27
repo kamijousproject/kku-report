@@ -603,13 +603,13 @@ function fetchYearsData($conn)
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</h4>
+                        <h4>รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</li>
+                            <li class="breadcrumb-item active">รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</li>
                         </ol>
                     </div>
                 </div>
@@ -618,7 +618,7 @@ function fetchYearsData($conn)
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</h4>
+                                    <h4>รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</h4>
                                 </div>
 
                                 <?php
@@ -854,6 +854,7 @@ function fetchYearsData($conn)
                                                     $project = $row['project_name'];
                                                     $subType = $row['sub_type'];
 
+                                                    // เก็บข้อมูลของ faculty
                                                     if (!isset($summary[$faculty])) {
                                                         $summary[$faculty] = [
                                                             'Faculty' => $row['Faculty_name'],
@@ -1041,10 +1042,171 @@ function fetchYearsData($conn)
                                                         ];
                                                     }
 
-                                       
+                                                    // เก็บข้อมูลของ faculty
+                                                    $summary[$faculty]['Total_Amount_1'] += $row['Total_Amount_1'];
+                                                    $summary[$faculty]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
+                                                    $summary[$faculty]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
+                                                    $summary[$faculty]['Q3_BUDGET1'] += $row['Q3_BUDGET1'];
+                                                    $summary[$faculty]['Q4_BUDGET1'] += $row['Q4_BUDGET1'];
+                                                    $summary[$faculty]['TOTAL_BUDGET_YEAR_1'] += $row['TOTAL_BUDGET_YEAR_1'];
+                                                    $summary[$faculty]['Total_Amount_2'] += $row['Total_Amount_2'];
+                                                    $summary[$faculty]['Q1_BUDGET2'] += $row['Q1_BUDGET2'];
+                                                    $summary[$faculty]['Q2_BUDGET2'] += $row['Q2_BUDGET2'];
+                                                    $summary[$faculty]['Q3_BUDGET2'] += $row['Q3_BUDGET2'];
+                                                    $summary[$faculty]['Q4_BUDGET2'] += $row['Q4_BUDGET2'];
+                                                    $summary[$faculty]['TOTAL_BUDGET_YEAR_2'] += $row['TOTAL_BUDGET_YEAR_2'];
+                                                    $summary[$faculty]['Total_Amount_Quantity1_2'] += $row['Total_Amount_Quantity1_2'];
+                                                    $summary[$faculty]['Q1_BUDGET1_2'] += $row['Q1_BUDGET1_2'];
+                                                    $summary[$faculty]['Q2_BUDGET1_2'] += $row['Q2_BUDGET1_2'];
+                                                    $summary[$faculty]['Q3_BUDGET1_2'] += $row['Q3_BUDGET1_2'];
+                                                    $summary[$faculty]['Q4_BUDGET1_2'] += $row['Q4_BUDGET1_2'];
+                                                    $summary[$faculty]['TOTAL_BUDGET_1_2'] += $row['TOTAL_BUDGET_1_2'];
+                                                    $summary[$faculty]['Total_Amount_4'] += $row['Total_Amount_4'];
+                                                    $summary[$faculty]['Q1_BUDGET4'] += $row['Q1_BUDGET4'];
+                                                    $summary[$faculty]['Q2_BUDGET4'] += $row['Q2_BUDGET4'];
+                                                    $summary[$faculty]['Q3_BUDGET4'] += $row['Q3_BUDGET4'];
+                                                    $summary[$faculty]['Q4_BUDGET4'] += $row['Q4_BUDGET4'];
+                                                    $summary[$faculty]['TOTAL_BUDGET_YEAR_4'] += $row['TOTAL_BUDGET_YEAR_4'];
+                                                    $summary[$faculty]['Total_Amount_5'] += $row['Total_Amount_5'];
+                                                    $summary[$faculty]['Q1_BUDGET5'] += $row['Q1_BUDGET5'];
+                                                    $summary[$faculty]['Q2_BUDGET5'] += $row['Q2_BUDGET5'];
+                                                    $summary[$faculty]['Q3_BUDGET5'] += $row['Q3_BUDGET5'];
+                                                    $summary[$faculty]['Q4_BUDGET5'] += $row['Q4_BUDGET5'];
+                                                    $summary[$faculty]['TOTAL_BUDGET_YEAR_5'] += $row['TOTAL_BUDGET_YEAR_5'];
+
+
+                                                    // เก็บข้อมูลของ Plan
+                                                    $summary[$faculty]['plans'][$plan]['Total_Amount_1'] += $row['Total_Amount_1'];
+                                                    $summary[$faculty]['plans'][$plan]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['Q3_BUDGET1'] += $row['Q3_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['Q4_BUDGET1'] += $row['Q4_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['TOTAL_BUDGET_YEAR_1'] += $row['TOTAL_BUDGET_YEAR_1'];
+                                                    $summary[$faculty]['plans'][$plan]['Total_Amount_2'] += $row['Total_Amount_2'];
+                                                    $summary[$faculty]['plans'][$plan]['Q1_BUDGET2'] += $row['Q1_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['Q2_BUDGET2'] += $row['Q2_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['Q3_BUDGET2'] += $row['Q3_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['Q4_BUDGET2'] += $row['Q4_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['TOTAL_BUDGET_YEAR_2'] += $row['TOTAL_BUDGET_YEAR_2'];
+                                                    $summary[$faculty]['plans'][$plan]['Total_Amount_Quantity1_2'] += $row['Total_Amount_Quantity1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['Q1_BUDGET1_2'] += $row['Q1_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['Q2_BUDGET1_2'] += $row['Q2_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['Q3_BUDGET1_2'] += $row['Q3_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['Q4_BUDGET1_2'] += $row['Q4_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['TOTAL_BUDGET_1_2'] += $row['TOTAL_BUDGET_1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['Total_Amount_4'] += $row['Total_Amount_4'];
+                                                    $summary[$faculty]['plans'][$plan]['Q1_BUDGET4'] += $row['Q1_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['Q2_BUDGET4'] += $row['Q2_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['Q3_BUDGET4'] += $row['Q3_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['Q4_BUDGET4'] += $row['Q4_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['TOTAL_BUDGET_YEAR_4'] += $row['TOTAL_BUDGET_YEAR_4'];
+                                                    $summary[$faculty]['plans'][$plan]['Total_Amount_5'] += $row['Total_Amount_5'];
+                                                    $summary[$faculty]['plans'][$plan]['Q1_BUDGET5'] += $row['Q1_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['Q2_BUDGET5'] += $row['Q2_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['Q3_BUDGET5'] += $row['Q3_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['Q4_BUDGET5'] += $row['Q4_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['TOTAL_BUDGET_YEAR_5'] += $row['TOTAL_BUDGET_YEAR_5'];
+
+                                                    // เก็บข้อมูลของ Sub_Plan
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Total_Amount_1'] += $row['Total_Amount_1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q3_BUDGET1'] += $row['Q3_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q4_BUDGET1'] += $row['Q4_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_YEAR_1'] += $row['TOTAL_BUDGET_YEAR_1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Total_Amount_2'] += $row['Total_Amount_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q1_BUDGET2'] += $row['Q1_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q2_BUDGET2'] += $row['Q2_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q3_BUDGET2'] += $row['Q3_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q4_BUDGET2'] += $row['Q4_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_YEAR_2'] += $row['TOTAL_BUDGET_YEAR_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Total_Amount_Quantity1_2'] += $row['Total_Amount_Quantity1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q1_BUDGET1_2'] += $row['Q1_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q2_BUDGET1_2'] += $row['Q2_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q3_BUDGET1_2'] += $row['Q3_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q4_BUDGET1_2'] += $row['Q4_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_1_2'] += $row['TOTAL_BUDGET_1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Total_Amount_4'] += $row['Total_Amount_4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q1_BUDGET4'] += $row['Q1_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q2_BUDGET4'] += $row['Q2_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q3_BUDGET4'] += $row['Q3_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q4_BUDGET4'] += $row['Q4_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_YEAR_4'] += $row['TOTAL_BUDGET_YEAR_4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Total_Amount_5'] += $row['Total_Amount_5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q1_BUDGET5'] += $row['Q1_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q2_BUDGET5'] += $row['Q2_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q3_BUDGET5'] += $row['Q3_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['Q4_BUDGET5'] += $row['Q4_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_YEAR_5'] += $row['TOTAL_BUDGET_YEAR_5'];
+
+
+                                                    // เก็บข้อมูลของ Project
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_1'] += $row['Total_Amount_1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q3_BUDGET1'] += $row['Q3_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q4_BUDGET1'] += $row['Q4_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_YEAR_1'] += $row['TOTAL_BUDGET_YEAR_1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2'] += $row['Total_Amount_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q1_BUDGET2'] += $row['Q1_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q2_BUDGET2'] += $row['Q2_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q3_BUDGET2'] += $row['Q3_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q4_BUDGET2'] += $row['Q4_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_YEAR_2'] += $row['TOTAL_BUDGET_YEAR_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_Quantity1_2'] += $row['Total_Amount_Quantity1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q1_BUDGET1_2'] += $row['Q1_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q2_BUDGET1_2'] += $row['Q2_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q3_BUDGET1_2'] += $row['Q3_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q4_BUDGET1_2'] += $row['Q4_BUDGET1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_1_2'] += $row['TOTAL_BUDGET_1_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_4'] += $row['Total_Amount_4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q1_BUDGET4'] += $row['Q1_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q2_BUDGET4'] += $row['Q2_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q3_BUDGET4'] += $row['Q3_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q4_BUDGET4'] += $row['Q4_BUDGET4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_YEAR_4'] += $row['TOTAL_BUDGET_YEAR_4'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_5'] += $row['Total_Amount_5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q1_BUDGET5'] += $row['Q1_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q2_BUDGET5'] += $row['Q2_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q3_BUDGET5'] += $row['Q3_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Q4_BUDGET5'] += $row['Q4_BUDGET5'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_YEAR_5'] += $row['TOTAL_BUDGET_YEAR_5'];
 
 
 
+                                                     // เก็บข้อมูลของ Sub_Type
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_1'] += $row['Total_Amount_1'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q3_BUDGET1'] += $row['Q3_BUDGET1'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q4_BUDGET1'] += $row['Q4_BUDGET1'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_YEAR_1'] += $row['TOTAL_BUDGET_YEAR_1'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2'] += $row['Total_Amount_2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q1_BUDGET2'] += $row['Q1_BUDGET2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q2_BUDGET2'] += $row['Q2_BUDGET2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q3_BUDGET2'] += $row['Q3_BUDGET2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q4_BUDGET2'] += $row['Q4_BUDGET2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_YEAR_2'] += $row['TOTAL_BUDGET_YEAR_2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_Quantity1_2'] += $row['Total_Amount_Quantity1_2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q1_BUDGET1_2'] += $row['Q1_BUDGET1_2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q2_BUDGET1_2'] += $row['Q2_BUDGET1_2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q3_BUDGET1_2'] += $row['Q3_BUDGET1_2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q4_BUDGET1_2'] += $row['Q4_BUDGET1_2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_1_2'] += $row['TOTAL_BUDGET_1_2'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_4'] += $row['Total_Amount_4'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q1_BUDGET4'] += $row['Q1_BUDGET4'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q2_BUDGET4'] += $row['Q2_BUDGET4'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q3_BUDGET4'] += $row['Q3_BUDGET4'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q4_BUDGET4'] += $row['Q4_BUDGET4'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_YEAR_4'] += $row['TOTAL_BUDGET_YEAR_4'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_5'] += $row['Total_Amount_5'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q1_BUDGET5'] += $row['Q1_BUDGET5'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q2_BUDGET5'] += $row['Q2_BUDGET5'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q3_BUDGET5'] += $row['Q3_BUDGET5'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Q4_BUDGET5'] += $row['Q4_BUDGET5'];
+                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_YEAR_5'] += $row['TOTAL_BUDGET_YEAR_5'];
+
+                                                    
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
                                                         ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
@@ -1083,6 +1245,43 @@ function fetchYearsData($conn)
                                                         'TOTAL_BUDGET_YEAR_5' => $row['TOTAL_BUDGET_YEAR_5'],
 
                                                     ];
+                                                    $rows = $summary;
+                                                    // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
+                                                    $total_summary = [
+                                                        'Total_Amount_1' => 0,
+                                                        'Q1_BUDGET1' => 0,
+                                                        'Q2_BUDGET1' => 0,
+                                                        'Q3_BUDGET1' => 0,
+                                                        'Q4_BUDGET1' => 0,
+                                                        'TOTAL_BUDGET_YEAR_1' => 0,
+                                                        'Total_Amount_2' => 0,
+                                                        'Q1_BUDGET2' => 0,
+                                                        'Q2_BUDGET2' => 0,
+                                                        'Q3_BUDGET2' => 0,
+                                                        'Q4_BUDGET2' => 0,
+                                                        'TOTAL_BUDGET_YEAR_2' => 0,
+                                                        'Total_Amount_Quantity1_2' => 0,
+                                                        'Q1_BUDGET1_2' => 0,
+                                                        'Q2_BUDGET1_2' => 0,
+                                                        'Q3_BUDGET1_2' => 0,
+                                                        'Q4_BUDGET1_2' => 0,
+                                                        'TOTAL_BUDGET_1_2' => 0,
+                                                        'Total_Amount_4' => 0,
+                                                        'Q1_BUDGET4' => 0,
+                                                        'Q2_BUDGET4' => 0,
+                                                        'Q3_BUDGET4' => 0,
+                                                        'Q4_BUDGET4' => 0,
+                                                        'TOTAL_BUDGET_YEAR_4' => 0,
+                                                        'Total_Amount_5' => 0,
+                                                        'Q1_BUDGET5' => 0,
+                                                        'Q2_BUDGET5' => 0,
+                                                        'Q3_BUDGET5' => 0,
+                                                        'Q4_BUDGET5' => 0,
+                                                        'TOTAL_BUDGET_YEAR_5' => 0,
+                                                    ];
+                                                    // แสดงผลรวมทั้งหมด
+                                                    //print_r($total_summary);
+                                                    // Assuming this is inside a loop where $row is updated (e.g., from a database query)
                                                 }
 
                                                 // แสดงผลลัพธ์
@@ -1234,7 +1433,7 @@ function fetchYearsData($conn)
                                                                 echo "<td>" . formatNumber($projectData['Q3_BUDGET1']) . "</td>";
                                                                 echo "<td>" . formatNumber($projectData['Q4_BUDGET1']) . "</td>";
                                                                 echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_YEAR_1']) . "</td>";
-                                                                
+
                                                                 echo "</tr>";
 
                                                                 // แสดงผลรวมของแต่ละ Sub_Type
@@ -1245,7 +1444,7 @@ function fetchYearsData($conn)
 
                                                                     // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
                                                                     echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($subTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
-                                                                    
+
                                                                     echo "<td>" . formatNumber($subTypeData['Total_Amount_5']) . "</td>";
                                                                     echo "<td>" . formatNumber($subTypeData['Q1_BUDGET5']) . "</td>";
                                                                     echo "<td>" . formatNumber($subTypeData['Q2_BUDGET5']) . "</td>";
@@ -1277,8 +1476,8 @@ function fetchYearsData($conn)
                                                                     echo "<td>" . formatNumber($subTypeData['Q4_BUDGET1']) . "</td>";
                                                                     echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_YEAR_1']) . "</td>";
 
-                                                                    
-                                                                    
+
+
                                                                     echo "</tr>";
 
                                                                     // แสดงข้อมูล KKU_Item_Name
@@ -1425,7 +1624,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.csv';
+            link.download = 'รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1445,7 +1644,7 @@ function fetchYearsData($conn)
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ", 10, 500);
+            doc.text("รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -1470,7 +1669,7 @@ function fetchYearsData($conn)
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.pdf');
+            doc.save('รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง.pdf');
         }
 
         function exportXLS() {
@@ -1509,7 +1708,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            link.download = 'รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
