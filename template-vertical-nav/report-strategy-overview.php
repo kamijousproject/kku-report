@@ -223,7 +223,7 @@
                         tr.appendChild(td21);
 
                         const td22 = document.createElement('td');
-                        td22.textContent = Number(row.Budget_Amount).toLocaleString();
+                        td22.textContent = Number(row.Budget_Amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         tr.appendChild(td22);
 
                         const td23 = document.createElement('td');

@@ -82,28 +82,6 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>001</td>
-                                                <td>หน่วยงาน A</td>
-                                                <td>ST001</td>
-                                                <td>เสาหลักที่ 1</td>
-                                                <td>YS001</td>
-                                                <td>ยุทธศาสตร์ที่ 1</td>
-                                                <td>G001</td>
-                                                <td>กลยุทธ์ที่ 1</td>
-                                                <td>เพิ่มผลผลิต</td>
-                                            </tr>
-                                            <tr>
-                                                <td>002</td>
-                                                <td>หน่วยงาน B</td>
-                                                <td>ST002</td>
-                                                <td>เสาหลักที่ 2</td>
-                                                <td>YS002</td>
-                                                <td>ยุทธศาสตร์ที่ 2</td>
-                                                <td>G002</td>
-                                                <td>กลยุทธ์ที่ 2</td>
-                                                <td>พัฒนาคุณภาพ</td>
-                                            </tr>
                                         </tbody>
                                     </table>
                                 </div>
@@ -243,7 +221,7 @@
                         tr.appendChild(td21);
 
                         const td22 = document.createElement('td');
-                        td22.textContent = Number(row.Budget_Amount).toLocaleString();
+                        td22.textContent = Number(row.Budget_Amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
                         tr.appendChild(td22);
 
                         const td23 = document.createElement('td');

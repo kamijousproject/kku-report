@@ -54,22 +54,6 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
-                                                <td>เสาหลักที่ 1</td>
-                                                <td>ยุทธศาสตร์ที่ 1</td>
-                                                <td>กลยุทธ์ที่ 1</td>
-                                                <td>เพิ่มผลผลิต</td>
-                                                <td>โครงการพัฒนา</td>
-                                                <td>87.5%</td>
-                                            </tr>
-                                            <tr>
-                                                <td>เสาหลักที่ 2</td>
-                                                <td>ยุทธศาสตร์ที่ 2</td>
-                                                <td>กลยุทธ์ที่ 2</td>
-                                                <td>พัฒนาคุณภาพ</td>
-                                                <td>โครงการปรับปรุง</td>
-                                                <td>77.5%</td>
-                                            </tr>
                                         </tbody>
                                         <tfoot id="reportTableFooter">
                                             <!-- แถวรวมจะถูกเพิ่มที่นี่ -->
@@ -108,7 +92,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
+                    // console.log(response.plan);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
@@ -230,7 +214,7 @@
                     footerRow.appendChild(footerTd4);
 
                     const footerTd5 = document.createElement('td');
-                    footerTd5.textContent = (alltotalOKRProgress/totalOKR)+' %';
+                    footerTd5.textContent = (alltotalOKRProgress/totalOKR).toFixed(2)+' %';
                     footerRow.appendChild(footerTd5);
 
                     // เพิ่มแถวผลรวมไปยัง <tfoot>
