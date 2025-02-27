@@ -2,7 +2,7 @@
     #reportTable th:nth-child(1),
     #reportTable td:nth-child(1) {
         width: 300px;
-        /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
+        /* -ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
     }
 
     #reportTable th {
@@ -107,10 +107,10 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
         $budget_year3 = 2566;  // ค่าเริ่มต้น
     }
     if ($budget_year4 === null) {
-        $budget_year4 = 2567;  // ค่าเริ่มต้น
+        $budget_year4 = 2565;  // ค่าเริ่มต้น
     }
     if ($budget_year5 === null) {
-        $budget_year5 = 2566;  // ค่าเริ่มต้น
+        $budget_year5 = 2564;  // ค่าเริ่มต้น
     }
 
     // สร้างคิวรี
@@ -132,60 +132,60 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     bap.`Account`,bap.KKU_Item_Name,
     bap.Total_Amount_Quantity,
     
-    SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_1,
-    SUM(CASE WHEN bap.Budget_Management_Year = 2567 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_1,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2,
     SUM(CASE WHEN bap.Budget_Management_Year = 2566 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_3,
     SUM(CASE WHEN bap.Budget_Management_Year = 2565 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_4,
     SUM(CASE WHEN bap.Budget_Management_Year = 2564 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_5,
-    (SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) +
-    SUM(CASE WHEN bap.Budget_Management_Year = 2567 THEN bap.Total_Amount_Quantity ELSE 0 END)
+    (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) +
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END)
     ) AS Total_Amount_Quantity1_2,
 
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q1_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q2_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q3_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q4_BUDGET1,
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -193,50 +193,50 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
         
         SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q1_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q2_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q3_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q4_BUDGET2,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -245,26 +245,26 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
 
 	(SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12  
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)) AS Q1_BUDGET1_2,
     
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)) AS Q2_BUDGET1_2,
@@ -272,75 +272,75 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)) AS Q3_BUDGET1_2,
     
         (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)) AS Q4_BUDGET1_2,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567
+             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -857,6 +857,36 @@ function fetchYearsData($conn)
                                                     if (!isset($summary[$faculty])) {
                                                         $summary[$faculty] = [
                                                             'Faculty' => $row['Faculty_name'],
+                                                            'Total_Amount_1' => 0,
+                                                            'Q1_BUDGET1' => 0,
+                                                            'Q2_BUDGET1' => 0,
+                                                            'Q3_BUDGET1' => 0,
+                                                            'Q4_BUDGET1' => 0,
+                                                            'TOTAL_BUDGET_YEAR_1' => 0,
+                                                            'Total_Amount_2' => 0,
+                                                            'Q1_BUDGET2' => 0,
+                                                            'Q2_BUDGET2' => 0,
+                                                            'Q3_BUDGET2' => 0,
+                                                            'Q4_BUDGET2' => 0,
+                                                            'TOTAL_BUDGET_YEAR_2' => 0,
+                                                            'Total_Amount_Quantity1_2' => 0,
+                                                            'Q1_BUDGET1_2' => 0,
+                                                            'Q2_BUDGET1_2' => 0,
+                                                            'Q3_BUDGET1_2' => 0,
+                                                            'Q4_BUDGET1_2' => 0,
+                                                            'TOTAL_BUDGET_1_2' => 0,
+                                                            'Total_Amount_4' => 0,
+                                                            'Q1_BUDGET4' => 0,
+                                                            'Q2_BUDGET4' => 0,
+                                                            'Q3_BUDGET4' => 0,
+                                                            'Q4_BUDGET4' => 0,
+                                                            'TOTAL_BUDGET_YEAR_4' => 0,
+                                                            'Total_Amount_5' => 0,
+                                                            'Q1_BUDGET5' => 0,
+                                                            'Q2_BUDGET5' => 0,
+                                                            'Q3_BUDGET5' => 0,
+                                                            'Q4_BUDGET5' => 0,
+                                                            'TOTAL_BUDGET_YEAR_5' => 0,
                                                             'plans' => [], // เก็บข้อมูลของ Plan
                                                         ];
                                                     }
@@ -864,6 +894,36 @@ function fetchYearsData($conn)
                                                     if (!isset($summary[$faculty]['plans'][$plan])) {
                                                         $summary[$faculty]['plans'][$plan] = [
                                                             'plan_name' => $row['plan_name'],
+                                                            'Total_Amount_1' => 0,
+                                                            'Q1_BUDGET1' => 0,
+                                                            'Q2_BUDGET1' => 0,
+                                                            'Q3_BUDGET1' => 0,
+                                                            'Q4_BUDGET1' => 0,
+                                                            'TOTAL_BUDGET_YEAR_1' => 0,
+                                                            'Total_Amount_2' => 0,
+                                                            'Q1_BUDGET2' => 0,
+                                                            'Q2_BUDGET2' => 0,
+                                                            'Q3_BUDGET2' => 0,
+                                                            'Q4_BUDGET2' => 0,
+                                                            'TOTAL_BUDGET_YEAR_2' => 0,
+                                                            'Total_Amount_Quantity1_2' => 0,
+                                                            'Q1_BUDGET1_2' => 0,
+                                                            'Q2_BUDGET1_2' => 0,
+                                                            'Q3_BUDGET1_2' => 0,
+                                                            'Q4_BUDGET1_2' => 0,
+                                                            'TOTAL_BUDGET_1_2' => 0,
+                                                            'Total_Amount_4' => 0,
+                                                            'Q1_BUDGET4' => 0,
+                                                            'Q2_BUDGET4' => 0,
+                                                            'Q3_BUDGET4' => 0,
+                                                            'Q4_BUDGET4' => 0,
+                                                            'TOTAL_BUDGET_YEAR_4' => 0,
+                                                            'Total_Amount_5' => 0,
+                                                            'Q1_BUDGET5' => 0,
+                                                            'Q2_BUDGET5' => 0,
+                                                            'Q3_BUDGET5' => 0,
+                                                            'Q4_BUDGET5' => 0,
+                                                            'TOTAL_BUDGET_YEAR_5' => 0,
                                                             'sub_plans' => [], // เก็บข้อมูลของ Sub_Plan
                                                         ];
                                                     }
@@ -872,6 +932,36 @@ function fetchYearsData($conn)
                                                     if (!isset($summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan])) {
                                                         $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan] = [
                                                             'sub_plan_name' => $row['sub_plan_name'],
+                                                            'Total_Amount_1' => 0,
+                                                            'Q1_BUDGET1' => 0,
+                                                            'Q2_BUDGET1' => 0,
+                                                            'Q3_BUDGET1' => 0,
+                                                            'Q4_BUDGET1' => 0,
+                                                            'TOTAL_BUDGET_YEAR_1' => 0,
+                                                            'Total_Amount_2' => 0,
+                                                            'Q1_BUDGET2' => 0,
+                                                            'Q2_BUDGET2' => 0,
+                                                            'Q3_BUDGET2' => 0,
+                                                            'Q4_BUDGET2' => 0,
+                                                            'TOTAL_BUDGET_YEAR_2' => 0,
+                                                            'Total_Amount_Quantity1_2' => 0,
+                                                            'Q1_BUDGET1_2' => 0,
+                                                            'Q2_BUDGET1_2' => 0,
+                                                            'Q3_BUDGET1_2' => 0,
+                                                            'Q4_BUDGET1_2' => 0,
+                                                            'TOTAL_BUDGET_1_2' => 0,
+                                                            'Total_Amount_4' => 0,
+                                                            'Q1_BUDGET4' => 0,
+                                                            'Q2_BUDGET4' => 0,
+                                                            'Q3_BUDGET4' => 0,
+                                                            'Q4_BUDGET4' => 0,
+                                                            'TOTAL_BUDGET_YEAR_4' => 0,
+                                                            'Total_Amount_5' => 0,
+                                                            'Q1_BUDGET5' => 0,
+                                                            'Q2_BUDGET5' => 0,
+                                                            'Q3_BUDGET5' => 0,
+                                                            'Q4_BUDGET5' => 0,
+                                                            'TOTAL_BUDGET_YEAR_5' => 0,
                                                             'projects' => [], // เก็บข้อมูลของ Project
                                                         ];
                                                     }
@@ -879,6 +969,36 @@ function fetchYearsData($conn)
                                                     // เก็บข้อมูลของ Project
                                                     if (!isset($summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project])) {
                                                         $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project] = [
+                                                            'Total_Amount_1' => 0,
+                                                            'Q1_BUDGET1' => 0,
+                                                            'Q2_BUDGET1' => 0,
+                                                            'Q3_BUDGET1' => 0,
+                                                            'Q4_BUDGET1' => 0,
+                                                            'TOTAL_BUDGET_YEAR_1' => 0,
+                                                            'Total_Amount_2' => 0,
+                                                            'Q1_BUDGET2' => 0,
+                                                            'Q2_BUDGET2' => 0,
+                                                            'Q3_BUDGET2' => 0,
+                                                            'Q4_BUDGET2' => 0,
+                                                            'TOTAL_BUDGET_YEAR_2' => 0,
+                                                            'Total_Amount_Quantity1_2' => 0,
+                                                            'Q1_BUDGET1_2' => 0,
+                                                            'Q2_BUDGET1_2' => 0,
+                                                            'Q3_BUDGET1_2' => 0,
+                                                            'Q4_BUDGET1_2' => 0,
+                                                            'TOTAL_BUDGET_1_2' => 0,
+                                                            'Total_Amount_4' => 0,
+                                                            'Q1_BUDGET4' => 0,
+                                                            'Q2_BUDGET4' => 0,
+                                                            'Q3_BUDGET4' => 0,
+                                                            'Q4_BUDGET4' => 0,
+                                                            'TOTAL_BUDGET_YEAR_4' => 0,
+                                                            'Total_Amount_5' => 0,
+                                                            'Q1_BUDGET5' => 0,
+                                                            'Q2_BUDGET5' => 0,
+                                                            'Q3_BUDGET5' => 0,
+                                                            'Q4_BUDGET5' => 0,
+                                                            'TOTAL_BUDGET_YEAR_5' => 0,
                                                             'sub_types' => [], // เก็บข้อมูลของ Sub_Type
                                                         ];
                                                     }
@@ -887,9 +1007,43 @@ function fetchYearsData($conn)
                                                     if (!isset($summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType])) {
                                                         $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType] = [
                                                             'a2' => $row['a2'],
+                                                            'Total_Amount_1' => 0,
+                                                            'Q1_BUDGET1' => 0,
+                                                            'Q2_BUDGET1' => 0,
+                                                            'Q3_BUDGET1' => 0,
+                                                            'Q4_BUDGET1' => 0,
+                                                            'TOTAL_BUDGET_YEAR_1' => 0,
+                                                            'Total_Amount_2' => 0,
+                                                            'Q1_BUDGET2' => 0,
+                                                            'Q2_BUDGET2' => 0,
+                                                            'Q3_BUDGET2' => 0,
+                                                            'Q4_BUDGET2' => 0,
+                                                            'TOTAL_BUDGET_YEAR_2' => 0,
+                                                            'Total_Amount_Quantity1_2' => 0,
+                                                            'Q1_BUDGET1_2' => 0,
+                                                            'Q2_BUDGET1_2' => 0,
+                                                            'Q3_BUDGET1_2' => 0,
+                                                            'Q4_BUDGET1_2' => 0,
+                                                            'TOTAL_BUDGET_1_2' => 0,
+                                                            'Total_Amount_4' => 0,
+                                                            'Q1_BUDGET4' => 0,
+                                                            'Q2_BUDGET4' => 0,
+                                                            'Q3_BUDGET4' => 0,
+                                                            'Q4_BUDGET4' => 0,
+                                                            'TOTAL_BUDGET_YEAR_4' => 0,
+                                                            'Total_Amount_5' => 0,
+                                                            'Q1_BUDGET5' => 0,
+                                                            'Q2_BUDGET5' => 0,
+                                                            'Q3_BUDGET5' => 0,
+                                                            'Q4_BUDGET5' => 0,
+                                                            'TOTAL_BUDGET_YEAR_5' => 0,
                                                             'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
+
+                                       
+
+
 
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
@@ -902,6 +1056,31 @@ function fetchYearsData($conn)
                                                         'Q2_BUDGET1' => $row['Q2_BUDGET1'],
                                                         'Q3_BUDGET1' => $row['Q3_BUDGET1'],
                                                         'Q4_BUDGET1' => $row['Q4_BUDGET1'],
+                                                        'TOTAL_BUDGET_YEAR_1' => $row['TOTAL_BUDGET_YEAR_1'],
+                                                        'Total_Amount_2' => $row['Total_Amount_2'],
+                                                        'Q1_BUDGET2' => $row['Q1_BUDGET2'],
+                                                        'Q2_BUDGET2' => $row['Q2_BUDGET2'],
+                                                        'Q3_BUDGET2' => $row['Q3_BUDGET2'],
+                                                        'Q4_BUDGET2' => $row['Q4_BUDGET2'],
+                                                        'TOTAL_BUDGET_YEAR_2' => $row['TOTAL_BUDGET_YEAR_2'],
+                                                        'Total_Amount_Quantity1_2' => $row['Total_Amount_Quantity1_2'],
+                                                        'Q1_BUDGET1_2' => $row['Q1_BUDGET1_2'],
+                                                        'Q2_BUDGET1_2' => $row['Q2_BUDGET1_2'],
+                                                        'Q3_BUDGET1_2' => $row['Q3_BUDGET1_2'],
+                                                        'Q4_BUDGET1_2' => $row['Q4_BUDGET1_2'],
+                                                        'TOTAL_BUDGET_1_2' => $row['TOTAL_BUDGET_1_2'],
+                                                        'Total_Amount_4' => $row['Total_Amount_4'],
+                                                        'Q1_BUDGET4' => $row['Q1_BUDGET4'],
+                                                        'Q2_BUDGET4' => $row['Q2_BUDGET4'],
+                                                        'Q3_BUDGET4' => $row['Q3_BUDGET4'],
+                                                        'Q4_BUDGET4' => $row['Q4_BUDGET4'],
+                                                        'TOTAL_BUDGET_YEAR_4' => $row['TOTAL_BUDGET_YEAR_4'],
+                                                        'Total_Amount_5' => $row['Total_Amount_5'],
+                                                        'Q1_BUDGET5' => $row['Q1_BUDGET5'],
+                                                        'Q2_BUDGET5' => $row['Q2_BUDGET5'],
+                                                        'Q3_BUDGET5' => $row['Q3_BUDGET5'],
+                                                        'Q4_BUDGET5' => $row['Q4_BUDGET5'],
+                                                        'TOTAL_BUDGET_YEAR_5' => $row['TOTAL_BUDGET_YEAR_5'],
 
                                                     ];
                                                 }
@@ -911,6 +1090,36 @@ function fetchYearsData($conn)
                                                     // แสดงผลรวมของ Faculty
                                                     echo "<tr>";
                                                     echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_5']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q1_BUDGET5']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q2_BUDGET5']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q3_BUDGET5']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q4_BUDGET5']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['TOTAL_BUDGET_YEAR_5']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_4']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q1_BUDGET4']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q2_BUDGET4']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q3_BUDGET4']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q4_BUDGET4']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['TOTAL_BUDGET_YEAR_4']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_Quantity1_2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q1_BUDGET1_2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q2_BUDGET1_2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q3_BUDGET1_2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q4_BUDGET1_2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['TOTAL_BUDGET_1_2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q1_BUDGET2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q2_BUDGET2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q3_BUDGET2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q4_BUDGET2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['TOTAL_BUDGET_YEAR_2']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_1']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q1_BUDGET1']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q2_BUDGET1']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q3_BUDGET1']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Q4_BUDGET1']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['TOTAL_BUDGET_YEAR_1']) . "</td>";
                                                     echo "</tr>";
 
                                                     // การวนลูปเพื่อแสดงแผนใน data['plans']
@@ -918,6 +1127,36 @@ function fetchYearsData($conn)
                                                         // แสดงผลรวมของ Plan
                                                         echo "<tr>";
                                                         echo "<td style='text-align: left;'><strong>" . htmlspecialchars($plan) . "</strong> : " . htmlspecialchars($planData['plan_name']) . "<br></td>";
+                                                        echo "<td>" . formatNumber($planData['Total_Amount_5']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q1_BUDGET5']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q2_BUDGET5']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q3_BUDGET5']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q4_BUDGET5']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['TOTAL_BUDGET_YEAR_5']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Total_Amount_4']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q1_BUDGET4']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q2_BUDGET4']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q3_BUDGET4']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q4_BUDGET4']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['TOTAL_BUDGET_YEAR_4']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Total_Amount_Quantity1_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q1_BUDGET1_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q2_BUDGET1_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q3_BUDGET1_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q4_BUDGET1_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['TOTAL_BUDGET_1_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Total_Amount_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q1_BUDGET2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q2_BUDGET2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q3_BUDGET2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q4_BUDGET2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['TOTAL_BUDGET_YEAR_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Total_Amount_1']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q1_BUDGET1']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q2_BUDGET1']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q3_BUDGET1']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['Q4_BUDGET1']) . "</td>";
+                                                        echo "<td>" . formatNumber($planData['TOTAL_BUDGET_YEAR_1']) . "</td>";
                                                         echo "</tr>";
 
                                                         // แสดงผลรวมของแต่ละ Sub_Plan
@@ -929,12 +1168,73 @@ function fetchYearsData($conn)
 
                                                             // แสดงผลข้อมูล
                                                             echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
+                                                            echo "<td>" . formatNumber($subData['Total_Amount_5']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q1_BUDGET5']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q2_BUDGET5']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q3_BUDGET5']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q4_BUDGET5']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['TOTAL_BUDGET_YEAR_5']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Total_Amount_4']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q1_BUDGET4']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q2_BUDGET4']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q3_BUDGET4']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q4_BUDGET4']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['TOTAL_BUDGET_YEAR_4']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Total_Amount_Quantity1_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q1_BUDGET1_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q2_BUDGET1_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q3_BUDGET1_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q4_BUDGET1_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['TOTAL_BUDGET_1_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Total_Amount_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q1_BUDGET2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q2_BUDGET2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q3_BUDGET2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q4_BUDGET2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['TOTAL_BUDGET_YEAR_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Total_Amount_1']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q1_BUDGET1']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q2_BUDGET1']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q3_BUDGET1']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['Q4_BUDGET1']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['TOTAL_BUDGET_YEAR_1']) . "</td>";
                                                             echo "</tr>";
 
                                                             // แสดงผลรวมของแต่ละ Project
                                                             foreach ($subData['projects'] as $project => $projectData) {
                                                                 echo "<tr>";
                                                                 echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($project) . "</strong><br></td>";
+                                                                echo "<td>" . formatNumber($projectData['Total_Amount_5']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q1_BUDGET5']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q2_BUDGET5']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q3_BUDGET5']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q4_BUDGET5']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_YEAR_5']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Total_Amount_4']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q1_BUDGET4']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q2_BUDGET4']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q3_BUDGET4']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q4_BUDGET4']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_YEAR_4']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Total_Amount_Quantity1_2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q1_BUDGET1_2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q2_BUDGET1_2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q3_BUDGET1_2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q4_BUDGET1_2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_1_2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Total_Amount_2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q1_BUDGET2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q2_BUDGET2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q3_BUDGET2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q4_BUDGET2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_YEAR_2']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Total_Amount_1']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q1_BUDGET1']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q2_BUDGET1']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q3_BUDGET1']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['Q4_BUDGET1']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_YEAR_1']) . "</td>";
+                                                                
                                                                 echo "</tr>";
 
                                                                 // แสดงผลรวมของแต่ละ Sub_Type
@@ -945,17 +1245,76 @@ function fetchYearsData($conn)
 
                                                                     // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
                                                                     echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($subTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+                                                                    
+                                                                    echo "<td>" . formatNumber($subTypeData['Total_Amount_5']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q1_BUDGET5']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q2_BUDGET5']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q3_BUDGET5']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q4_BUDGET5']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_YEAR_5']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Total_Amount_4']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q1_BUDGET4']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q2_BUDGET4']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q3_BUDGET4']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q4_BUDGET4']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_YEAR_4']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Total_Amount_Quantity1_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q1_BUDGET1_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q2_BUDGET1_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q3_BUDGET1_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q4_BUDGET1_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_1_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Total_Amount_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q1_BUDGET2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q2_BUDGET2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q3_BUDGET2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q4_BUDGET2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_YEAR_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Total_Amount_1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q1_BUDGET1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q2_BUDGET1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q3_BUDGET1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['Q4_BUDGET1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_YEAR_1']) . "</td>";
+
+                                                                    
+                                                                    
                                                                     echo "</tr>";
 
                                                                     // แสดงข้อมูล KKU_Item_Name
                                                                     foreach ($subTypeData['kku_items'] as $kkuItem) {
                                                                         echo "<tr>";
                                                                         echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . $kkuItem['name'] . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_5']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q1_BUDGET5']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q2_BUDGET5']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q3_BUDGET5']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q4_BUDGET5']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_5']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_4']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q1_BUDGET4']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q2_BUDGET4']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q3_BUDGET4']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q4_BUDGET4']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_4']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_Quantity1_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q1_BUDGET1_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q2_BUDGET1_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q3_BUDGET1_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q4_BUDGET1_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_1_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q1_BUDGET2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q2_BUDGET2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q3_BUDGET2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Q4_BUDGET2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_2']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Total_Amount_1']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Q1_BUDGET1']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Q2_BUDGET1']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Q3_BUDGET1']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Q4_BUDGET1']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_1']) . "</td>";
                                                                         echo "</tr>";
                                                                     }
                                                                 }
