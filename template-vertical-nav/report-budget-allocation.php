@@ -322,6 +322,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                             console.log("ไม่มีค่า scenario ใน URL");
                                         }
                                     });
+
                                 </script>
 
                                 <div class="card-title" style="margin-top:20px;">
@@ -403,13 +404,16 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
                                                 $summary = [];
+
                                                 foreach ($results as $row) {
+
                                                     $Faculty = $row["Faculty_Id"];
                                                     $plan = $row['Plan'];
                                                     $subPlan = $row['Sub_Plan'];
                                                     $project = $row['project_name'];
                                                     $Type = $row['type'];
                                                     $subType = $row['sub_type'];
+
 
 
                                                     // เก็บข้อมูลของ Faculty
@@ -486,7 +490,6 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                             'Scenario2' => 0,
                                                             'Scenario3' => 0,
                                                             'Scenario4' => 0,
-
                                                             'sub_type' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
@@ -503,10 +506,11 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                             'Scenario2' => 0,
                                                             'Scenario3' => 0,
                                                             'Scenario4' => 0,
-
                                                             'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
+
+
 
                                                     // รวมข้อมูลของ Faculty
                                                     $summary[$Faculty]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
@@ -563,6 +567,9 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$Type]['sub_type'][$subType]['Scenario4'] += $row['Scenario4'];
 
 
+                                                   
+
+
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
                                                         ? "<strong>" . htmlspecialchars($row['Account'] ?? '') . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
@@ -577,54 +584,40 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         'Scenario2' => $row['Scenario2'],
                                                         'Scenario3' => $row['Scenario3'],
                                                         'Scenario4' => $row['Scenario4'],
-                                                        'Reason' => $row['Reason'] ?? '',
+                                                        'Reason' => $row['Reason'],
 
                                                     ];
+                                                    $rows = $summary;
+                                                    // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
+                                                    $total_summary = [
+                                                        'Allocated_Total_Amount_Quantity' => 0,
+                                                        'Release_Amount' => 0,
+                                                        'Pre_Release_Amount' => 0,
+                                                        'Scenario1' => 0,
+                                                        'Scenario2' => 0,
+                                                        'Scenario3' => 0,
+                                                        'Scenario4' => 0,
+                                                    ];
+                                                    // แสดงผลรวมทั้งหมด
+                                                    //print_r($total_summary);
+                                                    // Assuming this is inside a loop where $row is updated (e.g., from a database query)
+                                                    foreach ($rows as $row) { // Replace $rows with your actual data source
+                                                        // รวมผลรวมทั้งหมดโดยไม่สนใจ Faculty
+                                                        $total_summary['Allocated_Total_Amount_Quantity'] += (float) ($row['Allocated_Total_Amount_Quantity'] ?? 0);
+                                                        $total_summary['Release_Amount'] += (float) ($row['Release_Amount'] ?? 0);
+                                                        $total_summary['Pre_Release_Amount'] += (float) ($row['Pre_Release_Amount'] ?? 0);
+                                                        $total_summary['Scenario1'] += (float) ($row['Scenario1'] ?? 0);
+                                                        $total_summary['Scenario2'] += (float) ($row['Scenario2'] ?? 0);
+                                                        $total_summary['Scenario3'] += (float) ($row['Scenario3'] ?? 0);
+                                                        $total_summary['Scenario4'] += (float) ($row['Scenario4'] ?? 0);
+                                                    }
                                                 }
 
                                                 // แสดงผลลัพธ์ในรูปแบบตาราง
-                                                foreach ($summary as $Faculty => $FacultyData) {
-                                                    $cleanedSubPlan = preg_replace('/^SP_/', '', $plan);
+                                                foreach ($summary as $key => $value) { {
 
-                                                    $preReleaseAmount = $FacultyData['Pre_Release_Amount'] ?? 0;
 
-                                                    $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
-
-                                                    // คำนวณ finalPreReleaseAmount โดยบวกค่า Scenario ที่เลือก
-                                                    $finalPreReleaseAmount = $preReleaseAmount;
-                                                    switch ($selectedScenario) {
-                                                        case 'Scenario1':
-                                                            $finalPreReleaseAmount += $FacultyData['Scenario1'] ?? 0;
-                                                            break;
-                                                        case 'Scenario2':
-                                                            $finalPreReleaseAmount += $FacultyData['Scenario2'] ?? 0;
-                                                            break;
-                                                        case 'Scenario3':
-                                                            $finalPreReleaseAmount += $FacultyData['Scenario3'] ?? 0;
-                                                            break;
-                                                        case 'Scenario4':
-                                                            $finalPreReleaseAmount += $FacultyData['Scenario4'] ?? 0;
-                                                            break;
-                                                        default:
-                                                            break;
-                                                    }
-                                                    echo "<tr>";
-                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($FacultyData['FacultyName'] ?? '') . "</strong></td>";
-                                                    // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                    echo "<td>" . formatNumber($FacultyData['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                    echo "<td>" . formatNumber($FacultyData['Pre_Release_Amount']) . "</td>";
-                                                    echo "<td>" . formatNumber($FacultyData[$selectedScenario] ?? 0) . "</td>";
-                                                    echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
-                                                    // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
-                                                    $subtractedAmount = ($FacultyData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
-                                                    echo "<td>" . formatNumber($subtractedAmount) . "</td>";
-                                                    echo "<td>" . "</td>";
-                                                    echo "</tr>";
-
-                                                    foreach ($FacultyData['plan'] as $plan => $planData) {
-                                                        $cleanedSubPlan = preg_replace('/^SP_/', '', $plan);
-
-                                                        $preReleaseAmount = $planData['Pre_Release_Amount'] ?? 0;
+                                                        $preReleaseAmount = $total_summary['Pre_Release_Amount'] ?? 0;
 
                                                         $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
 
@@ -632,39 +625,38 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         $finalPreReleaseAmount = $preReleaseAmount;
                                                         switch ($selectedScenario) {
                                                             case 'Scenario1':
-                                                                $finalPreReleaseAmount += $planData['Scenario1'] ?? 0;
+                                                                $finalPreReleaseAmount += $total_summary['Scenario1'] ?? 0;
                                                                 break;
                                                             case 'Scenario2':
-                                                                $finalPreReleaseAmount += $planData['Scenario2'] ?? 0;
+                                                                $finalPreReleaseAmount += $total_summary['Scenario2'] ?? 0;
                                                                 break;
                                                             case 'Scenario3':
-                                                                $finalPreReleaseAmount += $planData['Scenario3'] ?? 0;
+                                                                $finalPreReleaseAmount += $total_summary['Scenario3'] ?? 0;
                                                                 break;
                                                             case 'Scenario4':
-                                                                $finalPreReleaseAmount += $planData['Scenario4'] ?? 0;
+                                                                $finalPreReleaseAmount += $total_summary['Scenario4'] ?? 0;
                                                                 break;
                                                             default:
                                                                 break;
                                                         }
                                                         echo "<tr>";
-                                                        // แสดงผลข้อมูล
-                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($cleanedSubPlan) . htmlspecialchars($planData['PlanName'] ?? '') . "</strong></td>";
+                                                        echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "</strong></td>";
                                                         // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                        echo "<td>" . formatNumber($planData['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                        echo "<td>" . formatNumber($planData['Pre_Release_Amount']) . "</td>";
-                                                        echo "<td>" . formatNumber($planData[$selectedScenario] ?? 0) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Pre_Release_Amount']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary[$selectedScenario] ?? 0) . "</td>";
                                                         echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
                                                         // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
-                                                        $subtractedAmount = ($planData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
+                                                        $subtractedAmount = ($total_summary['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
                                                         echo "<td>" . formatNumber($subtractedAmount) . "</td>";
                                                         echo "<td>" . "</td>";
                                                         echo "</tr>";
 
-                                                        foreach ($planData['sub_plan'] as $subPlan => $subPlanData) {
-                                                            // ลบ 'SP_' ที่อยู่หน้าสุดของข้อความ
-                                                            $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
-                                                            // ดึงค่า Pre_Release_Amount และ Scenario ที่รวมไว้
-                                                            $preReleaseAmount = $subPlanData['Pre_Release_Amount'] ?? 0;
+                                                        // แสดงผลลัพธ์ในรูปแบบตาราง
+                                                        foreach ($summary as $Faculty => $FacultyData) {
+
+
+                                                            $preReleaseAmount = $FacultyData['Pre_Release_Amount'] ?? 0;
 
                                                             $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
 
@@ -672,39 +664,37 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                             $finalPreReleaseAmount = $preReleaseAmount;
                                                             switch ($selectedScenario) {
                                                                 case 'Scenario1':
-                                                                    $finalPreReleaseAmount += $subPlanData['Scenario1'] ?? 0;
+                                                                    $finalPreReleaseAmount += $FacultyData['Scenario1'] ?? 0;
                                                                     break;
                                                                 case 'Scenario2':
-                                                                    $finalPreReleaseAmount += $subPlanData['Scenario2'] ?? 0;
+                                                                    $finalPreReleaseAmount += $FacultyData['Scenario2'] ?? 0;
                                                                     break;
                                                                 case 'Scenario3':
-                                                                    $finalPreReleaseAmount += $subPlanData['Scenario3'] ?? 0;
+                                                                    $finalPreReleaseAmount += $FacultyData['Scenario3'] ?? 0;
                                                                     break;
                                                                 case 'Scenario4':
-                                                                    $finalPreReleaseAmount += $subPlanData['Scenario4'] ?? 0;
+                                                                    $finalPreReleaseAmount += $FacultyData['Scenario4'] ?? 0;
                                                                     break;
                                                                 default:
                                                                     break;
                                                             }
                                                             echo "<tr>";
-                                                            // แสดงผลข้อมูล
-                                                            echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subPlanData['SubPlanName'] ?? '') . "<br></td>";
+                                                            echo "<td style='text-align: left;'><strong>" . htmlspecialchars($FacultyData['FacultyName'] ?? '') . "</strong></td>";
                                                             // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                            echo "<td>" . formatNumber($subPlanData['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                            echo "<td>" . formatNumber($subPlanData['Pre_Release_Amount']) . "</td>";
-                                                            echo "<td>" . formatNumber($subPlanData[$selectedScenario] ?? 0) . "</td>";
+                                                            echo "<td>" . formatNumber($FacultyData['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                            echo "<td>" . formatNumber($FacultyData['Pre_Release_Amount']) . "</td>";
+                                                            echo "<td>" . formatNumber($FacultyData[$selectedScenario] ?? 0) . "</td>";
                                                             echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
                                                             // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
-                                                            $subtractedAmount = ($subPlanData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
+                                                            $subtractedAmount = ($FacultyData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
                                                             echo "<td>" . formatNumber($subtractedAmount) . "</td>";
                                                             echo "<td>" . "</td>";
                                                             echo "</tr>";
 
-                                                            foreach ($subPlanData['project'] as $project => $projectData) {
+                                                            foreach ($FacultyData['plan'] as $plan => $planData) {
+                                                                $cleanedSubPlan = preg_replace('/^SP_/', '', $plan);
 
-
-                                                                // ดึงค่า Pre_Release_Amount และ Scenario ที่รวมไว้
-                                                                $preReleaseAmount = $projectData['Pre_Release_Amount'] ?? 0;
+                                                                $preReleaseAmount = $planData['Pre_Release_Amount'] ?? 0;
 
                                                                 $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
 
@@ -712,152 +702,234 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                                 $finalPreReleaseAmount = $preReleaseAmount;
                                                                 switch ($selectedScenario) {
                                                                     case 'Scenario1':
-                                                                        $finalPreReleaseAmount += $projectData['Scenario1'] ?? 0;
+                                                                        $finalPreReleaseAmount += $planData['Scenario1'] ?? 0;
                                                                         break;
                                                                     case 'Scenario2':
-                                                                        $finalPreReleaseAmount += $projectData['Scenario2'] ?? 0;
+                                                                        $finalPreReleaseAmount += $planData['Scenario2'] ?? 0;
                                                                         break;
                                                                     case 'Scenario3':
-                                                                        $finalPreReleaseAmount += $projectData['Scenario3'] ?? 0;
+                                                                        $finalPreReleaseAmount += $planData['Scenario3'] ?? 0;
                                                                         break;
                                                                     case 'Scenario4':
-                                                                        $finalPreReleaseAmount += $projectData['Scenario4'] ?? 0;
+                                                                        $finalPreReleaseAmount += $planData['Scenario4'] ?? 0;
                                                                         break;
                                                                     default:
                                                                         break;
                                                                 }
                                                                 echo "<tr>";
-                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($project) . "</strong></td>";
+                                                                // แสดงผลข้อมูล
+                                                                echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($cleanedSubPlan) . htmlspecialchars($planData['PlanName'] ?? '') . "</strong></td>";
                                                                 // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                                echo "<td>" . formatNumber($projectData['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                                echo "<td>" . formatNumber($projectData['Pre_Release_Amount']) . "</td>";
-                                                                echo "<td>" . formatNumber($projectData[$selectedScenario] ?? 0) . "</td>";
+                                                                echo "<td>" . formatNumber($planData['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                                echo "<td>" . formatNumber($planData['Pre_Release_Amount']) . "</td>";
+                                                                echo "<td>" . formatNumber($planData[$selectedScenario] ?? 0) . "</td>";
                                                                 echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
                                                                 // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
-                                                                $subtractedAmount = ($projectData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
+                                                                $subtractedAmount = ($planData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
                                                                 echo "<td>" . formatNumber($subtractedAmount) . "</td>";
                                                                 echo "<td>" . "</td>";
                                                                 echo "</tr>";
 
-                                                                foreach ($projectData['type'] as $Type => $TypeData) {
-                                                                    $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $TypeData['Type']);
+                                                                foreach ($planData['sub_plan'] as $subPlan => $subPlanData) {
+                                                                    // ลบ 'SP_' ที่อยู่หน้าสุดของข้อความ
+                                                                    $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
                                                                     // ดึงค่า Pre_Release_Amount และ Scenario ที่รวมไว้
-                                                                    $preReleaseAmount = $TypeData['Pre_Release_Amount'] ?? 0;
+                                                                    $preReleaseAmount = $subPlanData['Pre_Release_Amount'] ?? 0;
+
                                                                     $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
+
                                                                     // คำนวณ finalPreReleaseAmount โดยบวกค่า Scenario ที่เลือก
                                                                     $finalPreReleaseAmount = $preReleaseAmount;
                                                                     switch ($selectedScenario) {
                                                                         case 'Scenario1':
-                                                                            $finalPreReleaseAmount += $TypeData['Scenario1'] ?? 0;
+                                                                            $finalPreReleaseAmount += $subPlanData['Scenario1'] ?? 0;
                                                                             break;
                                                                         case 'Scenario2':
-                                                                            $finalPreReleaseAmount += $TypeData['Scenario2'] ?? 0;
+                                                                            $finalPreReleaseAmount += $subPlanData['Scenario2'] ?? 0;
                                                                             break;
                                                                         case 'Scenario3':
-                                                                            $finalPreReleaseAmount += $TypeData['Scenario3'] ?? 0;
+                                                                            $finalPreReleaseAmount += $subPlanData['Scenario3'] ?? 0;
                                                                             break;
                                                                         case 'Scenario4':
-                                                                            $finalPreReleaseAmount += $TypeData['Scenario4'] ?? 0;
+                                                                            $finalPreReleaseAmount += $subPlanData['Scenario4'] ?? 0;
                                                                             break;
                                                                         default:
                                                                             break;
                                                                     }
-                                                                    // แสดงข้อมูลของ Sub_Type
                                                                     echo "<tr>";
-                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($TypeData['a1'] ?? '') . ' : ' . htmlspecialchars($cleanedSubType ?? '') . "</td>";
+                                                                    // แสดงผลข้อมูล
+                                                                    echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subPlanData['SubPlanName'] ?? '') . "<br></td>";
                                                                     // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                                    echo "<td>" . formatNumber($TypeData['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                                    echo "<td>" . formatNumber($TypeData['Pre_Release_Amount']) . "</td>";
-                                                                    echo "<td>" . formatNumber($TypeData[$selectedScenario] ?? 0) . "</td>";
+                                                                    echo "<td>" . formatNumber($subPlanData['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subPlanData['Pre_Release_Amount']) . "</td>";
+                                                                    echo "<td>" . formatNumber($subPlanData[$selectedScenario] ?? 0) . "</td>";
                                                                     echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
                                                                     // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
-                                                                    $subtractedAmount = ($TypeData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
+                                                                    $subtractedAmount = ($subPlanData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
                                                                     echo "<td>" . formatNumber($subtractedAmount) . "</td>";
-                                                                    // แสดง Reason (ถ้ามี)
                                                                     echo "<td>" . "</td>";
                                                                     echo "</tr>";
 
+                                                                    foreach ($subPlanData['project'] as $project => $projectData) {
 
 
-                                                                    foreach ($TypeData['sub_type'] as $subType => $subTypeData) {
-                                                                        $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $subTypeData['SubType']);
                                                                         // ดึงค่า Pre_Release_Amount และ Scenario ที่รวมไว้
-                                                                        $preReleaseAmount = $subTypeData['Pre_Release_Amount'] ?? 0;
+                                                                        $preReleaseAmount = $projectData['Pre_Release_Amount'] ?? 0;
+
                                                                         $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
+
                                                                         // คำนวณ finalPreReleaseAmount โดยบวกค่า Scenario ที่เลือก
                                                                         $finalPreReleaseAmount = $preReleaseAmount;
                                                                         switch ($selectedScenario) {
                                                                             case 'Scenario1':
-                                                                                $finalPreReleaseAmount += $subTypeData['Scenario1'] ?? 0;
+                                                                                $finalPreReleaseAmount += $projectData['Scenario1'] ?? 0;
                                                                                 break;
                                                                             case 'Scenario2':
-                                                                                $finalPreReleaseAmount += $subTypeData['Scenario2'] ?? 0;
+                                                                                $finalPreReleaseAmount += $projectData['Scenario2'] ?? 0;
                                                                                 break;
                                                                             case 'Scenario3':
-                                                                                $finalPreReleaseAmount += $subTypeData['Scenario3'] ?? 0;
+                                                                                $finalPreReleaseAmount += $projectData['Scenario3'] ?? 0;
                                                                                 break;
                                                                             case 'Scenario4':
-                                                                                $finalPreReleaseAmount += $subTypeData['Scenario4'] ?? 0;
+                                                                                $finalPreReleaseAmount += $projectData['Scenario4'] ?? 0;
                                                                                 break;
                                                                             default:
                                                                                 break;
                                                                         }
-
-                                                                        // แสดงข้อมูลของ Sub_Type
                                                                         echo "<tr>";
-                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($subTypeData['a2'] ?? '') . ' : ' . htmlspecialchars($cleanedSubType ?? '') . "</td>";
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($project) . "</strong></td>";
                                                                         // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                                        echo "<td>" . formatNumber($subTypeData['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                                        echo "<td>" . formatNumber($subTypeData['Pre_Release_Amount']) . "</td>";
-                                                                        echo "<td>" . formatNumber($subTypeData[$selectedScenario] ?? 0) . "</td>";
+                                                                        echo "<td>" . formatNumber($projectData['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                                        echo "<td>" . formatNumber($projectData['Pre_Release_Amount']) . "</td>";
+                                                                        echo "<td>" . formatNumber($projectData[$selectedScenario] ?? 0) . "</td>";
                                                                         echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
                                                                         // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
-                                                                        $subtractedAmount = ($subTypeData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
+                                                                        $subtractedAmount = ($projectData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
                                                                         echo "<td>" . formatNumber($subtractedAmount) . "</td>";
-                                                                        // แสดง Reason (ถ้ามี)
                                                                         echo "<td>" . "</td>";
                                                                         echo "</tr>";
 
-                                                                        foreach ($subTypeData['kku_items'] as $kkuItem) {
-                                                                            echo "<tr>";
-                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "</td>";
-
-                                                                            $preReleaseAmount = $kkuItem['Pre_Release_Amount'];
-
+                                                                        foreach ($projectData['type'] as $Type => $TypeData) {
+                                                                            $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $TypeData['Type']);
+                                                                            // ดึงค่า Pre_Release_Amount และ Scenario ที่รวมไว้
+                                                                            $preReleaseAmount = $TypeData['Pre_Release_Amount'] ?? 0;
                                                                             $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
-
+                                                                            // คำนวณ finalPreReleaseAmount โดยบวกค่า Scenario ที่เลือก
                                                                             $finalPreReleaseAmount = $preReleaseAmount;
-
-
                                                                             switch ($selectedScenario) {
                                                                                 case 'Scenario1':
-                                                                                    $finalPreReleaseAmount += $kkuItem['Scenario1'];
+                                                                                    $finalPreReleaseAmount += $TypeData['Scenario1'] ?? 0;
                                                                                     break;
                                                                                 case 'Scenario2':
-                                                                                    $finalPreReleaseAmount += $kkuItem['Scenario2'];
+                                                                                    $finalPreReleaseAmount += $TypeData['Scenario2'] ?? 0;
                                                                                     break;
                                                                                 case 'Scenario3':
-                                                                                    $finalPreReleaseAmount += +$kkuItem['Scenario3'];
+                                                                                    $finalPreReleaseAmount += $TypeData['Scenario3'] ?? 0;
                                                                                     break;
                                                                                 case 'Scenario4':
-                                                                                    $finalPreReleaseAmount += $kkuItem['Scenario4'];
+                                                                                    $finalPreReleaseAmount += $TypeData['Scenario4'] ?? 0;
                                                                                     break;
                                                                                 default:
                                                                                     break;
                                                                             }
-
+                                                                            // แสดงข้อมูลของ Sub_Type
+                                                                            echo "<tr>";
+                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($TypeData['a1'] ?? '') . ' : ' . htmlspecialchars($cleanedSubType ?? '') . "</td>";
                                                                             // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                                            echo "<td>" . formatNumber($kkuItem['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                                            echo "<td>" . formatNumber($kkuItem['Pre_Release_Amount']) . "</td>";
-                                                                            echo "<td>" . formatNumber(isset($kkuItem[$selectedScenario]) ? $kkuItem[$selectedScenario] : 0) . "</td>";
+                                                                            echo "<td>" . formatNumber($TypeData['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                                            echo "<td>" . formatNumber($TypeData['Pre_Release_Amount']) . "</td>";
+                                                                            echo "<td>" . formatNumber($TypeData[$selectedScenario] ?? 0) . "</td>";
                                                                             echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
-                                                                            $subtractedAmount = $kkuItem['Allocated_Total_Amount_Quantity'] - $finalPreReleaseAmount;
+                                                                            // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
+                                                                            $subtractedAmount = ($TypeData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
                                                                             echo "<td>" . formatNumber($subtractedAmount) . "</td>";
-                                                                            echo "<td >" .
-                                                                                (!empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : '') .
-                                                                                "</td>";
-
+                                                                            
+                                                                            echo "<td>" . "</td>";
                                                                             echo "</tr>";
+
+
+
+                                                                            foreach ($TypeData['sub_type'] as $subType => $subTypeData) {
+                                                                                $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $subTypeData['SubType']);
+                                                                                // ดึงค่า Pre_Release_Amount และ Scenario ที่รวมไว้
+                                                                                $preReleaseAmount = $subTypeData['Pre_Release_Amount'] ?? 0;
+                                                                                $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
+                                                                                // คำนวณ finalPreReleaseAmount โดยบวกค่า Scenario ที่เลือก
+                                                                                $finalPreReleaseAmount = $preReleaseAmount;
+                                                                                switch ($selectedScenario) {
+                                                                                    case 'Scenario1':
+                                                                                        $finalPreReleaseAmount += $subTypeData['Scenario1'] ?? 0;
+                                                                                        break;
+                                                                                    case 'Scenario2':
+                                                                                        $finalPreReleaseAmount += $subTypeData['Scenario2'] ?? 0;
+                                                                                        break;
+                                                                                    case 'Scenario3':
+                                                                                        $finalPreReleaseAmount += $subTypeData['Scenario3'] ?? 0;
+                                                                                        break;
+                                                                                    case 'Scenario4':
+                                                                                        $finalPreReleaseAmount += $subTypeData['Scenario4'] ?? 0;
+                                                                                        break;
+                                                                                    default:
+                                                                                        break;
+                                                                                }
+
+                                                                                // แสดงข้อมูลของ Sub_Type
+                                                                                echo "<tr>";
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($subTypeData['a2'] ?? '') . ' : ' . htmlspecialchars($cleanedSubType ?? '') . "</td>";
+                                                                                // แสดงข้อมูลในคอลัมน์ที่เหลือ
+                                                                                echo "<td>" . formatNumber($subTypeData['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                                                echo "<td>" . formatNumber($subTypeData['Pre_Release_Amount']) . "</td>";
+                                                                                echo "<td>" . formatNumber($subTypeData[$selectedScenario] ?? 0) . "</td>";
+                                                                                echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
+                                                                                // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
+                                                                                $subtractedAmount = ($subTypeData['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
+                                                                                echo "<td>" . formatNumber($subtractedAmount) . "</td>";
+                                                                               
+                                                                                echo "<td>" . "</td>";
+                                                                                echo "</tr>";
+
+                                                                                foreach ($subTypeData['kku_items'] as $kkuItem) {
+                                                                                    echo "<tr>";
+                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "</td>";
+
+                                                                                    $preReleaseAmount = $kkuItem['Pre_Release_Amount'];
+
+                                                                                    $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
+
+                                                                                    $finalPreReleaseAmount = $preReleaseAmount;
+
+
+                                                                                    switch ($selectedScenario) {
+                                                                                        case 'Scenario1':
+                                                                                            $finalPreReleaseAmount += $kkuItem['Scenario1'];
+                                                                                            break;
+                                                                                        case 'Scenario2':
+                                                                                            $finalPreReleaseAmount += $kkuItem['Scenario2'];
+                                                                                            break;
+                                                                                        case 'Scenario3':
+                                                                                            $finalPreReleaseAmount += +$kkuItem['Scenario3'];
+                                                                                            break;
+                                                                                        case 'Scenario4':
+                                                                                            $finalPreReleaseAmount += $kkuItem['Scenario4'];
+                                                                                            break;
+                                                                                        default:
+                                                                                            break;
+                                                                                    }
+
+                                                                                    // แสดงข้อมูลในคอลัมน์ที่เหลือ
+                                                                                    echo "<td>" . formatNumber($kkuItem['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Pre_Release_Amount']) . "</td>";
+                                                                                    echo "<td>" . formatNumber(isset($kkuItem[$selectedScenario]) ? $kkuItem[$selectedScenario] : 0) . "</td>";
+                                                                                    echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
+                                                                                    $subtractedAmount = $kkuItem['Allocated_Total_Amount_Quantity'] - $finalPreReleaseAmount;
+                                                                                    echo "<td>" . formatNumber($subtractedAmount) . "</td>";
+                                                                                    echo "<td >" .
+                                                                                        (!empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : '') .
+                                                                                        "</td>";
+
+                                                                                    echo "</tr>";
+                                                                                }
+                                                                            }
                                                                         }
                                                                     }
                                                                 }
@@ -869,121 +941,8 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                 echo "<tr><td colspan='11' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
                                             }
 
-                                            /*if (!empty($results)) {
-                                                foreach ($results as $row) {
-                                                    echo "<tr>";
-                                                    echo "<td style='text-align: left;'>";
-                                                    $br=0;
-                                                    // เช็คและแสดง Plan ถ้าเปลี่ยนแปลง
-                                                    if ($row['Plan'] != $previousPlan) {
-                                                        echo "<strong>" . htmlspecialchars($row['Plan']) . "</strong> : " . htmlspecialchars($row['plan_name']) . "<br>";
-                                                        $previousPlan = $row['Plan'];
-                                                        $previousSubPlanId = ""; // รีเซ็ตค่าเมื่อเปลี่ยน Plan
-                                                        $previousProject = "";
-                                                        $previousType = "";
-                                                        $previousSubType = "";
-                                                        $br+=1;
-                                                    }
-
-                                                    // เช็คและแสดง Sub Plan ถ้าเปลี่ยนแปลง
-                                                    if ($row['sub_plan_id'] != $previousSubPlanId) {
-                                                        // ลบคำว่า "SP_" ออกจาก sub_plan_id
-                                                        $cleanedSubPlanId = str_replace('SP_', '', $row['sub_plan_id']);
-                                                        echo str_repeat("&nbsp;", 8) . "<strong>" . htmlspecialchars($cleanedSubPlanId) . "</strong> : " . htmlspecialchars($row['sub_plan_name']) . "<br>";
-                                                        $previousSubPlanId = $row['sub_plan_id'];
-                                                        $previousProject = "";
-                                                        $previousType = "";
-                                                        $previousSubType = "";
-                                                        $br+=1;
-                                                    }
-
-                                                    // เช็คและแสดง Project ถ้าเปลี่ยนแปลง
-                                                    if ($row['project_name'] != $previousProject) {
-                                                        echo str_repeat("&nbsp;", 16) . htmlspecialchars($row['project_name']) . "<br>";
-                                                        $previousProject = $row['project_name'];
-                                                        $previousType = "";
-                                                        $previousSubType = "";
-                                                        $br+=1;
-                                                    }
-
-                                                    // เช็คและแสดง Type ถ้าเปลี่ยนแปลง
-                                                    if ($row['type'] != $previousType) {
-                                                        // ลบตัวเลขและจุดจาก type
-                                                        $cleanedType = preg_replace('/[0-9.]/', '', $row['type']);
-                                                        echo "<strong>" . htmlspecialchars($row['a1']) . "</strong> : " . htmlspecialchars($cleanedType) . "<br>";
-                                                        $previousType = $row['type'];
-                                                        $previousSubType = "";
-                                                        $br+=1;
-                                                    }
-
-                                                    // เช็คและแสดง Sub Type ถ้าเปลี่ยนแปลง
-                                                    if ($row['sub_type'] != $previousSubType) {
-                                                        // ลบตัวเลขและจุดจาก sub_type
-                                                        $cleanedSubType = preg_replace('/[0-9.]/', '', $row['sub_type']);
-                                                        echo str_repeat("&nbsp;", 16) . "<strong>" . htmlspecialchars($row['a2']) . "</strong> : " . htmlspecialchars($cleanedSubType) . "<br>";
-                                                        $previousSubType = $row['sub_type'];
-                                                        $br+=1;
-                                                    }
-
-                                                    // เช็คและกำหนดค่า kkuItemName
-                                                    $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? "<strong>" . htmlspecialchars($row['account']) . "</strong> : " . htmlspecialchars($row['KKU_Item_Name'])
-                                                        : "<strong>" . htmlspecialchars($row['account']) . "</strong>";
-
-                                                    // แสดงผล
-                                                    echo str_repeat("&nbsp;", 32) . $kkuItemName;
-
-                                                    // หลังจากดึงข้อมูลจากฐานข้อมูลมาแล้ว
-                                                    $preReleaseAmount = $row['Pre_Release_Amount'];
-
-                                                    // กำหนดค่า $selectedScenario จาก URL (หรือค่าเริ่มต้น)
-                                                    $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
-
-                                                    // คำนวณ Pre_Release_Amount บวกกับค่า $selectedScenario (ถ้ามี)
-                                                    $finalPreReleaseAmount = $preReleaseAmount;
-
-                                                    // ตรวจสอบว่า scenario ที่เลือกมีค่าเป็น Scenario1, Scenario2, Scenario3, หรือ Scenario4
-                                                    switch ($selectedScenario) {
-                                                        case 'Scenario1':
-                                                            $finalPreReleaseAmount += $row['Scenario1']; // เพิ่ม Scenario1
-                                                            break;
-                                                        case 'Scenario2':
-                                                            $finalPreReleaseAmount += $row['Scenario2']; // เพิ่ม Scenario1 และ Scenario2
-                                                            break;
-                                                        case 'Scenario3':
-                                                            $finalPreReleaseAmount += +$row['Scenario3'];// เพิ่ม Scenario1, Scenario2, และ Scenario3
-                                                            break;
-                                                        case 'Scenario4':
-                                                            $finalPreReleaseAmount +=  $row['Scenario4']; // เพิ่ม Scenario1, Scenario2, Scenario3, และ Scenario4
-                                                            break;
-                                                        default:
-                                                            break;
-                                                    }
-
-                                                    // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                    echo "<td >".str_repeat("<br>", $br) . htmlspecialchars($row['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                    echo "<td >".str_repeat("<br>", $br) . htmlspecialchars($row['Pre_Release_Amount']) . "</td>";
-                                                    echo "<td >".str_repeat("<br>", $br) . htmlspecialchars(isset($row[$selectedScenario]) ? $row[$selectedScenario] : 0) . "</td>";
-
-                                                    echo "<td >".str_repeat("<br>", $br) .sprintf("%0.2f", $finalPreReleaseAmount) . "</td>";
 
 
-                                                    // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
-                                                    $subtractedAmount = $row['Allocated_Total_Amount_Quantity'] - $finalPreReleaseAmount;
-
-                                                    // แสดงผลในคอลัมน์ที่ต้องการ
-                                                    echo "<td >".str_repeat("<br>", $br) . sprintf("%0.2f", $subtractedAmount) . "</td>";
-
-                                                    //echo "<td style='vertical-align: bottom;'>" . htmlspecialchars($row['Remaining_Amount']) . "</td>";
-                                                    echo "<td >".str_repeat("<br>", $br) .
-                                                        (!empty($row['Reason']) ? htmlspecialchars($row['Reason']) : '') .
-                                                        "</td>";
-
-                                                    echo "</tr>";
-                                                }
-                                            } else {
-                                                echo "<tr><td colspan='8'>ไม่พบข้อมูล</td></tr>";
-                                            }*/
                                             ?>
 
                                         </tbody>
@@ -1010,6 +969,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
         </div>
     </div>
     <script>
+
 
         function exportCSV() {
             const table = document.getElementById('reportTable');

@@ -79,6 +79,8 @@
     }
 </style>
 
+
+
 <?php
 
 include '../server/connectdb.php';
@@ -92,7 +94,7 @@ $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
 $budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
 $budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
 
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $budget_year4 = null, $budget_year5 = null)
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $budget_year4= null, $budget_year5= null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
     if ($budget_year1 === null) {
@@ -105,14 +107,14 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
         $budget_year3 = 2566;  // ค่าเริ่มต้น
     }
     if ($budget_year4 === null) {
-        $budget_year4 = 2565;  // ค่าเริ่มต้น
+        $budget_year4 = 2567;  // ค่าเริ่มต้น
     }
     if ($budget_year5 === null) {
-        $budget_year5 = 2564;  // ค่าเริ่มต้น
+        $budget_year5 = 2566;  // ค่าเริ่มต้น
     }
 
     // สร้างคิวรี
-    $query = "SELECT
+    $query = "SELECT 
     bap.id, bap.Faculty,
     bap.Plan,
     ft.Alias_Default AS Faculty_name,
@@ -127,400 +129,43 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     bap.KKU_Item_Name,
     CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
     CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
-    bap.`Account`,
-    bap.Total_Amount_Quantity,
-    
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_1,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_3,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year4 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_4,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year5 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_5,
-    (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) +
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END)
-    ) AS Total_Amount_Quantity1_2,
-
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q1_BUDGET1,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q2_BUDGET1,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q3_BUDGET1,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q4_BUDGET1,
-    (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)
-    ) AS TOTAL_BUDGET_YEAR_1,
-        
-        SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q1_BUDGET2,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q2_BUDGET2,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q3_BUDGET2,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q4_BUDGET2,
-
-    (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)
-    ) AS TOTAL_BUDGET_YEAR_2,
-    
-     	(SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12  
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)) AS Q1_BUDGET1_2,
-    
-    (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)) AS Q2_BUDGET1_2,
-
-
-    (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)) AS Q3_BUDGET1_2,
-    
-        (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)) AS Q4_BUDGET1_2,
-
-    (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)
-    ) AS TOTAL_BUDGET_1_2,
-    
-     SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q1_BUDGET3,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q2_BUDGET3,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q3_BUDGET3,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q4_BUDGET3,
-
-    (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)
-    ) AS TOTAL_BUDGET_YEAR_3,
-    
-    
-    
-         SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year4
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q1_BUDGET4,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year4
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q2_BUDGET4,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year4
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q3_BUDGET4,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year4
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q4_BUDGET4,
-
-    (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year4
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year4
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year4
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year4
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)
-    ) AS TOTAL_BUDGET_YEAR_4,
-    
-    
-    
-         SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year5
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q1_BUDGET5,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year5
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q2_BUDGET5,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year5
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q3_BUDGET5,
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year5
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) AS Q4_BUDGET5,
-
-    (SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year5
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year5
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year5
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END) +
-    SUM(CASE 
-        WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year5
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END)
-    ) AS TOTAL_BUDGET_YEAR_5
-    
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+    COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+    AS Difference_2568_2567,
+    CASE
+        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
+        THEN 100
+        ELSE 
+            (
+                SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+            ) / 
+            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
+    END AS Percentage_Difference_2568_2567,
+    bap.Reason
 FROM budget_planning_annual_budget_plan bap
-INNER JOIN Faculty ft 
-    ON bap.Faculty = ft.Faculty 
-    AND ft.parent LIKE 'Faculty%' 
-LEFT JOIN sub_plan sp 
-    ON sp.sub_plan_id = bap.Sub_Plan
-LEFT JOIN project pj 
-    ON pj.project_id = bap.Project
-LEFT JOIN `account` ac 
-    ON ac.`account` = bap.`Account`
-LEFT JOIN plan p 
-    ON p.plan_id = bap.Plan
+    INNER JOIN Faculty ft 
+        ON bap.Faculty = ft.Faculty 
+        AND ft.parent LIKE 'Faculty%' 
+LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan
+LEFT JOIN project pj ON pj.project_id = bap.Project
+LEFT JOIN `account` ac ON ac.`account` = bap.`Account`
+LEFT JOIN plan p ON p.plan_id = bap.Plan
 LEFT JOIN budget_planning_actual bpa
     ON bpa.FACULTY = bap.Faculty
     AND bpa.`ACCOUNT` = bap.`Account`
     AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
     AND bpa.PROJECT = bap.Project
     AND bpa.PLAN = bap.Plan
-    AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-    AND bpa.FUND = bap.Fund
     AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
+    AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
+    AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
 WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
 
     // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
@@ -529,13 +174,16 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
     }
 
     // เพิ่มการจัดกลุ่มข้อมูล
-    $query .= "  GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
+    $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
     bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
     bap.KKU_Item_Name, ft.Alias_Default
-    ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC,ac.sub_type ASC,bap.`Account` ASC";
+    ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
+                ac.sub_type ASC, 
+                
+                bap.`Account` ASC";
 
     // เตรียมคำสั่ง SQL
-
+    
     $stmt = $conn->prepare($query);
 
     // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
@@ -551,8 +199,8 @@ $faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 
 
 
-$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5);
 
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5);
 function fetchFacultyData($conn)
 {
     // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
@@ -581,9 +229,7 @@ function fetchYearsData($conn)
 <html lang="en">
 <?php include('../component/header.php'); ?>
 
-
 <body class="v-light vertical-nav fix-header fix-sidebar">
-
     <div id="preloader">
         <div class="loader">
             <svg class="circular" viewBox="25 25 50 50">
@@ -597,14 +243,13 @@ function fetchYearsData($conn)
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</h4>
+                        <h4>รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง
-                            </li>
+                            <li class="breadcrumb-item active">รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</li>
                         </ol>
                     </div>
                 </div>
@@ -612,13 +257,13 @@ function fetchYearsData($conn)
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
+                                <div class="card-title">
+                                    <h4>รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</h4>
+                                </div>
 
                                 <?php
                                 $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
-                                
-                                $selectedYear = isset($_GET['year']) ? htmlspecialchars($_GET['year']) : '';
-                                $selectedFaculty = isset($_GET['faculty']) ? htmlspecialchars($_GET['faculty']) : '';
                                 ?>
 
                                 <form method="GET" action="" onsubmit="return validateForm()">
@@ -693,87 +338,66 @@ function fetchYearsData($conn)
                                     console.log('Budget Year 3:', budgetYear3);
                                     console.log('Budget Year 4:', budgetYear4);
                                     console.log('Budget Year 5:', budgetYear5);
-
                                 </script>
-                                <div class="row">
-                                </div>
-                                <br>
                                 <div class="table-responsive">
-                                    <table id="reportTable" class="table table-bordered">
-                                        <thead>
-                                            <tr>
-                                            <th colspan="33" style='text-align: left;'><span
-                                                        style="font-size: 16px;"><?php echo "ปีงบที่ต้องการเปรียบเทียบ " . ($selectedYear - 4) . " ถึง " . $selectedYear; ?></span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                            <th colspan="33" style='text-align: left;'><span
-                                                        style="font-size: 16px;"><?php echo "ส่วนงาน / หน่วยงาน " . $selectedFaculty; ?></span>
-                                                </td>
-                                            </tr>
-                                            <tr>
-                                                <th rowspan="3">รายการ</th>
-                                                <th colspan="6"><?php echo "ปี " . ($selectedYear - 4) ?></th>
-                                                <th colspan="6"><?php echo "ปี " . ($selectedYear - 3) ?></th>
-                                                <th colspan="6">
-                                                    <?php echo "จำนวน <br/>(รวมจัดสรร " . $selectedYear . " - " . ($selectedYear - 1) . ")"; ?>
-                                                </th>
+                                    <table id="reportTable" class="table table-bordered table-hover text-center">
+                                    <thead>
+                                            <?php
+                                         
+                                            ?>
 
-                                                <th colspan="6"><?php echo "ปี " . ($selectedYear - 1) ?></th>
-                                                <th colspan="6"><?php echo "ปี " . ($selectedYear) ?></th>
-
+                                            <tr>
+   
                                             </tr>
                                             <tr>
-                                            <th rowspan="2">ประมาณการรายรับ</th>
-                                            <th colspan="4">รายรับจริง</th>
-                                            <th rowspan="2">รวม<br/>
-                                                รายรับจริง</th>
-                                            <th rowspan="2">ประมาณการรายรับ</th>
-                                            <th colspan="4">รายรับจริง</th>
-                                            <th rowspan="2">รวม<br/>
-                                                รายรับจริง</th>
-                                            <th rowspan="2">ประมาณการรายรับ</th>
-                                            <th colspan="4">รายรับจริง</th>
-                                            <th rowspan="2">รวม <br/>
-                                                รายรับจริง</th>
-                                            <th rowspan="2">ประมาณการรายรับ</th>
-                                            <th colspan="4">รายรับจริง</th>
-                                            <th rowspan="2">รวม<br/>
-                                                รายรับจริง</th>
-                                            <th rowspan="2">ประมาณการรายรับ</th>
-                                            <th colspan="4">รายรับจริง</th>
-                                            <th rowspan="2">รวม<br/>
-                                                รายรับจริง</th>
+                                                <th rowspan="2">ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th rowspan="2">รวม<br />
+                                                    รายรับจริง</th>
+                                                <th rowspan="2">ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th rowspan="2">รวม<br />
+                                                    รายรับจริง</th>
+                                                <th rowspan="2">ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th rowspan="2">รวม <br />
+                                                    รายรับจริง</th>
+                                                <th rowspan="2">ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th rowspan="2">รวม<br />
+                                                    รายรับจริง</th>
+                                                <th rowspan="2">ประมาณการรายรับ</th>
+                                                <th colspan="4">รายรับจริง</th>
+                                                <th rowspan="2">รวม<br />
+                                                    รายรับจริง</th>
 
                                             </tr>
                                             <tr>
-                                            <th>ไตรมาสที่1</th>  
-                                            <th>ไตรมาสที่2</th>  
-                                            <th>ไตรมาสที่3</th>  
-                                            <th>ไตรมาสที่4</th>  
-                                            <th>ไตรมาสที่1</th>  
-                                            <th>ไตรมาสที่2</th>  
-                                            <th>ไตรมาสที่3</th>  
-                                            <th>ไตรมาสที่4</th>  
-                                            <th>ไตรมาสที่1</th>  
-                                            <th>ไตรมาสที่2</th>  
-                                            <th>ไตรมาสที่3</th>  
-                                            <th>ไตรมาสที่4</th>  
-                                            <th>ไตรมาสที่1</th>  
-                                            <th>ไตรมาสที่2</th>  
-                                            <th>ไตรมาสที่3</th>  
-                                            <th>ไตรมาสที่4</th>  
-                                            <th>ไตรมาสที่1</th>  
-                                            <th>ไตรมาสที่2</th>  
-                                            <th>ไตรมาสที่3</th>  
-                                            <th>ไตรมาสที่4</th>  
+                                                <th>ไตรมาสที่1</th>
+                                                <th>ไตรมาสที่2</th>
+                                                <th>ไตรมาสที่3</th>
+                                                <th>ไตรมาสที่4</th>
+                                                <th>ไตรมาสที่1</th>
+                                                <th>ไตรมาสที่2</th>
+                                                <th>ไตรมาสที่3</th>
+                                                <th>ไตรมาสที่4</th>
+                                                <th>ไตรมาสที่1</th>
+                                                <th>ไตรมาสที่2</th>
+                                                <th>ไตรมาสที่3</th>
+                                                <th>ไตรมาสที่4</th>
+                                                <th>ไตรมาสที่1</th>
+                                                <th>ไตรมาสที่2</th>
+                                                <th>ไตรมาสที่3</th>
+                                                <th>ไตรมาสที่4</th>
+                                                <th>ไตรมาสที่1</th>
+                                                <th>ไตรมาสที่2</th>
+                                                <th>ไตรมาสที่3</th>
+                                                <th>ไตรมาสที่4</th>
 
                                             </tr>
                                         </thead>
                                         <tbody>
-
                                             <?php
-                                            
                                             function formatNumber($number)
                                             {
                                                 return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
@@ -797,22 +421,251 @@ function fetchYearsData($conn)
                                             $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
                                             $budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
                                             $budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
-                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3,$budget_year4,$budget_year5);
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5);
 
+                                            // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
+                                                // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
+                                                $summary = [];
+                                                foreach ($results as $row) {
+                                                    $plan = $row['Plan'];
+                                                    $subPlan = $row['Sub_Plan'];
+                                                    $project = $row['project_name'];
+                                                    $subType = $row['sub_type'];
 
+                                                    // เก็บข้อมูลของ Plan
+                                                    if (!isset($summary[$plan])) {
+                                                        $summary[$plan] = [
+                                                            'plan_name' => $row['plan_name'],
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
+                                                            'sub_plans' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ Sub_Plan
+                                                    if (!isset($summary[$plan]['sub_plans'][$subPlan])) {
+                                                        $summary[$plan]['sub_plans'][$subPlan] = [
+                                                            'sub_plan_name' => $row['sub_plan_name'],
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
+                                                            'projects' => [], // เก็บข้อมูลของ Project
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ Project
+                                                    if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project])) {
+                                                        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project] = [
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
+                                                            'sub_types' => [], // เก็บข้อมูลของ Sub_Type
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ Sub_Type
+                                                    if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType])) {
+                                                        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType] = [
+                                                            'a2' => $row['a2'],
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
+                                                            'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
+                                                        ];
+                                                    }
+
+                                                    // รวมข้อมูลของ Plan
+                                                    $summary[$plan]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+
+                                                    // รวมข้อมูลของ Sub_Plan
+                                                    $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+
+                                                    // รวมข้อมูลของ Project
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+
+                                                    // รวมข้อมูลของ Sub_Type
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+
+                                                    // เก็บข้อมูลของ KKU_Item_Name
+                                                    $kkuItemName = (!empty($row['KKU_Item_Name']))
+                                                        ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                        : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['kku_items'][] = [
+                                                        'name' => $kkuItemName,
+                                                        'Total_Amount_2566' => $row['Total_Amount_2566'],
+                                                        'Total_Amount_2567' => $row['Total_Amount_2567'],
+                                                        'TOTAL_BUDGET_2567' => $row['TOTAL_BUDGET_2567'],
+                                                        'Total_Amount_2568' => $row['Total_Amount_2568'],
+                                                        'Difference_2568_2567' => $row['Difference_2568_2567'],
+                                                        'Percentage_Difference_2568_2567' => $row['Percentage_Difference_2568_2567'],
+                                                        'Reason' => $row['Reason'],
+                                                    ];
+                                                }
+
+                                                // แสดงผลลัพธ์
+                                                foreach ($summary as $plan => $data) {
+                                                    // แสดงผลรวมของ Plan
+                                                    echo "<tr>";
+                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($plan) . "</strong> : " . htmlspecialchars($data['plan_name']) . "<br></td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_2566']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_2567']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['TOTAL_BUDGET_2567']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_Amount_2568']) . "</td>";
+
+                                                    // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Plan
+                                                    $Difference = $data['Total_Amount_2568'] - $data['TOTAL_BUDGET_2567'];
+                                                    $Percentage_Difference = ($data['TOTAL_BUDGET_2567'] != 0) ? ($Difference / $data['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                    echo "<td>" . formatNumber($Difference) . "</td>";
+                                                    echo "<td>" . formatNumber($Percentage_Difference) . "%</td>";
+                                                    echo "<td>" . "</td>";
+                                                    echo "</tr>";
+
+                                                    // แสดงผลรวมของแต่ละ Sub_Plan
+                                                    foreach ($data['sub_plans'] as $subPlan => $subData) {
+                                                        echo "<tr>";
+
+                                                        // ลบ 'SP_' ที่อยู่หน้าสุดของข้อความ
+                                                        $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
+
+                                                        // แสดงผลข้อมูล
+                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
+
+
+                                                        echo "<td>" . formatNumber($subData['Total_Amount_2566']) . "</td>";
+                                                        echo "<td>" . formatNumber($subData['Total_Amount_2567']) . "</td>";
+                                                        echo "<td>" . formatNumber($subData['TOTAL_BUDGET_2567']) . "</td>";
+                                                        echo "<td>" . formatNumber($subData['Total_Amount_2568']) . "</td>";
+
+                                                        // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Plan
+                                                        $subDifference = $subData['Total_Amount_2568'] - $subData['TOTAL_BUDGET_2567'];
+                                                        $subPercentage_Difference = ($subData['TOTAL_BUDGET_2567'] != 0) ? ($subDifference / $subData['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                        echo "<td>" . formatNumber($subDifference) . "</td>";
+                                                        echo "<td>" . formatNumber($subPercentage_Difference) . "%</td>";
+                                                        echo "<td>" . "</td>";
+                                                        echo "</tr>";
+
+                                                        // แสดงผลรวมของแต่ละ Project
+                                                        foreach ($subData['projects'] as $project => $projectData) {
+                                                            echo "<tr>";
+                                                            echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($project) . "<br></td>";
+                                                            echo "<td>" . formatNumber($projectData['Total_Amount_2566']) . "</td>";
+                                                            echo "<td>" . formatNumber($projectData['Total_Amount_2567']) . "</td>";
+                                                            echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_2567']) . "</td>";
+                                                            echo "<td>" . formatNumber($projectData['Total_Amount_2568']) . "</td>";
+
+                                                            // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Project
+                                                            $projectDifference = $projectData['Total_Amount_2568'] - $projectData['TOTAL_BUDGET_2567'];
+                                                            $projectPercentage_Difference = ($projectData['TOTAL_BUDGET_2567'] != 0) ? ($projectDifference / $projectData['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                            echo "<td>" . formatNumber($projectDifference) . "</td>";
+                                                            echo "<td>" . formatNumber($projectPercentage_Difference) . "%</td>";
+                                                            echo "<td>" . "</td>";
+                                                            echo "</tr>";
+
+                                                            // แสดงผลรวมของแต่ละ Sub_Type
+                                                            foreach ($projectData['sub_types'] as $subType => $subTypeData) {
+                                                                echo "<tr>";
+                                                                // ใช้ Regex ลบตัวเลขและจุดข้างหน้า
+                                                                $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $subType);
+
+                                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($subTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+                                                                echo "<td>" . formatNumber($subTypeData['Total_Amount_2566']) . "</td>";
+                                                                echo "<td>" . formatNumber($subTypeData['Total_Amount_2567']) . "</td>";
+                                                                echo "<td>" . formatNumber($subTypeData['TOTAL_BUDGET_2567']) . "</td>";
+                                                                echo "<td>" . formatNumber($subTypeData['Total_Amount_2568']) . "</td>";
+
+                                                                // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
+                                                                $subTypeDifference = $subTypeData['Total_Amount_2568'] - $subTypeData['TOTAL_BUDGET_2567'];
+                                                                $subTypePercentage_Difference = ($subTypeData['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $subTypeData['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                                echo "<td>" . formatNumber($subTypeDifference) . "</td>";
+                                                                echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
+                                                                echo "<td>" . "</td>";
+                                                                echo "</tr>";
+
+                                                                // แสดงข้อมูล KKU_Item_Name
+                                                                foreach ($subTypeData['kku_items'] as $kkuItem) {
+                                                                    echo "<tr>";
+
+                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $kkuItem['name'] . "<br></td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2567']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2568']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
+                                                                    echo "<td>" . formatNumber($kkuItem['Percentage_Difference_2568_2567']) . "</td>";
+                                                                    echo "<td>" . (isset($kkuItem['Reason']) && !empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : "") . "</td>";
+                                                                    echo "</tr>";
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
                                             }
-
                                             ?>
+                                        </tbody>
                                     </table>
-                                    <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
-                                    <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                    <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
+                                    <script>
+                                        // การส่งค่าของ selectedFaculty ไปยัง JavaScript
+                                        var selectedFaculty = "<?php echo isset($selectedFaculty) ? htmlspecialchars($selectedFaculty, ENT_QUOTES, 'UTF-8') : ''; ?>";
+                                        console.log('Selected Faculty: ', selectedFaculty);
 
+                                        // การส่งค่าของ selectedYear1, selectedYear2, selectedYear3 ไปยัง JavaScript
+                                        var budget_year1 = "<?php echo isset($budget_year1) ? $budget_year1 : ''; ?>";
+                                        var budget_year2 = "<?php echo isset($budget_year2) ? $budget_year2 : ''; ?>";
+                                        var budget_year3 = "<?php echo isset($budget_year3) ? $budget_year3 : ''; ?>";
+                                        var budget_year4 = "<?php echo isset($budget_year4) ? $budget_year4 : ''; ?>";
+                                        var budget_year5 = "<?php echo isset($budget_year5) ? $budget_year5 : ''; ?>";
+
+                                        console.log('Selected Year 1: ', budget_year1);
+                                        console.log('Selected Year 2: ', budget_year2);
+                                        console.log('Selected Year 3: ', budget_year3);
+                                        console.log('Selected Year 4: ', budget_year4);
+                                        console.log('Selected Year 5: ', budget_year5);  
+                                        
+                                    </script>
                                 </div>
+                                <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
+                                <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
+                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
+
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -845,7 +698,7 @@ function fetchYearsData($conn)
                         return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
                     });
 
-
+ 
                     // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
                     html = html.replace(/<\/?[^>]+>/g, '');
 
