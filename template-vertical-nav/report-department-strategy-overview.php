@@ -138,7 +138,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
+                    // console.log(response.plan);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
@@ -243,7 +243,7 @@
                         tr.appendChild(td21);
 
                         const td22 = document.createElement('td');
-                        td22.textContent = row.Budget_Amount;
+                        td22.textContent = Number(row.Budget_Amount).toLocaleString();
                         tr.appendChild(td22);
 
                         const td23 = document.createElement('td');

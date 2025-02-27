@@ -138,7 +138,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
+                    // console.log(response.plan);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
@@ -199,7 +199,7 @@
                         tr.appendChild(td10);
 
                         const td11 = document.createElement('td');
-                        td11.textContent = null;
+                        td11.textContent = row.Quarter_Progress_Value;
                         tr.appendChild(td11);
 
                         const td12 = document.createElement('td');
@@ -227,15 +227,15 @@
                         tr.appendChild(td17);
 
                         const td18 = document.createElement('td');
-                        td18.textContent = row.Budget_Amount;
+                        td18.textContent = Number(row.Budget_Amount).toLocaleString();
                         tr.appendChild(td18);
 
                         const td19 = document.createElement('td');
-                        td19.textContent = row.Allocated_budget;
+                        td19.textContent = Number(row.Allocated_budget).toLocaleString();;
                         tr.appendChild(td19);
 
                         const td20 = document.createElement('td');
-                        td20.textContent = row.Actual_Spend_Amount;
+                        td20.textContent = Number(row.Actual_Spend_Amount).toLocaleString();
                         tr.appendChild(td20);
 
 

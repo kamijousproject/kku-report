@@ -394,11 +394,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             LEFT(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), LOCATE('SO', pkop.Strategic_Object) - 1),
                             'P',
                             SUBSTRING(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), LOCATE('SO', pkop.Strategic_Object) + 2, 2 ) ) as pilar_code,
-                            p.pilar_name,
+                            p.pillar_name AS pilar_name,
                             REPLACE(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
-                            si.pilar_name AS si_name,
+                            si.pillar_name AS si_name,
                             pkop.Strategic_Object,
-                            so.pilar_name AS so_name,
+                            so.pillar_name AS so_name,
                             pkop.OKR,
                             okr.okr_name,
                             pkap.Target_OKR_Objective_and_Key_Result,
@@ -411,10 +411,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ksp.ksp_name
                             FROM planning_kku_okr_progress AS pkop
                             LEFT JOIN okr ON okr.okr_id = pkop.OKR
-                            LEFT JOIN pilar AS so ON so.pilar_id = pkop.Strategic_Object
-                            LEFT JOIN pilar AS p ON p.pilar_id = CONCAT(LEFT(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), LOCATE('SO', pkop.Strategic_Object) - 1),'P',
+                            LEFT JOIN pilars2 AS so ON so.pillar_id = pkop.Strategic_Object
+                            LEFT JOIN pilars2 AS p ON p.pillar_id = CONCAT(LEFT(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), LOCATE('SO', pkop.Strategic_Object) - 1),'P',
                             SUBSTRING(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1),LOCATE('SO', pkop.Strategic_Object) + 2,2))
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), 'SO', 'SI')
                             LEFT JOIN planning_kku_action_plan AS pkap ON pkap.OKR = pkop.OKR
                             LEFT JOIN planning_kku_project_progress AS pkpp ON TRIM(pkpp.Strategic_Project) = TRIM(pkap.Strategic_Project)
                             LEFT JOIN Faculty ON Faculty.Faculty = pkop.Faculty
@@ -438,7 +438,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             break;
 
+        case "get_strategic_issues":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
 
+                // เชื่อมต่อฐานข้อมูล
+                $sqlPlan = "SELECT 
+                                pkop.*,
+                                CONCAT(
+                                LEFT(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), LOCATE('SO', pkop.Strategic_Object) - 1),
+                                'P',
+                                SUBSTRING(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), LOCATE('SO', pkop.Strategic_Object) + 2, 2 ) ) as pilar_code,
+                                p.pillar_name AS pilar_name,
+                                REPLACE(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
+                                si.pillar_name AS si_name,
+                                pkop.Strategic_Object,
+                                so.pillar_name AS so_name,
+                                pkop.OKR,
+                                okr.okr_name,
+                                pkap.Target_OKR_Objective_and_Key_Result,
+                                pkap.UOM,
+                                pkap.Budget_Amount,
+                                pkpp.Allocated_budget,
+                                pkpp.Actual_Spend_Amount,
+                                pkap.Responsible_person,
+                                Faculty.Alias_Default AS fa_name,
+                                ksp.ksp_name
+                                FROM planning_kku_okr_progress AS pkop
+                                LEFT JOIN okr ON okr.okr_id = pkop.OKR
+                                LEFT JOIN pilars2 AS so ON so.pillar_id = pkop.Strategic_Object
+                                LEFT JOIN pilars2 AS p ON p.pillar_id = CONCAT(LEFT(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), LOCATE('SO', pkop.Strategic_Object) - 1),'P',
+                                SUBSTRING(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1),LOCATE('SO', pkop.Strategic_Object) + 2,2))
+                                LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pkop.Strategic_Object, '-', 1), 'SO', 'SI')
+                                LEFT JOIN planning_kku_action_plan AS pkap ON pkap.OKR = pkop.OKR
+                                LEFT JOIN planning_kku_project_progress AS pkpp ON TRIM(pkpp.Strategic_Project) = TRIM(pkap.Strategic_Project)
+                                LEFT JOIN Faculty ON Faculty.Faculty = pkop.Faculty
+                                LEFT JOIN ksp ON ksp.ksp_id = pkap.Strategic_Project
+                                ORDER BY Faculty, si_code,pkop.Strategic_Object, okr.okr_id,ksp.ksp_id";
+                $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
 
 
 
@@ -455,19 +509,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 f.Alias_Default AS fa_name,
                                 CONCAT(LEFT(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1), LOCATE('SO', pfsp.Strategic_Object) - 1),'P',
                                 SUBSTRING(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1),LOCATE('SO', pfsp.Strategic_Object) + 2,2)) AS pilar_code,
-                                p.pilar_name,
+                                p.pillar_name AS pilar_name ,
                                 REPLACE(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
-                                si.pilar_name AS si_name,
-                                so.pilar_name AS so_name,
+                                si.pillar_name AS si_name,
+                                so.pillar_name AS so_name,
                                 ksp.ksp_name,
                                 okr.okr_name,
                                 pfop.Quarter_Progress_Value
                                 FROM planning_faculty_strategic_plan AS pfsp
                                 LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default FROM Faculty ) AS f ON pfsp.Faculty = f.Faculty
-                                LEFT JOIN pilar AS so ON so.pilar_id = pfsp.Strategic_Object
-                                LEFT JOIN pilar AS p ON p.pilar_id = CONCAT(LEFT(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1), LOCATE('SO', pfsp.Strategic_Object) - 1),'P',
+                                LEFT JOIN pilars2 AS so ON so.pillar_id = pfsp.Strategic_Object
+                                LEFT JOIN pilars2 AS p ON p.pillar_id = CONCAT(LEFT(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1), LOCATE('SO', pfsp.Strategic_Object) - 1),'P',
                                 SUBSTRING(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1),LOCATE('SO', pfsp.Strategic_Object) + 2,2))
-                                LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1), 'SO', 'SI')
+                                LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pfsp.Strategic_Object, '-', 1), 'SO', 'SI')
                                 LEFT JOIN ksp ON ksp.ksp_id = pfsp.Strategic_Project
                                 LEFT JOIN okr ON okr.okr_id = pfsp.OKR
                                 LEFT JOIN planning_faculty_okr_progress AS pfop ON pfop.OKR = pfsp.OKR
@@ -517,7 +571,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 );
                 echo json_encode($response);
             }
-            break; 
+            break;
         case "get_strategic-indicators":
             try {
                 $db = new Database();
@@ -805,14 +859,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
-            case "report-revenue-estimation-comparison":
-                try {
-                    $db = new Database();
-                    $conn = $db->connect();
-    
-                    $yearselect = isset($_POST['yearselect']) ? $_POST['yearselect'] : '2568';
-    
-                    $sqlrevenue = "SELECT
+        case "report-revenue-estimation-comparison":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                $yearselect = isset($_POST['yearselect']) ? $_POST['yearselect'] : '2568';
+
+                $sqlrevenue = "SELECT
                                             abp.KKU_Item_Name,
                                             abp.Q1_Spending_Plan,
                                             abp.Q2_Spending_Plan,
@@ -833,33 +887,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     WHERE
                                             abp.Budget_Management_Year = :yearselect
                                             AND acc.parent LIKE '4%'";
-    
-                    $stmtrevenue = $conn->prepare($sqlrevenue);
-                    $stmtrevenue->bindParam(':yearselect', $yearselect, PDO::PARAM_STR);
-                    $stmtrevenue->execute();
-                    $revenue = $stmtrevenue->fetchAll(PDO::FETCH_ASSOC);
-                    $conn = null;
-    
-                    $response = array(
-                        'revenue' => $revenue
-                    );
-                    echo json_encode($response);
-                } catch (PDOException $e) {
-                    $response = array(
-                        'status' => 'error',
-                        'message' => 'Database error: ' . $e->getMessage()
-                    );
-                    echo json_encode($response);
-                }
-                break;
-                case "report-budget-requests":
-                    try {
-                        $db = new Database();
-                        $conn = $db->connect();
-        
-                        $yearselect = isset($_POST['yearselect']) ? $_POST['yearselect'] : '2568';
-        
-                        $sqlbudget = "SELECT
+
+                $stmtrevenue = $conn->prepare($sqlrevenue);
+                $stmtrevenue->bindParam(':yearselect', $yearselect, PDO::PARAM_STR);
+                $stmtrevenue->execute();
+                $revenue = $stmtrevenue->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'revenue' => $revenue
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "report-budget-requests":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                $yearselect = isset($_POST['yearselect']) ? $_POST['yearselect'] : '2568';
+
+                $sqlbudget = "SELECT
                                                 plan.plan_name,
                                                 sp.sub_plan_name,
                                                 pj.project_name,
@@ -894,25 +948,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                                 abp.Fund IN ('FN06', 'FN02', 'FN08')
                                                 AND acc.`type` LIKE '%ค่าใช้จ่าย%'
                                                 AND abp.Budget_Management_Year = :yearselect ";
-        
-                        $stmtbudget = $conn->prepare($sqlbudget);
-                        $stmtbudget->bindParam(':yearselect', $yearselect, PDO::PARAM_STR);
-                        $stmtbudget->execute();
-                        $budget = $stmtbudget->fetchAll(PDO::FETCH_ASSOC);
-                        $conn = null;
-        
-                        $response = array(
-                            'budget' => $budget
-                        );
-                        echo json_encode($response);
-                    } catch (PDOException $e) {
-                        $response = array(
-                            'status' => 'error',
-                            'message' => 'Database error: ' . $e->getMessage()
-                        );
-                        echo json_encode($response);
-                    }
-                    break;
+
+                $stmtbudget = $conn->prepare($sqlbudget);
+                $stmtbudget->bindParam(':yearselect', $yearselect, PDO::PARAM_STR);
+                $stmtbudget->execute();
+                $budget = $stmtbudget->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'budget' => $budget
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
         case "get_faculty_action_plan":
             try {
                 $db = new Database();
@@ -942,13 +996,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
-            case "report-budget-comparison":
-                try {
-                    $db = new Database();
-                    $conn = $db->connect();
-    
-                    // เชื่อมต่อฐานข้อมูล
-                    $sql = "SELECT
+        case "report-budget-comparison":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT
                                     DISTINCT acc.alias_default AS Account_Alias_Default,
                                     acc.type,
                                     acc.sub_type,
@@ -1030,26 +1084,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     LEFT JOIN project pr ON bpanbp.Project = pr.project_id
                                     WHERE
                                     acc.type LIKE '%ค่าใช้จ่าย%';";
-    
-                    $cmd = $conn->prepare($sql);
-                    $cmd->execute();
-                    $budget = $cmd->fetchAll(PDO::FETCH_ASSOC);
-    
-                    $conn = null;
-    
-                    $response = array(
-                        'budget' => $budget,
-                    );
-                    echo json_encode($response);
-                } catch (PDOException $e) {
-                    $response = array(
-                        'status' => 'error',
-                        'message' => 'Database error: ' . $e->getMessage()
-                    );
-                    echo json_encode($response);
-                }
-                break;  
-                default:
+
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $budget = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'budget' => $budget,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        default:
             break;
     }
 } else {

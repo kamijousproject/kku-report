@@ -71,7 +71,11 @@
                                                 <td>77.5%</td>
                                             </tr>
                                         </tbody>
+                                        <tfoot id="reportTableFooter">
+                                            <!-- แถวรวมจะถูกเพิ่มที่นี่ -->
+                                        </tfoot>
                                     </table>
+
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
@@ -100,7 +104,7 @@
                 type: "POST",
                 url: "../server/api.php",
                 data: {
-                    'command': 'get_kku_annual_action_summary'
+                    'command': 'get_strategic_issues'
                 },
                 dataType: "json",
                 success: function(response) {
@@ -118,43 +122,82 @@
                     let previousSOName = '';
                     let previousOKRCode = '';
                     let previousOKRName = '';
+                    let totalOKRProgress;
+                    let alltotalOKRProgress=0;
+                    let totalSO = 0; 
+                    let totalOKR = 0; 
+                    let totalKSP = 0;
+                    const siStats = {}; // เก็บข้อมูล SO, OKR และ KSP ที่ไม่ซ้ำภายในแต่ละ SI
+
 
                     response.plan.forEach(row => {
-                        const tr = document.createElement('tr');
+                        if (!siStats[row.si_name]) {
+                            siStats[row.si_name] = {
+                                soSet: new Set(), // เก็บ SO ที่ไม่ซ้ำ
+                                okrSet: new Set(), // เก็บ OKR ที่ไม่ซ้ำ
+                                kspSet: new Set(), // เก็บ KSP ที่ไม่ซ้ำ
+                                okrProgress: {}
+                            };
+                        }
 
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td1 = document.createElement('td');
-                        td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
-                        tr.appendChild(td1);
+                        siStats[row.si_name].soSet.add(row.so_name);
+                        siStats[row.si_name].okrSet.add(row.okr_name);
+                        siStats[row.si_name].kspSet.add(row.ksp_name);
 
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
-                        tr.appendChild(td2);
+                        // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
+                        if (!siStats[row.si_name].okrProgress[row.okr_name]) {
+                            siStats[row.si_name].okrProgress[row.okr_name] = parseFloat(row.Quarter_Progress_Value) || 0;
+                        }
+                    });
 
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.si_name === previousSIName ? '' : row.si_name;
-                        tr.appendChild(td3);
+                    // แสดงจำนวน SO, OKR, KSP ที่ไม่ซ้ำ และผลรวมของ Quarter_Progress_Value ของ OKR ที่ไม่ซ้ำ
+                    Object.keys(siStats).forEach(si => {
+                        totalOKRProgress = Object.values(siStats[si].okrProgress).reduce((sum, value) => sum + value, 0);
+                        alltotalOKRProgress += Object.values(siStats[si].okrProgress).reduce((sum, value) => sum + value, 0);
+                        siStats[si].totalOKRProgress = (totalOKRProgress / siStats[si].okrSet.size);
+                        totalSO += siStats[si].soSet.size;
+                        totalOKR += siStats[si].okrSet.size;
+                        totalKSP += siStats[si].kspSet.size;
+                        console.log(`SI: ${si}, Unique SO Count: ${siStats[si].soSet.size}, Unique OKR Count: ${siStats[si].okrSet.size}, Unique KSP Count: ${siStats[si].kspSet.size}, Total OKR Progress: ${totalOKRProgress}`);
+                    });
 
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.so_name === previousSOName ? '' : row.so_name;
-                        tr.appendChild(td4);
+                    response.plan.forEach(row => {
+                        if (previousSIName !== row.si_name) {
+                            const tr = document.createElement('tr');
 
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.okr_name === previousOKRName ? '' : row.okr_name;
-                        tr.appendChild(td5);
+                            // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                            const td1 = document.createElement('td');
+                            td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                            tr.appendChild(td1);
 
-                        const td6 = document.createElement('td');
-                        td6.textContent = row.ksp_name;
-                        tr.appendChild(td6);
+                            // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                            const td2 = document.createElement('td');
+                            td2.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
+                            tr.appendChild(td2);
 
-                        const td7 = document.createElement('td');
-                        td7.textContent = null;
-                        tr.appendChild(td7);
+                            const td3 = document.createElement('td');
+                            td3.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                            tr.appendChild(td3);
 
-                        tableBody.appendChild(tr);
+                            const td4 = document.createElement('td');
+                            td4.textContent = siStats[row.si_name].soSet.size;
+                            tr.appendChild(td4);
 
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                            const td5 = document.createElement('td');
+                            td5.textContent = siStats[row.si_name].okrSet.size;
+                            tr.appendChild(td5);
+
+                            const td6 = document.createElement('td');
+                            td6.textContent = siStats[row.si_name].kspSet.size;
+                            tr.appendChild(td6);
+
+                            const td7 = document.createElement('td');
+                            td7.textContent = (siStats[row.si_name].totalOKRProgress).toFixed(2) + ' %';
+                            tr.appendChild(td7);
+
+                            tableBody.appendChild(tr);
+                            // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                        }
                         previousFacultyCode = row.Faculty;
                         previousFacultyName = row.fa_name;
                         previousPilarCode = row.pilar_code;
@@ -166,7 +209,33 @@
                         previousOKRCode = row.OKR;
                         previousOKRName = row.okr_name;
                     });
+                    // เพิ่มแถวใน footer สำหรับผลรวม
+                    const footerRow = document.createElement('tr');
 
+                    const footerTd1 = document.createElement('td');
+                    footerTd1.textContent = 'รวม';
+                    footerTd1.colSpan = 3;
+                    footerRow.appendChild(footerTd1);
+
+                    const footerTd2 = document.createElement('td');
+                    footerTd2.textContent = totalSO;
+                    footerRow.appendChild(footerTd2);
+
+                    const footerTd3 = document.createElement('td');
+                    footerTd3.textContent = totalOKR;
+                    footerRow.appendChild(footerTd3);
+
+                    const footerTd4 = document.createElement('td');
+                    footerTd4.textContent = totalKSP;
+                    footerRow.appendChild(footerTd4);
+
+                    const footerTd5 = document.createElement('td');
+                    footerTd5.textContent = (alltotalOKRProgress/totalOKR)+' %';
+                    footerRow.appendChild(footerTd5);
+
+                    // เพิ่มแถวผลรวมไปยัง <tfoot>
+                    const tableFooter = document.querySelector('#reportTableFooter');
+                    tableFooter.appendChild(footerRow);
 
                 },
                 error: function(jqXHR, exception) {
