@@ -386,18 +386,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break; 
+        
         case "get_fund":
             try {
                 $fyear = $_POST["fiscal_year"];
+                $scenario = $_POST["scenario"];
                 $db = new Database();
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "SELECT DISTINCT fund AS f 
                         FROM budget_planning_annual_budget_plan 
-                        WHERE Budget_Management_Year=:fyear";
+                        WHERE Budget_Management_Year=:fyear and scenario=:scenario";
                 $cmd = $conn->prepare($sql);
                 $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+                $cmd->bindParam(':scenario', $scenario, PDO::PARAM_STR);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
@@ -418,6 +421,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         case "get_faculty":
             try {
                 $fyear = $_POST["fiscal_year"];
+                $scenario = $_POST["scenario"];
                 $fund = $_POST["fund"];
                 $db = new Database();
                 $conn = $db->connect();
@@ -428,11 +432,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
                         WHERE b.Budget_Management_Year = :fyear
-                        AND b.fund = :fund";
+                        AND b.fund = :fund
+                        and b.scenario=:scenario";
 
                 $cmd = $conn->prepare($sql);
                 $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
                 $cmd->bindParam(':fund', $fund, PDO::PARAM_STR);
+                $cmd->bindParam(':scenario', $scenario, PDO::PARAM_STR);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
@@ -521,13 +527,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $fyear = $_POST["fiscal_year"];
                 $fund = $_POST["fund"];
                 $faculty = $_POST["faculty"];
+                $scenario = $_POST["scenario"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS (
                         SELECT b.*,f.Alias_Default
                         FROM budget_planning_annual_budget_plan b
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
-                        WHERE b.Budget_Management_Year= :fyear AND b.fund= :fund AND f.Alias_Default= :faculty)
+                        WHERE b.Budget_Management_Year= :fyear AND b.fund= :fund AND f.Alias_Default= :faculty and b.scenario=:scenario)
                         ,t1_1 AS (
                         SELECT t.faculty
                         ,t.fund
@@ -581,6 +588,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
                 $cmd->bindParam(':fund', $fund, PDO::PARAM_STR);
                 $cmd->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+                $cmd->bindParam(':scenario', $scenario, PDO::PARAM_STR);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
 

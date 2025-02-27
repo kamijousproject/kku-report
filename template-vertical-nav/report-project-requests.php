@@ -108,7 +108,9 @@
             </div>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
         $(document).ready(function() {
 
@@ -141,8 +143,40 @@
                     type: "POST",
                     url: "../server/budget_planing_api.php",
                     data: {
-                        'command': 'get_fund',
+                        'command': 'get_scenario',
                         'fiscal_year': year
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        //console.log(response);
+                        response.fac.forEach((row) =>{
+                            $('#dropdown2').append('<option value="'+row.scenario+'">'+row.scenario+'</option>').prop('disabled', false);
+                        });   
+                    }
+                    ,
+                    error: function(jqXHR, exception) {
+                        console.error("Error: " + exception);
+                        responseError(jqXHR, exception);
+                    }
+                });
+            });
+
+
+            $('#dropdown2').change(function() {
+                let year = $("#dropdown1").val();
+                let scenario = $("#dropdown2").val();
+                //console.log(year);               
+                $('#dropdown3').html('<option value="">เลือกแหล่งเงิน</option>').prop('disabled', true);
+                $('#dropdown4').html('<option value="">เลือกส่วนงาน/หน่วยงาน</option>').prop('disabled', true);
+                $('#submitBtn').prop('disabled', true);
+
+                $.ajax({
+                    type: "POST",
+                    url: "../server/budget_planing_api.php",
+                    data: {
+                        'command': 'get_fund',
+                        'fiscal_year': year,
+                        'scenario':scenario
                     },
                     dataType: "json",
                     success: function(response) {
@@ -158,27 +192,10 @@
                     }
                 });
             });
-
-
-            $('#dropdown2').change(function() {
-                let subcategoryId = $(this).val();
-                $('#dropdown3').html('<option value="">Select Item</option>').prop('disabled', true);
-                $('#submitBtn').prop('disabled', true);
-
-                if (subcategoryId) {
-                    $.ajax({
-                        url: 'query.php',
-                        type: 'POST',
-                        data: { action: 'getItems', subcategory_id: subcategoryId },
-                        success: function(response) {
-                            $('#dropdown3').html(response).prop('disabled', false);
-                        }
-                    });
-                }
-            });
             $('#dropdown3').change(function() {
                 let fund = $('#dropdown3').val();
                 var year = $('#dropdown1').val();
+                var scenario = $('#dropdown2').val();
                 $('#dropdown4').html('<option value="">เลือกส่วนงาน/หน่วยงาน</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
                 //console.log(year);
@@ -189,7 +206,8 @@
                     data: {
                         'command': 'get_faculty',
                         'fiscal_year': year,
-                        'fund': fund
+                        'fund': fund,
+                        'scenario':scenario
                     },
                     dataType: "json",
                     success: function(response) {
@@ -220,6 +238,7 @@
                 let year = $('#dropdown1').val();
                 let fund = $('#dropdown3').val();
                 let faculty = $('#dropdown4').val();
+                var scenario = $('#dropdown2').val();
                 console.log(year);
                 console.log(fund);
                 console.log(faculty);
@@ -230,7 +249,8 @@
                     'command': 'kku_bgp_project-requests',
                     'fiscal_year': year,
                     'fund': fund,
-                    'faculty': faculty
+                    'faculty': faculty,
+                    'scenario':scenario
                 },
                 dataType: "json",
                 success: function(response) {
@@ -289,124 +309,173 @@
         });
         function exportCSV() {
             const table = document.getElementById('reportTable');
-        const csvRows = [];
+            const csvRows = [];
 
-        // วนลูปทีละ <tr>
-        for (const row of table.rows) {
-            // เก็บบรรทัดย่อยของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            // วนลูปทีละเซลล์ <td>/<th>
-            for (const cell of row.cells) {
-                let html = cell.innerHTML;
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
 
-                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                html = html.replace(/(&nbsp;)+/g, (match) => {
-                    const count = match.match(/&nbsp;/g).length;
-                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                });
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
 
-                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                html = html.replace(/<br\s*\/?>/gi, '\n');
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                // html = html.replace(/<\/?[^>]+>/g, '');
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
 
-                // 4) แยกเป็น array บรรทัดย่อย
-                const lines = html.split('\n').map(x => x.trimEnd());
-                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
-                if (lines.length > maxSubLine) {
-                    maxSubLine = lines.length;
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
                 }
 
-                cellLines.push(lines);
-            }
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
 
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-                const rowData = [];
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
 
-                // วนลูปแต่ละเซลล์
-                for (const lines of cellLines) {
-                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                    // Escape double quotes
-                    text = text.replace(/"/g, '""');
-                    // ครอบด้วย ""
-                    text = `"${text}"`;
-                    rowData.push(text);
+                    csvRows.push(rowData.join(','));
                 }
-
-                csvRows.push(rowData.join(','));
             }
-        }
 
-        // รวมเป็น CSV + BOM
-        const csvContent = "\uFEFF" + csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'report.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานสรุปคำขอรายโครงการ.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
-
+        function getFilterValues() {
+            return {
+                year: document.getElementById('dropdown1').options[document.getElementById('dropdown1').selectedIndex].text,
+                budgetType: document.getElementById('dropdown2').options[document.getElementById('dropdown2').selectedIndex].text,
+                fundSource: document.getElementById('dropdown3').options[document.getElementById('dropdown3').selectedIndex].text,
+                department: document.getElementById('dropdown4').options[document.getElementById('dropdown4').selectedIndex].text
+            };
+        }
         function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+            const filterValues = getFilterValues();
+            
+            // เพิ่มหัวรายงาน
+            doc.setFontSize(16);
+            doc.text("รายงานสรุปคำขอรายโครงการ", 150, 10, { align: 'center' });
+            
+            // เพิ่มข้อมูลจาก dropdown
+            doc.setFontSize(10);
+            doc.text(`ปีบริหารงบประมาณ: ${filterValues.year}`, 15, 20);
+            doc.text(`ประเภทงบประมาณ: ${filterValues.budgetType}`, 15, 25);
+            doc.text(`แหล่งเงิน: ${filterValues.fundSource}`, 150, 20);
+            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 150, 25);
 
-            // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 35,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 7,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 5
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 7,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle'
                 },
+                columnStyles: {
+                    0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 0) {
+                        data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
+                    }
+                },
+                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                tableWidth: 'auto'
             });
-
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            doc.save('รายงานสรุปคำขอรายโครงการ.pdf');
         }
+
+
 
         function exportXLS() {
             const table = document.getElementById('reportTable');
+            
+            // ดึงค่าจาก dropdown
+            const filterValues = getFilterValues();
 
-            // เก็บข้อมูลแต่ละแถวเป็น Array ของ Array
+            // สร้างข้อมูลสำหรับหัวรายงาน (4 แถวแรก)
+            const headerRows = [
+                [{ v: "รายงานสรุปคำขอรายโครงการ", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
+                [
+                    { v: "ปีบริหารงบประมาณ:", s: { font: { bold: true } } },
+                    { v: filterValues.year }
+                ],
+                [
+                    { v: "ประเภทงบประมาณ:", s: { font: { bold: true } } },
+                    { v: filterValues.budgetType }
+                ],
+                [
+                    { v: "แหล่งเงิน:", s: { font: { bold: true } } },
+                    { v: filterValues.fundSource },
+                    { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },
+                    { v: filterValues.department }
+                ],
+                [] // ว่างไว้ 1 แถว
+            ];
+
+            // สร้างข้อมูลจากตาราง
             const rows = [];
-            // เก็บ Merge (colSpan/rowSpan) ในรูปแบบ SheetJS
-            const merges = {};
-
-            // ใช้ object เก็บว่าส่วนใดถูก merge ไปแล้ว เพื่อเลี่ยงการซ้ำซ้อน
-            // key = "rowIndex,colIndex" => true/false
+            const merges = [];
             const skipMap = {};
+
+            // จัดการกับการรวมเซลล์ในส่วนหัวรายงาน
+            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }); // รวมเซลล์หัวรายงาน
+
+            // ปรับ offset สำหรับตาราง (เพิ่มจำนวนแถวหัวรายงาน)
+            const rowOffset = headerRows.length;
 
             for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
                 const tr = table.rows[rowIndex];
@@ -414,42 +483,41 @@
                 let colIndex = 0;
 
                 for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-                    // ข้ามเซลล์ที่อยู่ในพื้นที่ merge แล้ว
-                    while (skipMap[`${rowIndex},${colIndex}`]) {
-                        rowData.push(""); 
+                    while (skipMap[`${rowIndex + rowOffset},${colIndex}`]) {
+                        rowData.push("");
                         colIndex++;
                     }
 
                     const cell = tr.cells[cellIndex];
-                    // เอา innerText หรือจะใช้ innerHTML แปลงเองก็ได้
                     let cellText = cell.innerText.trim();
 
-                    // ใส่ข้อมูลลงใน Array
-                    rowData[colIndex] = cellText;
-                    
-                    // ตรวจสอบ colSpan / rowSpan
+                    // เช็คว่าเป็น Header หรือไม่
+                    const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
+
+                    rowData[colIndex] = {
+                        v: cellText,
+                        s: {
+                            alignment: {
+                                vertical: "top",
+                                horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
+                            },
+                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                        }
+                    };
+
                     const rowspan = cell.rowSpan || 1;
                     const colspan = cell.colSpan || 1;
 
-                    // ถ้ามีการ Merge จริง (มากกว่า 1)
                     if (rowspan > 1 || colspan > 1) {
-                        // สร้าง object merge ตามรูปแบบ SheetJS
-                        const mergeRef = {
-                            s: { r: rowIndex, c: colIndex },                 // จุดเริ่ม (start)
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดจบ (end)
-                        };
+                        merges.push({
+                            s: { r: rowIndex + rowOffset, c: colIndex },
+                            e: { r: rowIndex + rowOffset + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
 
-                        // เก็บลง merges (รูปแบบเก่าคือ ws['!merges'] = [])
-                        // แต่ต้องรอใส่หลังสร้าง Worksheet ด้วย SheetJS
-                        // จึงบันทึกชั่วคราวใน merges พร้อม index
-                        const mergeKey = `merge_${rowIndex}_${colIndex}`;
-                        merges[mergeKey] = mergeRef;
-
-                        // Mark skipMap กันซ้ำ
                         for (let r = 0; r < rowspan; r++) {
                             for (let c = 0; c < colspan; c++) {
                                 if (!(r === 0 && c === 0)) {
-                                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                                    skipMap[`${rowIndex + rowOffset + r},${colIndex + c}`] = true;
                                 }
                             }
                         }
@@ -460,38 +528,36 @@
                 rows.push(rowData);
             }
 
+            // รวมข้อมูลหัวรายงานและข้อมูลตาราง
+            const allRows = [...headerRows, ...rows];
+
             // สร้าง Workbook
             const wb = XLSX.utils.book_new();
-            // แปลง Array เป็น Worksheet
-            const ws = XLSX.utils.aoa_to_sheet(rows);
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-            // ใส่ merges เข้า Worksheet (Array)
-            ws['!merges'] = Object.values(merges);
+            // นำ merges ไปใช้
+            ws['!merges'] = merges;
+            
+            // กำหนดความกว้างของคอลัมน์
+            const cols = [];
+            // กำหนดความกว้างตามต้องการ
+            cols.push({ wch: 10 }); // ที่
+            cols.push({ wch: 30 }); // โครงการ/กิจกรรม
+            cols.push({ wch: 45 }); // ประเด็นยุทธศาสตร์
+            cols.push({ wch: 20 }); // OKR
+            cols.push({ wch: 35 }); // แผนงาน
+            cols.push({ wch: 35 }); // แผนงานย่อย
+            // คอลัมน์ที่เหลือความกว้าง 15
+            for (let i = 0; i < 10; i++) {
+                cols.push({ wch: 15 });
+            }
+            ws['!cols'] = cols;
 
-            // เพิ่มชีทใน Workbook
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            // เพิ่ม Worksheet ลงใน Workbook
+            XLSX.utils.book_append_sheet(wb, ws, "รายงานสรุปคำขอรายโครงการ");
 
-            // เขียนไฟล์เป็น XLS (BIFF8)
-            // ใช้ { bookType: 'xls', type: 'array' } เพื่อได้ Buffer Array
-            const excelBuffer = XLSX.write(wb, {
-                bookType: 'xls',
-                type: 'array'
-            });
-
-            // สร้าง Blob เป็นไฟล์ XLS
-            const blob = new Blob([excelBuffer], {
-                type: 'application/vnd.ms-excel'
-            });
-
-            // ดาวน์โหลดไฟล์
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'report.xls'; // ชื่อไฟล์ .xls
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
+            // เขียนไฟล์ Excel
+            XLSX.writeFile(wb, `รายงานสรุปคำขอรายโครงการ_${filterValues.year}.xlsx`);
         }
     </script>
     <!-- Common JS -->

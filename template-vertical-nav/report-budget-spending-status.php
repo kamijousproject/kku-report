@@ -188,7 +188,9 @@
             </div>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
         $(document).ready(function() {
             laodData();
@@ -330,8 +332,8 @@
                                     str16+='<br/>0';
                                     str17+='<br/>0'; 
                                     str18+='<br/>'+sums.t06.toLocaleString();
-                                    str19+='<br/>'+sums.t08.toLocaleString();
-                                    str20+='<br/>'+sums.t02.toLocaleString(); 
+                                    str19+='<br/>'+sums.t02.toLocaleString();
+                                    str20+='<br/>'+sums.t08.toLocaleString(); 
                                     str21+='<br/>'+sum.toLocaleString();
                                     str22+='<br/>'+(sum).toLocaleString();
                                     str23+='<br/>';
@@ -372,8 +374,8 @@
                                         str16+='<br/>0';
                                         str17+='<br/>0'; 
                                         str18+='<br/>'+sums.t06.toLocaleString();
-                                        str19+='<br/>'+sums.t08.toLocaleString();
-                                        str20+='<br/>'+sums.t02.toLocaleString(); 
+                                        str19+='<br/>'+sums.t02.toLocaleString();
+                                        str20+='<br/>'+sums.t08.toLocaleString(); 
                                         str21+='<br/>'+sum.toLocaleString();
                                         str22+='<br/>'+(sum).toLocaleString();
                                         str23+='<br/>';
@@ -419,8 +421,8 @@
                                             str16+='<br/>0';
                                             str17+='<br/>0'; 
                                             str18+='<br/>'+parseInt(row8.t06).toLocaleString();
-                                            str19+='<br/>'+parseInt(row8.t08).toLocaleString();
-                                            str20+='<br/>'+parseInt(row8.t02).toLocaleString(); 
+                                            str19+='<br/>'+parseInt(row8.t02).toLocaleString();
+                                            str20+='<br/>'+parseInt(row8.t08).toLocaleString(); 
                                             str21+='<br/>'+sum.toLocaleString();
                                             str22+='<br/>'+(sum).toLocaleString();
                                             str23+='<br/>';
@@ -469,154 +471,169 @@
         }
         function exportCSV() {
             const table = document.getElementById('reportTable');
-        const csvRows = [];
+            const csvRows = [];
 
-        // วนลูปทีละ <tr>
-        for (const row of table.rows) {
-            // เก็บบรรทัดย่อยของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            // วนลูปทีละเซลล์ <td>/<th>
-            for (const cell of row.cells) {
-                let html = cell.innerHTML;
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
 
-                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                html = html.replace(/(&nbsp;)+/g, (match) => {
-                    const count = match.match(/&nbsp;/g).length;
-                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                });
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
 
-                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                html = html.replace(/<br\s*\/?>/gi, '\n');
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                // html = html.replace(/<\/?[^>]+>/g, '');
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
 
-                // 4) แยกเป็น array บรรทัดย่อย
-                const lines = html.split('\n').map(x => x.trimEnd());
-                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
-                if (lines.length > maxSubLine) {
-                    maxSubLine = lines.length;
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
                 }
 
-                cellLines.push(lines);
-            }
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
 
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-                const rowData = [];
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
 
-                // วนลูปแต่ละเซลล์
-                for (const lines of cellLines) {
-                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                    // Escape double quotes
-                    text = text.replace(/"/g, '""');
-                    // ครอบด้วย ""
-                    text = `"${text}"`;
-                    rowData.push(text);
+                    csvRows.push(rowData.join(','));
                 }
-
-                csvRows.push(rowData.join(','));
             }
-        }
 
-        // รวมเป็น CSV + BOM
-        const csvContent = "\uFEFF" + csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'report.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
+    // Add Thai font
+    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+    doc.setFont("THSarabun");
+    doc.setFontSize(12);
+    doc.text("รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน", 10, 10);
+    doc.autoTable({
+        html: '#reportTable',
+        startY: 20,
+        theme: 'grid',
+        styles: {
+            font: "THSarabun",
+            fontSize: 7,
+            cellPadding: 1,
+            lineWidth: 0.1,
+            lineColor: [0, 0, 0],
+            minCellHeight: 5
+        },
+        headStyles: {
+            fillColor: [220, 230, 241],
+            textColor: [0, 0, 0],
+            fontSize: 7,
+            fontStyle: 'bold',
+            halign: 'center',
+            valign: 'middle'
+        },
+        columnStyles: {
+            0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
+        },
+        didParseCell: function(data) {
+            if (data.section === 'body' && data.column.index === 0) {
+                data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
+            }
+        },
+        margin: { top: 15, right: 5, bottom: 10, left: 5 },
+        tableWidth: 'auto'
+    });
+    doc.save('รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.pdf');
+}
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
 
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-            });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
-        }
+function exportXLS() {
+    const table = document.getElementById('reportTable');
 
-        function exportXLS() {
-        const table = document.getElementById('reportTable');
+    // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+    const { theadRows, theadMerges } = parseThead(table.tHead);
 
-        // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
-        // จะสร้าง aoa ของ thead + merges array
-        const { theadRows, theadMerges } = parseThead(table.tHead);
+    // ============ ส่วนที่ 2: ประมวลผล TBODY ============
+    const tbodyRows = parseTbody(table.tBodies[0]);
 
-        // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
-        const tbodyRows = parseTbody(table.tBodies[0]);
+    const allRows = [...theadRows, ...tbodyRows];
 
-        // รวม rows ทั้งหมด: thead + tbody
-        const allRows = [...theadRows, ...tbodyRows];
+    // สร้าง Workbook + Worksheet
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-        // สร้าง Workbook + Worksheet
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(allRows);
+    // ใส่ merges ของ thead ลงใน sheet
+    ws['!merges'] = theadMerges;
 
-        // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
-        // สังเกตว่า thead อยู่แถวบนสุดของ allRows (index เริ่มจาก 0 ตาม parseThead)
-        ws['!merges'] = theadMerges;
-
-        // เพิ่ม worksheet ลงใน workbook
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-        // เขียนไฟล์เป็น .xls (BIFF8)
-        const excelBuffer = XLSX.write(wb, {
-            bookType: 'xls',
-            type: 'array'
+    // กำหนดให้ Header (thead) อยู่กึ่งกลาง
+    theadRows.forEach((row, rowIndex) => {
+        row.forEach((_, colIndex) => {
+            const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
+            if (!ws[cellAddress]) return;
+            ws[cellAddress].s = {
+                alignment: { horizontal: "center", vertical: "center" }, // จัดให้อยู่กึ่งกลาง
+                font: { bold: true } // ทำให้ header ตัวหนา
+            };
         });
+    });
 
-        // สร้าง Blob + ดาวน์โหลด
-        const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'report.xls';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        }
+    // ตั้งค่าความกว้างของคอลัมน์ให้พอดีกับเนื้อหา
+    ws['!cols'] = new Array(theadRows[0].length).fill({ wch: 15 });
+
+    // เพิ่ม worksheet ลงใน workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+    // เขียนไฟล์เป็น .xls
+    const excelBuffer = XLSX.write(wb, { bookType: 'xls', type: 'array' });
+
+    // สร้าง Blob + ดาวน์โหลดไฟล์
+    const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.xls';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+}
+
 
         /**
          * -----------------------
