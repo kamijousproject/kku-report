@@ -175,7 +175,7 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
                 bap.`Account` ASC";
 
     // เตรียมคำสั่ง SQL
-    
+
     $stmt = $conn->prepare($query);
 
     // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
@@ -640,7 +640,7 @@ function fetchYearsData($conn)
                         return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
                     });
 
- 
+
                     // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
                     html = html.replace(/<\/?[^>]+>/g, '');
 
