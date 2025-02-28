@@ -110,8 +110,8 @@ function fetchBudgetData($conn, $budget_year1 = null)
     bap.Project,
     pj.project_id,
     pj.project_name,
-    CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1_2digits,
-    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 8)) AS a1_4digits,
+    CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
+    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 8)) AS a2,
     ac.`type`,
     ac.sub_type,
     bap.`Account`,
@@ -134,6 +134,7 @@ LEFT JOIN `account` ac
     ON ac.`account` = bap.`Account`
 LEFT JOIN plan p 
     ON p.plan_id = bap.Plan
+    WHERE ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')
 
 ";
 
@@ -279,16 +280,262 @@ function fetchYearsData($conn)
                                         </thead>
                                         <tbody>
 
+                                            <?php
+                                            function formatNumber($number)
+                                            {
+                                                return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
+                                            }
 
+                                            function removeLeadingNumbers($text)
+                                            {
+                                                // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
+                                                return preg_replace('/^[\d.]+\s*/', '', $text);
+                                            }
+
+                                            // ตัวแปรเก็บค่าของแถวก่อนหน้า
+                                            $previousPlan = "";
+                                            $previousSubPlan = "";
+                                            $previousProject = "";
+                                            $previousSubType = "";
+                                            $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+                                            $results = fetchBudgetData($conn, $budget_year1);
+
+                                            // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                            if (isset($results) && is_array($results) && count($results) > 0) {
+                                                // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
+                                                $summary = [];
+                                                foreach ($results as $row) {
+                                                    $DefaultFaculty = $row['Default_Faculty'];
+                                                    $faculty = $row['Faculty'];
+                                                    $plan = $row['Plan'];
+                                                    $subPlan = $row['Sub_Plan'];
+                                                    $project = $row['project_name'];
+                                                    $type = $row['type'];
+                                                    $subType = $row['sub_type'];
+
+                                                    // เก็บข้อมูลของ DefaultFaculty
+                                                    if (!isset($summary[$DefaultFaculty])) {
+                                                        $summary[$DefaultFaculty] = [
+                                                            'Total_FN06' => 0,
+                                                            'Total_FN02' => 0,
+                                                            'Total_FN08' => 0,
+                                                            'faculty' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ faculty
+                                                    if (!isset($summary[$DefaultFaculty]['faculty'][$faculty])) {
+                                                        $summary[$DefaultFaculty]['faculty'][$faculty] = [
+                                                            'FacultyName' => $row['Alias_Default'],
+                                                            'Total_FN06' => 0,
+                                                            'Total_FN02' => 0,
+                                                            'Total_FN08' => 0,
+                                                            'plan' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
+
+                                                    // เก็บข้อมูลของ plan
+                                                    if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan])) {
+                                                        $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan] = [
+                                                            'PlanName' => $row['plan_name'],
+                                                            'Total_FN06' => 0,
+                                                            'Total_FN02' => 0,
+                                                            'Total_FN08' => 0,
+                                                            'sub_plan' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
+                                                    // เก็บข้อมูลของ sub plan
+                                                    if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan])) {
+                                                        $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan] = [
+                                                            'SubPlanName' => $row['sub_plan_name'],
+                                                            'Total_FN06' => 0,
+                                                            'Total_FN02' => 0,
+                                                            'Total_FN08' => 0,
+                                                            'project' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
+                                                    // เก็บข้อมูลของ project
+                                                    if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project])) {
+                                                        $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project] = [
+                                                            'PlanName' => $row['plan_name'],
+                                                            'Total_FN06' => 0,
+                                                            'Total_FN02' => 0,
+                                                            'Total_FN08' => 0,
+                                                            'type' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
+                                                    // เก็บข้อมูลของ type
+                                                    if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type])) {
+                                                        $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type] = [
+                                                            'a1' => $row['a1'],
+                                                            'Total_FN06' => 0,
+                                                            'Total_FN02' => 0,
+                                                            'Total_FN08' => 0,
+                                                            'subtype' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        ];
+                                                    }
+                                                    // เก็บข้อมูลของ sub type
+                                                    if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['subtype'][$subType])) {
+                                                        $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['subtype'][$subType] = [
+                                                            'a2' => $row['a2'],
+                                                            'Total_FN06' => 0,
+                                                            'Total_FN02' => 0,
+                                                            'Total_FN08' => 0,
+                                                            'kkuitemname' => [], // เก็บข้อมูลของ kku
+                                                        ];
+                                                    }
+                                                    // เก็บข้อมูลของ DefaultFaculty
+                                                    $summary[$DefaultFaculty]['Total_FN06'] += $row['Total_FN06'];
+                                                    $summary[$DefaultFaculty]['Total_FN02'] += $row['Total_FN02'];
+                                                    $summary[$DefaultFaculty]['Total_FN08'] += $row['Total_FN08'];
+
+                                                    // เก็บข้อมูลของ faculty
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['Total_FN06'] += $row['Total_FN06'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['Total_FN02'] += $row['Total_FN02'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['Total_FN08'] += $row['Total_FN08'];
+
+                                                    // เก็บข้อมูลของ plan
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['Total_FN06'] += $row['Total_FN06'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['Total_FN02'] += $row['Total_FN02'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['Total_FN08'] += $row['Total_FN08'];
+
+                                                    // เก็บข้อมูลของ subPlan
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['Total_FN06'] += $row['Total_FN06'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['Total_FN02'] += $row['Total_FN02'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['Total_FN08'] += $row['Total_FN08'];
+
+                                                    // เก็บข้อมูลของ project
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Total_FN06'] += $row['Total_FN06'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Total_FN02'] += $row['Total_FN02'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Total_FN08'] += $row['Total_FN08'];
+
+
+                                                    // เก็บข้อมูลของ type
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['Total_FN06'] += $row['Total_FN06'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['Total_FN02'] += $row['Total_FN02'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['Total_FN08'] += $row['Total_FN08'];
+
+                                                    // เก็บข้อมูลของ subtype
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['subtype'][$subType]['Total_FN06'] += $row['Total_FN06'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['subtype'][$subType]['Total_FN02'] += $row['Total_FN02'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['subtype'][$subType]['Total_FN08'] += $row['Total_FN08'];
+
+
+                                                    // เก็บข้อมูลของ KKU_Item_Name
+                                                    $kkuItemName = (!empty($row['KKU_Item_Name']))
+                                                        ? "" . htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                        : "" . htmlspecialchars($row['Account']) . "";
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['type'][$type]['subtype'][$subType]['kku_items'][] = [
+                                                        'name' => $kkuItemName,
+                                                        'Total_FN06' => $row['Total_FN06'],
+                                                        'Total_FN02' => $row['Total_FN02'],
+                                                        'Total_FN08' => $row['Total_FN08'],
+
+                                                    ];
+                                                    $rows = $summary;
+                                                    // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
+                                                    $total_summary = [
+                                                        'Total_FN06' => 0,
+                                                        'Total_FN02' => 0,
+                                                        'Total_FN08' => 0,
+                                                    ];
+                                                    // แสดงผลรวมทั้งหมด
+                                                    //print_r($total_summary);
+                                                    // Assuming this is inside a loop where $row is updated (e.g., from a database query)
+                                                    foreach ($rows as $row) { // Replace $rows with your actual data source
+                                                        // รวมผลรวมทั้งหมดโดยไม่สนใจ Faculty
+                                                        $total_summary['Total_FN06'] += (float) ($row['Total_FN06'] ?? 0);
+                                                        $total_summary['Total_FN02'] += (float) ($row['Total_FN02'] ?? 0);
+                                                        $total_summary['Total_FN08'] += (float) ($row['Total_FN08'] ?? 0);
+                                                    }
+
+                                                }
+
+
+                                                foreach ($summary as $DefaultFaculty => $data) {
+                                                    echo "<tr>";
+                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 0) . $DefaultFaculty . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_FN06']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_FN08']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['Total_FN02']) . "</td>";
+                                                    echo "</tr>";
+                                                    foreach ($data['faculty'] as $faculty => $facultyData) {
+                                                        $facultyName = str_replace(' - ', ' : ', $facultyData['FacultyName']);
+                                                        echo "<tr>";
+                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($facultyName) . "</td>";
+                                                        echo "<td>" . formatNumber($facultyData['Total_FN06']) . "</td>";
+                                                        echo "<td>" . formatNumber($facultyData['Total_FN08']) . "</td>";
+                                                        echo "<td>" . formatNumber($facultyData['Total_FN02']) . "</td>";
+                                                        echo "</tr>";
+                                                        foreach ($facultyData['plan'] as $plan => $planData) {
+                                                            echo "<tr>";
+                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $plan . ' : ' . htmlspecialchars($planData['PlanName']) . "</td>";
+                                                            echo "<td>" . formatNumber($planData['Total_FN06']) . "</td>";
+                                                            echo "<td>" . formatNumber($planData['Total_FN08']) . "</td>";
+                                                            echo "<td>" . formatNumber($planData['Total_FN02']) . "</td>";
+                                                            echo "</tr>";
+                                                            foreach ($planData['sub_plan'] as $subPlan => $subPlanData) {
+                                                                $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
+                                                                echo "<tr>";
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $cleanedSubPlan . ' : ' . htmlspecialchars($subPlanData['SubPlanName']) . "</td>";
+                                                                echo "<td>" . formatNumber($subPlanData['Total_FN06']) . "</td>";
+                                                                echo "<td>" . formatNumber($subPlanData['Total_FN08']) . "</td>";
+                                                                echo "<td>" . formatNumber($subPlanData['Total_FN02']) . "</td>";
+                                                                echo "</tr>";
+                                                                foreach ($subPlanData['project'] as $project => $projectData) {
+                                                                    $projectFormatted = str_replace(":", " : ", $project);
+                                                                    echo "<tr>";
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($projectFormatted) . "</td>";
+                                                                    echo "<td>" . formatNumber($projectData['Total_FN06']) . "</td>";
+                                                                    echo "<td>" . formatNumber($projectData['Total_FN08']) . "</td>";
+                                                                    echo "<td>" . formatNumber($projectData['Total_FN02']) . "</td>";
+                                                                    echo "</tr>";
+                                                                    foreach ($projectData['type'] as $type => $typeData) {
+                                                                        $cleanedType = preg_replace('/^[\d.]+\s*/', '', $type);
+                                                                        echo "<tr>";
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . htmlspecialchars($typeData['a1']) . ' : ' . $cleanedType . "<br></td>";
+                                                                        echo "<td>" . formatNumber($typeData['Total_FN06']) . "</td>";
+                                                                        echo "<td>" . formatNumber($typeData['Total_FN08']) . "</td>";
+                                                                        echo "<td>" . formatNumber($typeData['Total_FN02']) . "</td>";
+                                                                        echo "</tr>";
+                                                                        foreach ($typeData['subtype'] as $subType => $subTypeData) {
+                                                                            $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $subType);
+                                                                            echo "<tr>";
+                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . htmlspecialchars($subTypeData['a2']) . ' : ' . $cleanedSubType . "<br></td>";
+                                                                            echo "<td>" . formatNumber($subTypeData['Total_FN06']) . "</td>";
+                                                                            echo "<td>" . formatNumber($subTypeData['Total_FN08']) . "</td>";
+                                                                            echo "<td>" . formatNumber($subTypeData['Total_FN02']) . "</td>";
+                                                                            echo "</tr>";
+                                                                            foreach ($subTypeData['kku_items'] as $kkuItem) {
+                                                                                echo "<tr>";
+                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 56) . $kkuItem['name'] . "<br></td>";
+                                                                                echo "<td>" . formatNumber($kkuItem['Total_FN06']) . "</td>";
+                                                                                echo "<td>" . formatNumber($kkuItem['Total_FN08']) . "</td>";
+                                                                                echo "<td>" . formatNumber($kkuItem['Total_FN02']) . "</td>";
+                                                                                echo "</tr>";
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+
+                                            } else {
+                                                echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                            }
+                                            ?>
                                         </tbody>
                                     </table>
 
 
-                                    <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
-                                    <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                    <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
 
                                 </div>
+                                <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
+                                <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
+                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
+
                             </div>
                         </div>
 
