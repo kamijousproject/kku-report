@@ -143,6 +143,7 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
     <script>
+        let all_data;
         $(document).ready(function() {
             laodData();
         });
@@ -152,16 +153,18 @@ thead tr:nth-child(3) th {
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'list-faculty'
+                    'command': 'expense-prediction-wf'
                 },
                 dataType: "json",
                 success: function(response) {
+                    all_data=response.wf;
+                    const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
-                    response.wf.forEach(category => {
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
                         let option = document.createElement("option");
-                        option.value = category.Parent;
-                        option.textContent = category.Alias_Default;
+                        option.value = category;
+                        option.textContent = category;
                         dropdown.appendChild(option);
                     });
                 },
@@ -175,224 +178,217 @@ thead tr:nth-child(3) th {
             let category = document.getElementById("category").value;
             //let resultDiv = document.getElementById("result");
             console.log(category);
-            $.ajax({
-                type: "POST",
-                url: "../server/workforce_api.php",
-                data: {
-                    'command': 'expense-prediction-wf',
-                    'slt':category
-                },
-                dataType: "json",
-                success: function(response) {                    
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // Clear old data
+                             
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // Clear old data
 
-                    let prevAlias = null;
-                    let prevName = null;
-                    let aliasRowSpan = {};
-                    let nameRowSpan = {};
+            let prevAlias = null;
+            let prevName = null;
+            let aliasRowSpan = {};
+            let nameRowSpan = {};
+            let data;
+            if(category=="all"){
+                data=all_data;
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+            // **Step 1: Calculate Rowspan Counts Before Rendering**
+            data.forEach(row => {
+                let aliasKey = row.pname;
+                let nameKey = row.Alias_Default;
 
-                    // **Step 1: Calculate Rowspan Counts Before Rendering**
-                    response.wf.forEach(row => {
-                        let aliasKey = row.pname;
-                        let nameKey = row.Alias_Default;
+                // Count occurrences for Alias_Default (Column 2)
+                if (!aliasRowSpan[aliasKey]) {
+                    aliasRowSpan[aliasKey] = all_data.filter(r => r.pname === aliasKey).length;
+                }
 
-                        // Count occurrences for Alias_Default (Column 2)
-                        if (!aliasRowSpan[aliasKey]) {
-                            aliasRowSpan[aliasKey] = response.wf.filter(r => r.pname === aliasKey).length;
-                        }
-
-                        // Count occurrences for Name (Column 3), but only within the same Alias_Default
-                        if (!nameRowSpan[nameKey]) {
-                            nameRowSpan[nameKey] = response.wf.filter(r => r.pname === aliasKey && r.Alias_Default === nameKey).length;
-                            
-                        }
-                    });
-                    //console.log(Object.keys(nameRowSpan).length);
-                    // **Step 2: Generate Table Rows**
-                    response.wf.forEach((row, index) => {                   
-                        let tr = document.createElement('tr');
-                        
-
-                        let currentAlias = row.pname;
-                        let currentName = row.Alias_Default;
-                        //console.log(nameRowSpan[currentName]);
-                        // **Step 3: Always Add "No" Column (Index)**
-                        const tdNo = document.createElement('td');
-
-                        // **Step 4: Create Table Cells with Rowspan Handling**
-                        if (currentAlias !== prevAlias) {
-                            const tdAlias = document.createElement('td');
-                            tdAlias.textContent = currentAlias;
-                            tdAlias.rowSpan = aliasRowSpan[currentAlias]+Object.keys(nameRowSpan).length+1; // Apply Rowspan
-                            tr.appendChild(tdAlias);
-                             // Update previous alias
-
-                            var sub_total=response.wf.filter(r => r.pname === currentAlias);
-                            const parseValue = (value) => {
-                                const number = parseFloat(String(value).replace(/,/g, ''));
-                                return isNaN(number) ? 0 : number;
-                            };
-                            const sums = sub_total.reduce((acc, item) => {
-                                return {
-                                    position_count: acc.position_count + parseValue(item.position_count),
-                                    SALARY_RATE: acc.SALARY_RATE + parseValue(item.SALARY_RATE),
-                                    pc: acc.pc + parseValue(item.pc),
-                                    fa: acc.fa + parseValue(item.fa),
-                                    ec: acc.ec + parseValue(item.ec),
-                                    pca: acc.pca + parseValue(item.pca)
-                                };
-                            }, {
-                                position_count: 0, SALARY_RATE: 0, pc: 0, fa: 0,
-                                ec: 0, pca: 0
-                            });
-                            const fac = document.createElement('td');
-                            fac.textContent = "";
-                            fac.style.textAlign = 'left';
-                            fac.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(fac);
-
-                            const tdPosition = document.createElement('td');
-                            tdPosition.textContent = "";
-                            tdPosition.style.textAlign = 'left';
-                            tdPosition.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdPosition);
-
-                            const tdC1 = document.createElement('td');
-                            tdC1.textContent = sums.position_count.toLocaleString();
-                            tdC1.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdC1);
-
-                            const tdC2 = document.createElement('td');
-                            tdC2.textContent = (parseFloat(sums.SALARY_RATE).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdC2.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdC2);
-
-                            const tdC3 = document.createElement('td');
-                            tdC3.textContent = (parseFloat(sums.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdC3.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdC3);
-                            const tdfa = document.createElement('td');
-                            tdfa.textContent = (parseFloat(sums.fa).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdfa.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdfa);
-                            const tdec = document.createElement('td');
-                            tdec.textContent = (parseFloat(sums.ec).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdec.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdec);
-                            const tdpca = document.createElement('td');
-                            tdpca.textContent = (parseFloat(sums.pca).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdpca.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdpca);
-
-                            tableBody.appendChild(tr);
-                        }
-                        if (currentAlias !== prevAlias) {
-                            tr = document.createElement('tr');
-                            prevAlias = currentAlias;
-                        }
-                        if (currentName !== prevName) {
-                            const tdName = document.createElement('td');
-                            tdName.textContent = row.Alias_Default;
-                            tdName.rowSpan = nameRowSpan[currentName]+1; // Apply Rowspan
-                            tr.appendChild(tdName);
-                            //console.log(nameRowSpan[currentName]+1);
-                             // Update previous name
-                            var sub_total=response.wf.filter(r => r.pname === currentAlias && r.Alias_Default === currentName);
-                            const parseValue = (value) => {
-                                const number = parseFloat(String(value).replace(/,/g, ''));
-                                return isNaN(number) ? 0 : number;
-                            };
-                            const sums = sub_total.reduce((acc, item) => {
-                                return {
-                                    position_count: acc.position_count + parseValue(item.position_count),
-                                    SALARY_RATE: acc.SALARY_RATE + parseValue(item.SALARY_RATE),
-                                    pc: acc.pc + parseValue(item.pc),
-                                    fa: acc.fa + parseValue(item.fa),
-                                    ec: acc.ec + parseValue(item.ec),
-                                    pca: acc.pca + parseValue(item.pca)
-                                };
-                            }, {
-                                position_count: 0, SALARY_RATE: 0, pc: 0, fa: 0,
-                                ec: 0, pca: 0
-                            });
-                            const tdPosition = document.createElement('td');
-                            tdPosition.textContent = "";
-                            tdPosition.style.textAlign = 'left';
-                            tdPosition.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdPosition);
-
-                            const tdC1 = document.createElement('td');
-                            tdC1.textContent = sums.position_count;
-                            tdC1.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdC1);
-
-                            const tdC2 = document.createElement('td');
-                            tdC2.textContent = (parseFloat(sums.SALARY_RATE).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdC2.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdC2);
-
-                            const tdC3 = document.createElement('td');
-                            tdC3.textContent = (parseFloat(sums.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdC3.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdC3);
-                            const tdfa = document.createElement('td');
-                            tdfa.textContent = (parseFloat(sums.fa).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdfa.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdfa);
-                            const tdec = document.createElement('td');
-                            tdec.textContent = (parseFloat(sums.ec).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdec.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdec);
-                            const tdpca = document.createElement('td');
-                            tdpca.textContent = (parseFloat(sums.pca).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                            tdpca.style.backgroundColor = '#f7f7f7';
-                            tr.appendChild(tdpca);
-
-                            tableBody.appendChild(tr);
-                        }
-                        if(currentName !== prevName)
-                        {
-                            tr = document.createElement('tr');
-                            prevName = currentName;
-                        }
-                        // **Step 5: Ensure Proper Column Order**
-                        const tdPosition = document.createElement('td');
-                        tdPosition.textContent = row.POSITION;
-                        tdPosition.style.textAlign = 'left';
-                        tr.appendChild(tdPosition);
-
-                        const tdC1 = document.createElement('td');
-                        tdC1.textContent = row.position_count;
-                        tr.appendChild(tdC1);
-
-                        const tdC2 = document.createElement('td');
-                        tdC2.textContent = (parseFloat(row.SALARY_RATE).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                        tr.appendChild(tdC2);
-
-                        const tdC3 = document.createElement('td');
-                        tdC3.textContent = (parseFloat(row.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                        tr.appendChild(tdC3);
-                        const tdfa = document.createElement('td');
-                        tdfa.textContent = (parseFloat(row.fa).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                        tr.appendChild(tdfa);
-                        const tdec = document.createElement('td');
-                        tdec.textContent = (parseFloat(row.ec).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                        tr.appendChild(tdec);
-                        const tdpca = document.createElement('td');
-                        tdpca.textContent = (parseFloat(row.pca).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
-                        tr.appendChild(tdpca);
-
-                        tableBody.appendChild(tr);
-                        
-                        
-                    });
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
+                // Count occurrences for Name (Column 3), but only within the same Alias_Default
+                if (!nameRowSpan[nameKey]) {
+                    nameRowSpan[nameKey] = all_data.filter(r => r.pname === aliasKey && r.Alias_Default === nameKey).length;
+                    
                 }
             });
+            //console.log(Object.keys(nameRowSpan).length);
+            // **Step 2: Generate Table Rows**
+            data.forEach((row, index) => {                   
+                let tr = document.createElement('tr');
+                
+
+                let currentAlias = row.pname;
+                let currentName = row.Alias_Default;
+                //console.log(nameRowSpan[currentName]);
+                // **Step 3: Always Add "No" Column (Index)**
+                const tdNo = document.createElement('td');
+
+                // **Step 4: Create Table Cells with Rowspan Handling**
+                if (currentAlias !== prevAlias) {
+                    const tdAlias = document.createElement('td');
+                    tdAlias.textContent = currentAlias;
+                    tdAlias.rowSpan = aliasRowSpan[currentAlias]+Object.keys(nameRowSpan).length+1; // Apply Rowspan
+                    tr.appendChild(tdAlias);
+                        // Update previous alias
+
+                    var sub_total=all_data.filter(r => r.pname === currentAlias);
+                    const parseValue = (value) => {
+                        const number = parseFloat(String(value).replace(/,/g, ''));
+                        return isNaN(number) ? 0 : number;
+                    };
+                    const sums = sub_total.reduce((acc, item) => {
+                        return {
+                            position_count: acc.position_count + parseValue(item.position_count),
+                            SALARY_RATE: acc.SALARY_RATE + parseValue(item.SALARY_RATE),
+                            pc: acc.pc + parseValue(item.pc),
+                            fa: acc.fa + parseValue(item.fa),
+                            ec: acc.ec + parseValue(item.ec),
+                            pca: acc.pca + parseValue(item.pca)
+                        };
+                    }, {
+                        position_count: 0, SALARY_RATE: 0, pc: 0, fa: 0,
+                        ec: 0, pca: 0
+                    });
+                    const fac = document.createElement('td');
+                    fac.textContent = "";
+                    fac.style.textAlign = 'left';
+                    fac.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(fac);
+
+                    const tdPosition = document.createElement('td');
+                    tdPosition.textContent = "";
+                    tdPosition.style.textAlign = 'left';
+                    tdPosition.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdPosition);
+
+                    const tdC1 = document.createElement('td');
+                    tdC1.textContent = sums.position_count.toLocaleString();
+                    tdC1.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdC1);
+
+                    const tdC2 = document.createElement('td');
+                    tdC2.textContent = (parseFloat(sums.SALARY_RATE).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdC2.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdC2);
+
+                    const tdC3 = document.createElement('td');
+                    tdC3.textContent = (parseFloat(sums.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdC3.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdC3);
+                    const tdfa = document.createElement('td');
+                    tdfa.textContent = (parseFloat(sums.fa).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdfa.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdfa);
+                    const tdec = document.createElement('td');
+                    tdec.textContent = (parseFloat(sums.ec).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdec.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdec);
+                    const tdpca = document.createElement('td');
+                    tdpca.textContent = (parseFloat(sums.pca).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdpca.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdpca);
+
+                    tableBody.appendChild(tr);
+                }
+                if (currentAlias !== prevAlias) {
+                    tr = document.createElement('tr');
+                    prevAlias = currentAlias;
+                }
+                if (currentName !== prevName) {
+                    const tdName = document.createElement('td');
+                    tdName.textContent = row.Alias_Default;
+                    tdName.rowSpan = nameRowSpan[currentName]+1; // Apply Rowspan
+                    tr.appendChild(tdName);
+                    //console.log(nameRowSpan[currentName]+1);
+                        // Update previous name
+                    var sub_total=all_data.filter(r => r.pname === currentAlias && r.Alias_Default === currentName);
+                    const parseValue = (value) => {
+                        const number = parseFloat(String(value).replace(/,/g, ''));
+                        return isNaN(number) ? 0 : number;
+                    };
+                    const sums = sub_total.reduce((acc, item) => {
+                        return {
+                            position_count: acc.position_count + parseValue(item.position_count),
+                            SALARY_RATE: acc.SALARY_RATE + parseValue(item.SALARY_RATE),
+                            pc: acc.pc + parseValue(item.pc),
+                            fa: acc.fa + parseValue(item.fa),
+                            ec: acc.ec + parseValue(item.ec),
+                            pca: acc.pca + parseValue(item.pca)
+                        };
+                    }, {
+                        position_count: 0, SALARY_RATE: 0, pc: 0, fa: 0,
+                        ec: 0, pca: 0
+                    });
+                    const tdPosition = document.createElement('td');
+                    tdPosition.textContent = "";
+                    tdPosition.style.textAlign = 'left';
+                    tdPosition.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdPosition);
+
+                    const tdC1 = document.createElement('td');
+                    tdC1.textContent = sums.position_count;
+                    tdC1.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdC1);
+
+                    const tdC2 = document.createElement('td');
+                    tdC2.textContent = (parseFloat(sums.SALARY_RATE).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdC2.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdC2);
+
+                    const tdC3 = document.createElement('td');
+                    tdC3.textContent = (parseFloat(sums.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdC3.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdC3);
+                    const tdfa = document.createElement('td');
+                    tdfa.textContent = (parseFloat(sums.fa).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdfa.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdfa);
+                    const tdec = document.createElement('td');
+                    tdec.textContent = (parseFloat(sums.ec).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdec.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdec);
+                    const tdpca = document.createElement('td');
+                    tdpca.textContent = (parseFloat(sums.pca).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdpca.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdpca);
+
+                    tableBody.appendChild(tr);
+                }
+                if(currentName !== prevName)
+                {
+                    tr = document.createElement('tr');
+                    prevName = currentName;
+                }
+                // **Step 5: Ensure Proper Column Order**
+                const tdPosition = document.createElement('td');
+                tdPosition.textContent = row.POSITION;
+                tdPosition.style.textAlign = 'left';
+                tr.appendChild(tdPosition);
+
+                const tdC1 = document.createElement('td');
+                tdC1.textContent = row.position_count;
+                tr.appendChild(tdC1);
+
+                const tdC2 = document.createElement('td');
+                tdC2.textContent = (parseFloat(row.SALARY_RATE).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdC2);
+
+                const tdC3 = document.createElement('td');
+                tdC3.textContent = (parseFloat(row.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdC3);
+                const tdfa = document.createElement('td');
+                tdfa.textContent = (parseFloat(row.fa).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdfa);
+                const tdec = document.createElement('td');
+                tdec.textContent = (parseFloat(row.ec).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdec);
+                const tdpca = document.createElement('td');
+                tdpca.textContent = (parseFloat(row.pca).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdpca);
+
+                tableBody.appendChild(tr);
+                
+                
+            });
+                
         }
         function exportCSV() {
             const table = document.getElementById('reportTable');
