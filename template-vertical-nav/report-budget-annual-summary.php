@@ -277,12 +277,12 @@ function fetchFacultyData($conn)
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</h4>
+                        <h4> รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a></li>
-                            <li class="breadcrumb-item active">รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</li>
+                            <li class="breadcrumb-item active"> รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี</li>
                         </ol>
                     </div>
                 </div>
@@ -291,7 +291,7 @@ function fetchFacultyData($conn)
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานสรุป การจัดทำและจัดสรรงบประมาณประจำปี</h4>
+                                    <h4> รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี</h4>
                                 </div>
 
                                 <?php
@@ -966,7 +966,7 @@ function fetchFacultyData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.csv';
+            link.download = ' รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -986,7 +986,7 @@ function fetchFacultyData($conn)
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ", 10, 500);
+            doc.text(" รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -1011,7 +1011,7 @@ function fetchFacultyData($conn)
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.pdf');
+            doc.save(' รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.pdf');
         }
 
         function exportXLS() {
@@ -1055,7 +1055,7 @@ function fetchFacultyData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            link.download = ' รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
