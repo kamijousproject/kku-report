@@ -437,8 +437,6 @@ function fetchFacultyData($conn)
                                                     $total_summary['Total_Amount_2568_FN06'] += (float) ($row['Total_Amount_2568_FN06'] ?? 0);
                                                     $total_summary['Total_Amount_2568_FN08'] += (float) ($row['Total_Amount_2568_FN08'] ?? 0);
                                                     $total_summary['Total_Amount_2568_FN02'] += (float) ($row['Total_Amount_2568_FN02'] ?? 0);
-
-
                                                 }
                                             }
                                             if ($selectedFaculty == null) {
