@@ -741,10 +741,10 @@ function fetchYearsData($conn)
                                                 <th colspan="31" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
 
-                                                    
-                                                        <?php 
+
+                                                        <?php
                                                         $facultyData = str_replace('-', ':', $selectedFacultyName);
-                                                      
+
                                                         echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
                                                     </span>
                                                 </th>
@@ -776,24 +776,34 @@ function fetchYearsData($conn)
                                             <tr>
                                                 <th rowspan="2">ประมาณการรายรับ</th>
                                                 <th colspan="4">รายรับจริง</th>
-                                                <th rowspan="2">รวม<br />
-                                                    รายรับจริง</th>
+                                                <th rowspan="2" class="center-text">
+                                                    รวม<br />รายรับจริง
+                                                </th>
+
                                                 <th rowspan="2">ประมาณการรายรับ</th>
                                                 <th colspan="4">รายรับจริง</th>
-                                                <th rowspan="2">รวม<br />
-                                                    รายรับจริง</th>
+                                                <th rowspan="2" class="center-text">
+                                                    รวม<br />รายรับจริง
+                                                </th>
+
                                                 <th rowspan="2">ประมาณการรายรับ</th>
                                                 <th colspan="4">รายรับจริง</th>
-                                                <th rowspan="2">รวม <br />
-                                                    รายรับจริง</th>
+                                                <th rowspan="2" class="center-text">
+                                                    รวม<br />รายรับจริง
+                                                </th>
+
                                                 <th rowspan="2">ประมาณการรายรับ</th>
                                                 <th colspan="4">รายรับจริง</th>
-                                                <th rowspan="2">รวม<br />
-                                                    รายรับจริง</th>
+                                                <th rowspan="2" class="center-text">
+                                                    รวม<br />รายรับจริง
+                                                </th>
+
                                                 <th rowspan="2">ประมาณการรายรับ</th>
                                                 <th colspan="4">รายรับจริง</th>
-                                                <th rowspan="2">รวม<br />
-                                                    รายรับจริง</th>
+                                                <th rowspan="2" class="center-text">
+                                                    รวม<br />รายรับจริง
+                                                </th>
+
 
                                             </tr>
                                             <tr>
@@ -1360,18 +1370,18 @@ function fetchYearsData($conn)
                                                         echo "</tr>";
                                                     }
                                                 }
-                                                
+
                                                 // แสดงผลลัพธ์
                                                 foreach ($summary as $faculty => $data) {
                                                     // แสดงผลรวมของ Faculty
-                                                    
+                                            
                                                     echo "<tr>";
                                                     if ($selectedFaculty == null) {
                                                         $facultyData = str_replace('-', ':', $data['Faculty']);
-                                                        echo "<td style='text-align: left;'><strong>". htmlspecialchars($facultyData) ."<br></td>";
-                                                        }
+                                                        echo "<td style='text-align: left;'><strong>" . htmlspecialchars($facultyData) . "<br></td>";
+                                                    }
                                                     if ($selectedFaculty != null) {
-                                                    echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                        echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "<br></td>";
                                                     }
                                                     echo "<td>" . formatNumber($data['Total_Amount_5']) . "</td>";
                                                     echo "<td>" . formatNumber($data['Q1_BUDGET5']) . "</td>";
