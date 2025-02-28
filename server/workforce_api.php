@@ -1662,7 +1662,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON f.parent=f2.faculty)
                         ,t2 AS (
                         SELECT COALESCE(pname,'No Personnel Type') AS pname
-                        ,Alias_Default
+                        ,faculty
+								,Alias_Default
                         ,position
                         ,COUNT(*) AS position_count
                         ,sum(COALESCE(SALARY_RATE,0)) AS SALARY_RATE
@@ -1672,9 +1673,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(COALESCE(POSITION_CAR_ALLOWANCE,0)) AS pca
                         FROM t1
                         GROUP BY  COALESCE(pname,'No Personnel Type')
-                        ,Alias_Default
+                        ,faculty
+								,Alias_Default
                         ,position)
                         SELECT * FROM t2
+                        WHERE Alias_Default IS NOT null
                         ORDER BY pname,Alias_Default";
                 $cmd = $conn->prepare($sql);
                 //$cmd->bindParam(':slt', $slt, PDO::PARAM_STR);

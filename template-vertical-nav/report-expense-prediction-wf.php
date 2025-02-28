@@ -193,42 +193,50 @@ thead tr:nth-child(3) th {
             else{
                 data= all_data.filter(item=>item.pname===category);
             }
+            let num_fac = [...new Set(data.map(item => item.pname))];
             // **Step 1: Calculate Rowspan Counts Before Rendering**
             data.forEach(row => {
                 let aliasKey = row.pname;
                 let nameKey = row.Alias_Default;
-
+                let fac = row.FACULTY;
                 // Count occurrences for Alias_Default (Column 2)
                 if (!aliasRowSpan[aliasKey]) {
                     aliasRowSpan[aliasKey] = all_data.filter(r => r.pname === aliasKey).length;
                 }
-
+                if (!nameRowSpan[aliasKey]) {
+                    nameRowSpan[aliasKey] = {}; // สร้าง object ว่างสำหรับ fac
+                }
                 // Count occurrences for Name (Column 3), but only within the same Alias_Default
                 if (!nameRowSpan[nameKey]) {
-                    nameRowSpan[nameKey] = all_data.filter(r => r.pname === aliasKey && r.Alias_Default === nameKey).length;
+                    nameRowSpan[aliasKey][nameKey] = all_data.filter(r => r.pname === aliasKey && r.Alias_Default === nameKey).length;
                     
                 }
             });
-            //console.log(Object.keys(nameRowSpan).length);
+            //console.log(nameRowSpan);
             // **Step 2: Generate Table Rows**
+            let row_num=1;
             data.forEach((row, index) => {                   
                 let tr = document.createElement('tr');
-                
+                //row_num+=1;
 
                 let currentAlias = row.pname;
                 let currentName = row.Alias_Default;
+                let currentfac = row.FACULTY;
                 //console.log(nameRowSpan[currentName]);
                 // **Step 3: Always Add "No" Column (Index)**
                 const tdNo = document.createElement('td');
-
+                
                 // **Step 4: Create Table Cells with Rowspan Handling**
                 if (currentAlias !== prevAlias) {
                     const tdAlias = document.createElement('td');
                     tdAlias.textContent = currentAlias;
-                    tdAlias.rowSpan = aliasRowSpan[currentAlias]+Object.keys(nameRowSpan).length+1; // Apply Rowspan
+                    tdAlias.rowSpan = aliasRowSpan[currentAlias]+Object.keys(nameRowSpan[currentAlias]).length+1; // Apply Rowspan
                     tr.appendChild(tdAlias);
                         // Update previous alias
-
+                    console.log(currentAlias);
+                    console.log(aliasRowSpan[currentAlias]);
+                    console.log(Object.keys(nameRowSpan[currentAlias]));
+                    console.log(aliasRowSpan[currentAlias]+Object.keys(nameRowSpan[currentAlias]).length+1);
                     var sub_total=all_data.filter(r => r.pname === currentAlias);
                     const parseValue = (value) => {
                         const number = parseFloat(String(value).replace(/,/g, ''));
@@ -271,6 +279,8 @@ thead tr:nth-child(3) th {
 
                     const tdC3 = document.createElement('td');
                     tdC3.textContent = (parseFloat(sums.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    //tdC3.textContent = row_num;
+                    //row_num+=1;
                     tdC3.style.backgroundColor = '#f7f7f7';
                     tr.appendChild(tdC3);
                     const tdfa = document.createElement('td');
@@ -295,7 +305,7 @@ thead tr:nth-child(3) th {
                 if (currentName !== prevName) {
                     const tdName = document.createElement('td');
                     tdName.textContent = row.Alias_Default;
-                    tdName.rowSpan = nameRowSpan[currentName]+1; // Apply Rowspan
+                    tdName.rowSpan = nameRowSpan[currentAlias][currentName]+1; // Apply Rowspan
                     tr.appendChild(tdName);
                     //console.log(nameRowSpan[currentName]+1);
                         // Update previous name
@@ -335,6 +345,8 @@ thead tr:nth-child(3) th {
 
                     const tdC3 = document.createElement('td');
                     tdC3.textContent = (parseFloat(sums.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    //tdC3.textContent = row_num;
+                    //row_num+=1;
                     tdC3.style.backgroundColor = '#f7f7f7';
                     tr.appendChild(tdC3);
                     const tdfa = document.createElement('td');
@@ -373,6 +385,8 @@ thead tr:nth-child(3) th {
 
                 const tdC3 = document.createElement('td');
                 tdC3.textContent = (parseFloat(row.pc).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                //tdC3.textContent = row_num;
+                //row_num+=1;
                 tr.appendChild(tdC3);
                 const tdfa = document.createElement('td');
                 tdfa.textContent = (parseFloat(row.fa).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
