@@ -230,7 +230,7 @@ thead tr:nth-child(3) th {
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
             let data;
             if(category=="all"){
-                data=all_data
+                data=all_data;
             }
             else{
                 data= all_data.filter(item=>item.pname===category);

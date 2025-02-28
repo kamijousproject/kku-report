@@ -154,6 +154,7 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function() {
             laodData();
             
@@ -163,17 +164,18 @@ thead tr:nth-child(3) th {
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'kku_wf_overview-framework_dropdown'
+                    'command': 'kku_wf_overview-framework'
                 },
                 dataType: "json",
                 success: function(response) {
-                    
+                    all_data=response.wf;                                             
+                    const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
-                    response.wf.forEach(category => {
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
                         let option = document.createElement("option");
-                        option.value = category.parent;
-                        option.textContent = category.pname;
+                        option.value = category;
+                        option.textContent = category;
                         dropdown.appendChild(option);
                     });
                 },
@@ -186,61 +188,53 @@ thead tr:nth-child(3) th {
         }
         function fetchData() {
             let category = document.getElementById("category").value;
-            $.ajax({
-                type: "POST",
-                url: "../server/workforce_api.php",
-                data: {
-                    'command': 'kku_wf_overview-framework'
-                },
-                dataType: "json",
-                success: function(response) {
-                    //console.log(response.wf);
-                    //console.log(response.faculty);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-                    let data=response.wf.filter(item=>item.parent === category);
-                    data.forEach((row, index) => {                   
-                        const tr = document.createElement('tr');
+            
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            let data;
+            if(category=="all"){
+                data=all_data;
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+            data.forEach((row, index) => {                   
+                const tr = document.createElement('tr');
 
-                        const columns = [
-                            
-                            { key: 'Alias_Default', value: row.Alias_Default }, 
-                            { key: 'fiscal_year', value: "" },                          
-                            { key: 'TYPE', value: row.TYPE },
-                            { key: 'Personnel_Type', value: row.Personnel_Type },  
-                            { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },
-                            { key: 'Employment_Type', value: row.Employment_Type },                            
-                            { key: 'All_PositionTypes', value: row.All_PositionTypes },
-                            { key: 'Personnel_Group', value: row.Personnel_Group },
-                            { key: 'Job_Family', value: row.Job_Family },     
-                            { key: 'POSITION', value: row.POSITION },
-                            { key: 'Position_Qualifications', value: row.Position_Qualifications },    
-                            { key: 'Position_Number', value: row.Position_Number },    
-                            { key: 'Contract_Type', value: row.Contract_Type },    
-                            { key: 'Contract_Period_Short_Term', value: row.Contract_Period_Short_Term },
-                            { key: 'Location_Code', value: row.Location_Code },
-                            { key: 'Fund_FT', value: row.Fund_FT },
-                            { key: 'Salary_rate', value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
-                            { key: 'Govt_Fund', value: (parseFloat(row.Govt_Fund|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
-                            { key: 'Division_Revenue', value: (parseFloat(row.Division_Revenue|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
-                            { key: 'OOP_Central_Revenue', value: (parseFloat(row.OOP_Central_Revenue || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },  
-                            { key: 'Contract_Period', value: "" },                                                                            
-                        ];
+                const columns = [
+                    
+                    { key: 'Alias_Default', value: row.Alias_Default }, 
+                    { key: 'fiscal_year', value: "" },                          
+                    { key: 'TYPE', value: row.TYPE },
+                    { key: 'Personnel_Type', value: row.Personnel_Type },  
+                    { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },
+                    { key: 'Employment_Type', value: row.Employment_Type },                            
+                    { key: 'All_PositionTypes', value: row.All_PositionTypes },
+                    { key: 'Personnel_Group', value: row.Personnel_Group },
+                    { key: 'Job_Family', value: row.Job_Family },     
+                    { key: 'POSITION', value: row.POSITION },
+                    { key: 'Position_Qualifications', value: row.Position_Qualifications },    
+                    { key: 'Position_Number', value: row.Position_Number },    
+                    { key: 'Contract_Type', value: row.Contract_Type },    
+                    { key: 'Contract_Period_Short_Term', value: row.Contract_Period_Short_Term },
+                    { key: 'Location_Code', value: row.Location_Code },
+                    { key: 'Fund_FT', value: row.Fund_FT },
+                    { key: 'Salary_rate', value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
+                    { key: 'Govt_Fund', value: (parseFloat(row.Govt_Fund|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
+                    { key: 'Division_Revenue', value: (parseFloat(row.Division_Revenue|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
+                    { key: 'OOP_Central_Revenue', value: (parseFloat(row.OOP_Central_Revenue || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },  
+                    { key: 'Contract_Period', value: "" },                                                                            
+                ];
 
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            tr.appendChild(td);
-                        });
-                        tableBody.appendChild(tr);     
-                    });
-
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
-                }
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col.value;
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);     
             });
+
+        
         }
         function exportCSV() {
             const table = document.getElementById('reportTable');

@@ -29,15 +29,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "SELECT *  FROM workforce_new_positions_allocation";
+                $sql = "with t1 as(SELECT faculty 
+                        FROM workforce_new_positions_allocation
+                        union all
+                        SELECT faculty 
+                        FROM workforce_current_positions_allocation)
+                        ,t2 as(
+                        SELECT f2.Alias_Default AS pname
+                        from t1 t
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI)
+                        SELECT distinct * FROM t2 ORDER BY pname";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $all_fac = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+
+                $sql = "SELECT w.*  ,f2.Alias_Default AS pname
+                        FROM workforce_new_positions_allocation w
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $f4 = $cmd->fetchAll(PDO::FETCH_ASSOC);                  
                 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status,f2.Alias_Default AS pname
                         FROM workforce_current_positions_allocation w
                         LEFT JOIN workforce_hcm_actual act1
                         ON replace(w.Position_Number,'PN_','')=act1.POSITION_NUMBER
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
                         WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -45,39 +84,69 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 
 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status,f2.Alias_Default AS pname
                         FROM workforce_current_positions_allocation w
                         LEFT JOIN workforce_hcm_actual act1
                         ON replace(w.Position_Number,'PN_','')=act1.Position_Number
-                        
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
                         WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='วิชาการระยะสั้น'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c2 = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status,f2.Alias_Default AS pname
                         FROM workforce_current_positions_allocation w
                         LEFT JOIN workforce_hcm_actual act1
                         ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
                         WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย'and act1.Contract_Type='ผู้เกษียณอายุราชการ' ";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c3 = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status,f2.Alias_Default AS pname
                         FROM workforce_current_positions_allocation w
                         LEFT JOIN workforce_hcm_actual act1
                         ON replace(w.Position_Number,'PN_','')=act1.Position_Number
-                        
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
                         WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='ชาวต่างประเทศ' ";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c4 = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
-                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status
+                $sql = "SELECT act1.* ,w.Fund_FT,w.Salary_rate,act1.rate_status,f2.Alias_Default AS pname
                         FROM workforce_current_positions_allocation w
                         LEFT JOIN workforce_hcm_actual act1
                         ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
                         WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='ผู้ปฏิบัติงานในมหาวิทยาลัย'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -87,6 +156,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = null;
 
                 $response = array(
+                    'all_fac'=>$all_fac,
                     'f4' => $f4,
                     'c1' => $c1,
                     'c2' => $c2,
@@ -530,13 +600,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,act1.Contract_Type
                         ,act1.Contract_Period_Short_Term
                         ,act1.Location_Code
+                        ,f2.Alias_Default as pname
                         FROM all_data a
                         LEFT JOIN workforce_hcm_actual act1
                         ON replace(a.Position_Number,'PN_','')=act1.Position_Number
                         LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
-                        where parent like 'Faculty%') f ON a.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        where parent like 'Faculty%') f 
+                        ON a.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
                         ORDER BY a.Faculty,a.Position_Number";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -1574,7 +1650,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $slt = $_POST["slt"];
+                //$slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS(
                         SELECT w.*,f.Alias_Default,f2.Alias_Default AS pname
@@ -1583,8 +1659,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         WHERE Parent LIKE 'Faculty%') f
                         ON w.faculty=f.faculty
                         LEFT JOIN Faculty f2
-                        ON f.parent=f2.faculty
-                        where f2.faculty=:slt)
+                        ON f.parent=f2.faculty)
                         ,t2 AS (
                         SELECT COALESCE(pname,'No Personnel Type') AS pname
                         ,Alias_Default
@@ -1602,7 +1677,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT * FROM t2
                         ORDER BY pname,Alias_Default";
                 $cmd = $conn->prepare($sql);
-                $cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
+                //$cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
