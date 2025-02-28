@@ -85,7 +85,7 @@ include '../server/connectdb.php';
 $db = new Database();
 $conn = $db->connect();
 
-function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
+function fetchBudgetData($conn, $faculty = null)
 {
     try {
         $query = "SELECT 
@@ -148,18 +148,13 @@ function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
             bap.Faculty ASC, 
             ac.`type` ASC, 
             ac.sub_type ASC,
-            bap.`Account` ASC
-        LIMIT :limit OFFSET :offset";
+            bap.`Account` ASC";
 
         $stmt = $conn->prepare($query);
 
         if ($faculty) {
             $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
         }
-
-        // Binding limit and offset
-        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
-        $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
 
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -168,6 +163,7 @@ function fetchBudgetData($conn, $faculty = null, $limit = 10, $offset = 0)
         return [];
     }
 }
+
 
 function fetchFacultyData($conn)
 {
@@ -415,6 +411,72 @@ function fetchFacultyData($conn)
                                                     'Difference_2568_2567' => $row['Difference_2568_2567'],
                                                     'Percentage_2568_to_2567' => $row['Percentage_2568_to_2567'],
                                                 ];
+                                                $rows = $summary;
+                                                // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
+                                                $total_summary = [
+                                                    'Total_Amount_2567_FN06' => 0,
+                                                    'Total_Amount_2567_FN08' => 0,
+                                                    'Total_Amount_2567_FN02' => 0,
+                                                    'Total_Amount_2567_SUM' => 0,
+                                                    'Total_Amount_2568_FN06' => 0,
+                                                    'Total_Amount_2568_FN08' => 0,
+                                                    'Total_Amount_2568_FN02' => 0,
+                                                    'Total_Amount_2568_SUM' => 0,
+                                                    'Difference_2568_2567' => 0,
+                                                    'Percentage_2568_to_2567' => 0,
+                                                ];
+                                                // แสดงผลรวมทั้งหมด
+                                                //print_r($total_summary);
+                                                // Assuming this is inside a loop where $row is updated (e.g., from a database query)
+                                                foreach ($rows as $row) { // Replace $rows with your actual data source
+                                                    // รวมผลรวมทั้งหมดโดยไม่สนใจ Faculty
+                                                    $total_summary['Total_Amount_2567_FN06'] += (float) ($row['Total_Amount_2567_FN06'] ?? 0);
+                                                    $total_summary['Total_Amount_2567_FN08'] += (float) ($row['Total_Amount_2567_FN08'] ?? 0);
+                                                    $total_summary['Total_Amount_2567_FN02'] += (float) ($row['Total_Amount_2567_FN02'] ?? 0);
+
+                                                    $total_summary['Total_Amount_2568_FN06'] += (float) ($row['Total_Amount_2568_FN06'] ?? 0);
+                                                    $total_summary['Total_Amount_2568_FN08'] += (float) ($row['Total_Amount_2568_FN08'] ?? 0);
+                                                    $total_summary['Total_Amount_2568_FN02'] += (float) ($row['Total_Amount_2568_FN02'] ?? 0);
+
+
+                                                }
+                                            }
+                                            if ($selectedFaculty == null) {
+                                                if (isset($summary) && is_array($summary)) {
+                                                    // แสดงผลลัพธ์ในรูปแบบตาราง
+                                                    echo "<tr>";
+                                                    // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+                                                    echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "<br></td>";
+
+                                                    // Check if the keys exist before accessing them
+                                                    echo "<td>" . (isset($total_summary['Total_Amount_2567_FN06']) ? formatNumber($total_summary['Total_Amount_2567_FN06']) : '0') . "</td>";
+                                                    echo "<td>" . (isset($total_summary['Total_Amount_2567_FN08']) ? formatNumber($total_summary['Total_Amount_2567_FN08']) : '0') . "</td>";
+                                                    echo "<td>" . (isset($total_summary['Total_Amount_2567_FN02']) ? formatNumber($total_summary['Total_Amount_2567_FN02']) : '0') . "</td>";
+
+                                                    $total1 = (isset($total_summary['Total_Amount_2567_FN06']) ? $total_summary['Total_Amount_2567_FN06'] : 0) +
+                                                        (isset($total_summary['Total_Amount_2567_FN08']) ? $total_summary['Total_Amount_2567_FN08'] : 0) +
+                                                        (isset($total_summary['Total_Amount_2567_FN02']) ? $total_summary['Total_Amount_2567_FN02'] : 0);
+                                                    echo "<td>" . formatNumber($total1) . "</td>";
+
+                                                    echo "<td>" . (isset($total_summary['Total_Amount_2568_FN06']) ? formatNumber($total_summary['Total_Amount_2568_FN06']) : '0') . "</td>";
+                                                    echo "<td>" . (isset($total_summary['Total_Amount_2568_FN08']) ? formatNumber($total_summary['Total_Amount_2568_FN08']) : '0') . "</td>";
+                                                    echo "<td>" . (isset($total_summary['Total_Amount_2568_FN02']) ? formatNumber($total_summary['Total_Amount_2568_FN02']) : '0') . "</td>";
+
+                                                    $total2 = (isset($total_summary['Total_Amount_2568_FN06']) ? $total_summary['Total_Amount_2568_FN06'] : 0) +
+                                                        (isset($total_summary['Total_Amount_2568_FN08']) ? $total_summary['Total_Amount_2568_FN08'] : 0) +
+                                                        (isset($total_summary['Total_Amount_2568_FN02']) ? $total_summary['Total_Amount_2568_FN02'] : 0);
+                                                    echo "<td>" . formatNumber($total2) . "</td>";
+
+                                                    $Difference = $total2 - $total1;
+                                                    echo "<td>" . formatNumber($Difference) . "</td>";
+
+                                                    $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                    echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+                                                    echo "</tr>";
+                                                } else {
+                                                    // แสดงข้อความหากไม่มีข้อมูล
+                                                    echo "<tr><td colspan='7' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                                }
                                             }
 
                                             // แสดงผลลัพธ์
@@ -423,8 +485,13 @@ function fetchFacultyData($conn)
                                                 echo "<tr>";
 
 
-                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                if ($selectedFaculty == null) {
+                                                    $facultyData = str_replace('-', ':', $data['Alias_Default']);
+                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($facultyData) . "<br></td>";
+                                                }
+                                                if ($selectedFaculty != null) {
+                                                    echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                }
 
                                                 // Check if the keys exist before accessing them
                                                 echo "<td>" . (isset($data['Total_Amount_2567_FN06']) ? formatNumber($data['Total_Amount_2567_FN06']) : '0') . "</td>";

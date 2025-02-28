@@ -113,6 +113,11 @@ LEFT JOIN budget_planning_allocated_annual_budget_plan baap
 	 AND baap.Plan = bap.Plan
 	 AND baap.Sub_Plan = bap.Sub_Plan
 	 AND baap.`Account` = bap.`Account`
+
+         if ($faculty) {
+            $query .= " AND bap.Faculty = :faculty"
+        }
+
 GROUP BY 
     bap.Faculty,ft.Alias_Default,bap.Plan, p.plan_id, p.plan_name, 
     bap.Sub_Plan, sp.sub_plan_id, sp.sub_plan_name, 
@@ -120,10 +125,7 @@ GROUP BY
     a1, ac.`type`, bap.Total_Amount_Quantity,bap.Fund;
 ";
 
-                                    // เพิ่มเงื่อนไขกรองข้อมูลถ้า User เลือกหน่วยงาน
-                                    if (!empty($selectedFaculty)) {
-                                        $query .= " WHERE bap.Faculty = :selectedFaculty";
-                                    }
+                                    
 
                                     $stmt = $conn->prepare($query);
 
@@ -141,83 +143,90 @@ GROUP BY
                                 ?>
 
 <style>
-#reportTable th:nth-child(1),
-#reportTable td:nth-child(1) {
-    width: 300px;
-    /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
-}
+    #reportTable th:nth-child(1),
+    #reportTable td:nth-child(1) {
+        width: 300px;
+        /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
+    }
 
-#reportTable th,
-#reportTable td {
-    text-align: center;
-    /* จัดข้อความให้อยู่ตรงกลาง */
-    vertical-align: middle;
-    /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-    white-space: nowrap;
-    /* ป้องกันข้อความตัดบรรทัด */
-}
+    #reportTable th {
+        text-align: center;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: middle;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
 
-.wide-column {
-    min-width: 250px;
-    /* ปรับขนาด column ให้กว้างขึ้น */
-    word-break: break-word;
-    /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
-    white-space: pre-line;
-    /* รักษารูปแบบการขึ้นบรรทัด */
-    vertical-align: top;
-    /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
-    padding: 10px;
-    /* เพิ่มช่องว่างด้านใน */
-}
+    #reportTable td {
+        text-align: left;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: top;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
 
-.wide-column div {
-    margin-bottom: 5px;
-    /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
-}
+    .wide-column {
+        min-width: 250px;
+        /* ปรับขนาด column ให้กว้างขึ้น */
+        word-break: break-word;
+        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
+        white-space: pre-line;
+        /* รักษารูปแบบการขึ้นบรรทัด */
+        vertical-align: top;
+        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
+        padding: 10px;
+        /* เพิ่มช่องว่างด้านใน */
+    }
 
-/* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
-table {
-    width: 100%;
-    border-collapse: collapse;
-    /* ลบช่องว่างระหว่างเซลล์ */
-}
+    .wide-column div {
+        margin-bottom: 5px;
+        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+    }
 
-/* ทำให้หัวตารางติดอยู่กับด้านบน */
-th {
-    position: sticky;
-    /* ทำให้ header ติดอยู่กับด้านบน */
-    top: 0;
-    /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
-    background-color: #fff;
-    /* กำหนดพื้นหลังให้กับหัวตาราง */
-    z-index: 2;
-    /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    /* เพิ่มเงาให้หัวตาราง */
-    padding: 8px;
-}
+    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        /* ลบช่องว่างระหว่างเซลล์ */
+    }
 
-/* เพิ่มเงาให้กับแถวหัวตาราง */
-th,
-td {
-    border: 1px solid #ddd;
-    /* เพิ่มขอบให้เซลล์ */
-}
+    /* ทำให้หัวตารางติดอยู่กับด้านบน */
+    th {
+        position: sticky;
+        /* ทำให้ header ติดอยู่กับด้านบน */
+        top: 0;
+        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
+        background-color: #fff;
+        /* กำหนดพื้นหลังให้กับหัวตาราง */
+        z-index: 2;
+        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* เพิ่มเงาให้หัวตาราง */
+        padding: 8px;
+    }
 
-/* ทำให้ข้อมูลในตารางเลื่อนได้ */
-.table-responsive {
-    max-height: 65vh;
-    /* กำหนดความสูงของตาราง */
-    overflow-y: auto;
-    /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
-}
+    /* เพิ่มเงาให้กับแถวหัวตาราง */
+    th,
+    td {
+        border: 1px solid #ddd;
+        /* เพิ่มขอบให้เซลล์ */
+    }
+
+    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
+    .table-responsive {
+        max-height: 60vh;
+        /* กำหนดความสูงของตาราง */
+        overflow-y: auto;
+        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
+    }
 </style>
+
 
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-
-
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="main-wrapper">
         <?php include('../component/left-nev.php') ?>
@@ -261,128 +270,145 @@ td {
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
-                                                <th rowspan="1">รายการ</th>
+                                                <th rowspan="3">รายการ</th>
                                                 <th colspan="4">ปี 2567 (ปีปัจจุบัน)</th>
                                                 <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
-                                                <th colspan="2">เพิ่ม/ลด</th>
+                                                <th colspan="2"rowspan="2">เพิ่ม/ลด</th>
                                             </tr>
                                             <tr>
-                                                <th rowspan="1"></th>
-                                                <th>เงินอุดหนุนจากรัฐ</th>
-                                                <th>เงินนอกงบประมาณ</th>
-                                                <th>เงินรายได้</th>
-                                                <th>รวม</th>
-                                                <th>เงินอุดหนุนจากรัฐ (คำขอ)</th>
-                                                <th>เงินอุดหนุนจากรัฐ (จัดสรร)</th>
-                                                <th>เงินนอกงบประมาณ (คำขอ)</th>
-                                                <th>เงินนอกงบประมาณ (จัดสรร)</th>
-                                                <th>เงินรายได้ (คำขอ)</th>
-                                                <th>เงินรายได้ (จัดสรร)</th>
-                                                <th>รวม (คำขอ)</th>
-                                                <th>รวม (จัดสรร)</th>
-                                                <th>จำนวน</th>
-                                                <th>ร้อยละ</th>
+                                                
+                                                <th rowspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                <th rowspan="2">เงินนอกงบประมาณ</th>
+                                                <th rowspan="2">เงินรายได้</th>
+                                                <th rowspan="2">รวม</th>
+                                                <th colspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                
+                                                <th colspan="2">เงินนอกงบประมาณ</th>
+                                                
+                                                <th colspan="2">เงินรายได้ </th>
+                                                
+                                                <th colspan="2">รวม</th>
+                                                
+                                               
+                                            </tr>
+                                            <tr>
+                                            <th>คำขอ</th>
+                                            <th>จัดสรร</th>
+                                            <th>คำขอ</th>
+                                            <th>จัดสรร</th>
+                                            <th>คำขอ</th>
+                                            <th>จัดสรร</th>
+                                            <th>คำขอ</th>
+                                            <th>จัดสรร</th>
+                                            <th>จำนวน</th>
+                                            <th>ร้อยละ</th>
                                             </tr>
                                         </thead>
                                         <tbody>
                                         <?php
 
-function formatNumber($number)
-{
-    return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
-}
+                                                    function formatNumber($number)
+                                                    {
+                                                        return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
+                                                    }
 
-function removeLeadingNumbers($text)
-{
-    // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
-    return preg_replace('/^[\d.]+\s*/', '', $text);
-}
+                                                    function removeLeadingNumbers($text)
+                                                    {
+                                                        // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
+                                                        return preg_replace('/^[\d.]+\s*/', '', $text);
+                                                    }
+                                                    $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : "";
+                                                    $results = fetchBudgetData($conn, $selectedFaculty);
 
-$results = fetchBudgetData($conn, $selectedFaculty);
+                                                    // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                                    if (isset($results) && is_array($results) && count($results) > 0) {
+                                                        $summary = [];
+                                                        
+                                                        // เรียงข้อมูลใน $results ให้เป็นแบบซ้อนกันตาม Faculty, Plan, Sub_Plan, Project
+                                                        foreach ($results as $row) {
+                                                            $faculty = $row['Faculty'];
+                                                            $plan = $row['Plan'];
+                                                            $subplan = $row['Sub_Plan'];
+                                                            $project = $row['Project'];
 
-// ตรวจสอบว่า $results มีข้อมูลหรือไม่
-if (isset($results) && is_array($results) && count($results) > 0) {
-    $summary = [];
-    
-    // เรียงข้อมูลใน $results ให้เป็นแบบซ้อนกันตาม Faculty, Plan, Sub_Plan, Project
-    foreach ($results as $row) {
-        $faculty = $row['Faculty'];
-        $plan = $row['Plan'];
-        $subplan = $row['Sub_Plan'];
-        $project = $row['Project'];
+                                                            // สร้างโครงสร้าง summary ถ้ายังไม่มี
+                                                            if (!isset($summary[$faculty])) {
+                                                                $summary[$faculty] = [
+                                                                    'Faculty' => $row['Alias_Default'],
+                                                                    'Plan' => [],
+                                                                ];
+                                                            }
+                                                                
+                                                            if (!isset($summary[$faculty]['Plan'][$plan])) {
+                                                                $summary[$faculty]['Plan'][$plan] = [
+                                                                    'PlanName' => $row['plan_name'],
+                                                                    'Sub_Plan' => [],
+                                                                ];
+                                                            }
 
-        // สร้างโครงสร้าง summary ถ้ายังไม่มี
-        if (!isset($summary[$faculty])) {
-            $summary[$faculty] = [
-                'Faculty' => $row['Alias_Default'],
-                'Plan' => [],
-            ];
-        }
-            
-        if (!isset($summary[$faculty]['Plan'][$plan])) {
-            $summary[$faculty]['Plan'][$plan] = [
-                'PlanName' => $row['plan_name'],
-                'Sub_Plan' => [],
-            ];
-        }
+                                                            if (!isset($summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan])) {
+                                                                $summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan] = [
+                                                                    'SubPlanName' => $row['sub_plan_name'],
+                                                                    'Project' => [],
+                                                                ];
+                                                            }
 
-        if (!isset($summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan])) {
-            $summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan] = [
-                'SubPlanName' => $row['sub_plan_name'],
-                'Project' => [],
-            ];
-        }
+                                                            if (!isset($summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan]['Project'][$project])) {
+                                                                $summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan]['Project'][$project] = [
+                                                                    'ProjectName' => $row['project_name'],
+                                                                    'type' => [],
+                                                                ];
+                                                            }
 
-        if (!isset($summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan]['Project'][$project])) {
-            $summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan]['Project'][$project] = [
-                'ProjectName' => $row['project_name'],
-                'type' => [],
-            ];
-                                                }
+                                                            // เก็บข้อมูลของ type
+                                                            $typeName = (!empty($row['type']))
+                                                                ?  htmlspecialchars($row['a1']) . ": " . htmlspecialchars(removeLeadingNumbers($row['type']))
+                                                                :  htmlspecialchars($row['a1']) ;
 
-        // เก็บข้อมูลของ type
-        $typeName = (!empty($row['type']))
-            ? "<strong>" . htmlspecialchars($row['a1']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['type']))
-            : "<strong>" . htmlspecialchars($row['a1']) . "</strong>";
+                                                            $summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan]['Project'][$project]['type'][] = [
+                                                                'typeName' => $typeName,
+                                                                
+                                                            ];
+                                                        }
 
-        $summary[$faculty]['Plan'][$plan]['Sub_Plan'][$subplan]['Project'][$project]['type'] = [
-            'typeName' => $typeName,
-        ];
-    }
+                                                        // แสดงผลข้อมูลในตาราง
+                                                        foreach ($summary as $faculty => $data) {
+                                                            echo "<tr>";
+                                                            echo "<td >" .  htmlspecialchars($faculty )  .' : '. htmlspecialchars($data['Alias_Default']) . "</td>";
+                                                            echo "</tr>";
+                                                            foreach ($data['Plan'] as $plan => $plandata) {
+                                                                echo "<tr>";
+                                                                echo "<td > " . htmlspecialchars($plan ) .' : '. htmlspecialchars($plandata['PlanName']) . "</td>";
+                                                                echo "</tr>";
+                                                                foreach ($plandata['Sub_Plan'] as $subplan => $subplandata) {
+                                                                    echo "<tr>";
+                                                                    echo "<td> " . str_repeat("&nbsp;", 8). htmlspecialchars(str_replace("SP_", "", $subplan)) . ' : ' . htmlspecialchars($subplandata['SubPlanName']) . "</td>";
+                                                                    echo "</tr>";
 
-    // แสดงผลข้อมูลในตาราง
-    foreach ($summary as $faculty => $data) {
-        echo "<tr>";
-        echo "</tr>";
-        foreach ($data['Plan'] as $plan => $plandata) {
-            echo "<tr>";
-            echo "</tr>";
-            foreach ($plandata['Sub_Plan'] as $subplan => $subplandata) {
-                echo "<tr>";
-                echo "</tr>";
+                                                                    foreach ($subplandata['Project'] as $project => $projectdata) {
+                                                                        echo "<tr>";
+                                                                        $projectName = $projectdata['ProjectName']; // ข้อมูลเดิม เช่น "101102:การบริหารงานวิจัย"
+                                                    $formattedProjectName = str_replace(':', ' : ', $projectName); // แทนที่ ":" ด้วย " : "
+                                                    echo "<td>". str_repeat("&nbsp;", 16) . htmlspecialchars($formattedProjectName) . "</td>";
+                                                                        echo "</tr>";
 
-                foreach ($subplandata['Project'] as $project => $projectdata) {
-                    echo "<tr>";
-                    echo "</tr>";
-
-                    if (isset($projectdata['type']) && is_array($projectdata['type'])) {
-                        foreach ($projectdata['type'] as $type) {
-                            echo "<tr>";
-                            $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $type);
-
-                                                        // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                        echo "<td style='text-align: left; '>" . htmlspecialchars($datatype['a1']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
-
-                                      echo "</tr>";
-                        }
-                    }
-                }
-            }
-        }
-    }
-} else {
-    echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
-}
+                                                                        if (isset($projectdata['type']) && is_array($projectdata['type'])) {
+                                                                            foreach ($projectdata['type'] as $type) {
+                                                                                echo "<tr>";
+                                                                            
+                                                                                // แสดงผลข้อมูลที่มี : คั่นระหว่าง $type และ cleanedSubType
+                                                                                echo "<td style='text-align: left;'>". str_repeat("&nbsp;", 24) . htmlspecialchars($type['typeName']) . "<br></td>";
+                                                                            
+                                                                                echo "</tr>";
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    } else {
+                                                        echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                                    }
                                                 ?>
 
                                         </tbody>
