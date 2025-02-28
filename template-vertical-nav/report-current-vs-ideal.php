@@ -139,6 +139,7 @@ thead tr:nth-child(3) th {
 
 
     <script>
+        let all_data;
         $(document).ready(function() {
             laodData();
         });
@@ -148,16 +149,18 @@ thead tr:nth-child(3) th {
                 type: "POST",
                 url: "../server/workforce_api.php",
                 data: {
-                    'command': 'list-faculty'
+                    'command': 'kku_wf_current-vs-ideal'
                 },
                 dataType: "json",
                 success: function(response) {
+                    all_data=response.wf;                        
+                    const fac = [...new Set(all_data.map(item => item.Alias_Default))];
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
-                    response.wf.forEach(category => {
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
                         let option = document.createElement("option");
-                        option.value = category.Parent;
-                        option.textContent = category.Alias_Default;
+                        option.value = category;
+                        option.textContent = category;
                         dropdown.appendChild(option);
                     });
                 },
@@ -170,99 +173,90 @@ thead tr:nth-child(3) th {
         function fetchData() {
             let category = document.getElementById("category").value;
             //let resultDiv = document.getElementById("result");
+      
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // Clear old data
 
-            $.ajax({
-                type: "POST",
-                url: "../server/workforce_api.php",
-                data: {
-                    'command': 'kku_wf_current-vs-ideal',
-                    'slt':category
-                },
-                dataType: "json",
-                success: function(response) {
-                    
-                    const tableBody = document.querySelector('#reportTable tbody');
-tableBody.innerHTML = ''; // Clear old data
+            let prevAlias = null;
+            let prevName = null;
+            let aliasRowSpan = {};
+            let nameRowSpan = {};
+            let data;
+            if(category=="all"){
+                data=all_data;
+            }
+            else{
+                data= all_data.filter(item=>item.Alias_Default===category);
+            }
+            // **Step 1: Calculate Rowspan Counts Before Rendering**
+            data.forEach(row => {
+                let aliasKey = row.Alias_Default;
+                let nameKey = row.code;
 
-let prevAlias = null;
-let prevName = null;
-let aliasRowSpan = {};
-let nameRowSpan = {};
-
-// **Step 1: Calculate Rowspan Counts Before Rendering**
-response.wf.forEach(row => {
-    let aliasKey = row.Alias_Default;
-    let nameKey = row.code;
-
-    // Count occurrences for Alias_Default (Column 2)
-    if (!aliasRowSpan[aliasKey]) {
-        aliasRowSpan[aliasKey] = response.wf.filter(r => r.Alias_Default === aliasKey).length;
-    }
-
-    // Count occurrences for Name (Column 3), but only within the same Alias_Default
-    if (!nameRowSpan[nameKey]) {
-        nameRowSpan[nameKey] = response.wf.filter(r => r.Alias_Default === aliasKey && r.code === nameKey).length;
-    }
-});
-console.log(nameRowSpan);
-// **Step 2: Generate Table Rows**
-response.wf.forEach((row, index) => {                   
-    const tr = document.createElement('tr');
-    var sym = parseInt(row.count_person) > parseInt(row.wf) 
-        ? "+" + (parseInt(row.count_person) - parseInt(row.wf)) 
-        : "-" + Math.abs(parseInt(row.count_person) - parseInt(row.wf));
-
-    let currentAlias = row.Alias_Default;
-    let currentName = row.code;
-
-    // **Step 3: Always Add "No" Column (Index)**
-    const tdNo = document.createElement('td');
-    tdNo.textContent = index + 1;
-    tr.appendChild(tdNo);
-
-    // **Step 4: Create Table Cells with Rowspan Handling**
-    if (currentAlias !== prevAlias) {
-        const tdAlias = document.createElement('td');
-        tdAlias.textContent = currentAlias;
-        tdAlias.rowSpan = aliasRowSpan[currentAlias]; // Apply Rowspan
-        tr.appendChild(tdAlias);
-        prevAlias = currentAlias; // Update previous alias
-    }
-
-    if (currentName !== prevName) {
-        const tdName = document.createElement('td');
-        tdName.textContent = row.name;
-        tdName.rowSpan = nameRowSpan[currentName]; // Apply Rowspan
-        tr.appendChild(tdName);
-        prevName = currentName; // Update previous name
-    }
-
-    // **Step 5: Ensure Proper Column Order**
-    const tdPosition = document.createElement('td');
-    tdPosition.textContent = row.position;
-    tr.appendChild(tdPosition);
-
-    const tdC1 = document.createElement('td');
-    tdC1.textContent = row.wf;
-    tr.appendChild(tdC1);
-
-    const tdC2 = document.createElement('td');
-    tdC2.textContent = row.count_person;
-    tr.appendChild(tdC2);
-
-    const tdC3 = document.createElement('td');
-    tdC3.textContent = sym;
-    tr.appendChild(tdC3);
-
-    tableBody.appendChild(tr);
-});
-
-
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
+                // Count occurrences for Alias_Default (Column 2)
+                if (!aliasRowSpan[aliasKey]) {
+                    aliasRowSpan[aliasKey] = all_data.filter(r => r.Alias_Default === aliasKey).length;
                 }
+                if (!nameRowSpan[aliasKey]) {
+                    nameRowSpan[aliasKey] = {}; // สร้าง object ว่างสำหรับ fac
+                }
+                
+                // Count occurrences for Name (Column 3), but only within the same Alias_Default
+                if (!nameRowSpan[nameKey]) {
+                    nameRowSpan[aliasKey][nameKey] = all_data.filter(r => r.Alias_Default === aliasKey && r.code === nameKey).length;
+                }
+            });
+            console.log(nameRowSpan);
+            // **Step 2: Generate Table Rows**
+            data.forEach((row, index) => {                   
+                const tr = document.createElement('tr');
+                var sym = parseInt(row.count_person) > parseInt(row.wf) 
+                    ? "+" + (parseInt(row.count_person) - parseInt(row.wf)) 
+                    : "-" + Math.abs(parseInt(row.count_person) - parseInt(row.wf));
+
+                let currentAlias = row.Alias_Default;
+                let currentName = row.code;
+
+                // **Step 3: Always Add "No" Column (Index)**
+                const tdNo = document.createElement('td');
+                tdNo.textContent = index + 1;
+                tr.appendChild(tdNo);
+
+                // **Step 4: Create Table Cells with Rowspan Handling**
+                if (currentAlias !== prevAlias) {
+                    const tdAlias = document.createElement('td');
+                    tdAlias.textContent = currentAlias;
+                    tdAlias.rowSpan = aliasRowSpan[currentAlias]; // Apply Rowspan
+                    tr.appendChild(tdAlias);
+                    prevAlias = currentAlias; // Update previous alias
+                }
+
+                if (currentName !== prevName) {
+                    const tdName = document.createElement('td');
+                    tdName.textContent = row.name;
+                    tdName.rowSpan = nameRowSpan[currentAlias][currentName]; // Apply Rowspan
+                    tr.appendChild(tdName);
+                    prevName = currentName; // Update previous name
+                }
+
+                // **Step 5: Ensure Proper Column Order**
+                const tdPosition = document.createElement('td');
+                tdPosition.textContent = row.position;
+                tr.appendChild(tdPosition);
+
+                const tdC1 = document.createElement('td');
+                tdC1.textContent = row.wf;
+                tr.appendChild(tdC1);
+
+                const tdC2 = document.createElement('td');
+                tdC2.textContent = row.count_person;
+                tr.appendChild(tdC2);
+
+                const tdC3 = document.createElement('td');
+                tdC3.textContent = sym;
+                tr.appendChild(tdC3);
+
+                tableBody.appendChild(tr);
             });
         }
         

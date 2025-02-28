@@ -119,7 +119,7 @@
                     //console.log(data_new);                           
                     const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option>';
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
                     fac.forEach(category => {
                         let option = document.createElement("option");
                         option.value = category;
@@ -141,7 +141,13 @@
             let category = document.getElementById("category").value;
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-            let data= all_data.filter(item=>item.pname===category);
+            let data;
+            if(category=="all"){
+                data=all_data;
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
             data.forEach((row, index) => {                   
                 const tr = document.createElement('tr');
 

@@ -1179,11 +1179,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $slt = $_POST["slt"];
+                //$slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH f AS (
                         SELECT parent FROM Faculty
-                        WHERE parent ='".$slt."'
+                        WHERE parent like 'Faculty%'
                         GROUP BY parent)
                         ,t1 AS (
                         SELECT f2.Alias_Default,f2.faculty
@@ -1203,7 +1203,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM workforce_4year_plan w
                         LEFT JOIN Faculty f
                         ON w.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
-                        WHERE f.parent ='".$slt."'
+                        WHERE f.parent like 'Faculty%'
                         )
                         ,t5 AS (
                         SELECT t.*,COALESCE(tt.WF,0) as wf
@@ -1215,7 +1215,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM workforce_hcm_actual a
                         LEFT JOIN Faculty f
                         ON a.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
-                        WHERE f.parent ='".$slt."'
+                        WHERE f.parent like 'Faculty%'
                         GROUP BY a.POSITION,a.Job_Family,f.parent)
                         ,t7 AS (
                         SELECT t.*,COALESCE(tt.count_person,0) as count_person
