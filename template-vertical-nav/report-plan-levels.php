@@ -337,7 +337,7 @@
                 didDrawPage: function(data) {
                     // Add header
                     doc.setFontSize(16);
-                    doc.text('รายงานอัตรากำลังประเภทต่างๆ ของหน่วยงาน', 14, 15);
+                    doc.text('รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน(มหาวิทยาลัย)', 14, 15);
 
                     // Add footer with page number
                     doc.setFontSize(10);
@@ -387,7 +387,7 @@
             });
 
             // Save the PDF
-            doc.save('รายงานอัตรากำลัง.pdf');
+            doc.save('รายงานแผนงานระดับต่างๆของหน่วยงาน(มหาวิทยาลัย).pdf');
         }
 
 
