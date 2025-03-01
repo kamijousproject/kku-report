@@ -37,19 +37,14 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr class="text-nowrap">
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>รหัส</th>
-                                                <th>ยุทธศาสตร์</th>
-                                                <th>รหัส</th>
-                                                <th>แผนงาน/โครงการ</th>
+                                                <th class="align-middle" rowspan="2">ส่วนงาน/หน่วยงาน</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">ยุทธศาสตร์</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">แผนงาน/โครงการ</th>
                                                 <th colspan="4">สถานะ (Status)</th>
                                             </tr>
                                             <tr class="text-nowrap">
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
                                                 <th>ยังไม่ดำเนินการ</th>
                                                 <th>อยู่ระหว่างดำเนินการ</th>
                                                 <th>ดำเนินการแล้ว</th>

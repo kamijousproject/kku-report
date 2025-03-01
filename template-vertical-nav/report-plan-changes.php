@@ -37,17 +37,14 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr class="text-nowrap">
-                                                <th>ยุทธศาสตร์</th>
-                                                <th>กลยุทธ์</th>
+                                                <th class="align-middle" rowspan="2">ยุทธศาสตร์</th>
+                                                <th class="align-middle" rowspan="2">กลยุทธ์</th>
                                                 <th colspan="2">โครงการตามยุทธศาสตร์</th>
-                                                <th>ผู้รับผิดชอบ</th>
+                                                <th class="align-middle" rowspan="2">ผู้รับผิดชอบ</th>
                                             </tr>
                                             <tr class="text-nowrap">
-                                                <th></th>
-                                                <th></th>
                                                 <th>แผนงาน/โครงการ</th>
                                                 <th>กรอบวงเงินงบประมาณ</th>
-                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>

@@ -38,39 +38,25 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr class="text-nowrap">
-                                                <th>รหัส</th>
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>รหัส</th>
-                                                <th>เสาหลัก</th>
-                                                <th>รหัส</th>
-                                                <th>ยุทธศาสตร์</th>
-                                                <th>รหัส</th>
-                                                <th>กลยุทธ์</th>
-                                                <th>รหัส</th>
-                                                <th>แผนงาน/โครงการ</th>
-                                                <th>รหัส</th>
-                                                <th>ผลลัพธ์สำคัญ</th>
-                                                <th>หน่วยนับ</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">ส่วนงาน/หน่วยงาน</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">เสาหลัก</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">ยุทธศาสตร์</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">กลยุทธ์</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">แผนงาน/โครงการ</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">ผลลัพธ์สำคัญ</th>
+                                                <th class="align-middle" rowspan="2">หน่วยนับ</th>
                                                 <th colspan="4">ผลการดำเนินงาน</th>
                                                 <th colspan="4">ค่าเป้าหมาย (ปี)</th>
-                                                <th>กรอบวงเงินงบประมาณ (บาท)</th>
-                                                <th>ผู้รับผิดชอบ</th>
+                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ (บาท)</th>
+                                                <th class="align-middle" rowspan="2">ผู้รับผิดชอบ</th>
                                             </tr>
                                             <tr class="text-nowrap">
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-
-                                                <th></th>
-                                                <th></th>
                                                 <th>2564</th>
                                                 <th>2565</th>
                                                 <th>2566</th>
@@ -79,8 +65,6 @@
                                                 <th>2568</th>
                                                 <th>2569</th>
                                                 <th>2570</th>
-                                                <th></th>
-                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>

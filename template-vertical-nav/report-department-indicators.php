@@ -43,28 +43,28 @@
                                     <table id="reportTable" class="table table-hover">
                                     <thead>
                                                 <tr class="text-nowrap">
-                                                    <th rowspan="4">ลำดับ</th>
-                                                    <th rowspan="4">รหัส</th>
-                                                    <th rowspan="4">ส่วนงาน/หน่วยงาน</th>
-                                                    <th rowspan="4">จำนวนผลลัพธ์/ตัวชี้วัดทั้งหมด</th>
-                                                    <th colspan="19">ความสอดคล้องของแผน</th>
+                                                    <th class="align-middle" rowspan="4">ลำดับ</th>
+                                                    <th class="align-middle" rowspan="4">รหัส</th>
+                                                    <th class="align-middle" rowspan="4">ส่วนงาน/หน่วยงาน</th>
+                                                    <th class="align-middle" rowspan="4">จำนวนผลลัพธ์/ตัวชี้วัดทั้งหมด</th>
+                                                    <th class="align-middle" colspan="19">ความสอดคล้องของแผน</th>
                                                 </tr>
                                                 <tr class="text-nowrap">
-                                                    <th colspan="13">แผนยุทธศาสตร์การบริหารมหาวิทยาลัยขอนแก่น</th>
-                                                    <th colspan="2">แผนพันธกิจ</th>
-                                                    <th colspan="2">แผนสรรหา</th>
-                                                    <th colspan="2">แผนสร้างความโดดเด่น</th>
+                                                    <th class="align-middle" colspan="13">แผนยุทธศาสตร์การบริหารมหาวิทยาลัยขอนแก่น</th>
+                                                    <th class="align-middle" colspan="2">แผนพันธกิจ</th>
+                                                    <th class="align-middle" colspan="2">แผนสรรหา</th>
+                                                    <th class="align-middle" colspan="2">แผนสร้างความโดดเด่น</th>
                                                 </tr>
                                                 <tr class="text-nowrap">
-                                                    <th rowspan="2">จำนวน</th>
-                                                    <th rowspan="2">ร้อยละ</th>
-                                                    <th colspan="11">ยุทธศาสตร์</th>
-                                                    <th rowspan="2">จำนวน</th>
-                                                    <th rowspan="2">ร้อยละ</th>
-                                                    <th rowspan="2">จำนวน</th>
-                                                    <th rowspan="2">ร้อยละ</th>
-                                                    <th rowspan="2">จำนวน</th>
-                                                    <th rowspan="2">ร้อยละ</th>
+                                                    <th class="align-middle" rowspan="2">จำนวน</th>
+                                                    <th class="align-middle" rowspan="2">ร้อยละ</th>
+                                                    <th class="align-middle" colspan="11">ยุทธศาสตร์</th>
+                                                    <th class="align-middle" rowspan="2">จำนวน</th>
+                                                    <th class="align-middle" rowspan="2">ร้อยละ</th>
+                                                    <th class="align-middle" rowspan="2">จำนวน</th>
+                                                    <th class="align-middle" rowspan="2">ร้อยละ</th>
+                                                    <th class="align-middle" rowspan="2">จำนวน</th>
+                                                    <th class="align-middle" rowspan="2">ร้อยละ</th>
                                                 </tr>
                                                 <tr class="text-nowrap">
                                                     <th>1</th>

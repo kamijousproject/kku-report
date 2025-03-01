@@ -36,38 +36,25 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            <tr class="text-nowrap">
-                                                <th>รหัส</th>
-                                                <th>ยุทธศาสตร์</th>
-                                                <th>รหัส</th>
-                                                <th>กลยุทธ์</th>
-                                                <th>รหัส</th>
-                                                <th>ผลลัพธ์สำคัญ</th>
-                                                <th>ค่าเป้าหมาย</th>
-                                                <th>หน่วยนับ</th>
-                                                <th>รหัส</th>
-                                                <th>แผนงาน/โครงการ</th>
-                                                <th>กรอบวงเงินงบประมาณ</th>
+                                            <tr class="text-nowrap ">
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">ยุทธศาสตร์</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">กลยุทธ์</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">ผลลัพธ์สำคัญ</th>
+                                                <th class="align-middle" rowspan="2">ค่าเป้าหมาย</th>
+                                                <th class="align-middle" rowspan="2">หน่วยนับ</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">แผนงาน/โครงการ</th>
+                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ</th>
                                                 <th colspan="2">ระยะเวลาที่ดำเนินการ</th>
-                                                <th>ระดับและการปรับใช้</th>
-                                                <th>ผู้รับผิดชอบ</th>
+                                                <th class="align-middle" rowspan="2">ระดับและการปรับใช้</th>
+                                                <th class="align-middle" rowspan="2">ผู้รับผิดชอบ</th>
                                             </tr>
                                             <tr class="text-nowrap">
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
                                                 <th>วันเริ่มต้น</th>
                                                 <th>วันสิ้นสุด</th>
-                                                <th></th>
-                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -124,6 +111,7 @@
 
                         // ถ้าค่าปัจจุบันไม่เท่ากับค่าก่อนหน้า ให้แสดงค่า และรีเซ็ตค่าของคอลัมน์ถัดไป
                         const td1 = document.createElement('td');
+                        td1.style.textAlign = "left";
                         if (row.si_code !== previousSICode) {
                             td1.textContent = row.si_code;
                             previousSIName = '';
@@ -137,6 +125,7 @@
                         tr.appendChild(td1);
 
                         const td2 = document.createElement('td');
+                        td2.style.textAlign = "left";
                         if (row.si_name !== previousSIName) {
                             td2.textContent = row.si_name;
                             previousSOCode = '';
@@ -149,6 +138,7 @@
                         tr.appendChild(td2);
 
                         const td3 = document.createElement('td');
+                        td3.style.textAlign = "left";
                         if (row.Strategic_Object !== previousSOCode) {
                             td3.textContent = row.Strategic_Object;
                             previousSOName = '';
@@ -160,6 +150,7 @@
                         tr.appendChild(td3);
 
                         const td4 = document.createElement('td');
+                        td4.style.textAlign = "left";
                         if (row.so_name !== previousSOName) {
                             td4.textContent = row.so_name;
                             previousOKRCode = '';
@@ -170,6 +161,7 @@
                         tr.appendChild(td4);
 
                         const td5 = document.createElement('td');
+                        td5.style.textAlign = "left";
                         if (row.OKR !== previousOKRCode) {
                             td5.textContent = row.OKR;
                             previousOKRName = '';
@@ -179,6 +171,7 @@
                         tr.appendChild(td5);
 
                         const td6 = document.createElement('td');
+                        td6.style.textAlign = "left";
                         if (row.okr_name !== previousOKRName) {
                             td6.textContent = row.okr_name;
                             previousTarget = '';
@@ -187,13 +180,16 @@
                         tr.appendChild(td6);
 
                         const td7 = document.createElement('td');
+                        td7.style.textAlign = "right";
                         if (row.Target_OKR_Objective_and_Key_Result !== previousTarget) {
                             td7.textContent = row.Target_OKR_Objective_and_Key_Result;
-                            previousUOM = ''; // รีเซ็ต UOM เมื่อเป้าหมายเปลี่ยนไป
+                            previousUOM = '';
                         }
                         tr.appendChild(td7);
 
+
                         const td8 = document.createElement('td');
+                        td8.style.textAlign = "left";
                         if (row.UOM !== previousUOM) {
                             td8.textContent = row.UOM;
                         }
@@ -201,30 +197,40 @@
 
                         // คอลัมน์ที่ไม่ต้องเช็คค่าก่อนหน้า
                         const td9 = document.createElement('td');
+                        td9.style.textAlign = "left";
                         td9.textContent = row.Strategic_Project;
                         tr.appendChild(td9);
 
                         const td10 = document.createElement('td');
+                        td10.style.textAlign = "left";
                         td10.textContent = row.ksp_name;
                         tr.appendChild(td10);
 
                         const td11 = document.createElement('td');
-                        td11.textContent = Number(row.Budget_Amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        td11.style.textAlign = "right";
+                        td11.textContent = Number(row.Budget_Amount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        });
                         tr.appendChild(td11);
 
                         const td12 = document.createElement('td');
+                        td12.style.textAlign = "left";
                         td12.textContent = row.Start_Date;
                         tr.appendChild(td12);
 
                         const td13 = document.createElement('td');
+                        td13.style.textAlign = "left";
                         td13.textContent = row.End_Date;
                         tr.appendChild(td13);
 
                         const td14 = document.createElement('td');
+                        td14.style.textAlign = "left";
                         td14.textContent = row.Tiers_Deploy;
                         tr.appendChild(td14);
 
                         const td15 = document.createElement('td');
+                        td15.style.textAlign = "left";
                         td15.textContent = row.Responsible_person;
                         tr.appendChild(td15);
 
@@ -248,68 +254,265 @@
             });
         }
 
-
-        function exportCSV() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
-            }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
         function exportPDF() {
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 10
+                    }, // รหัส
+                    1: {
+                        cellWidth: 30
+                    }, // ยุทธศาสตร์
+                    2: {
+                        cellWidth: 10
+                    }, // รหัส
+                    3: {
+                        cellWidth: 30
+                    }, // กลยุทธ์
+                    4: {
+                        cellWidth: 10
+                    }, // รหัส
+                    5: {
+                        cellWidth: 40
+                    }, //  ผลลัพธ์สำคัญ
+                    6: {
+                        cellWidth: 10
+                    }, // ค่าเป้าหมาย
+                    7: {
+                        cellWidth: 10
+                    }, //  หน่วยนับ
+                    8: {
+                        cellWidth: 10
+                    }, // รหัส
+                    9: {
+                        cellWidth: 35
+                    }, // แผนงาน/โครงการ
+                    10: {
+                        cellWidth: 20
+                    }, // กรอบวงเงินงบประมาณ
+                    11: {
+                        cellWidth: 15
+                    }, // วันเริ่มต้น
+                    12: {
+                        cellWidth: 15
+                    }, //  วันสิ้นสุด
+                    13: {
+                        cellWidth: 20
+                    }, //  ระดับและการปรับใช้
+                    14: {
+                        cellWidth: 20
+                    }, // ผู้รับผิดชอบ
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(16);
+                    doc.text('รายงานอัตรากำลังประเภทต่างๆ ของหน่วยงาน', 14, 15);
+
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20,
+                        doc.internal.pageSize.height - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index === 6 || data.column.index === 10) {
+                            data.cell.styles.halign = 'right';
+                        } else {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle table width
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 15,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานอัตรากำลัง.pdf');
         }
+
+
+        // function exportCSV() {
+        //     const rows = [];
+        //     const table = document.getElementById('reportTable');
+        //     for (let row of table.rows) {
+        //         const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
+        //         rows.push(cells.join(","));
+        //     }
+        //     const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
+        //     const blob = new Blob([csvContent], {
+        //         type: 'text/csv;charset=utf-8;'
+        //     });
+        //     const url = URL.createObjectURL(blob);
+        //     const link = document.createElement('a');
+        //     link.setAttribute('href', url);
+        //     link.setAttribute('download', 'รายงาน.csv');
+        //     link.style.visibility = 'hidden';
+        //     document.body.appendChild(link);
+        //     link.click();
+        //     document.body.removeChild(link);
+        // }
+
+        // function exportPDF() {
+        //     const { jsPDF } = window.jspdf;
+        //     const doc = new jsPDF('l', 'mm', 'a4'); // Legal landscape size
+
+        //     // Add Thai font
+        //     doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+        //     doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+        //     doc.setFont("THSarabun");
+
+        //     // Configure autoTable
+        //     doc.autoTable({
+        //         html: '#reportTable',
+        //         startY: 25,
+        //         theme: 'grid',
+        //         styles: {
+        //             font: "THSarabun",
+        //             fontSize: 8,
+        //             cellPadding: 1,
+        //             lineWidth: 0.1,
+        //             lineColor: [0, 0, 0],
+        //             minCellHeight: 6
+        //         },
+        //         headStyles: {
+        //             fillColor: [220, 230, 241],
+        //             textColor: [0, 0, 0],
+        //             fontSize: 8,
+        //             fontStyle: 'bold',
+        //             halign: 'center',
+        //             valign: 'middle',
+        //             minCellHeight: 12
+        //         },
+        //         columnStyles: {
+        //             0: { cellWidth: 10 },  // รหัส
+        //             1: { cellWidth: 30 }, // ยุทธศาสตร์
+        //             2: { cellWidth: 10 },  // รหัส
+        //             3: { cellWidth: 30 },  // กลยุทธ์
+        //             4: { cellWidth: 10 },  // รหัส
+        //             5: { cellWidth: 40 },  //  ผลลัพธ์สำคัญ
+        //             6: { cellWidth: 10 },  // ค่าเป้าหมาย
+        //             7: { cellWidth: 10},  //  หน่วยนับ
+        //             8: { cellWidth: 10 },  // รหัส
+        //             9: { cellWidth: 35 }, // แผนงาน/โครงการ
+        //             10: { cellWidth: 20 },  // กรอบวงเงินงบประมาณ
+        //             11: { cellWidth: 15 },  // วันเริ่มต้น
+        //             12: { cellWidth: 15 },  //  วันสิ้นสุด
+        //             13: { cellWidth: 20 },  //  ระดับและการปรับใช้
+        //             14: { cellWidth: 20 },  // ผู้รับผิดชอบ
+
+
+        //         },
+        //         didDrawPage: function(data) {
+        //             // Add header
+        //             doc.setFontSize(16);
+        //             doc.text('รายงานแผนงานระดับต่างๆของหน่วยงาน(มหาวิทยาลัย)', 14, 15);
+
+        //             // Add footer with page number
+        //             doc.setFontSize(10);
+        //             /* doc.text(
+        //                 'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+        //                 doc.internal.pageSize.width - 20, 
+        //                 doc.internal.pageSize.height - 10,
+        //                 { align: 'right' }
+        //             ); */
+        //         },
+        //         // Handle cell styles
+        //         didParseCell: function(data) {
+        //             // Center align all header cells
+        //             if (data.section === 'head') {
+        //                 data.cell.styles.halign = 'center';
+        //                 data.cell.styles.valign = 'middle';
+        //                 data.cell.styles.cellPadding = 1;
+        //             }
+
+        //             // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+        //             if (data.section === 'body') {
+        //                 if (data.column.index !== 1) {
+        //                     data.cell.styles.halign = 'center';
+        //                 }
+        //                 // Left align the ส่วนงาน/หน่วยงาน column
+        //                 if (data.column.index === 1) {
+        //                     data.cell.styles.halign = 'left';
+        //                 }
+        //             }
+
+        //             // Style footer row
+        //             if (data.section === 'foot') {
+        //                 data.cell.styles.fontStyle = 'bold';
+        //                 data.cell.styles.fillColor = [240, 240, 240];
+        //                 if (data.column.index !== 1) {
+        //                     data.cell.styles.halign = 'center';
+        //                 }
+        //             }
+        //         },
+        //         // Handle table width
+        //         margin: { top: 25, right: 7, bottom: 15, left: 7 },
+        //         tableWidth: 'auto'
+        //     });
+
+        //     // Save the PDF
+        //     doc.save('รายงานแผนงานระดับต่างๆของหน่วยงาน(มหาวิทยาลัย).pdf');
+        // }
 
         function exportXLS() {
             const rows = [];

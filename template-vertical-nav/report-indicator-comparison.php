@@ -37,37 +37,24 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr class="text-nowrap">
-                                                <th>รหัส</th>
-                                                <th>ยุทธศาสตร์</th>
-                                                <th>รหัส</th>
-                                                <th>กลยุทธ์</th>
-                                                <th>รหัส</th>
-                                                <th>ผลลัพธ์สำคัญ</th>
-                                                <th>ค่าเป้าหมาย</th>
-                                                <th>หน่วยนับ</th>
-                                                <th>รหัส</th>
-                                                <th>แผนงาน/โครงการ</th>
-                                                <th>กรอบวงเงินงบประมาณ</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">ยุทธศาสตร์</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">กลยุทธ์</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">ผลลัพธ์สำคัญ</th>
+                                                <th class="align-middle" rowspan="2">ค่าเป้าหมาย</th>
+                                                <th class="align-middle" rowspan="2">หน่วยนับ</th>
+                                                <th class="align-middle" rowspan="2">รหัส</th>
+                                                <th class="align-middle" rowspan="2">แผนงาน/โครงการ</th>
+                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ</th>
                                                 <th colspan="2">ระยะเวลาที่ดำเนินการ</th>
-                                                <th>ระดับและการปรับใช้</th>
-                                                <th>ผู้รับผิดชอบ</th>
+                                                <th class="align-middle" rowspan="2">ระดับและการปรับใช้</th>
+                                                <th class="align-middle" rowspan="2">ผู้รับผิดชอบ</th>
                                             </tr>
                                             <tr>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
                                                 <th>วันเริ่มต้น</th>
                                                 <th>วันสิ้นสุด</th>
-                                                <th></th>
-                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>

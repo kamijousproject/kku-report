@@ -37,20 +37,16 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr class="text-nowrap">
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>เสาหลัก</th>
-                                                <th>ยุทธศาสตร์</th>
+                                                <th class="align-middle" rowspan="2">ส่วนงาน/หน่วยงาน</th>
+                                                <th class="align-middle" rowspan="2">เสาหลัก</th>
+                                                <th class="align-middle" rowspan="2">ยุทธศาสตร์</th>
                                                 <th colspan="3">จำนวน</th>
-                                                <th>ร้อยละ ความสำเร็จ</th>
+                                                <th class="align-middle" rowspan="2">ร้อยละ ความสำเร็จ</th>
                                             </tr>
                                             <tr class="text-nowrap">
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
                                                 <th>กลยุทธ์</th>
                                                 <th>ผลลัพธ์ตามวัตถุประสงค์</th>
                                                 <th>แผนงาน/โครงการ</th>
-                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>

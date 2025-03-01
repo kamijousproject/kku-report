@@ -37,20 +37,16 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr class="text-nowrap">
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>เสาหลัก</th>
-                                                <th>ยุทธศาสตร์</th>
+                                                <th class="align-middle" rowspan="2">ส่วนงาน/หน่วยงาน</th>
+                                                <th class="align-middle" rowspan="2">เสาหลัก</th>
+                                                <th class="align-middle" rowspan="2">ยุทธศาสตร์</th>
                                                 <th colspan="3">จำนวน</th>
-                                                <th>ร้อยละ ความสำเร็จ</th>
+                                                <th class="align-middle" rowspan="2">ร้อยละ ความสำเร็จ</th>
                                             </tr>
                                             <tr class="text-nowrap">
-                                                <th></th>
-                                                <th></th>
-                                                <th></th>
                                                 <th>กลยุทธ์</th>
                                                 <th>ผลลัพธ์ตามวัตถุประสงค์</th>
                                                 <th>แผนงาน/โครงการ</th>
-                                                <th></th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -107,9 +103,9 @@
                     let previousOKRCode = '';
                     let previousOKRName = '';
                     let totalOKRProgress;
-                    let alltotalOKRProgress=0;
-                    let totalSO = 0; 
-                    let totalOKR = 0; 
+                    let alltotalOKRProgress = 0;
+                    let totalSO = 0;
+                    let totalOKR = 0;
                     let totalKSP = 0;
                     const siStats = {}; // เก็บข้อมูล SO, OKR และ KSP ที่ไม่ซ้ำภายในแต่ละ SI
 
@@ -130,7 +126,7 @@
 
                         // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
                         if (!siStats[row.si_name].okrProgress[row.okr_name]) {
-                            siStats[row.si_name].okrProgress[row.okr_name] = parseFloat((row.Quarter_Progress_Value/row.Target_OKR_Objective_and_Key_Result)*100) || 0;
+                            siStats[row.si_name].okrProgress[row.okr_name] = parseFloat((row.Quarter_Progress_Value / row.Target_OKR_Objective_and_Key_Result) * 100) || 0;
                         }
                     });
 
@@ -144,8 +140,8 @@
                         totalKSP += siStats[si].kspSet.size;
                         console.log(`SI: ${si}, Unique SO Count: ${siStats[si].soSet.size}, Unique OKR Count: ${siStats[si].okrSet.size}, Unique KSP Count: ${siStats[si].kspSet.size}, Total OKR Progress: ${totalOKRProgress}`);
                     });
-                    console.log('alltotalOKRProgress',alltotalOKRProgress);
-                    
+                    console.log('alltotalOKRProgress', alltotalOKRProgress);
+
                     response.plan.forEach(row => {
                         if (previousSIName !== row.si_name) {
                             const tr = document.createElement('tr');
@@ -215,7 +211,7 @@
                     footerRow.appendChild(footerTd4);
 
                     const footerTd5 = document.createElement('td');
-                    footerTd5.textContent = (alltotalOKRProgress/totalOKR).toFixed(2)+' %';
+                    footerTd5.textContent = (alltotalOKRProgress / totalOKR).toFixed(2) + ' %';
                     footerRow.appendChild(footerTd5);
 
                     // เพิ่มแถวผลรวมไปยัง <tfoot>
