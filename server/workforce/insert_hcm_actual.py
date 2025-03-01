@@ -53,7 +53,8 @@ try:
     # สร้างตาราง workforce_Hhcm_actual หากยังไม่มีอยู่
     create_table_query = """
     CREATE TABLE IF NOT EXISTS workforce_hcm_actual (
-        SERIAL VARCHAR(50) PRIMARY KEY,
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        SERIAL VARCHAR(50),
         PERSONNEL_TYPE VARCHAR(100),
         POSITION_NUMBER VARCHAR(50),
         POSITION VARCHAR(150),
@@ -134,10 +135,14 @@ try:
     connection.commit()
 
     # Insert ข้อมูลเข้าไปในตาราง
+    columns = list(df.columns)  # ดึงชื่อคอลัมน์จาก DataFrame
+    insert_query = """
+    INSERT INTO workforce_hcm_actual ({})
+    VALUES ({})
+    """.format(", ".join(columns), ", ".join(["%s"] * len(columns)))
+
+    # Execute insert statement
     for _, row in df.iterrows():
-        insert_query = """
-        INSERT INTO workforce_hcm_actual VALUES ({})
-        """.format(", ".join(["%s"] * len(row)))
         cursor.execute(insert_query, tuple(row.where(pd.notna(row), None)))
 
     connection.commit()
