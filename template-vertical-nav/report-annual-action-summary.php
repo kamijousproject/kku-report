@@ -109,6 +109,37 @@
                     let previousOKRCode = '';
                     let previousOKRName = '';
 
+                    let totalOKR;
+                    let alltotalOKR;
+                    let totalKSP = 0;
+                    const siStats = {}; // เก็บข้อมูล SO, OKR และ KSP ที่ไม่ซ้ำภายในแต่ละ SI
+
+
+                    response.plan.forEach(row => {
+                        if (!siStats[row.okr_name]) {
+                            siStats[row.okr_name] = {
+                                kspSet: new Set(), // เก็บ KSP ที่ไม่ซ้ำ
+                                kspProgress: {}
+                            };
+                        }
+                        siStats[row.okr_name].kspSet.add(row.ksp_name);
+
+                       // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
+                       if (!siStats[row.okr_name].kspProgress[row.ksp_name]) {
+                            siStats[row.okr_name].kspProgress[row.ksp_name] = parseFloat((row.Quarter_Progress_Value/row.Target_OKR_Objective_and_Key_Result)*100) || 0;
+                        }
+                       
+                    });
+
+                     // แสดงจำนวน SO, OKR, KSP ที่ไม่ซ้ำ และผลรวมของ Quarter_Progress_Value ของ OKR ที่ไม่ซ้ำ
+                     Object.keys(siStats).forEach(si => {
+                        totalOKR = Object.values(siStats[si].kspProgress).reduce((sum, value) => sum + value, 0);
+                        alltotalOKR += Object.values(siStats[si].kspProgress).reduce((sum, value) => sum + value, 0);
+                        siStats[si].totalOKR = (totalOKR / siStats[si].kspSet.size);
+                        totalKSP += siStats[si].kspSet.size;
+                        console.log(`SI: ${si},  Unique KSP Count: ${siStats[si].kspSet.size}`);
+                    });
+
                     response.plan.forEach(row => {
 
                         if (previousOKRName !== row.okr_name) {
@@ -173,11 +204,11 @@
                             tr.appendChild(td14);
 
                             const td15 = document.createElement('td');
-                            td15.textContent = null;
+                            td15.textContent = siStats[row.okr_name].kspSet.size;
                             tr.appendChild(td15);
 
                             const td16 = document.createElement('td');
-                            td16.textContent = null;
+                            td16.textContent = totalKSP;
                             tr.appendChild(td16);
 
                             const td17 = document.createElement('td');
@@ -185,10 +216,7 @@
                             tr.appendChild(td17);
 
                             const td18 = document.createElement('td');
-                            td18.textContent = Number(row.Budget_Amount).toLocaleString('en-US', {
-                                minimumFractionDigits: 2,
-                                maximumFractionDigits: 2
-                            });
+                            td18.textContent = siStats[row.okr_name].totalOKR;
                             tr.appendChild(td18);
 
                             const td19 = document.createElement('td');

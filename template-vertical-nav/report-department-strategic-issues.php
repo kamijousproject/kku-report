@@ -129,7 +129,7 @@
 
                         // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
                         if (!siStats[row.si_name].okrProgress[row.okr_name]) {
-                            siStats[row.si_name].okrProgress[row.okr_name] = parseFloat(row.Quarter_Progress_Value) || 0;
+                            siStats[row.si_name].okrProgress[row.okr_name] = parseFloat((row.Quarter_Progress_Value/row.Target_OKR_Objective_and_Key_Result)*100) || 0;
                         }
                     });
 
