@@ -1,6 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    .table-responsive {
+        max-height: 30rem;
+        /* กำหนดความสูงให้ตารางมี Scroll */
+        overflow-y: auto;
+    }
+
+    .table thead th {
+        position: sticky;
+        background-color: #F2F2F2;
+        top: 0;
+        z-index: 10;
+    }
+
+    #reportTable th {
+        background-color: #F2F2F2;
+    }
+
+    .table thead tr th {
+        z-index: 11;
+    }
+
+    .table thead tr:first-child th {
+        /* ให้แถวแรก (th ที่ colspan) ตรึงที่ด้านบน */
+        position: sticky;
+        top: 0;
+        background: #F2F2F2;
+        z-index: 10;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    .table thead tr:nth-child(2) th {
+        /* ให้แถวที่สอง (th ที่มี day column) ตรึงอยู่ที่ด้านบน */
+        position: sticky;
+        top: 45.4px;
+        background: #F2F2F2;
+        z-index: 9;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    /* ให้แถวที่สองไม่ถูกบดบังด้วยแถวแรก */
+    .table thead tr:nth-child(2) th {
+        z-index: 9;
+    }
+</style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -33,6 +80,10 @@
                                 <div class="card-title">
                                     <h4>รายงานสถานะของแผนงานแต่ละแผน</h4>
                                 </div>
+                                <label for="selectcategory">เลือกส่วนงาน:</label>
+                                <select name="selectcategory" id="selectcategory" onchange="selectFilter()">
+                                    <option value="">-- ทั้งหมด --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -73,6 +124,9 @@
         </div>
     </div>
     <script>
+        let report_plan_status = [];
+        let filterdata = []
+        let categories = new Set();
         $(document).ready(function() {
             laodData();
         });
@@ -86,150 +140,184 @@
                 },
                 dataType: "json",
                 success: function(response) {
+                    report_plan_status = response.plan;
                     // console.log(response.plan);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    response.plan.forEach(data => {
+                        categories.add(data.fa_name);
 
-                    let previousFacultyName = '';
-                    let previousSIName = '';
-                    let previousSICode = '';
-                    let previousKSPName = '';
+                    })
+                    const categorySelect = document.getElementById("selectcategory");
 
-                    response.plan.forEach(row => {
-                        const tr = document.createElement('tr');
+                    // เพิ่มตัวเลือกทั้งหมด
+                    categorySelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
 
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td1 = document.createElement('td');
-                        td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
-                        tr.appendChild(td1);
-
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.si_code === previousSICode ? '' : row.si_code;
-                        tr.appendChild(td2);
-
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.si_name === previousSIName ? '' : row.si_name;
-                        tr.appendChild(td3);
-
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.Strategic_Project;
-                        tr.appendChild(td4);
-
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.ksp_name;
-                        tr.appendChild(td5);
-
-                        if (row.Progress_Status === "Not Started") {
-                            const td6 = document.createElement('td');
-                            td6.innerHTML = `<span class="badge badge-secondary">X</span><br>`+row.Strategic_Project_Progress_Details;
-                            tr.appendChild(td6);
-
-                            const td7 = document.createElement('td');
-                            td7.innerHTML = ``;
-                            tr.appendChild(td7);
-
-                            const td8 = document.createElement('td');
-                            td8.innerHTML = ``;
-                            tr.appendChild(td8);
-
-                            const td9 = document.createElement('td');
-                            td9.innerHTML = ``;
-                            tr.appendChild(td9);
-                        }
-
-                        if (row.Progress_Status === "In Progress") {
-                            const td6 = document.createElement('td');
-                            td6.innerHTML = ``;
-                            tr.appendChild(td6);
-
-                            const td7 = document.createElement('td');
-                            td7.innerHTML = `<span class="badge badge-primary">X</span><br>`+row.Strategic_Project_Progress_Details;
-                            tr.appendChild(td7);
-
-                            const td8 = document.createElement('td');
-                            td8.innerHTML = ``;
-                            tr.appendChild(td8);
-
-                            const td9 = document.createElement('td');
-                            td9.innerHTML = ``;
-                            tr.appendChild(td9);
-                        }
-
-                        if (row.Progress_Status === "Completed") {
-                            const td6 = document.createElement('td');
-                            td6.innerHTML = ``;
-                            tr.appendChild(td6);
-
-                            const td7 = document.createElement('td');
-                            td7.innerHTML = ``;
-                            tr.appendChild(td7);
-
-                            const td8 = document.createElement('td');
-                            td8.innerHTML = `<span class="badge badge-success">X</span><br>`+row.Strategic_Project_Progress_Details;
-                            tr.appendChild(td8);
-
-                            const td9 = document.createElement('td');
-                            td9.innerHTML = ``;
-                            tr.appendChild(td9);
-                        }
-
-                        if (row.Progress_Status === "Cancelled") {
-                            const td6 = document.createElement('td');
-                            td6.innerHTML = ``;
-                            tr.appendChild(td6);
-
-                            const td7 = document.createElement('td');
-                            td7.innerHTML = ``;
-                            tr.appendChild(td7);
-
-                            const td8 = document.createElement('td');
-                            td8.innerHTML = ``;
-                            tr.appendChild(td8);
-
-                            const td9 = document.createElement('td');
-                            td9.innerHTML = `<span class="badge badge-danger">X</span><br>`+row.Strategic_Project_Progress_Details;
-                            tr.appendChild(td9);
-                        }
-
-                        if (!row.Progress_Status) {
-                            const td6 = document.createElement('td');
-                            td6.innerHTML = ``;
-                            tr.appendChild(td6);
-
-                            const td7 = document.createElement('td');
-                            td7.innerHTML = ``;
-                            tr.appendChild(td7);
-
-                            const td8 = document.createElement('td');
-                            td8.innerHTML = ``;
-                            tr.appendChild(td8);
-
-                            const td9 = document.createElement('td');
-                            td9.innerHTML = ``;
-                            tr.appendChild(td9);
-                        }
-
-                        
-
-
-
-
-
-                        tableBody.appendChild(tr);
-
-                        // เก็บค่า fa_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
-                        previousFacultyName = row.fa_name;
-                        previousSICode = row.si_code;
-                        previousSIName = row.si_name;
+                    // เพิ่มตัวเลือกสำหรับแต่ละ fa_name ที่ไม่ซ้ำ
+                    categories.forEach(category => {
+                        const option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
                     });
-
+                    writeBody(response.plan);
 
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
+            });
+        }
+
+        function selectFilter() {
+            console.log('filter');
+            
+            const selectedCategory = document.getElementById('selectcategory').value;
+            if (selectedCategory === "") {
+                filterdata = report_plan_status;
+                writeBody(filterdata);
+            } else {
+                // filter ข้อมูลที่ fa_name ตรงกับค่าที่เลือก
+                filterdata = report_plan_status.filter(item => item.fa_name === selectedCategory);
+                writeBody(filterdata);
+            }
+            document.querySelector('.table-responsive').scrollTop = 0;
+        }
+
+        function writeBody(data) {
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            let previousFacultyName = '';
+            let previousSIName = '';
+            let previousSICode = '';
+            let previousKSPName = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+
+                // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                const td1 = document.createElement('td');
+                td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                tr.appendChild(td1);
+
+                // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                const td2 = document.createElement('td');
+                td2.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                tr.appendChild(td2);
+
+                const td3 = document.createElement('td');
+                td3.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                tr.appendChild(td3);
+
+                const td4 = document.createElement('td');
+                td4.textContent = row.Strategic_Project;
+                tr.appendChild(td4);
+
+                const td5 = document.createElement('td');
+                td5.textContent = row.ksp_name;
+                tr.appendChild(td5);
+
+                if (row.Progress_Status === "Not Started") {
+                    const td6 = document.createElement('td');
+                    td6.innerHTML = row.Strategic_Project_Progress_Details;
+                    tr.appendChild(td6);
+
+                    const td7 = document.createElement('td');
+                    td7.innerHTML = ``;
+                    tr.appendChild(td7);
+
+                    const td8 = document.createElement('td');
+                    td8.innerHTML = ``;
+                    tr.appendChild(td8);
+
+                    const td9 = document.createElement('td');
+                    td9.innerHTML = ``;
+                    tr.appendChild(td9);
+                }
+
+                if (row.Progress_Status === "In Progress") {
+                    const td6 = document.createElement('td');
+                    td6.innerHTML = ``;
+                    tr.appendChild(td6);
+
+                    const td7 = document.createElement('td');
+                    td7.innerHTML = row.Strategic_Project_Progress_Details;
+                    tr.appendChild(td7);
+
+                    const td8 = document.createElement('td');
+                    td8.innerHTML = ``;
+                    tr.appendChild(td8);
+
+                    const td9 = document.createElement('td');
+                    td9.innerHTML = ``;
+                    tr.appendChild(td9);
+                }
+
+                if (row.Progress_Status === "Completed") {
+                    const td6 = document.createElement('td');
+                    td6.innerHTML = ``;
+                    tr.appendChild(td6);
+
+                    const td7 = document.createElement('td');
+                    td7.innerHTML = ``;
+                    tr.appendChild(td7);
+
+                    const td8 = document.createElement('td');
+                    td8.innerHTML = row.Strategic_Project_Progress_Details;
+                    tr.appendChild(td8);
+
+                    const td9 = document.createElement('td');
+                    td9.innerHTML = ``;
+                    tr.appendChild(td9);
+                }
+
+                if (row.Progress_Status === "Cancelled") {
+                    const td6 = document.createElement('td');
+                    td6.innerHTML = ``;
+                    tr.appendChild(td6);
+
+                    const td7 = document.createElement('td');
+                    td7.innerHTML = ``;
+                    tr.appendChild(td7);
+
+                    const td8 = document.createElement('td');
+                    td8.innerHTML = ``;
+                    tr.appendChild(td8);
+
+                    const td9 = document.createElement('td');
+                    td9.innerHTML = row.Strategic_Project_Progress_Details;
+                    tr.appendChild(td9);
+                }
+
+                if (!row.Progress_Status) {
+                    const td6 = document.createElement('td');
+                    td6.innerHTML = ``;
+                    tr.appendChild(td6);
+
+                    const td7 = document.createElement('td');
+                    td7.innerHTML = ``;
+                    tr.appendChild(td7);
+
+                    const td8 = document.createElement('td');
+                    td8.innerHTML = ``;
+                    tr.appendChild(td8);
+
+                    const td9 = document.createElement('td');
+                    td9.innerHTML = ``;
+                    tr.appendChild(td9);
+                }
+
+
+
+
+
+
+
+                tableBody.appendChild(tr);
+
+                // เก็บค่า fa_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                previousFacultyName = row.fa_name;
+                previousSICode = row.si_code;
+                previousSIName = row.si_name;
             });
         }
 

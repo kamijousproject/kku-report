@@ -1,6 +1,54 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    .table-responsive {
+        max-height: 30rem;
+        /* กำหนดความสูงให้ตารางมี Scroll */
+        overflow-y: auto;
+    }
+
+    .table thead th {
+        position: sticky;
+        background-color: #F2F2F2;
+        top: 0;
+        z-index: 10;
+
+    }
+
+    #reportTable th {
+        background-color: #F2F2F2;
+    }
+
+    .table thead tr th {
+        z-index: 11;
+    }
+
+    .table thead tr:first-child th {
+        /* ให้แถวแรก (th ที่ colspan) ตรึงที่ด้านบน */
+        position: sticky;
+        top: 0;
+        background: #F2F2F2;
+        z-index: 10;
+
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    .table thead tr:nth-child(2) th {
+        /* ให้แถวที่สอง (th ที่มี day column) ตรึงอยู่ที่ด้านบน */
+        position: sticky;
+        top: 45.4px;
+        background: #F2F2F2;
+        z-index: 9;
+
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    /* ให้แถวที่สองไม่ถูกบดบังด้วยแถวแรก */
+    .table thead tr:nth-child(2) th {
+        z-index: 9;
+    }
+</style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -33,6 +81,10 @@
                                 <div class="card-title">
                                     <h4>รายงานการปรับเปลี่ยนแผนงาน</h4>
                                 </div>
+                                <label for="selectcategory">เลือกส่วนงาน:</label>
+                                <select name="selectcategory" id="selectcategory" onchange="selectFilter()">
+                                    <option value="">-- ทั้งหมด --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -69,6 +121,9 @@
         </div>
     </div>
     <script>
+        let report_plan_status = [];
+        let filterdata = []
+        let categories = new Set();
         $(document).ready(function() {
             laodData();
         });
@@ -78,49 +133,31 @@
                 type: "POST",
                 url: "../server/api.php",
                 data: {
-                    'command': 'get_kku_planing_change'
+                    'command': 'get_report_planing_change'
                 },
                 dataType: "json",
                 success: function(response) {
                     console.log(response.plan);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    report_plan_status = response.plan;
+                    
+                    response.plan.forEach(data => {
+                        categories.add(data.fa_name);
 
-                    let previousSiName = '';
-                    let previousSoName = '';
+                    })
+                    const categorySelect = document.getElementById("selectcategory");
 
-                    response.plan.forEach(row => {
-                        const tr = document.createElement('tr');
+                    // เพิ่มตัวเลือกทั้งหมด
+                    categorySelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
 
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td1 = document.createElement('td');
-                        td1.textContent = row.si_name === previousSiName ? '' : row.si_name;
-                        tr.appendChild(td1);
-
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.so_name === previousSoName ? '' : row.so_name;
-                        tr.appendChild(td2);
-
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.ksp_name;
-                        tr.appendChild(td3);
-
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.Budget_Amount;
-                        tr.appendChild(td4);
-
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.Responsible_person;
-                        tr.appendChild(td5);
-
-
-                        tableBody.appendChild(tr);
-
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
-                        previousSiName = row.si_name;
-                        previousSoName = row.so_name;
+                    // เพิ่มตัวเลือกสำหรับแต่ละ fa_name ที่ไม่ซ้ำ
+                    categories.forEach(category => {
+                        const option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
                     });
+                    writeBody(response.plan);
+
 
 
                 },
@@ -128,6 +165,67 @@
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
+            });
+        }
+
+        function selectFilter() {
+            console.log('filter');
+
+            const selectedCategory = document.getElementById('selectcategory').value;
+            if (selectedCategory === "") {
+                filterdata = report_plan_status;
+                writeBody(filterdata);
+            } else {
+                // filter ข้อมูลที่ fa_name ตรงกับค่าที่เลือก
+                filterdata = report_plan_status.filter(item => item.fa_name === selectedCategory);
+                writeBody(filterdata);
+            }
+            document.querySelector('.table-responsive').scrollTop = 0;
+        }
+
+        function writeBody(data) {
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+            let previousSiName = '';
+            let previousSoName = '';
+            let previousKspName = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+
+                // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                const td1 = document.createElement('td');
+                td1.textContent = row.si_name === previousSiName ? '' : row.si_name;
+                tr.appendChild(td1);
+
+                // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                const td2 = document.createElement('td');
+                td2.textContent = row.so_name === previousSoName ? '' : row.so_name;
+                tr.appendChild(td2);
+
+                const td3 = document.createElement('td');
+                td3.textContent = row.ksp_name === previousKspName ? '' : row.ksp_name;
+                tr.appendChild(td3);
+
+                const td4 = document.createElement('td');
+                td4.textContent = Number(row.Budget_Amount).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                tr.appendChild(td4);
+
+                const td5 = document.createElement('td');
+                td5.textContent = row.Responsible_person;
+                tr.appendChild(td5);
+
+
+                tableBody.appendChild(tr);
+
+                // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                previousSiName = row.si_name;
+                previousSoName = row.so_name;
+                previousKspName = row.ksp_name;
             });
         }
 

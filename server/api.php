@@ -58,46 +58,83 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
-        case "get_kku_planing_change":
+        case "get_report_planing_change":
             try {
                 $db = new Database();
                 $conn = $db->connect();
 
                 // KKU Action Plan/ Faculty Action Plan
-                $sqlPlan = "SELECT
-                            REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,  
+                $sqlPlan = "SELECT REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,  
                             pkap.Strategic_Object,
                             pkap.Strategic_Project,
                             pkap.Faculty,
                             pkap.Budget_Amount,
                             pkap.Responsible_person,
-                            si.pilar_name AS si_name, 
-                            so.pilar_name AS so_name, 
-                            ksp.ksp_name
+                            si.pillar_name AS si_name, 
+                            so.pillar_name AS so_name, 
+                            ksp.ksp_name,
+                            Faculty.Alias_Default As fa_name
                             FROM planning_kku_action_plan AS pkap
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON so.pilar_id = pkap.Strategic_Object
+                            LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilars2 AS so ON so.pillar_id = pkap.Strategic_Object
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pkap.Strategic_Project)
+                            LEFT JOIN Faculty ON Faculty.Faculty = pkap.Faculty
 
+                            UNION ALL SELECT REPLACE(SUBSTRING_INDEX(pkrap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,  
+                            pkrap.Strategic_Object,
+                            pkrap.Strategic_Project,
+                            pkrap.Faculty,
+                            pkrap.Budget_Amount,
+                            pkrap.Responsible_person,
+                            si.pillar_name AS si_name, 
+                            so.pillar_name AS so_name, 
+                            ksp.ksp_name,
+                            Faculty.Alias_Default As fa_name
+                            FROM planning_kku_revised_action_plan AS pkrap
+                            LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pkrap.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilars2 AS so ON so.pillar_id = pkrap.Strategic_Object
+                            LEFT JOIN ksp ON ksp.ksp_id = TRIM(pkrap.Strategic_Project)
+                            LEFT JOIN Faculty ON Faculty.Faculty = pkrap.Faculty
 
-                            UNION ALL
-
-                            SELECT
-                            REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,  
+                            UNION ALL SELECT REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,  
                             pfap.Strategic_Object,
                             pfap.Strategic_Project,
                             pfap.Faculty,
                             pfap.Budget_Amount,
                             pfap.Responsible_person,
-                            si.pilar_name AS si_name, 
-                            so.pilar_name AS so_name, 
-                            ksp.ksp_name
+                            si.pillar_name AS si_name, 
+                            so.pillar_name AS so_name, 
+                            ksp.ksp_name,
+                            f.Alias_Default As fa_name
                             FROM planning_faculty_action_plan AS pfap
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON so.pilar_id = pfap.Strategic_Object
+                            LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilars2 AS so ON so.pillar_id = pfap.Strategic_Object
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfap.Strategic_Project)
+                            LEFT JOIN (
+                                                        SELECT DISTINCT Faculty, Alias_Default
+                                                        FROM Faculty
+                                                    ) AS f ON pfap.Faculty = f.Faculty
 
-                            ORDER BY Faculty desc,si_code, Strategic_Object, Strategic_Project";
+                            UNION ALL SELECT REPLACE(SUBSTRING_INDEX(pfrap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,  
+                            pfrap.Strategic_Object,
+                            pfrap.Strategic_Project,
+                            pfrap.Faculty,
+                            pfrap.Budget_Amount,
+                            pfrap.Responsible_person,
+                            si.pillar_name AS si_name, 
+                            so.pillar_name AS so_name, 
+                            ksp.ksp_name,
+                            f.Alias_Default As fa_name
+                            FROM planning_faculty_revised_action_plan AS pfrap
+                            LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pfrap.Strategic_Object, '-', 1), 'SO', 'SI')
+                            LEFT JOIN pilars2 AS so ON so.pillar_id = pfrap.Strategic_Object
+                            LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfrap.Strategic_Project)
+                            LEFT JOIN (
+                                                        SELECT DISTINCT Faculty, Alias_Default
+                                                        FROM Faculty
+                                                    ) AS f ON pfrap.Faculty = f.Faculty
+
+                            ORDER BY Faculty desc,si_code, Strategic_Object, Strategic_Project,Budget_Amount";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
@@ -175,18 +212,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             break;
 
-        case "get_kku_planing_indicator_compare":
+        case "get_indicator_comparison":
             try {
                 $db = new Database();
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sqlPlan = "SELECT pfap.*,REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pillar_name AS si_name, so.pillar_name AS so_name,ksp.ksp_name , okr.okr_name
+                $sqlPlan = "SELECT pfap.*,REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,si.pillar_name AS si_name, so.pillar_name AS so_name,ksp.ksp_name , okr.okr_name,
+                            f.Alias_Default AS fa_name
                             FROM planning_faculty_action_plan AS pfap
                             LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfap.Strategic_Project)
                             LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI')
                             LEFT JOIN pilars2 AS so ON so.pillar_id = pfap.Strategic_Object
                             LEFT JOIN okr ON okr.okr_id = pfap.OKR
+                             LEFT JOIN (
+                            SELECT DISTINCT Faculty, Alias_Default
+                            FROM Faculty
+                            ) AS f ON pfap.Faculty = f.Faculty
                             ORDER BY 
                             si_code,
                             pfap.Strategic_Object,

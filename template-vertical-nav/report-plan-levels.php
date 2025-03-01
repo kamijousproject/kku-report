@@ -1,6 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    .table-responsive {
+        max-height: 30rem;
+        /* กำหนดความสูงให้ตารางมี Scroll */
+        overflow-y: auto;
+    }
+
+    .table thead th {
+        position: sticky;
+        background-color: #F2F2F2;
+        top: 0;
+        z-index: 10;
+    }
+
+    #reportTable th {
+        background-color: #F2F2F2;
+    }
+
+    .table thead tr th {
+        z-index: 11;
+    }
+
+    .table thead tr:first-child th {
+        /* ให้แถวแรก (th ที่ colspan) ตรึงที่ด้านบน */
+        position: sticky;
+        top: 0;
+        background: #F2F2F2;
+        z-index: 10;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    .table thead tr:nth-child(2) th {
+        /* ให้แถวที่สอง (th ที่มี day column) ตรึงอยู่ที่ด้านบน */
+        position: sticky;
+        top: 45.4px;
+        background: #F2F2F2;
+        z-index: 9;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    /* ให้แถวที่สองไม่ถูกบดบังด้วยแถวแรก */
+    .table thead tr:nth-child(2) th {
+        z-index: 9;
+    }
+</style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -389,130 +436,6 @@
             // Save the PDF
             doc.save('รายงานแผนงานระดับต่างๆของหน่วยงาน(มหาวิทยาลัย).pdf');
         }
-
-
-        // function exportCSV() {
-        //     const rows = [];
-        //     const table = document.getElementById('reportTable');
-        //     for (let row of table.rows) {
-        //         const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-        //         rows.push(cells.join(","));
-        //     }
-        //     const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-        //     const blob = new Blob([csvContent], {
-        //         type: 'text/csv;charset=utf-8;'
-        //     });
-        //     const url = URL.createObjectURL(blob);
-        //     const link = document.createElement('a');
-        //     link.setAttribute('href', url);
-        //     link.setAttribute('download', 'รายงาน.csv');
-        //     link.style.visibility = 'hidden';
-        //     document.body.appendChild(link);
-        //     link.click();
-        //     document.body.removeChild(link);
-        // }
-
-        // function exportPDF() {
-        //     const { jsPDF } = window.jspdf;
-        //     const doc = new jsPDF('l', 'mm', 'a4'); // Legal landscape size
-
-        //     // Add Thai font
-        //     doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
-        //     doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-        //     doc.setFont("THSarabun");
-
-        //     // Configure autoTable
-        //     doc.autoTable({
-        //         html: '#reportTable',
-        //         startY: 25,
-        //         theme: 'grid',
-        //         styles: {
-        //             font: "THSarabun",
-        //             fontSize: 8,
-        //             cellPadding: 1,
-        //             lineWidth: 0.1,
-        //             lineColor: [0, 0, 0],
-        //             minCellHeight: 6
-        //         },
-        //         headStyles: {
-        //             fillColor: [220, 230, 241],
-        //             textColor: [0, 0, 0],
-        //             fontSize: 8,
-        //             fontStyle: 'bold',
-        //             halign: 'center',
-        //             valign: 'middle',
-        //             minCellHeight: 12
-        //         },
-        //         columnStyles: {
-        //             0: { cellWidth: 10 },  // รหัส
-        //             1: { cellWidth: 30 }, // ยุทธศาสตร์
-        //             2: { cellWidth: 10 },  // รหัส
-        //             3: { cellWidth: 30 },  // กลยุทธ์
-        //             4: { cellWidth: 10 },  // รหัส
-        //             5: { cellWidth: 40 },  //  ผลลัพธ์สำคัญ
-        //             6: { cellWidth: 10 },  // ค่าเป้าหมาย
-        //             7: { cellWidth: 10},  //  หน่วยนับ
-        //             8: { cellWidth: 10 },  // รหัส
-        //             9: { cellWidth: 35 }, // แผนงาน/โครงการ
-        //             10: { cellWidth: 20 },  // กรอบวงเงินงบประมาณ
-        //             11: { cellWidth: 15 },  // วันเริ่มต้น
-        //             12: { cellWidth: 15 },  //  วันสิ้นสุด
-        //             13: { cellWidth: 20 },  //  ระดับและการปรับใช้
-        //             14: { cellWidth: 20 },  // ผู้รับผิดชอบ
-
-
-        //         },
-        //         didDrawPage: function(data) {
-        //             // Add header
-        //             doc.setFontSize(16);
-        //             doc.text('รายงานแผนงานระดับต่างๆของหน่วยงาน(มหาวิทยาลัย)', 14, 15);
-
-        //             // Add footer with page number
-        //             doc.setFontSize(10);
-        //             /* doc.text(
-        //                 'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
-        //                 doc.internal.pageSize.width - 20, 
-        //                 doc.internal.pageSize.height - 10,
-        //                 { align: 'right' }
-        //             ); */
-        //         },
-        //         // Handle cell styles
-        //         didParseCell: function(data) {
-        //             // Center align all header cells
-        //             if (data.section === 'head') {
-        //                 data.cell.styles.halign = 'center';
-        //                 data.cell.styles.valign = 'middle';
-        //                 data.cell.styles.cellPadding = 1;
-        //             }
-
-        //             // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
-        //             if (data.section === 'body') {
-        //                 if (data.column.index !== 1) {
-        //                     data.cell.styles.halign = 'center';
-        //                 }
-        //                 // Left align the ส่วนงาน/หน่วยงาน column
-        //                 if (data.column.index === 1) {
-        //                     data.cell.styles.halign = 'left';
-        //                 }
-        //             }
-
-        //             // Style footer row
-        //             if (data.section === 'foot') {
-        //                 data.cell.styles.fontStyle = 'bold';
-        //                 data.cell.styles.fillColor = [240, 240, 240];
-        //                 if (data.column.index !== 1) {
-        //                     data.cell.styles.halign = 'center';
-        //                 }
-        //             }
-        //         },
-        //         // Handle table width
-        //         margin: { top: 25, right: 7, bottom: 15, left: 7 },
-        //         tableWidth: 'auto'
-        //     });
-
-        //     // Save the PDF
-        //     doc.save('รายงานแผนงานระดับต่างๆของหน่วยงาน(มหาวิทยาลัย).pdf');
-        // }
 
         function exportXLS() {
             const rows = [];
