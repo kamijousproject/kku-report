@@ -349,72 +349,72 @@ thead tr:nth-child(3) th {
 
         
         function exportCSV() {
-    const table = document.getElementById('reportTable');
-    const numRows = table.rows.length;
+            const table = document.getElementById('reportTable');
+            const numRows = table.rows.length;
 
-    // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
-    let maxCols = 0;
-    for (let row of table.rows) {
-        let colCount = 0;
-        for (let cell of row.cells) {
-            colCount += cell.colSpan || 1;
-        }
-        maxCols = Math.max(maxCols, colCount);
-    }
-
-    // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-    let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
-
-    // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-    let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
-
-    for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
-        const row = table.rows[rowIndex];
-        let colIndex = 0;
-
-        for (const cell of row.cells) {
-            // ขยับไปช่องว่างที่ยังไม่มีข้อมูล (เผื่อช่องก่อนหน้าถูก merge)
-            while (cellMap[rowIndex][colIndex]) {
-                colIndex++;
+            // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
+            let maxCols = 0;
+            for (let row of table.rows) {
+                let colCount = 0;
+                for (let cell of row.cells) {
+                    colCount += cell.colSpan || 1;
+                }
+                maxCols = Math.max(maxCols, colCount);
             }
 
-            let text = cell.textContent.trim().replace(/"/g, '""'); // Escape double quotes
+            // สร้างตาราง 2D เก็บค่าจากตาราง HTML
+            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
 
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
+            // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
+            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
 
-            // ใส่ข้อมูลลงในช่องเริ่มต้นของ cell ที่ merge
-            csvMatrix[rowIndex][colIndex] = `"${text}"`;
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const row = table.rows[rowIndex];
+                let colIndex = 0;
 
-            // ทำเครื่องหมายว่า cell นี้ครอบคลุมพื้นที่ไหนบ้าง
-            for (let r = 0; r < rowspan; r++) {
-                for (let c = 0; c < colspan; c++) {
-                    cellMap[rowIndex + r][colIndex + c] = true;
-
-                    // ช่องที่ไม่ใช่ช่องเริ่มต้นของเซลล์ merge ให้เป็นว่าง (เพื่อไม่ให้ข้อมูลซ้ำ)
-                    if (r !== 0 || c !== 0) {
-                        csvMatrix[rowIndex + r][colIndex + c] = '""';
+                for (const cell of row.cells) {
+                    // ขยับไปช่องว่างที่ยังไม่มีข้อมูล (เผื่อช่องก่อนหน้าถูก merge)
+                    while (cellMap[rowIndex][colIndex]) {
+                        colIndex++;
                     }
+
+                    let text = cell.textContent.trim().replace(/"/g, '""'); // Escape double quotes
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ใส่ข้อมูลลงในช่องเริ่มต้นของ cell ที่ merge
+                    csvMatrix[rowIndex][colIndex] = `"${text}"`;
+
+                    // ทำเครื่องหมายว่า cell นี้ครอบคลุมพื้นที่ไหนบ้าง
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            cellMap[rowIndex + r][colIndex + c] = true;
+
+                            // ช่องที่ไม่ใช่ช่องเริ่มต้นของเซลล์ merge ให้เป็นว่าง (เพื่อไม่ให้ข้อมูลซ้ำ)
+                            if (r !== 0 || c !== 0) {
+                                csvMatrix[rowIndex + r][colIndex + c] = '""';
+                            }
+                        }
+                    }
+
+                    // ขยับ index ไปยังเซลล์ถัดไป
+                    colIndex += colspan;
                 }
             }
 
-            // ขยับ index ไปยังเซลล์ถัดไป
-            colIndex += colspan;
+            // แปลงข้อมูลเป็น CSV
+            const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
-    }
-
-    // แปลงข้อมูลเป็น CSV
-    const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'report.csv';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
 
 
     function exportPDF() {

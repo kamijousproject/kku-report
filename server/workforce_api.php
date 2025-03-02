@@ -383,7 +383,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,COUNT(*) AS num_position_types
                         ,fund_ft
                         FROM workforce_hcm_actual w
-                        LEFT JOIN Faculty f
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON w.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
                         WHERE all_position_types IS NOT NULL and (fund_ft ='เงินงบประมาณ' OR fund_ft='เงินรายได้') AND w.Faculty !='00000'
                         GROUP BY Faculty
@@ -420,7 +420,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         WHERE f.Alias_Default IS NOT null
                         GROUP BY f.Alias_Default,f2.Alias_Default
                         
-                        ORDER BY f.Alias_Default";
+                        ORDER BY f2.Alias_Default,f.Alias_Default";
                 $cmd = $conn->prepare($sql);
                 //$cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
