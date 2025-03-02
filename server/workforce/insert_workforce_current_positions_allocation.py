@@ -76,7 +76,7 @@ try:
         INSERT INTO workforce_current_positions_allocation (
             Account, Scenario, Version, Faculty, Personnel_Type, All_PositionTypes, Position,
             Position_Number, Salary_rate, Fund_FT, Govt_Fund, Division_Revenue,
-            OOP_Central_Revenue, Continue_Employement, WF_Plan, WF_SubPlan, WF_Project
+            OOP_Central_Revenue, Continue_Employment, WF_Plan, WF_SubPlan, WF_Project
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         '''
         cursor.execute(insert_query, (
