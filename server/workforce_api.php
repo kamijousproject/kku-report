@@ -206,7 +206,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_3_Headcount ELSE 0 END) AS TYPE4_year3,
                                 SUM(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN Year_4_Headcount ELSE 0 END) AS TYPE4_year4
                             FROM workforce_4year_plan w
-                            LEFT JOIN Faculty f
+                            LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                             ON w.Faculty=f.Faculty COLLATE UTF8MB4_GENERAL_CI 
                             GROUP BY Faculty
                         ),
@@ -229,60 +229,130 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ) staff_counts
                             GROUP BY Faculty
                         )
-
-                        SELECT 
-                            ps.Faculty,
-                            ps.TYPE1,
-                            ps.TYPE2,
-                            ps.TYPE3,
-                            ps.TYPE4,
-                            -- Planned headcounts by type and year
-                            SUM(ps.TYPE1_year1) AS TYPE1_year1,
-                            SUM(ps.TYPE1_year2) AS TYPE1_year2,
-                            SUM(ps.TYPE1_year3) AS TYPE1_year3,
-                            SUM(ps.TYPE1_year4) AS TYPE1_year4,
-                            SUM(ps.TYPE2_year1) AS TYPE2_year1,
-                            SUM(ps.TYPE2_year2) AS TYPE2_year2,
-                            SUM(ps.TYPE2_year3) AS TYPE2_year3,
-                            SUM(ps.TYPE2_year4) AS TYPE2_year4,
-                            SUM(ps.TYPE3_year1) AS TYPE3_year1,
-                            SUM(ps.TYPE3_year2) AS TYPE3_year2,
-                            SUM(ps.TYPE3_year3) AS TYPE3_year3,
-                            SUM(ps.TYPE3_year4) AS TYPE3_year4,
-                            SUM(ps.TYPE4_year1) AS TYPE4_year1,
-                            SUM(ps.TYPE4_year2) AS TYPE4_year2,
-                            SUM(ps.TYPE4_year3) AS TYPE4_year3,
-                            SUM(ps.TYPE4_year4) AS TYPE4_year4,
-                            -- Actual counts
-                            ac.Actual_type1,
-                            ac.Actual_type2,
-                            ac.Actual_type3,
-                            ac.Actual_type4,
-                            f.Alias_Default,
-                            f2.Alias_Default AS pname
-                        FROM position_summary ps
-                        LEFT JOIN actual_counts ac ON ps.Faculty = ac.Faculty COLLATE utf8mb4_general_ci
-                        LEFT JOIN (
+                        ,t3 AS (
+                        SELECT  a.*,f.Alias_Default AS Alias_Default2,f2.Alias_Default AS pname2
+								FROM actual_counts a
+								LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
-                        where parent like 'Faculty%') f ON ps.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        where parent like 'Faculty%') f 
+								ON a.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
                         LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default
                         FROM Faculty) f2 
-                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        GROUP BY 
-                            ps.Faculty,
-                            ps.TYPE1,
-                            ps.TYPE2,
-                            ps.TYPE3,
-                            ps.TYPE4,
-                            f.Alias_Default,
-                            ac.Actual_type1,
-                            ac.Actual_type2,
-                            ac.Actual_type3,
-                            ac.Actual_type4,
-                            f2.Alias_Default
-                        ORDER BY ps.Faculty";
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI)
+                        ,t4 AS (
+								SELECT p.*,f.Alias_Default ,f2.Alias_Default AS pname
+								FROM position_summary p
+								LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
+                        FROM Faculty
+                        where parent like 'Faculty%') f 
+								ON p.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN (
+                        SELECT DISTINCT Faculty, Alias_Default
+                        FROM Faculty) f2 
+                        ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI)
+                        ,t5 AS(
+								SELECT t.Faculty,
+                            t.TYPE1,
+                            t.TYPE2,
+                            t.TYPE3,
+                            t.TYPE4,
+                            COALESCE(t.Alias_Default,tt.Alias_Default2) AS Alias_Default,                  
+                            COALESCE(t.pname,tt.pname2) AS pname,
+                            -- Planned headcounts by type and year
+                            SUM(COALESCE(t.TYPE1_year1,0)) AS TYPE1_year1,
+                            SUM(COALESCE(t.TYPE1_year2,0)) AS TYPE1_year2,
+                            SUM(COALESCE(t.TYPE1_year3,0))AS TYPE1_year3,
+                            SUM(COALESCE(t.TYPE1_year4,0)) AS TYPE1_year4,
+                            SUM(COALESCE(t.TYPE2_year1,0)) AS TYPE2_year1,
+                            SUM(COALESCE(t.TYPE2_year2,0)) AS TYPE2_year2,
+                            SUM(COALESCE(t.TYPE2_year3,0)) AS TYPE2_year3,
+                            SUM(COALESCE(t.TYPE2_year4,0)) AS TYPE2_year4,
+                            SUM(COALESCE(t.TYPE3_year1,0)) AS TYPE3_year1,
+                            SUM(COALESCE(t.TYPE3_year2,0)) AS TYPE3_year2,
+                            SUM(COALESCE(t.TYPE3_year3,0)) AS TYPE3_year3,
+                            SUM(COALESCE(t.TYPE3_year4,0)) AS TYPE3_year4,
+                            SUM(COALESCE(t.TYPE4_year1,0)) AS TYPE4_year1,
+                            SUM(COALESCE(t.TYPE4_year2,0)) AS TYPE4_year2,
+                            SUM(COALESCE(t.TYPE4_year3,0)) AS TYPE4_year3,
+                            SUM(COALESCE(t.TYPE4_year4,0)) AS TYPE4_year4,
+                            -- Actual counts
+                            tt.Actual_type1,
+                            tt.Actual_type2,
+                            tt.Actual_type3,
+                            tt.Actual_type4,
+                            tt.Alias_Default2,
+                            tt.pname2
+								FROM t4 t
+								LEFT JOIN t3 tt
+								ON t.Faculty = tt.Faculty COLLATE utf8mb4_general_ci 
+								GROUP BY 
+                             t.Faculty,
+                            t.TYPE1,
+                            t.TYPE2,
+                            t.TYPE3,
+                            t.TYPE4,
+                            COALESCE(t.Alias_Default,tt.Alias_Default2),                  
+                            COALESCE(t.pname,tt.pname2),
+                            tt.Actual_type1,
+                            tt.Actual_type2,
+                            tt.Actual_type3,
+                            tt.Actual_type4,
+                            tt.Alias_Default2,
+                            tt.pname2
+								UNION ALL 
+								SELECT t.Faculty,
+                            t.TYPE1,
+                            t.TYPE2,
+                            t.TYPE3,
+                            t.TYPE4,
+                            COALESCE(t.Alias_Default,tt.Alias_Default2) AS Alias_Default,                  
+                            COALESCE(t.pname,tt.pname2) AS pname,
+                            -- Planned headcounts by type and year
+                            SUM(COALESCE(t.TYPE1_year1,0)) AS TYPE1_year1,
+                            SUM(COALESCE(t.TYPE1_year2,0)) AS TYPE1_year2,
+                            SUM(COALESCE(t.TYPE1_year3,0)) AS TYPE1_year3,
+                            SUM(COALESCE(t.TYPE1_year4,0)) AS TYPE1_year4,
+                            SUM(COALESCE(t.TYPE2_year1,0)) AS TYPE2_year1,
+                            SUM(COALESCE(t.TYPE2_year2,0)) AS TYPE2_year2,
+                            SUM(COALESCE(t.TYPE2_year3,0)) AS TYPE2_year3,
+                            SUM(COALESCE(t.TYPE2_year4,0)) AS TYPE2_year4,
+                            SUM(COALESCE(t.TYPE3_year1,0)) AS TYPE3_year1,
+                            SUM(COALESCE(t.TYPE3_year2,0)) AS TYPE3_year2,
+                            SUM(COALESCE(t.TYPE3_year3,0)) AS TYPE3_year3,
+                            SUM(COALESCE(t.TYPE3_year4,0)) AS TYPE3_year4,
+                            SUM(COALESCE(t.TYPE4_year1,0)) AS TYPE4_year1,
+                            SUM(COALESCE(t.TYPE4_year2,0)) AS TYPE4_year2,
+                            SUM(COALESCE(t.TYPE4_year3,0)) AS TYPE4_year3,
+                            SUM(COALESCE(t.TYPE4_year4,0)) AS TYPE4_year4,
+                            -- Actual counts
+                            tt.Actual_type1,
+                            tt.Actual_type2,
+                            tt.Actual_type3,
+                            tt.Actual_type4,
+                            tt.Alias_Default2,
+                            tt.pname2
+								FROM t4 t
+								RIGHT JOIN t3 tt
+								ON t.Faculty = tt.Faculty COLLATE utf8mb4_general_ci 
+								GROUP BY 
+                            t.Faculty,
+                            t.TYPE1,
+                            t.TYPE2,
+                            t.TYPE3,
+                            t.TYPE4,
+                            COALESCE(t.Alias_Default,tt.Alias_Default2),                  
+                            COALESCE(t.pname,tt.pname2),
+                            tt.Actual_type1,
+                            tt.Actual_type2,
+                            tt.Actual_type3,
+                            tt.Actual_type4,
+                            tt.Alias_Default2,
+                            tt.pname2)
+                            SELECT DISTINCT * FROM t5
+                            ORDER BY pname,Alias_Default";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -1480,7 +1550,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,Position_Number
                         ,all_position_types
                         FROM workforce_hcm_actual w
-                        LEFT JOIN Faculty f
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%')  f
                             ON w.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
                         WHERE w.Faculty!='00000' AND (Personnel_Type='ข้าราชการ'OR Personnel_Type='ลูกจ้างของมหาวิทยาลัย'OR Personnel_Type='ลูกจ้างประจำ'OR Personnel_Type='พนักงานมหาวิทยาลัย')) 
                         ,t2 AS (
@@ -1488,7 +1558,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM act1 t1
                         LEFT JOIN workforce_hcm_actual act4
                         ON t1.Position_Number=act4.Position_Number
-                        LEFT JOIN Faculty f2
+                        LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f2
                         ON f2.Faculty=t1.Faculty COLLATE utf8mb4_general_ci
                         )
                         ,t3 AS (
