@@ -660,11 +660,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,Replace(act1.Position_Number,'PN_','') AS Position_Number
                         ,act1.all_position_types
                         ,act1.Job_Family
-                        ,act4.Retirement_Date
+                        ,CASE 
+                            WHEN CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(act1.Retirement_Date, '-', 2), '-', -1) AS UNSIGNED) >= 10 
+                            THEN CAST(SUBSTRING_INDEX(act1.Retirement_Date, '-', -1) AS UNSIGNED) + 1
+                            ELSE CAST(SUBSTRING_INDEX(act1.Retirement_Date, '-', -1) AS UNSIGNED)
+                        END AS Retirement_Year
+                        ,act1.Retirement_Date
                         ,f2.Alias_Default as pname
-                        FROM workforce_hcm_actual act1
-                        LEFT JOIN workforce_hcm_actual act4
-                        ON act1.Position_Number=act4.Position_Number
+                        FROM workforce_hcm_actual act1                      
                         LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
                         where parent like 'Faculty%') f 
@@ -673,8 +676,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT DISTINCT Faculty, Alias_Default
                         FROM Faculty) f2 
                         ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        WHERE act1.Faculty!='00000' and f.Alias_Default IS NOT null
-                        ORDER BY COALESCE(f.Alias_Default,act1.Faculty),Replace(act1.Position_Number,'PN_','')";
+                        WHERE act1.Faculty!='00000' and f.Alias_Default IS NOT NULL AND rate_status ='คนครอง'
+                        ORDER BY f2.Alias_Default,COALESCE(f.Alias_Default,act1.Faculty),Replace(act1.Position_Number,'PN_','')";
                 $cmd = $conn->prepare($sql);
                 //$cmd->bindParam(':slt', $slt, PDO::PARAM_STR);
                 $cmd->execute();
