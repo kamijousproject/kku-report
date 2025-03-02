@@ -96,6 +96,10 @@ thead tr:nth-child(3) th {
                                 <div class="card-title">
                                     <h4>รายงานอัตรากำลังว่าง</h4>
                                 </div>
+                                <label for="category">เลือกส่วนงาน:</label>
+                                <select name="category" id="category" onchange="fetchData()">
+                                    <option value="">-- Loading Categories --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -142,12 +146,8 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function() {
-            laodData();
-            
-        });
-
-        function laodData() {
             $.ajax({
                 type: "POST",
                 url: "../server/workforce_api.php",
@@ -156,108 +156,128 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.wf);
-                    console.log(response.faculty);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
-                    response.wf.forEach((row, index) => {                   
-                        const tr = document.createElement('tr');
-
-                        const columns = [
-                            { key: 'No', value: index+1 },
-                            { key: 'Alias_Default', value: row.Faculty , nowrap: true},                           
-                            { key: 'personnel_type', value: row.Personnel_Type , nowrap: true},
-                            { key: 'all_position_types', value: row.all_position_types , nowrap: true},  
-                            { key: 'Personnel_Group', value: row.PERSONNEL_GROUP },
-                            { key: 'position_number', value: row.POSITION_NUMBER },                            
-                            { key: 'Location_Code', value: row.LOCATION_CODE , nowrap: true},
-                            { key: 'POSITION', value: row.POSITION , nowrap: true},
-                            { key: 'Job_Family', value: row.JOB_FAMILY },                           
-                            { key: 'empty', value: 1 },
-                            { key: 'Vacant_From_Which_Date', value: row.VACANT_FROM_WHICH_DATE },                     
-                            { key: 'Reason_For_Vacancy', value: row.REASON_FOR_VACANCY },
-                            { key: 'status', value: "" },                    
-                            { key: 'V_For_6_Months_On', value: row.V_FOR_6_MONTHS_ON },                            
-                        ];
-
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            
-                            if (col.nowrap) {
-                                td.classList.add("nowrap");
-                            }
-
-                            tr.appendChild(td);
-                        });
-                        tableBody.appendChild(tr);     
+                    all_data=response.wf;                                             
+                    const fac = [...new Set(all_data.map(item => item.pname))];
+                    let dropdown = document.getElementById("category");
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        dropdown.appendChild(option);
                     });
-
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
             });
+            
+        });
+
+        function fetchData() {
+            let category = document.getElementById("category").value;
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            let data;
+            if(category=="all"){
+                data=all_data;
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+                data.forEach((row, index) => {                   
+                const tr = document.createElement('tr');
+
+                const columns = [
+                    { key: 'No', value: index+1 },
+                    { key: 'Alias_Default', value: row.Alias_Default , nowrap: true},                           
+                    { key: 'personnel_type', value: row.Personnel_Type , nowrap: true},
+                    { key: 'all_position_types', value: row.all_position_types , nowrap: true},  
+                    { key: 'Personnel_Group', value: row.PERSONNEL_GROUP },
+                    { key: 'position_number', value: row.POSITION_NUMBER },                            
+                    { key: 'POSITION', value: row.POSITION , nowrap: true},
+                    { key: 'Location_Code', value: row.LOCATION_CODE , nowrap: true},
+                    { key: 'Job_Family', value: row.JOB_FAMILY },                           
+                    { key: 'empty', value: 1 },
+                    { key: 'Vacant_From_Which_Date', value: row.VACANT_FROM_WHICH_DATE },                     
+                    { key: 'Reason_For_Vacancy', value: row.REASON_FOR_VACANCY },
+                    { key: 'status', value: "" },                    
+                    { key: 'V_For_6_Months_On', value: row.V_FOR_6_MONTHS_ON },                            
+                ];
+
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col.value;
+                    
+                    if (col.nowrap) {
+                        td.classList.add("nowrap");
+                    }
+
+                    tr.appendChild(td);
+                });
+                tableBody.appendChild(tr);     
+            });
+
+                
         }
         function exportCSV() {
             const table = document.getElementById('reportTable');
-            const csvRows = [];
+            const numRows = table.rows.length;
 
-            // วนลูปทีละ <tr>
-            for (const row of table.rows) {
-                // เก็บบรรทัดย่อยของแต่ละเซลล์
-                const cellLines = [];
-                let maxSubLine = 1;
-
-                // วนลูปทีละเซลล์ <td>/<th>
-                for (const cell of row.cells) {
-                    let html = cell.innerHTML;
-
-                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                    html = html.replace(/(&nbsp;)+/g, (match) => {
-                        const count = match.match(/&nbsp;/g).length;
-                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                    });
-
-                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                    html = html.replace(/<br\s*\/?>/gi, '\n');
-
-                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                    // html = html.replace(/<\/?[^>]+>/g, '');
-
-                    // 4) แยกเป็น array บรรทัดย่อย
-                    const lines = html.split('\n').map(x => x.trimEnd());
-                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
-
-                    if (lines.length > maxSubLine) {
-                        maxSubLine = lines.length;
-                    }
-
-                    cellLines.push(lines);
+            // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
+            let maxCols = 0;
+            for (let row of table.rows) {
+                let colCount = 0;
+                for (let cell of row.cells) {
+                    colCount += cell.colSpan || 1;
                 }
+                maxCols = Math.max(maxCols, colCount);
+            }
 
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-                for (let i = 0; i < maxSubLine; i++) {
-                    const rowData = [];
+            // สร้างตาราง 2D เก็บค่าจากตาราง HTML
+            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
 
-                    // วนลูปแต่ละเซลล์
-                    for (const lines of cellLines) {
-                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                        // Escape double quotes
-                        text = text.replace(/"/g, '""');
-                        // ครอบด้วย ""
-                        text = `"${text}"`;
-                        rowData.push(text);
+            // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
+            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const row = table.rows[rowIndex];
+                let colIndex = 0;
+
+                for (const cell of row.cells) {
+                    // ขยับไปช่องว่างที่ยังไม่มีข้อมูล (เผื่อช่องก่อนหน้าถูก merge)
+                    while (cellMap[rowIndex][colIndex]) {
+                        colIndex++;
                     }
 
-                    csvRows.push(rowData.join(','));
+                    let text = cell.textContent.trim().replace(/"/g, '""'); // Escape double quotes
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ใส่ข้อมูลลงในช่องเริ่มต้นของ cell ที่ merge
+                    csvMatrix[rowIndex][colIndex] = `"${text}"`;
+
+                    // ทำเครื่องหมายว่า cell นี้ครอบคลุมพื้นที่ไหนบ้าง
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            cellMap[rowIndex + r][colIndex + c] = true;
+
+                            // ช่องที่ไม่ใช่ช่องเริ่มต้นของเซลล์ merge ให้เป็นว่าง (เพื่อไม่ให้ข้อมูลซ้ำ)
+                            if (r !== 0 || c !== 0) {
+                                csvMatrix[rowIndex + r][colIndex + c] = '""';
+                            }
+                        }
+                    }
+
+                    // ขยับ index ไปยังเซลล์ถัดไป
+                    colIndex += colspan;
                 }
             }
 
-            // รวมเป็น CSV + BOM
-            const csvContent = "\uFEFF" + csvRows.join("\n");
+            // แปลงข้อมูลเป็น CSV
+            const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
