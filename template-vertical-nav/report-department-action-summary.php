@@ -150,7 +150,6 @@
                 dataType: "json",
                 success: function(response) {
                     report_plan_status = response.plan;
-                    console.log(response.plan);
                     response.plan.forEach(data => {
                         categories.add(data.fa_name);
 
@@ -178,8 +177,6 @@
         }
 
         function selectFilter() {
-            console.log('filter');
-
             const selectedCategory = document.getElementById('selectcategory').value;
             if (selectedCategory === "") {
                 filterdata = report_plan_status;

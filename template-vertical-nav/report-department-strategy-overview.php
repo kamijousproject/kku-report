@@ -174,7 +174,6 @@
                         categorySelect.appendChild(option);
                     });
                     writeBody(response.plan);
-                    console.log(response.plan);
 
 
                 },
@@ -186,8 +185,6 @@
         }
 
         function selectFilter() {
-            console.log('filter');
-
             const selectedCategory = document.getElementById('selectcategory').value;
             if (selectedCategory === "") {
                 filterdata = report_plan_status;

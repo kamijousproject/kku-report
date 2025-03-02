@@ -160,9 +160,6 @@
                         categorySelect.appendChild(option);
                     });
                     writeBody(response.plan);
-                    console.log(response.plan);
-
-
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -172,8 +169,6 @@
         }
 
         function selectFilter() {
-            console.log('filter');
-
             const selectedCategory = document.getElementById('selectcategory').value;
             if (selectedCategory === "") {
                 filterdata = report_plan_status;
@@ -223,8 +218,13 @@
                 siStats[row.si_name].kspSet.add(row.ksp_name);
 
                 // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
+                
                 if (!siStats[row.si_name].okrProgress[row.okr_name]) {
-                    siStats[row.si_name].okrProgress[row.okr_name] = parseFloat((row.Quarter_Progress_Value / row.Target_OKR_Objective_and_Key_Result) * 100) || 0;
+                    siStats[row.si_name].okrProgress[row.okr_name] = Math.min(
+                                parseFloat((row.Quarter_Progress_Value / row.Target_OKR_Objective_and_Key_Result) * 100) || 0,
+                                100
+                            );
+                   
                 }
             });
 
@@ -236,7 +236,7 @@
                 totalSO += siStats[si].soSet.size;
                 totalOKR += siStats[si].okrSet.size;
                 totalKSP += siStats[si].kspSet.size;
-                console.log(`SI: ${si}, Unique SO Count: ${siStats[si].soSet.size}, Unique OKR Count: ${siStats[si].okrSet.size}, Unique KSP Count: ${siStats[si].kspSet.size}, Total OKR Progress: ${totalOKRProgress}`);
+                // console.log(`SI: ${si}, Unique SO Count: ${siStats[si].soSet.size}, Unique OKR Count: ${siStats[si].okrSet.size}, Unique KSP Count: ${siStats[si].kspSet.size}, Total OKR Progress: ${totalOKRProgress}`);
             });
 
             data.forEach(row => {
@@ -288,8 +288,10 @@
                 previousOKRName = row.okr_name;
             });
             // เพิ่มแถวใน footer สำหรับผลรวม
+            const tableFooter = document.querySelector('#reportTableFooter');
+            tableFooter.innerHTML = '';
             const footerRow = document.createElement('tr');
-
+            
             const footerTd1 = document.createElement('td');
             footerTd1.textContent = 'รวม';
             footerTd1.colSpan = 3;
@@ -312,7 +314,7 @@
             footerRow.appendChild(footerTd5);
 
             // เพิ่มแถวผลรวมไปยัง <tfoot>
-            const tableFooter = document.querySelector('#reportTableFooter');
+            
             tableFooter.appendChild(footerRow);
 
         }

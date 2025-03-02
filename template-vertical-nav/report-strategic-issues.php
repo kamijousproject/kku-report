@@ -173,7 +173,10 @@
 
                         // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
                         if (!siStats[row.si_name].okrProgress[row.okr_name]) {
-                            siStats[row.si_name].okrProgress[row.okr_name] = parseFloat((row.Quarter_Progress_Value / row.Target_OKR_Objective_and_Key_Result) * 100) || 0;
+                            siStats[row.si_name].okrProgress[row.okr_name] = Math.min(
+                                parseFloat((row.Quarter_Progress_Value / row.Target_OKR_Objective_and_Key_Result) * 100) || 0,
+                                100
+                            );
                         }
                     });
 
@@ -185,9 +188,9 @@
                         totalSO += siStats[si].soSet.size;
                         totalOKR += siStats[si].okrSet.size;
                         totalKSP += siStats[si].kspSet.size;
-                        console.log(`SI: ${si}, Unique SO Count: ${siStats[si].soSet.size}, Unique OKR Count: ${siStats[si].okrSet.size}, Unique KSP Count: ${siStats[si].kspSet.size}, Total OKR Progress: ${totalOKRProgress}`);
+                        // console.log(`SI: ${si}, Unique SO Count: ${siStats[si].soSet.size}, Unique OKR Count: ${siStats[si].okrSet.size}, Unique KSP Count: ${siStats[si].kspSet.size}, Total OKR Progress: ${totalOKRProgress}`);
                     });
-                    console.log('alltotalOKRProgress', alltotalOKRProgress);
+                    // console.log('alltotalOKRProgress', alltotalOKRProgress);
 
                     response.plan.forEach(row => {
                         if (previousSIName !== row.si_name) {

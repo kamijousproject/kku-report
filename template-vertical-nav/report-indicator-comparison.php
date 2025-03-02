@@ -98,7 +98,7 @@
                                                 <th class="align-middle" rowspan="2">ระดับและการปรับใช้</th>
                                                 <th class="align-middle" rowspan="2">ผู้รับผิดชอบ</th>
                                             </tr>
-                                            <tr>
+                                            <tr class="text-nowrap">
                                                 <th>วันเริ่มต้น</th>
                                                 <th>วันสิ้นสุด</th>
                                             </tr>
@@ -139,7 +139,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    console.log(response.plan);
+                    // console.log(response.plan);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 

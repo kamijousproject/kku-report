@@ -169,8 +169,6 @@
         }
 
         function selectFilter() {
-            console.log('filter');
-            
             const selectedCategory = document.getElementById('selectcategory').value;
             if (selectedCategory === "") {
                 filterdata = report_plan_status;
@@ -196,124 +194,141 @@
 
                 // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
                 const td1 = document.createElement('td');
+                td1.style.textAlign = "left";
                 td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
                 tr.appendChild(td1);
 
                 // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
                 const td2 = document.createElement('td');
+                td2.style.textAlign = "left";
                 td2.textContent = row.si_code === previousSICode ? '' : row.si_code;
                 tr.appendChild(td2);
 
                 const td3 = document.createElement('td');
+                td3.style.textAlign = "left";
                 td3.textContent = row.si_name === previousSIName ? '' : row.si_name;
                 tr.appendChild(td3);
 
                 const td4 = document.createElement('td');
+                td4.style.textAlign = "left";
                 td4.textContent = row.Strategic_Project;
                 tr.appendChild(td4);
 
                 const td5 = document.createElement('td');
+                td5.style.textAlign = "left";
                 td5.textContent = row.ksp_name;
                 tr.appendChild(td5);
 
                 if (row.Progress_Status === "Not Started") {
                     const td6 = document.createElement('td');
+                    td6.style.textAlign = "left";
                     td6.innerHTML = row.Strategic_Project_Progress_Details;
                     tr.appendChild(td6);
 
                     const td7 = document.createElement('td');
+                    td7.style.textAlign = "left";
                     td7.innerHTML = ``;
                     tr.appendChild(td7);
 
                     const td8 = document.createElement('td');
+                    td8.style.textAlign = "left";
                     td8.innerHTML = ``;
                     tr.appendChild(td8);
 
                     const td9 = document.createElement('td');
+                    td9.style.textAlign = "left";
                     td9.innerHTML = ``;
                     tr.appendChild(td9);
                 }
 
                 if (row.Progress_Status === "In Progress") {
                     const td6 = document.createElement('td');
+                    td6.style.textAlign = "left";
                     td6.innerHTML = ``;
                     tr.appendChild(td6);
 
                     const td7 = document.createElement('td');
+                    td7.style.textAlign = "left";
                     td7.innerHTML = row.Strategic_Project_Progress_Details;
                     tr.appendChild(td7);
 
                     const td8 = document.createElement('td');
+                    td8.style.textAlign = "left";
                     td8.innerHTML = ``;
                     tr.appendChild(td8);
 
                     const td9 = document.createElement('td');
+                    td9.style.textAlign = "left";
                     td9.innerHTML = ``;
                     tr.appendChild(td9);
                 }
 
                 if (row.Progress_Status === "Completed") {
                     const td6 = document.createElement('td');
+                    td6.style.textAlign = "left";
                     td6.innerHTML = ``;
                     tr.appendChild(td6);
 
                     const td7 = document.createElement('td');
+                    td7.style.textAlign = "left";
                     td7.innerHTML = ``;
                     tr.appendChild(td7);
 
                     const td8 = document.createElement('td');
+                    td8.style.textAlign = "left";
                     td8.innerHTML = row.Strategic_Project_Progress_Details;
                     tr.appendChild(td8);
 
                     const td9 = document.createElement('td');
+                    td9.style.textAlign = "left";
                     td9.innerHTML = ``;
                     tr.appendChild(td9);
                 }
 
                 if (row.Progress_Status === "Cancelled") {
                     const td6 = document.createElement('td');
+                    td6.style.textAlign = "left";
                     td6.innerHTML = ``;
                     tr.appendChild(td6);
 
                     const td7 = document.createElement('td');
+                    td7.style.textAlign = "left";
                     td7.innerHTML = ``;
                     tr.appendChild(td7);
 
                     const td8 = document.createElement('td');
+                    td8.style.textAlign = "left";
                     td8.innerHTML = ``;
                     tr.appendChild(td8);
 
                     const td9 = document.createElement('td');
+                    td9.style.textAlign = "left";
                     td9.innerHTML = row.Strategic_Project_Progress_Details;
                     tr.appendChild(td9);
                 }
 
                 if (!row.Progress_Status) {
                     const td6 = document.createElement('td');
+                    td6.style.textAlign = "left";
                     td6.innerHTML = ``;
                     tr.appendChild(td6);
 
                     const td7 = document.createElement('td');
+                    td7.style.textAlign = "left";
                     td7.innerHTML = ``;
                     tr.appendChild(td7);
 
                     const td8 = document.createElement('td');
+                    td8.style.textAlign = "left";
                     td8.innerHTML = ``;
                     tr.appendChild(td8);
 
                     const td9 = document.createElement('td');
+                    td9.style.textAlign = "left";
                     td9.innerHTML = ``;
                     tr.appendChild(td9);
                 }
-
-
-
-
-
-
-
                 tableBody.appendChild(tr);
-
                 // เก็บค่า fa_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
                 previousFacultyName = row.fa_name;
                 previousSICode = row.si_code;
@@ -346,42 +361,115 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                useCss: true,
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 40
+                    }, 
+                    1: {
+                        cellWidth: 15
+                    }, 
+                    2: {
+                        cellWidth: 40
+                    }, 
+                    3: {
+                        cellWidth: 15
+                    }, 
+                    4: {
+                        cellWidth: 60
+                    }, 
+                    5: {
+                        cellWidth: 30
+                    },
+                    6: {
+                        cellWidth: 30
+                    },
+                    7: {
+                        cellWidth: 30
+                    },
+                    8: {
+                        cellWidth: 30
+                    },
+                   
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(16);
+                    doc.text('รายงานสถานะของแผนงานแต่ละแผน', 14, 15);
+
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20,
+                        doc.internal.pageSize.height - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                            data.cell.styles.halign = 'left';
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle table width
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 15,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานสถานะของแผนงานแต่ละแผน.pdf');
         }
 
         function exportXLS() {
