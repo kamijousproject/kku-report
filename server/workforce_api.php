@@ -29,11 +29,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "with t1 as(SELECT faculty 
+                $sql = "with t1 as(SELECT faculty
                         FROM workforce_new_positions_allocation
                         union all
-                        SELECT faculty 
-                        FROM workforce_current_positions_allocation)
+                        SELECT act1.faculty
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.POSITION_NUMBER
+                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'
+								union all
+								SELECT act1.faculty 
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='วิชาการระยะสั้น'
+								union all
+								SELECT act1.faculty
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย'and act1.Contract_Type='ผู้เกษียณอายุราชการ' 
+								UNION ALL 
+								SELECT act1.faculty
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='ชาวต่างประเทศ' 
+								UNION ALL 
+								SELECT act1.faculty
+                        FROM workforce_current_positions_allocation w
+                        LEFT JOIN workforce_hcm_actual act1
+                        ON replace(w.Position_Number,'PN_','')=act1.Position_Number
+                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='ผู้ปฏิบัติงานในมหาวิทยาลัย')
                         ,t2 as(
                         SELECT f2.Alias_Default AS pname
                         from t1 t
@@ -714,20 +741,28 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,COALESCE(Govt_Fund,0) COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
                         ,COALESCE(Division_Revenue,0) COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
                         ,COALESCE(OOP_Central_Revenue,0) COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Workers_Name_Surname
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Position_Qualififcations
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Employment_Type
                         FROM workforce_current_positions_allocation)
                         , NEW AS (
                         SELECT 'อัตราใหม่'AS TYPE 
-                        ,Personnel_Type
-                        ,Faculty
-                        ,All_PositionTypes
-                        ,POSITION 
+                        ,w.Approved_Personnel_Type
+                        ,w.Faculty
+                        ,w.All_PositionTypes
+                        ,w.POSITION 
                         ,NULL AS Position_Number
-                        ,Fund_FT
+                        ,w.Fund_FT
                         ,0 AS Salary_rate
-                        ,Govt_Fund
-                        ,Division_Revenue
-                        ,OOP_Central_Revenue
-                        FROM workforce_new_positions_allocation)
+                        ,w.Govt_Fund
+                        ,w.Division_Revenue
+                        ,w.OOP_Central_Revenue
+                        ,COALESCE(NULLIF(w.Name_Surname_If_change, ''),w2.Workers_Name_Surname) AS Workers_Name_Surname
+                        ,w2.Position_Qualififcations AS Position_Qualififcations
+                        ,w2.Employment_Type
+                        FROM workforce_new_positions_allocation w
+								LEFT JOIN workforce_new_position_request w2
+								ON w.Job_Code=w2.Job_Code COLLATE UTF8MB4_GENERAL_CI)
                         , all_data AS (
                         SELECT * FROM CURRENT
                         UNION ALL 
@@ -737,10 +772,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,f.Alias_Default
                         ,f.parent
                         ,act1.Employment_Type
-                        ,act1.Workers_Name_Surname
+                        ,COALESCE(NULLIF(a.Employment_Type, ''),act1.Employment_Type) AS Employment_Type
+                        ,COALESCE(NULLIF(a.Workers_Name_Surname, ''),act1.Workers_Name_Surname) AS Workers_Name_Surname2
                         ,act1.Personnel_Group
                         ,act1.Job_Family
-                        ,act1.POSITION_QUALIFIFCATIONS AS Position_Qualifications
+                        ,COALESCE(NULLIF(a.Position_Qualififcations, ''),act1.POSITION_QUALIFIFCATIONS) AS Position_Qualifications2
                         ,act1.Contract_Type
                         ,act1.Contract_Period_Short_Term
                         ,act1.Location_Code
@@ -1651,21 +1687,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,CASE 
                                 WHEN STR_TO_DATE(CONCAT(SUBSTRING_INDEX(Retirement_Date, '-', 2), '-', 
                                         CAST(SUBSTRING_INDEX(Retirement_Date, '-', -1) - 543 AS UNSIGNED)), '%d-%m-%Y') 
-                                    BETWEEN '2024-01-01' AND '2024-12-31' THEN 'y1'
+                                    BETWEEN '2023-10-01' AND '2024-09-30' THEN 'y1'
                                 WHEN STR_TO_DATE(CONCAT(SUBSTRING_INDEX(Retirement_Date, '-', 2), '-', 
                                         CAST(SUBSTRING_INDEX(Retirement_Date, '-', -1) - 543 AS UNSIGNED)), '%d-%m-%Y') 
-                                    BETWEEN '2025-01-01' AND '2025-12-31' THEN 'y2'
+                                    BETWEEN '2024-10-01' AND '2025-09-30' THEN 'y2'
                                 WHEN STR_TO_DATE(CONCAT(SUBSTRING_INDEX(Retirement_Date, '-', 2), '-', 
                                         CAST(SUBSTRING_INDEX(Retirement_Date, '-', -1) - 543 AS UNSIGNED)), '%d-%m-%Y') 
-                                    BETWEEN '2026-01-01' AND '2026-12-31' THEN 'y3'
+                                    BETWEEN '2025-10-01' AND '2026-09-30' THEN 'y3'
                                 WHEN STR_TO_DATE(CONCAT(SUBSTRING_INDEX(Retirement_Date, '-', 2), '-', 
                                         CAST(SUBSTRING_INDEX(Retirement_Date, '-', -1) - 543 AS UNSIGNED)), '%d-%m-%Y') 
-                                    BETWEEN '2027-01-01' AND '2027-12-31' THEN 'y4'
+                                    BETWEEN '2026-10-01' AND '2027-09-30' THEN 'y4'
                                 ELSE 'yy' 
                             END AS y
                         FROM t4)
                         ,t6 AS (
-                        SELECT Faculty,POSITION,Job_Family,all_position_types,y,Personnel_Type,Alias_Default FROM t5 WHERE Y !='yy')
+                        SELECT Faculty,POSITION,Job_Family,all_position_types,y,Personnel_Type,Alias_Default FROM t5 WHERE y !='yy')
                         ,t7 AS (
                         SELECT *,COUNT(*) AS all_p FROM t6 GROUP BY Faculty,POSITION,Job_Family,all_position_types,y,Personnel_Type,Alias_Default)
                         ,t8 AS (
