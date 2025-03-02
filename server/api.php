@@ -480,6 +480,65 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             break;
 
+            case "get_department_action_summary":
+                try {
+                    $db = new Database();
+                    $conn = $db->connect();
+    
+                    // เชื่อมต่อฐานข้อมูล
+                    $sqlPlan = "SELECT 
+                                pfop.*,
+                                CONCAT(
+                                LEFT(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), LOCATE('SO', pfop.Strategic_Object) - 1),
+                                'P',
+                                SUBSTRING(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), LOCATE('SO', pfop.Strategic_Object) + 2, 2 ) ) as pilar_code,
+                                p.pillar_name AS pilar_name,
+                                REPLACE(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), 'SO', 'SI') AS si_code,
+                                si.pillar_name AS si_name,
+                                pfop.Strategic_Object,
+                                so.pillar_name AS so_name,
+                                pfop.OKR,
+                                okr.okr_name,
+                                pfap.Target_OKR_Objective_and_Key_Result,
+                                pfap.UOM,
+                                pfap.Budget_Amount,
+                                IFNULL(pfpp.Allocated_budget, 0) AS Allocated_budget,
+                                IFNULL(pfpp.Actual_Spend_Amount, 0) AS Actual_Spend_Amount,
+                                pfap.Responsible_person,
+                                f.Alias_Default AS fa_name,
+                                ksp.ksp_name
+                                FROM planning_faculty_okr_progress AS pfop
+                                LEFT JOIN okr ON okr.okr_id = pfop.OKR
+                                LEFT JOIN pilars2 AS so ON so.pillar_id = pfop.Strategic_Object
+                                LEFT JOIN pilars2 AS p ON p.pillar_id = CONCAT(LEFT(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), LOCATE('SO', pfop.Strategic_Object) - 1),'P',
+                                SUBSTRING(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1),LOCATE('SO', pfop.Strategic_Object) + 2,2))
+                                LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), 'SO', 'SI')
+                                LEFT JOIN planning_faculty_action_plan AS pfap ON pfap.OKR = pfop.OKR
+                                LEFT JOIN planning_faculty_project_progress AS pfpp ON TRIM(pfpp.Strategic_Project) = TRIM(pfap.Strategic_Project)
+                                LEFT JOIN (
+                                SELECT DISTINCT Faculty, Alias_Default
+                                FROM Faculty
+                                ) AS f ON pfop.Faculty = f.Faculty
+                                LEFT JOIN ksp ON ksp.ksp_id = pfap.Strategic_Project
+                                ORDER BY Faculty, si_code,pfop.Strategic_Object, okr.okr_id,ksp.ksp_id";
+                    $stmtPlan = $conn->prepare($sqlPlan);
+                    $stmtPlan->execute();
+                    $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                    $conn = null;
+    
+                    $response = array(
+                        'plan' => $plan
+                    );
+                    echo json_encode($response);
+                } catch (PDOException $e) {
+                    $response = array(
+                        'status' => 'error',
+                        'message' => 'Database error: ' . $e->getMessage()
+                    );
+                    echo json_encode($response);
+                }
+                break;
+
         case "get_strategic_issues":
             try {
                 $db = new Database();

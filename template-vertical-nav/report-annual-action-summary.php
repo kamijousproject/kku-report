@@ -1,7 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    .table-responsive {
+        max-height: 30rem;
+        /* กำหนดความสูงให้ตารางมี Scroll */
+        overflow-y: auto;
+    }
 
+    .table thead th {
+        position: sticky;
+        background-color: #F2F2F2;
+        top: 0;
+        z-index: 10;
+    }
+
+    #reportTable th {
+        background-color: #F2F2F2;
+    }
+
+    .table thead tr th {
+        z-index: 11;
+    }
+
+    .table thead tr:first-child th {
+        /* ให้แถวแรก (th ที่ colspan) ตรึงที่ด้านบน */
+        position: sticky;
+        top: 0;
+        background: #F2F2F2;
+        z-index: 10;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    .table thead tr:nth-child(2) th {
+        /* ให้แถวที่สอง (th ที่มี day column) ตรึงอยู่ที่ด้านบน */
+        position: sticky;
+        top: 45.4px;
+        background: #F2F2F2;
+        z-index: 9;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    /* ให้แถวที่สองไม่ถูกบดบังด้วยแถวแรก */
+    .table thead tr:nth-child(2) th {
+        z-index: 9;
+    }
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -119,25 +165,33 @@
                         if (!siStats[row.okr_name]) {
                             siStats[row.okr_name] = {
                                 kspSet: new Set(), // เก็บ KSP ที่ไม่ซ้ำ
-                                kspProgress: {}
+                                okrProgress: {},
+                                kspBudget: {},
+                                kspActual_spend: {}
                             };
                         }
                         siStats[row.okr_name].kspSet.add(row.ksp_name);
 
                        // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
-                       if (!siStats[row.okr_name].kspProgress[row.ksp_name]) {
-                            siStats[row.okr_name].kspProgress[row.ksp_name] = parseFloat((row.Quarter_Progress_Value/row.Target_OKR_Objective_and_Key_Result)*100) || 0;
+                       if (!siStats[row.okr_name].okrProgress[row.ksp_name]) {
+                            siStats[row.okr_name].okrProgress[row.ksp_name] = parseFloat((row.Quarter_Progress_Value/row.Target_OKR_Objective_and_Key_Result)*100) || 0;
+                            siStats[row.okr_name].kspBudget[row.ksp_name] = parseFloat(row.Allocated_budget) || 0;
+                            siStats[row.okr_name].kspActual_spend[row.ksp_name] = parseFloat(row.Actual_Spend_Amount) || 0;
+                            // console.log(siStats[row.okr_name].okrProgress[row.ksp_name]);
                         }
                        
                     });
 
                      // แสดงจำนวน SO, OKR, KSP ที่ไม่ซ้ำ และผลรวมของ Quarter_Progress_Value ของ OKR ที่ไม่ซ้ำ
                      Object.keys(siStats).forEach(si => {
-                        totalOKR = Object.values(siStats[si].kspProgress).reduce((sum, value) => sum + value, 0);
-                        alltotalOKR += Object.values(siStats[si].kspProgress).reduce((sum, value) => sum + value, 0);
+                         totalOKR = Object.values(siStats[si].okrProgress).reduce((sum, value) => sum + value, 0);
+                         totalBudget = Object.values(siStats[si].kspBudget).reduce((sum, value) => sum + value, 0);
+                         totalActual_spend = Object.values(siStats[si].kspActual_spend).reduce((sum, value) => sum + value, 0);
                         siStats[si].totalOKR = (totalOKR / siStats[si].kspSet.size);
-                        totalKSP += siStats[si].kspSet.size;
-                        console.log(`SI: ${si},  Unique KSP Count: ${siStats[si].kspSet.size}`);
+                        siStats[si].totalBudget = totalBudget;
+                        siStats[si].totalActual_spend = totalActual_spend;
+                        // totalKSP += siStats[si].kspSet.size;
+                        //  console.log(`SI: ${si},  Unique KSP Count: ${siStats[si].kspSet.size}, totalOKR ${totalOKR}, real percent ${siStats[si].totalOKR},sumBudget ${totalBudget}`);
                     });
 
                     response.plan.forEach(row => {
@@ -208,7 +262,7 @@
                             tr.appendChild(td15);
 
                             const td16 = document.createElement('td');
-                            td16.textContent = totalKSP;
+                            td16.textContent = siStats[row.okr_name].totalOKR+' %';
                             tr.appendChild(td16);
 
                             const td17 = document.createElement('td');
@@ -216,11 +270,14 @@
                             tr.appendChild(td17);
 
                             const td18 = document.createElement('td');
-                            td18.textContent = siStats[row.okr_name].totalOKR;
+                            td18.textContent = Number(siStats[row.okr_name].totalBudget).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });;
                             tr.appendChild(td18);
 
                             const td19 = document.createElement('td');
-                            td19.textContent = Number(row.Actual_Spend_Amount).toLocaleString('en-US', {
+                            td19.textContent = Number(siStats[row.okr_name].totalActual_spend).toLocaleString('en-US', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
                             });

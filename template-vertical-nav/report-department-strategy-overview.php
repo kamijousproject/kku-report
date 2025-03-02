@@ -1,6 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    .table-responsive {
+        max-height: 30rem;
+        /* กำหนดความสูงให้ตารางมี Scroll */
+        overflow-y: auto;
+    }
+
+    .table thead th {
+        position: sticky;
+        background-color: #F2F2F2;
+        top: 0;
+        z-index: 10;
+    }
+
+    #reportTable th {
+        background-color: #F2F2F2;
+    }
+
+    .table thead tr th {
+        z-index: 11;
+    }
+
+    .table thead tr:first-child th {
+        /* ให้แถวแรก (th ที่ colspan) ตรึงที่ด้านบน */
+        position: sticky;
+        top: 0;
+        background: #F2F2F2;
+        z-index: 10;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    .table thead tr:nth-child(2) th {
+        /* ให้แถวที่สอง (th ที่มี day column) ตรึงอยู่ที่ด้านบน */
+        position: sticky;
+        top: 45.4px;
+        background: #F2F2F2;
+        z-index: 9;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    /* ให้แถวที่สองไม่ถูกบดบังด้วยแถวแรก */
+    .table thead tr:nth-child(2) th {
+        z-index: 9;
+    }
+</style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -33,6 +80,10 @@
                                 <div class="card-title">
                                     <h4>รายงานภาพรวมยุทธศาสตร์ ส่วนงาน/หน่วยงาน</h4>
                                 </div>
+                                <label for="selectcategory">เลือกส่วนงาน:</label>
+                                <select name="selectcategory" id="selectcategory" onchange="selectFilter()">
+                                    <option value="">-- ทั้งหมด --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -88,6 +139,9 @@
         </div>
     </div>
     <script>
+        let report_plan_status = [];
+        let filterdata = []
+        let categories = new Set();
         $(document).ready(function() {
             laodData();
         });
@@ -101,131 +155,26 @@
                 },
                 dataType: "json",
                 success: function(response) {
+                    report_plan_status = response.plan;
                     // console.log(response.plan);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    response.plan.forEach(data => {
+                        categories.add(data.fa_name);
 
-                    let previousFacultyCode = '';
-                    let previousFacultyName = '';
-                    let previousPilarCode = '';
-                    let previousPilarName = '';
-                    let previousSICode = '';
-                    let previousSIName = '';
-                    let previousSOCode = '';
-                    let previousSOName = '';
-                    let previousOKRCode = '';
-                    let previousOKRName = '';
+                    })
+                    const categorySelect = document.getElementById("selectcategory");
 
-                    response.plan.forEach(row => {
-                        const tr = document.createElement('tr');
+                    // เพิ่มตัวเลือกทั้งหมด
+                    categorySelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
 
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td1 = document.createElement('td');
-                        td1.textContent = row.Faculty === previousFacultyCode ? '' : row.Faculty;;
-                        tr.appendChild(td1);
-
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
-                        tr.appendChild(td2);
-
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.pilar_code === previousPilarCode ? '' : row.pilar_code;
-                        tr.appendChild(td3);
-
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
-                        tr.appendChild(td4);
-
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.si_code === previousSICode ? '' : row.si_code;
-                        tr.appendChild(td5);
-
-                        const td6 = document.createElement('td');
-                        td6.textContent = row.si_name === previousSIName ? '' : row.si_name;
-                        tr.appendChild(td6);
-
-                        const td7 = document.createElement('td');
-                        td7.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
-                        tr.appendChild(td7);
-
-                        const td8 = document.createElement('td');
-                        td8.textContent = row.so_name === previousSOCode ? '' : row.so_name;
-                        tr.appendChild(td8);
-
-                        const td9 = document.createElement('td');
-                        td9.textContent = row.Strategic_Project;
-                        tr.appendChild(td9);
-
-                        const td10 = document.createElement('td');
-                        td10.textContent = row.ksp_name;
-                        tr.appendChild(td10);
-
-                        const td11 = document.createElement('td');
-                        td11.textContent = row.OKR;
-                        tr.appendChild(td11);
-
-                        const td12 = document.createElement('td');
-                        td12.textContent = row.okr_name;
-                        tr.appendChild(td12);
-
-                        const td13 = document.createElement('td');
-                        td13.textContent = row.UOM;
-                        tr.appendChild(td13);
-
-                        const td14 = document.createElement('td');
-                        td14.textContent = null;
-                        tr.appendChild(td14);
-
-                        const td15 = document.createElement('td');
-                        td15.textContent = null;
-                        tr.appendChild(td15);
-
-                        const td16 = document.createElement('td');
-                        td16.textContent = null;
-                        tr.appendChild(td16);
-
-                        const td17 = document.createElement('td');
-                        td17.textContent = null;
-                        tr.appendChild(td17);
-
-                        const td18 = document.createElement('td');
-                        td18.textContent = row.Y1;
-                        tr.appendChild(td18);
-
-                        const td19 = document.createElement('td');
-                        td19.textContent = row.Y2;
-                        tr.appendChild(td19);
-
-                        const td20 = document.createElement('td');
-                        td20.textContent = row.Y3;
-                        tr.appendChild(td20);
-
-                        const td21 = document.createElement('td');
-                        td21.textContent = row.Y4;
-                        tr.appendChild(td21);
-
-                        const td22 = document.createElement('td');
-                        td22.textContent = Number(row.Budget_Amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                        tr.appendChild(td22);
-
-                        const td23 = document.createElement('td');
-                        td23.textContent = row.Responsible_person;
-                        tr.appendChild(td23);
-
-
-                        tableBody.appendChild(tr);
-
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
-                        previousFacultyCode = row.Faculty;
-                        previousFacultyName = row.fa_name;
-                        previousPilarCode = row.pilar_code;
-                        previousPilarName = row.pilar_name;
-                        previousSICode = row.si_code;
-                        previousSIName = row.si_name;
-                        previousSOName = row.so_name;
-                        previousSOName = row.so_name;
+                    // เพิ่มตัวเลือกสำหรับแต่ละ fa_name ที่ไม่ซ้ำ
+                    categories.forEach(category => {
+                        const option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
                     });
+                    writeBody(response.plan);
+                    console.log(response.plan);
 
 
                 },
@@ -234,6 +183,152 @@
                     responseError(jqXHR, exception);
                 }
             });
+        }
+
+        function selectFilter() {
+            console.log('filter');
+
+            const selectedCategory = document.getElementById('selectcategory').value;
+            if (selectedCategory === "") {
+                filterdata = report_plan_status;
+                writeBody(filterdata);
+            } else {
+                // filter ข้อมูลที่ fa_name ตรงกับค่าที่เลือก
+                filterdata = report_plan_status.filter(item => item.fa_name === selectedCategory);
+                writeBody(filterdata);
+            }
+            document.querySelector('.table-responsive').scrollTop = 0;
+        }
+
+        function writeBody(data) {
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+            let previousFacultyCode = '';
+            let previousFacultyName = '';
+            let previousPilarCode = '';
+            let previousPilarName = '';
+            let previousSICode = '';
+            let previousSIName = '';
+            let previousSOCode = '';
+            let previousSOName = '';
+            let previousOKRCode = '';
+            let previousOKRName = '';
+
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+
+                // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                const td1 = document.createElement('td');
+                td1.textContent = row.Faculty === previousFacultyCode ? '' : row.Faculty;;
+                tr.appendChild(td1);
+
+                // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
+                const td2 = document.createElement('td');
+                td2.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                tr.appendChild(td2);
+
+                const td3 = document.createElement('td');
+                td3.textContent = row.pilar_code === previousPilarCode ? '' : row.pilar_code;
+                tr.appendChild(td3);
+
+                const td4 = document.createElement('td');
+                td4.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
+                tr.appendChild(td4);
+
+                const td5 = document.createElement('td');
+                td5.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                tr.appendChild(td5);
+
+                const td6 = document.createElement('td');
+                td6.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                tr.appendChild(td6);
+
+                const td7 = document.createElement('td');
+                td7.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                tr.appendChild(td7);
+
+                const td8 = document.createElement('td');
+                td8.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                tr.appendChild(td8);
+
+                const td9 = document.createElement('td');
+                td9.textContent = row.Strategic_Project;
+                tr.appendChild(td9);
+
+                const td10 = document.createElement('td');
+                td10.textContent = row.ksp_name;
+                tr.appendChild(td10);
+
+                const td11 = document.createElement('td');
+                td11.textContent = row.OKR;
+                tr.appendChild(td11);
+
+                const td12 = document.createElement('td');
+                td12.textContent = row.okr_name;
+                tr.appendChild(td12);
+
+                const td13 = document.createElement('td');
+                td13.textContent = row.UOM;
+                tr.appendChild(td13);
+
+                const td14 = document.createElement('td');
+                td14.textContent = null;
+                tr.appendChild(td14);
+
+                const td15 = document.createElement('td');
+                td15.textContent = null;
+                tr.appendChild(td15);
+
+                const td16 = document.createElement('td');
+                td16.textContent = null;
+                tr.appendChild(td16);
+
+                const td17 = document.createElement('td');
+                td17.textContent = null;
+                tr.appendChild(td17);
+
+                const td18 = document.createElement('td');
+                td18.textContent = row.Y1;
+                tr.appendChild(td18);
+
+                const td19 = document.createElement('td');
+                td19.textContent = row.Y2;
+                tr.appendChild(td19);
+
+                const td20 = document.createElement('td');
+                td20.textContent = row.Y3;
+                tr.appendChild(td20);
+
+                const td21 = document.createElement('td');
+                td21.textContent = row.Y4;
+                tr.appendChild(td21);
+
+                const td22 = document.createElement('td');
+                td22.textContent = Number(row.Budget_Amount).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+                tr.appendChild(td22);
+
+                const td23 = document.createElement('td');
+                td23.textContent = row.Responsible_person;
+                tr.appendChild(td23);
+
+
+                tableBody.appendChild(tr);
+
+                // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                previousFacultyCode = row.Faculty;
+                previousFacultyName = row.fa_name;
+                previousPilarCode = row.pilar_code;
+                previousPilarName = row.pilar_name;
+                previousSICode = row.si_code;
+                previousSIName = row.si_name;
+                previousSOCode = row.Strategic_Object;
+                previousSOName = row.so_name;
+            });
+
         }
 
         function exportCSV() {
