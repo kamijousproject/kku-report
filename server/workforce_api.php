@@ -899,7 +899,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,Division_Revenue COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
                         ,OOP_Central_Revenue COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
                         ,'1' AS num
-                        ,NULL AS Name_Surname_If_change 
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Workers_Name_Surname
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Position_Qualififcations
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Employment_Type
                         FROM workforce_current_positions_allocation)
                         , NEW AS (
                         SELECT 'อัตราใหม่'AS TYPE 
@@ -914,12 +916,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,w1.Division_Revenue
                         ,w1.OOP_Central_Revenue
                         ,'1' AS num
-                        ,w1.Name_Surname_If_change
+                        ,COALESCE(NULLIF(w1.Name_Surname_If_change, ''),w3.Workers_Name_Surname) AS Workers_Name_Surname
+                        ,w3.Position_Qualififcations AS Position_Qualififcations
+                        ,w3.Employment_Type
                         FROM workforce_new_positions_allocation w1
                         LEFT JOIN workforce_new_positions_allocation_2 w2
                         ON w1.Account=w2.Account COLLATE utf8mb4_general_ci AND w1.Scenario=w2.Scenario COLLATE utf8mb4_general_ci AND w1.Version=w2.Version COLLATE utf8mb4_general_ci
                         AND w1.Faculty=w2.Faculty COLLATE utf8mb4_general_ci AND w1.NHR=w2.NHR COLLATE utf8mb4_general_ci AND w1.Personnel_Type=w2.Personnel_Type COLLATE utf8mb4_general_ci
-                        AND w1.All_PositionTypes=w2.All_PositionTypes COLLATE utf8mb4_general_ci AND w1.Position=w2.Position COLLATE utf8mb4_general_ci)
+                        AND w1.All_PositionTypes=w2.All_PositionTypes COLLATE utf8mb4_general_ci AND w1.Position=w2.Position COLLATE utf8mb4_general_ci
+								LEFT JOIN workforce_new_position_request w3
+								ON w1.Job_Code=w3.Job_Code COLLATE UTF8MB4_GENERAL_CI)
                         , all_data AS (
                         SELECT * FROM CURRENT
                         UNION ALL 
@@ -937,8 +943,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ) p ON f.parent = p.Faculty COLLATE UTF8MB4_GENERAL_CI
                         )
                         SELECT a.*
-                        ,act1.Employment_Type
-                        ,IFNULL(NULLIF(a.Name_Surname_If_change, ''), act1.Workers_Name_Surname) AS Workers_Name_Surname
+                        ,COALESCE(NULLIF(a.Employment_Type, ''),act1.Employment_Type) AS Employment_Type
+                        ,IFNULL(NULLIF(a.Workers_Name_Surname, ''), act1.Workers_Name_Surname) AS Workers_Name_Surname
                         ,act1.Personnel_Group
                         ,act1.Job_Family
                         ,act1.POSITION_QUALIFIFCATIONS AS Position_Qualifications
