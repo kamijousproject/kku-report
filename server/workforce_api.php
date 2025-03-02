@@ -906,16 +906,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,'' COLLATE UTF8MB4_GENERAL_CI AS Workers_Name_Surname
                         ,'' COLLATE UTF8MB4_GENERAL_CI AS Position_Qualififcations
                         ,'' COLLATE UTF8MB4_GENERAL_CI AS Employment_Type
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Job_Family
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Personnel_Group
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Location_Code
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Hiring_Start_End_Date
+                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Contract_Type
                         FROM workforce_current_positions_allocation)
                         , NEW AS (
                         SELECT 'อัตราใหม่'AS TYPE 
                         ,w1.Approved_Personnel_Type
-                        ,w1.Faculty
-                        ,w1.All_PositionTypes
-                        ,w1.POSITION 
+                        ,w3.Faculty
+                        ,w3.All_PositionTypes
+                        ,w3.POSITION 
                         ,w1.New_Position_Number AS Position_Number
-                        ,w1.Fund_FT
-                        ,NULL AS Salary_rate
+                        ,w3.Fund_FT
+                        ,w1.Salary_rate AS Salary_rate
                         ,w1.Govt_Fund
                         ,w1.Division_Revenue
                         ,w1.OOP_Central_Revenue
@@ -923,13 +928,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,COALESCE(NULLIF(w1.Name_Surname_If_change, ''),w3.Workers_Name_Surname) AS Workers_Name_Surname
                         ,w3.Position_Qualififcations AS Position_Qualififcations
                         ,w3.Employment_Type
-                        FROM workforce_new_positions_allocation w1
+                        ,w3.Job_Family
+                        ,w3.Personnel_Group
+                        ,w3.Field_of_Study AS Location_Code
+                        ,w3.Hiring_Start_End_Date
+                        ,w3.Contract_Type
+                        FROM workforce_new_position_request w3
+                        LEFT JOIN workforce_new_positions_allocation w1
+								ON w1.Job_Code=w3.Job_Code COLLATE UTF8MB4_GENERAL_CI
                         LEFT JOIN workforce_new_positions_allocation_2 w2
                         ON w1.Account=w2.Account COLLATE utf8mb4_general_ci AND w1.Scenario=w2.Scenario COLLATE utf8mb4_general_ci AND w1.Version=w2.Version COLLATE utf8mb4_general_ci
                         AND w1.Faculty=w2.Faculty COLLATE utf8mb4_general_ci AND w1.NHR=w2.NHR COLLATE utf8mb4_general_ci AND w1.Personnel_Type=w2.Personnel_Type COLLATE utf8mb4_general_ci
                         AND w1.All_PositionTypes=w2.All_PositionTypes COLLATE utf8mb4_general_ci AND w1.Position=w2.Position COLLATE utf8mb4_general_ci
-								LEFT JOIN workforce_new_position_request w3
-								ON w1.Job_Code=w3.Job_Code COLLATE UTF8MB4_GENERAL_CI)
+								)
                         , all_data AS (
                         SELECT * FROM CURRENT
                         UNION ALL 
@@ -944,18 +955,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default,Parent 
                         FROM Faculty
-                        ) p ON f.parent = p.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        )
+                        ) p 
+								ON f.parent = p.Faculty COLLATE UTF8MB4_GENERAL_CI)
+                    
                         SELECT a.*
-                        ,COALESCE(NULLIF(a.Employment_Type, ''),act1.Employment_Type) AS Employment_Type
-                        ,IFNULL(NULLIF(a.Workers_Name_Surname, ''), act1.Workers_Name_Surname) AS Workers_Name_Surname
-                        ,act1.Personnel_Group
-                        ,act1.Job_Family
-                        ,act1.POSITION_QUALIFIFCATIONS AS Position_Qualifications
-                        ,act1.Contract_Type
+                        ,COALESCE(NULLIF(a.Employment_Type, ''),act1.Employment_Type) AS Employment_Type2
+                        ,IFNULL(NULLIF(a.Workers_Name_Surname, ''), act1.Workers_Name_Surname) AS Workers_Name_Surname2
+                        ,IFNULL(NULLIF(a.Personnel_Group, ''),act1.Personnel_Group) AS Personnel_Group2
+                        ,IFNULL(NULLIF(a.Job_Family, ''),act1.Job_Family) AS Job_Family2
+                        ,IFNULL(NULLIF(a.Job_Family, ''),act1.POSITION_QUALIFIFCATIONS) AS Position_Qualifications2
+                        ,IFNULL(NULLIF(a.Contract_Type, ''),act1.Contract_Type) AS Contract_Type2
                         ,act1.Contract_Period_Short_Term
-                        ,act1.Location_Code
+                        ,IFNULL(NULLIF(a.Location_Code, ''),act1.Location_Code) AS Location_Code2
                         ,replace(a.Position_Number,'PN_','') AS Position_Number2
+                        ,IFNULL(NULLIF(a.Hiring_Start_End_Date, ''),act1.HIRING_START_END_DATE) AS Hiring_Start_End_Date2
                         FROM all_data2 a
                         LEFT JOIN workforce_hcm_actual act1
                         ON replace(a.Position_Number,'PN_','')=act1.Position_Number                     
