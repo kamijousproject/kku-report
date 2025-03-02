@@ -1116,7 +1116,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ) f ON ty.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
                         LEFT JOIN Faculty f2
                         ON f.parent=f2.Faculty
-                        WHERE ty.wf_type1 IS NOT NULL 
+                        -- WHERE ty.wf_type1 IS NOT NULL 
                         ORDER BY ty.faculty";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();

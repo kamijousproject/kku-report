@@ -198,7 +198,7 @@ thead tr:nth-child(3) th {
                     { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },  
                     { key: 'Position', value: row.Position },
                     { key: 'Position_Number', value: row.Position_Number },                            
-                    { key: 'All_PositionTypes', value: row.All_PositionTypes },
+                    { key: 'All_PositionTypes', value: row.all_position_types },
                     { key: 'Job_Family', value: row.Job_Family },
                     { key: 'Retirement_Year', value: row.Retirement_Year, nowrap: true },                                                                                   
                 ];
