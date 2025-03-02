@@ -213,10 +213,12 @@ LEFT JOIN budget_planning_allocated_annual_budget_plan baap
 	 AND baap.Project = bap.Project
 	 AND baap.Plan = bap.Plan
 	 AND baap.Sub_Plan = bap.Sub_Plan
-	 AND baap.`Account` = bap.`Account`";
+	 AND baap.`Account` = bap.`Account`
+     WHERE ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
 
         if ($faculty) {
-            $query .= " WHERE bap.Faculty = :faculty";
+            $query .= " AND bap.Faculty = :faculty
+             ";
         }
 
         $query .= " GROUP BY 
