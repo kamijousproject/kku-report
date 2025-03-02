@@ -1,7 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>     
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
 
+.content-body {
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto; /* Scrollable content only inside table */
+    max-height: 60vh; /* Set a fixed height */
+    border: 1px solid #ccc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+thead tr:nth-child(1) th {
+    position: sticky;
+    top: 0;
+    background: #f4f4f4;
+    z-index: 1000;
+}
+
+thead tr:nth-child(2) th {
+    position: sticky;
+    top: 85px; /* Adjust height based on previous row */
+    background: #f4f4f4;
+    z-index: 999;
+}
+
+thead tr:nth-child(3) th {
+    position: sticky;
+    top: 105px; /* Adjust height based on previous rows */
+    background: #f4f4f4;
+    z-index: 998;
+}
+
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -16,7 +77,7 @@
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานการสรุป คำขออัตราใหม่และอัตราเดิม (หลังจากส่วนงาน/หน่วยงาน กรอกคำขออัตราเดิมและอัตราใหม่)</span></h4>
+                        <h4>รายงานการสรุป คำขออัตราใหม่และอัตราเดิม </span></h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
@@ -31,7 +92,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>(หลังจากส่วนงาน/หน่วยงาน กรอกคำขออัตราเดิมและอัตราใหม่)</h4>
+                                    <h4>รายงานการสรุป คำขออัตราใหม่และอัตราเดิม</h4>
                                 </div>
                                 <label for="category">เลือกส่วนงาน:</label>
                                 <select name="category" id="category" onchange="fetchData()">
@@ -174,8 +235,8 @@
                     { key: 'division_revenue', value: (parseFloat(row.division_revenue|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
                     { key: 'oop_central_revenue', value: (parseFloat(row.oop_central_revenue|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
                     { key: 'Location_Code', value: row.Location_Code },
-                    { key: 'Position_Status', value: row.Position_Status },
-                    { key: 'Vacant_From_Which_Date', value: row.Vacant_From_Which_Date },
+                    { key: 'WORKING_STATUS', value: row.WORKING_STATUS },
+                    { key: 'RETIREMENT_DATE', value: row.RETIREMENT_DATE },
                     { key: 'Performance_Evaluation', value: row.Performance_Evaluation },
                     { key: 'Performance_Evaluation_Percentage', value: row.Performance_Evaluation_Percentage },                            
                     { key: 'Wish_to_Continue_Employement', value: row.Wish_to_Continue_Employement },
@@ -195,66 +256,66 @@
         }
         function exportCSV() {
             const table = document.getElementById('reportTable');
-            const csvRows = [];
+            const numRows = table.rows.length;
 
-            // วนลูปทีละ <tr>
-            for (const row of table.rows) {
-                // เก็บบรรทัดย่อยของแต่ละเซลล์
-                const cellLines = [];
-                let maxSubLine = 1;
-
-                // วนลูปทีละเซลล์ <td>/<th>
-                for (const cell of row.cells) {
-                    let html = cell.innerHTML;
-
-                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                    html = html.replace(/(&nbsp;)+/g, (match) => {
-                        const count = match.match(/&nbsp;/g).length;
-                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                    });
-
-                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                    html = html.replace(/<br\s*\/?>/gi, '\n');
-
-                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                    // html = html.replace(/<\/?[^>]+>/g, '');
-
-                    // 4) แยกเป็น array บรรทัดย่อย
-                    const lines = html.split('\n').map(x => x.trimEnd());
-                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
-
-                    if (lines.length > maxSubLine) {
-                        maxSubLine = lines.length;
-                    }
-
-                    cellLines.push(lines);
+            // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
+            let maxCols = 0;
+            for (let row of table.rows) {
+                let colCount = 0;
+                for (let cell of row.cells) {
+                    colCount += cell.colSpan || 1;
                 }
+                maxCols = Math.max(maxCols, colCount);
+            }
 
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-                for (let i = 0; i < maxSubLine; i++) {
-                    const rowData = [];
+            // สร้างตาราง 2D เก็บค่าจากตาราง HTML
+            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
 
-                    // วนลูปแต่ละเซลล์
-                    for (const lines of cellLines) {
-                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                        // Escape double quotes
-                        text = text.replace(/"/g, '""');
-                        // ครอบด้วย ""
-                        text = `"${text}"`;
-                        rowData.push(text);
+            // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
+            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const row = table.rows[rowIndex];
+                let colIndex = 0;
+
+                for (const cell of row.cells) {
+                    // ขยับไปช่องว่างที่ยังไม่มีข้อมูล (เผื่อช่องก่อนหน้าถูก merge)
+                    while (cellMap[rowIndex][colIndex]) {
+                        colIndex++;
                     }
 
-                    csvRows.push(rowData.join(','));
+                    let text = cell.textContent.trim().replace(/"/g, '""'); // Escape double quotes
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ใส่ข้อมูลลงในช่องเริ่มต้นของ cell ที่ merge
+                    csvMatrix[rowIndex][colIndex] = `"${text}"`;
+
+                    // ทำเครื่องหมายว่า cell นี้ครอบคลุมพื้นที่ไหนบ้าง
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            cellMap[rowIndex + r][colIndex + c] = true;
+
+                            // ช่องที่ไม่ใช่ช่องเริ่มต้นของเซลล์ merge ให้เป็นว่าง (เพื่อไม่ให้ข้อมูลซ้ำ)
+                            if (r !== 0 || c !== 0) {
+                                csvMatrix[rowIndex + r][colIndex + c] = '""';
+                            }
+                        }
+                    }
+
+                    // ขยับ index ไปยังเซลล์ถัดไป
+                    colIndex += colspan;
                 }
             }
 
-            // รวมเป็น CSV + BOM
-            const csvContent = "\uFEFF" + csvRows.join("\n");
+            // แปลงข้อมูลเป็น CSV
+            const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานการสรุป คำขออัตราใหม่และอัตราเดิม (หลังจากส่วนงาน/หน่วยงาน กรอกคำขออัตราเดิมและอัตราใหม่).csv';
+            link.download = 'report.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -392,7 +453,7 @@
         }
     });
     
-    doc.save('รายงานการสรุป คำขออัตราใหม่และอัตราเดิม (หลังจากส่วนงาน-หน่วยงาน กรอกคำขออัตราเดิมและอัตราใหม่).pdf');
+    doc.save('รายงานการสรุป คำขออัตราใหม่และอัตราเดิม.pdf');
 }
 
 
@@ -466,7 +527,7 @@
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
             // เขียนไฟล์ Excel
-            XLSX.writeFile(wb, 'รายงานการสรุป คำขออัตราใหม่และอัตราเดิม (หลังจากส่วนงาน/หน่วยงาน กรอกคำขออัตราเดิมและอัตราใหม่).xlsx');
+            XLSX.writeFile(wb, 'รายงานการสรุป คำขออัตราใหม่และอัตราเดิม.xlsx');
         }
     </script>
     <!-- Common JS -->

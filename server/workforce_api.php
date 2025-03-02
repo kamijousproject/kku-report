@@ -1261,6 +1261,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 								,a1.rate_status,a1.salary_rate,a1.fund_ft,a1.govt_fund,a1.division_revenue,a1.oop_central_revenue
 								,a1.Vacant_From_Which_Date,a1.Hiring_Start_End_Date,a1.Position_Status
 								,a1.Location_Code,NULL AS Requested_HC_unit
+								,a1.WORKING_STATUS
+								,a1.RETIREMENT_DATE
                         FROM w1
                         LEFT JOIN workforce_hcm_actual a1
                         ON replace(w1.Position_Number,'PN_','')=a1.Position_Number)
@@ -1293,7 +1295,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             NULL AS Hiring_Start_End_Date,
                             NULL AS Position_Status,
                             Field_of_Study COLLATE utf8mb4_general_ci AS Location_Code,
-                            Requested_HC_unit
+                            Requested_HC_unit,
+                            NULL AS WORKING_STATUS,
+                            NULL AS RETIREMENT_DATE
                         FROM workforce_new_position_request)
                         ,all_data AS (
                         SELECT * FROM act1
