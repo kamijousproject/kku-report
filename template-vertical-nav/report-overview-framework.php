@@ -223,7 +223,7 @@ thead tr:nth-child(3) th {
                     { key: 'Govt_Fund', value: (parseFloat(row.Govt_Fund|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
                     { key: 'Division_Revenue', value: (parseFloat(row.Division_Revenue|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')  },
                     { key: 'OOP_Central_Revenue', value: (parseFloat(row.OOP_Central_Revenue || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },  
-                    { key: 'Contract_Period', value: "" },                                                                            
+                    { key: 'Contract_Period', value: row.Hiring_Start_End_Date },                                                                            
                 ];
 
                 columns.forEach(col => {

@@ -731,20 +731,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH CURRENT AS (
                         SELECT 'อัตราเดิม' COLLATE utf8mb4_general_ci AS TYPE 
-                        ,Personnel_Type COLLATE UTF8MB4_GENERAL_CI AS Personnel_Type
-                        ,Faculty COLLATE UTF8MB4_GENERAL_CI AS Faculty
-                        ,All_PositionTypes COLLATE UTF8MB4_GENERAL_CI AS All_PositionTypes
-                        ,POSITION COLLATE UTF8MB4_GENERAL_CI AS POSITION
-                        ,replace(Position_Number,'PN_','') COLLATE UTF8MB4_GENERAL_CI AS Position_Number
-                        ,Fund_FT COLLATE UTF8MB4_GENERAL_CI AS Fund_FT
-                        ,COALESCE(Salary_rate,0) COLLATE UTF8MB4_GENERAL_CI AS Salary_rate
-                        ,COALESCE(Govt_Fund,0) COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
-                        ,COALESCE(Division_Revenue,0) COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
-                        ,COALESCE(OOP_Central_Revenue,0) COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
-                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Workers_Name_Surname
-                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Position_Qualififcations
-                        ,'' COLLATE UTF8MB4_GENERAL_CI AS Employment_Type
-                        FROM workforce_current_positions_allocation)
+                        ,w.Personnel_Type COLLATE UTF8MB4_GENERAL_CI AS Personnel_Type
+                        ,w.Faculty COLLATE UTF8MB4_GENERAL_CI AS Faculty
+                        ,w.All_PositionTypes COLLATE UTF8MB4_GENERAL_CI AS All_PositionTypes
+                        ,w.POSITION COLLATE UTF8MB4_GENERAL_CI AS POSITION
+                        ,replace(w.Position_Number,'PN_','') COLLATE UTF8MB4_GENERAL_CI AS Position_Number
+                        ,w.Fund_FT COLLATE UTF8MB4_GENERAL_CI AS Fund_FT
+                        ,COALESCE(w.Salary_rate,0) COLLATE UTF8MB4_GENERAL_CI AS Salary_rate
+                        ,COALESCE(w.Govt_Fund,0) COLLATE UTF8MB4_GENERAL_CI AS Govt_Fund
+                        ,COALESCE(w.Division_Revenue,0) COLLATE UTF8MB4_GENERAL_CI AS Division_Revenue
+                        ,COALESCE(w.OOP_Central_Revenue,0) COLLATE UTF8MB4_GENERAL_CI AS OOP_Central_Revenue
+                        ,w2.WORKERS_NAME_SURNAME COLLATE UTF8MB4_GENERAL_CI AS Workers_Name_Surname
+                        ,w2.POSITION_QUALIFIFCATIONS COLLATE UTF8MB4_GENERAL_CI AS Position_Qualififcations
+                        ,w2.EMPLOYMENT_TYPE COLLATE UTF8MB4_GENERAL_CI AS Employment_Type
+                        ,w2.HIRING_START_END_DATE COLLATE UTF8MB4_GENERAL_CI AS Hiring_Start_End_Date
+                        FROM workforce_current_positions_allocation w
+								LEFT JOIN workforce_hcm_actual w2
+								ON replace(w.Position_Number,'PN_','')=w2.POSITION_NUMBER)
                         , NEW AS (
                         SELECT 'อัตราใหม่'AS TYPE 
                         ,w.Approved_Personnel_Type
@@ -760,6 +763,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,COALESCE(NULLIF(w.Name_Surname_If_change, ''),w2.Workers_Name_Surname) AS Workers_Name_Surname
                         ,w2.Position_Qualififcations AS Position_Qualififcations
                         ,w2.Employment_Type
+                        ,w2.Hiring_Start_End_Date
                         FROM workforce_new_positions_allocation w
 								LEFT JOIN workforce_new_position_request w2
 								ON w.Job_Code=w2.Job_Code COLLATE UTF8MB4_GENERAL_CI)
