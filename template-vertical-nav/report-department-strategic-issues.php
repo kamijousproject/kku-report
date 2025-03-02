@@ -125,6 +125,11 @@
         </div>
     </div>
     <script>
+        let totalOKRProgress;
+        let alltotalOKRProgress = 0;
+        let totalSO = 0;
+        let totalOKR = 0;
+        let totalKSP = 0;
         let report_plan_status = [];
         let filterdata = []
         let categories = new Set();
@@ -195,11 +200,7 @@
             let previousSOName = '';
             let previousOKRCode = '';
             let previousOKRName = '';
-            let totalOKRProgress;
-            let alltotalOKRProgress = 0;
-            let totalSO = 0;
-            let totalOKR = 0;
-            let totalKSP = 0;
+
             const siStats = {}; // เก็บข้อมูล SO, OKR และ KSP ที่ไม่ซ้ำภายในแต่ละ SI
 
 
@@ -218,13 +219,13 @@
                 siStats[row.si_name].kspSet.add(row.ksp_name);
 
                 // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
-                
+
                 if (!siStats[row.si_name].okrProgress[row.okr_name]) {
                     siStats[row.si_name].okrProgress[row.okr_name] = Math.min(
-                                parseFloat((row.Quarter_Progress_Value / row.Target_OKR_Objective_and_Key_Result) * 100) || 0,
-                                100
-                            );
-                   
+                        parseFloat((row.Quarter_Progress_Value / row.Target_OKR_Objective_and_Key_Result) * 100) || 0,
+                        100
+                    );
+
                 }
             });
 
@@ -291,7 +292,7 @@
             const tableFooter = document.querySelector('#reportTableFooter');
             tableFooter.innerHTML = '';
             const footerRow = document.createElement('tr');
-            
+
             const footerTd1 = document.createElement('td');
             footerTd1.textContent = 'รวม';
             footerTd1.colSpan = 3;
@@ -314,7 +315,7 @@
             footerRow.appendChild(footerTd5);
 
             // เพิ่มแถวผลรวมไปยัง <tfoot>
-            
+
             tableFooter.appendChild(footerRow);
 
         }
@@ -344,42 +345,148 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 40
+                    },
+                    1: {
+                        cellWidth: 40
+                    },
+                    2: {
+                        cellWidth: 130
+                    },
+                    3: {
+                        cellWidth: 20
+                    },
+                    4: {
+                        cellWidth: 20
+                    },
+                    5: {
+                        cellWidth: 20
+                    },
+                    6: {
+                        cellWidth: 20
+                    }
+                },
+                didDrawPage: function(data) {
+                    // Header
+                    doc.setFontSize(16);
+                    doc.text('รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับมหาวิทยาลัย)', 14, 15);
+
+                    // Footer (แสดงแค่ที่ท้ายตาราง)
+                    const pageSize = doc.internal.pageSize;
+                    const pageWidth = pageSize.width;
+                    const pageHeight = pageSize.height;
+
+                    // ข้อความ footer (แก้หมายเลขหน้า)
+                    const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+                    const totalPages = doc.internal.getNumberOfPages();
+
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + currentPage + ' จาก ' + totalPages,
+                        pageWidth - 20,
+                        pageHeight - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Footer row content for table with background color #F2F2F2
+                foot: [
+                    [{
+                            content: 'รวม',
+                            colSpan: 3,
+
+                        },
+                        {
+                            content: totalSO,
+
+                        },
+                        {
+                            content: totalOKR,
+
+                        },
+                        {
+                            content: totalKSP,
+
+                        },
+                        {
+                            content: (alltotalOKRProgress / totalOKR).toFixed(2) + ' %',
+
+                        }
+                    ]
+                ],
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index === 3 || data.column.index === 4 || data.column.index === 5 || data.column.index === 6) {
+                            data.cell.styles.halign = 'right';
+                        } else {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = '#dbe5f1'; // Add the background color for the footer cells
+                        data.cell.styles.textColor = [0, 0, 0];
+                        if (data.column.index === 0) {
+                            data.cell.styles.halign = 'center'; // Align the first and last columns to center
+                        } else {
+                            data.cell.styles.halign = 'right'; // Align other columns to right
+                        }
+                    }
+                },
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 25,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับมหาวิทยาลัย).pdf');
         }
+
 
         function exportXLS() {
             const rows = [];

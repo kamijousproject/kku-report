@@ -94,7 +94,7 @@
                                                 <th class="align-middle" rowspan="2">หน่วยนับ</th>
                                                 <th class="align-middle" rowspan="2">รหัส</th>
                                                 <th class="align-middle" rowspan="2">แผนงาน/โครงการ</th>
-                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ</th>
+                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ (บาท)</th>
                                                 <th colspan="2">ระยะเวลาที่ดำเนินการ</th>
                                                 <th class="align-middle" rowspan="2">ระดับและการปรับใช้</th>
                                                 <th class="align-middle" rowspan="2">ผู้รับผิดชอบ</th>

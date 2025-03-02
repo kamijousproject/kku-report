@@ -48,6 +48,7 @@
         z-index: 9;
     }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -93,7 +94,7 @@
                                                 <th class="align-middle" rowspan="2">หน่วยนับ</th>
                                                 <th class="align-middle" rowspan="2">รหัส</th>
                                                 <th class="align-middle" rowspan="2">แผนงาน/โครงการ</th>
-                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ</th>
+                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ (บาท)</th>
                                                 <th colspan="2">ระยะเวลาที่ดำเนินการ</th>
                                                 <th class="align-middle" rowspan="2">ระดับและการปรับใช้</th>
                                                 <th class="align-middle" rowspan="2">ผู้รับผิดชอบ</th>
@@ -152,66 +153,59 @@
                     response.plan.forEach(row => {
                         const tr = document.createElement('tr');
 
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td1 = document.createElement('td');
-                        td1.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                        const createCell = (text, align = "left") => {
+                            const td = document.createElement('td');
+                            td.textContent = text;
+                            td.style.textAlign = align; // กำหนดให้ชิดซ้าย
+                            return td;
+                        };
+
+                        const td1 = createCell(row.si_code === previousSICode ? '' : row.si_code);
                         tr.appendChild(td1);
 
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                        const td2 = createCell(row.si_name === previousSIName ? '' : row.si_name);
                         tr.appendChild(td2);
 
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                        const td3 = createCell(row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object);
                         tr.appendChild(td3);
 
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                        const td4 = createCell(row.so_name === previousSOName ? '' : row.so_name);
                         tr.appendChild(td4);
 
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.OKR;
+                        const td5 = createCell(row.OKR);
                         tr.appendChild(td5);
 
-                        const td6 = document.createElement('td');
-                        td6.textContent = row.okr_name;
+                        const td6 = createCell(row.okr_name);
                         tr.appendChild(td6);
 
-                        const td7 = document.createElement('td');
-                        td7.textContent = row.Target_OKR_Objective_and_Key_Result;
+                        const td7 = createCell(row.Target_OKR_Objective_and_Key_Result, "right");
                         tr.appendChild(td7);
 
-                        const td8 = document.createElement('td');
-                        td8.textContent = row.UOM;
+                        const td8 = createCell(row.UOM);
                         tr.appendChild(td8);
 
-                        const td9 = document.createElement('td');
-                        td9.textContent = row.Strategic_Project;
+                        const td9 = createCell(row.Strategic_Project);
                         tr.appendChild(td9);
 
-                        const td10 = document.createElement('td');
-                        td10.textContent = row.ksp_name;
+                        const td10 = createCell(row.ksp_name);
                         tr.appendChild(td10);
 
-                        const td11 = document.createElement('td');
-                        td11.textContent = Number(row.Budget_Amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                        const td11 = createCell(Number(row.Budget_Amount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }), "right");
                         tr.appendChild(td11);
 
-                        const td12 = document.createElement('td');
-                        td12.textContent = row.Start_Date;
+                        const td12 = createCell(row.Start_Date);
                         tr.appendChild(td12);
 
-                        const td13 = document.createElement('td');
-                        td13.textContent = row.End_Date;
+                        const td13 = createCell(row.End_Date);
                         tr.appendChild(td13);
 
-                        const td14 = document.createElement('td');
-                        td14.textContent = row.Tiers_Deploy;
+                        const td14 = createCell(row.Tiers_Deploy);
                         tr.appendChild(td14);
 
-                        const td15 = document.createElement('td');
-                        td15.textContent = row.Responsible_person;
+                        const td15 = createCell(row.Responsible_person);
                         tr.appendChild(td15);
 
 
@@ -258,41 +252,137 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 10
+                    },
+                    1: {
+                        cellWidth: 30
+                    },
+                    2: {
+                        cellWidth: 10
+                    },
+                    3: {
+                        cellWidth: 30
+                    },
+                    4: {
+                        cellWidth: 10
+                    },
+                    5: {
+                        cellWidth: 30
+                    },
+                    6: {
+                        cellWidth: 10
+                    },
+                    7: {
+                        cellWidth: 10
+                    },
+                    8: {
+                        cellWidth: 10
+                    },
+                    9: {
+                        cellWidth: 30
+                    },
+                    10: {
+                        cellWidth: 30
+                    },
+                    11: {
+                        cellWidth: 20
+                    },
+                    12: {
+                        cellWidth: 20
+                    },
+                    13: {
+                        cellWidth: 20
+                    },
+                    14: {
+                        cellWidth: 20
+                    },
+
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(16);
+                    doc.text('รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน', 14, 15);
+
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20,
+                        doc.internal.pageSize.height - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index === 6 || data.column.index === 10) {
+                            data.cell.styles.halign = 'right';
+                        } else {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle table width
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 15,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน.pdf');
         }
 
         function exportXLS() {

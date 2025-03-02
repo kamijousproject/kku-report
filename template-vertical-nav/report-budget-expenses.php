@@ -140,28 +140,28 @@
                                     
                                 });
                                 if(index+1==1){
-                                    var str='<tr><td rowspan="14" >'+$('#dropdown1 option:selected').text()+'</td>'+
+                                    var str='<tr><td  style="text-align: left;">'+$('#dropdown1 option:selected').text()+'</td>'+
                                         '<td nowrap style="text-align: left;">'+row.pillar_name+'</td>'+
-                                        '<td>'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td>'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td>'+(parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+                                        '<td style="text-align: right;">'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td style="text-align: right;">'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td style="text-align: right;">'+(parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
                                     tableBody.insertAdjacentHTML('beforeend', str);
                                 }else{
-                                    var str='<tr>'+
+                                    var str='<tr><td >'+
                                         '<td nowrap style="text-align: left;">'+row.pillar_name+'</td>'+
-                                        '<td>'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td>'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td>'+(parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+                                        '<td style="text-align: right;">'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td style="text-align: right;">'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td style="text-align: right;">'+(parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
                                     tableBody.insertAdjacentHTML('beforeend', str);
                                 }
                                 
                             }
                             else{
-                                var str='<tr>'+
+                                var str='<tr><td >'+
                                         '<td nowrap style="text-align: left;">'+'&nbsp;'.repeat(8)+row.pillar_name+'</td>'+
-                                        '<td>'+(parseFloat(row.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td>'+(parseFloat(row.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td>'+(parseFloat(row.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+                                        '<td style="text-align: right;">'+(parseFloat(row.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td style="text-align: right;">'+(parseFloat(row.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
+                                        '<td style="text-align: right;">'+(parseFloat(row.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
                                 tableBody.insertAdjacentHTML('beforeend', str);
                             }
                             
@@ -248,45 +248,101 @@
     }
 
     function exportPDF() {
-        const {
-            jsPDF
-        } = window.jspdf;
-        const doc = new jsPDF('landscape');
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-        // เพิ่มฟอนต์ภาษาไทย
-        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-        doc.setFont("THSarabun");
+    // เพิ่มฟอนต์ภาษาไทย
+    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+    doc.setFont("THSarabun");
 
-        // ตั้งค่าฟอนต์และข้อความ
-        doc.setFontSize(12);
-        doc.text("รายงานการใช้จ่ายงบประมาณตามแผนงาน", 10, 10);
+    // จัดการตาราง
+    doc.autoTable({
+        html: '#reportTable',
+        startY: 25,
+        theme: 'grid',
+        styles: {
+            font: "THSarabun",
+            fontSize: 8,
+            cellPadding: 1.5,
+            lineWidth: 0.1,
+            lineColor: [0, 0, 0],
+            minCellHeight: 6
+        },
+        headStyles: {
+            fillColor: [220, 230, 241],
+            textColor: [0, 0, 0],
+            fontSize: 9,
+            fontStyle: 'bold',
+            halign: 'center',
+            valign: 'middle',
+            minCellHeight: 12
+        },
+        columnStyles: {
+            0: { cellWidth: 50 },
+            1: { cellWidth: 150 },
+            2: { cellWidth: 30 },
+            3: { cellWidth: 30 },
+            4: { cellWidth: 30 }
+        },
+        margin: { top: 25, right: 7, bottom: 15, left: 7 },
+        tableWidth: 'auto',
+        
+        didParseCell: function (data) {
+            // ตรวจจับ rowspan
+            if (data.cell.rowSpan > 1) {
+                data.cell.styles.valign = 'middle'; // จัดให้อยู่ตรงกลาง
+                data.cell.styles.halign = 'center';
+            }
 
-        // ใช้ autoTable สำหรับสร้างตาราง
-        doc.autoTable({
-            html: '#reportTable',
-            startY: 20,
-            styles: {
-                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                fontSize: 10,
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            bodyStyles: {
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            headStyles: {
-                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-        });
+            // จัดแนวข้อมูล
+            if (data.section === 'head') {
+                data.cell.styles.halign = 'center';
+            }
+            if (data.section === 'body') {
+                if ([2, 3, 4].includes(data.column.index)) {
+                    data.cell.styles.halign = 'right';
+                } else {
+                    data.cell.styles.halign = 'left';
+                }
+            }
+        },
 
-        // บันทึกไฟล์ PDF
-        doc.save('รายงาน.pdf');
-    }
+        didDrawCell: function (data) {
+            // ตรวจจับเซลล์ที่ข้ามหน้าใหม่
+            if (data.row.section === 'body' && data.cell.raw.hasAttribute('rowspan')) {
+                let cellY = data.cell.y;
+                let pageHeight = doc.internal.pageSize.height;
+
+                // ถ้าตำแหน่งเซลล์ต่ำกว่าขอบล่างของหน้า ให้ขึ้นหน้าใหม่
+                if (cellY + data.cell.height > pageHeight - 20) {
+                    doc.addPage();
+                    doc.autoTable.previous.finalY = 25; // รีเซ็ตตำแหน่ง Y
+                }
+            }
+        },
+
+        didDrawPage: function (data) {
+            // หัวกระดาษ
+            doc.setFontSize(16);
+            doc.text('รายงานการใช้จ่ายงบประมาณตามแผนงาน', 14, 15);
+
+            // หมายเลขหน้า
+            doc.setFontSize(10);
+            doc.text(
+                'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                doc.internal.pageSize.width - 20,
+                doc.internal.pageSize.height - 10, {
+                    align: 'right'
+                }
+            );
+        }
+    });
+
+    // บันทึกเป็นไฟล์ PDF
+    doc.save('รายงานการใช้จ่ายงบประมาณ.pdf');
+}
+
 
     function exportXLS() {
     const table = document.getElementById('reportTable');

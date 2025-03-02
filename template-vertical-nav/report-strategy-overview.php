@@ -167,102 +167,87 @@
                     response.plan.forEach(row => {
                         const tr = document.createElement('tr');
 
-                        // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td1 = document.createElement('td');
-                        td1.textContent = row.Faculty === previousFacultyCode ? '' : row.Faculty;;
+                        const createCell = (text, align = "left") => {
+                            const td = document.createElement("td");
+                            td.textContent = text; 
+                            td.style.textAlign = align; // กำหนดการจัดตำแหน่งข้อความ
+                            return td;
+                        };
+
+                        // ใช้ createCell() แทนการสร้าง td ด้วยตัวเอง
+                        const td1 = createCell(row.Faculty === previousFacultyCode ? "" : row.Faculty);
                         tr.appendChild(td1);
 
-                        // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                        const td2 = document.createElement('td');
-                        td2.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                        const td2 = createCell(row.fa_name === previousFacultyName ? "" : row.fa_name);
                         tr.appendChild(td2);
 
-                        const td3 = document.createElement('td');
-                        td3.textContent = row.pilar_code === previousPilarCode ? '' : row.pilar_code;
+                        const td3 = createCell(row.pilar_code === previousPilarCode ? "" : row.pilar_code);
                         tr.appendChild(td3);
 
-                        const td4 = document.createElement('td');
-                        td4.textContent = row.pillar_name === previousPilarName ? '' : row.pillar_name;
+                        const td4 = createCell(row.pillar_name === previousPilarName ? "" : row.pillar_name);
                         tr.appendChild(td4);
 
-                        const td5 = document.createElement('td');
-                        td5.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                        const td5 = createCell(row.si_code === previousSICode ? "" : row.si_code);
                         tr.appendChild(td5);
 
-                        const td6 = document.createElement('td');
-                        td6.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                        const td6 = createCell(row.si_name === previousSIName ? "" : row.si_name);
                         tr.appendChild(td6);
 
-                        const td7 = document.createElement('td');
-                        td7.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                        const td7 = createCell(row.Strategic_Object === previousSOCode ? "" : row.Strategic_Object);
                         tr.appendChild(td7);
 
-                        const td8 = document.createElement('td');
-                        td8.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                        const td8 = createCell(row.so_name === previousSOName ? "" : row.so_name);
                         tr.appendChild(td8);
 
-                        const td9 = document.createElement('td');
-                        td9.textContent = row.Strategic_Project;
+                        const td9 = createCell(row.Strategic_Project);
                         tr.appendChild(td9);
 
-                        const td10 = document.createElement('td');
-                        td10.textContent = row.ksp_name;
+                        const td10 = createCell(row.ksp_name);
                         tr.appendChild(td10);
 
-                        const td11 = document.createElement('td');
-                        td11.textContent = row.OKR;
+                        const td11 = createCell(row.OKR);
                         tr.appendChild(td11);
 
-                        const td12 = document.createElement('td');
-                        td12.textContent = row.okr_name;
+                        const td12 = createCell(row.okr_name);
                         tr.appendChild(td12);
 
-                        const td13 = document.createElement('td');
-                        td13.textContent = row.UOM;
+                        const td13 = createCell(row.UOM);
                         tr.appendChild(td13);
 
-                        const td14 = document.createElement('td');
-                        td14.textContent = null;
+                        // ใส่ค่า null ให้เป็นช่องว่างแทน
+                        const td14 = createCell("");
                         tr.appendChild(td14);
 
-                        const td15 = document.createElement('td');
-                        td15.textContent = null;
+                        const td15 = createCell("");
                         tr.appendChild(td15);
 
-                        const td16 = document.createElement('td');
-                        td16.textContent = null;
+                        const td16 = createCell("");
                         tr.appendChild(td16);
 
-                        const td17 = document.createElement('td');
-                        td17.textContent = null;
+                        const td17 = createCell("");
                         tr.appendChild(td17);
 
-                        const td18 = document.createElement('td');
-                        td18.textContent = row.Y1;
+                        const td18 = createCell(row.Y1, "right");
                         tr.appendChild(td18);
 
-                        const td19 = document.createElement('td');
-                        td19.textContent = row.Y2;
+                        const td19 = createCell(row.Y2, "right");
                         tr.appendChild(td19);
 
-                        const td20 = document.createElement('td');
-                        td20.textContent = row.Y3;
+                        const td20 = createCell(row.Y3, "right");
                         tr.appendChild(td20);
 
-                        const td21 = document.createElement('td');
-                        td21.textContent = row.Y4;
+                        const td21 = createCell(row.Y4, "right");
                         tr.appendChild(td21);
 
-                        const td22 = document.createElement('td');
-                        td22.textContent = Number(row.Budget_Amount).toLocaleString('en-US', {
+                        const td22 = createCell(Number(row.Budget_Amount).toLocaleString("en-US", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2
-                        });
+                        }), "right");
                         tr.appendChild(td22);
 
-                        const td23 = document.createElement('td');
-                        td23.textContent = row.Responsible_person;
+                        const td23 = createCell(row.Responsible_person);
                         tr.appendChild(td23);
+
 
 
                         tableBody.appendChild(tr);
@@ -312,41 +297,161 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 10
+                    },
+                    1: {
+                        cellWidth: 20
+                    },
+                    2: {
+                        cellWidth: 10
+                    },
+                    3: {
+                        cellWidth: 20
+                    },
+                    4: {
+                        cellWidth: 10
+                    },
+                    5: {
+                        cellWidth: 25
+                    },
+                    6: {
+                        cellWidth: 10
+                    },
+                    7: {
+                        cellWidth: 25
+                    },
+                    8: {
+                        cellWidth: 10
+                    },
+                    9: {
+                        cellWidth: 25
+                    },
+                    10: {
+                        cellWidth: 10
+                    },
+                    11: {
+                        cellWidth: 25
+                    },
+                    12: {
+                        cellWidth: 10
+                    },
+                    13: {
+                        cellWidth: 5
+                    },
+                    14: {
+                        cellWidth: 5
+                    },
+                    15: {
+                        cellWidth: 5
+                    },
+                    16: {
+                        cellWidth: 5
+                    },
+                    17: {
+                        cellWidth: 5
+                    },
+                    18: {
+                        cellWidth: 5
+                    },
+                    19: {
+                        cellWidth: 5
+                    },
+                    20: {
+                        cellWidth: 5
+                    },
+                    21: {
+                        cellWidth: 20
+                    },
+                    22: {
+                        cellWidth: 20
+                    },
+
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(16);
+                    doc.text('รายงานภาพรวมของยุทธศาสตร์', 14, 15);
+
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20,
+                        doc.internal.pageSize.height - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index === 17 || data.column.index === 18 || data.column.index === 19 || data.column.index === 20 || data.column.index === 21) {
+                            data.cell.styles.halign = 'right';
+                        } else {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle table width
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 15,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานภาพรวมของยุทธศาสตร์.pdf');
         }
 
         function exportXLS() {

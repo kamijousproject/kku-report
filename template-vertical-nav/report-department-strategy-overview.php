@@ -353,41 +353,157 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 10
+                    },
+                    1: {
+                        cellWidth: 20
+                    },
+                    2: {
+                        cellWidth: 10
+                    },
+                    3: {
+                        cellWidth: 20
+                    },
+                    4: {
+                        cellWidth: 10
+                    },
+                    5: {
+                        cellWidth: 25
+                    },
+                    6: {
+                        cellWidth: 10
+                    },
+                    7: {
+                        cellWidth: 25
+                    },
+                    8: {
+                        cellWidth: 10
+                    },
+                    9: {
+                        cellWidth: 25
+                    },
+                    10: {
+                        cellWidth: 10
+                    },
+                    11: {
+                        cellWidth: 25
+                    },
+                    12: {
+                        cellWidth: 10
+                    },
+                    13: {
+                        cellWidth: 5
+                    },
+                    14: {
+                        cellWidth: 5
+                    },
+                    15: {
+                        cellWidth: 5
+                    },
+                    16: {
+                        cellWidth: 5
+                    },
+                    17: {
+                        cellWidth: 5
+                    },
+                    18: {
+                        cellWidth: 5
+                    },
+                    19: {
+                        cellWidth: 5
+                    },
+                    20: {
+                        cellWidth: 5
+                    },
+                    21: {
+                        cellWidth: 20
+                    },
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(16);
+                    doc.text('รายงานภาพรวมยุทธศาสตร์ ส่วนงาน/หน่วยงาน', 14, 15);
+
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20,
+                        doc.internal.pageSize.height - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index === 17 || data.column.index === 18 || data.column.index === 19 || data.column.index === 20 || data.column.index === 21) {
+                            data.cell.styles.halign = 'right';
+                        } else {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle table width
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 15,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานภาพรวมยุทธศาสตร์ ส่วนงาน/หน่วยงาน.pdf');
         }
 
         function exportXLS() {

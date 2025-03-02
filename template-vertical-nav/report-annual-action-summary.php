@@ -48,6 +48,7 @@
         z-index: 9;
     }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -100,8 +101,8 @@
                                                 <th>ผลงาน รวม</th>
                                                 <th>ร้อยละ ความสำเร็จ</th>
                                                 <th>รายละเอียดผลการดำเนินงาน</th>
-                                                <th>งบประมาณที่ได้รับจัดสรร</th>
-                                                <th>งบประมาณที่ใช้</th>
+                                                <th>งบประมาณที่ได้รับจัดสรร (บาท)</th>
+                                                <th>งบประมาณที่ใช้ (บาท)</th>
                                                 <th>ผู้รับผิดชอบหลัก</th>
                                             </tr>
                                         </thead>
@@ -172,21 +173,21 @@
                         }
                         siStats[row.okr_name].kspSet.add(row.ksp_name);
 
-                       // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
-                       if (!siStats[row.okr_name].okrProgress[row.ksp_name]) {
-                            siStats[row.okr_name].okrProgress[row.ksp_name] = parseFloat((row.Quarter_Progress_Value/row.Target_OKR_Objective_and_Key_Result)*100) || 0;
+                        // ถ้า OKR ยังไม่มีใน okrProgress ให้เริ่มเก็บค่า
+                        if (!siStats[row.okr_name].okrProgress[row.ksp_name]) {
+                            siStats[row.okr_name].okrProgress[row.ksp_name] = parseFloat((row.Quarter_Progress_Value / row.Target_OKR_Objective_and_Key_Result) * 100) || 0;
                             siStats[row.okr_name].kspBudget[row.ksp_name] = parseFloat(row.Allocated_budget) || 0;
                             siStats[row.okr_name].kspActual_spend[row.ksp_name] = parseFloat(row.Actual_Spend_Amount) || 0;
                             // console.log(siStats[row.okr_name].okrProgress[row.ksp_name]);
                         }
-                       
+
                     });
 
-                     // แสดงจำนวน SO, OKR, KSP ที่ไม่ซ้ำ และผลรวมของ Quarter_Progress_Value ของ OKR ที่ไม่ซ้ำ
-                     Object.keys(siStats).forEach(si => {
-                         totalOKR = Object.values(siStats[si].okrProgress).reduce((sum, value) => sum + value, 0);
-                         totalBudget = Object.values(siStats[si].kspBudget).reduce((sum, value) => sum + value, 0);
-                         totalActual_spend = Object.values(siStats[si].kspActual_spend).reduce((sum, value) => sum + value, 0);
+                    // แสดงจำนวน SO, OKR, KSP ที่ไม่ซ้ำ และผลรวมของ Quarter_Progress_Value ของ OKR ที่ไม่ซ้ำ
+                    Object.keys(siStats).forEach(si => {
+                        totalOKR = Object.values(siStats[si].okrProgress).reduce((sum, value) => sum + value, 0);
+                        totalBudget = Object.values(siStats[si].kspBudget).reduce((sum, value) => sum + value, 0);
+                        totalActual_spend = Object.values(siStats[si].kspActual_spend).reduce((sum, value) => sum + value, 0);
                         siStats[si].totalOKR = (totalOKR / siStats[si].kspSet.size);
                         siStats[si].totalBudget = totalBudget;
                         siStats[si].totalActual_spend = totalActual_spend;
@@ -199,92 +200,77 @@
                         if (previousOKRName !== row.okr_name) {
                             const tr = document.createElement('tr');
 
-                            // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                            const td1 = document.createElement('td');
-                            td1.textContent = row.pilar_code === previousPilarCode ? '' : row.pilar_code;;
+                            const createCell = (text, align = "left") => {
+                                const td = document.createElement('td');
+                                td.textContent = text;
+                                td.style.textAlign = align;
+                                return td;
+                            };
+
+                            const td1 = createCell(row.pilar_code === previousPilarCode ? '' : row.pilar_code);
                             tr.appendChild(td1);
 
-                            // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                            const td2 = document.createElement('td');
-                            td2.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
+                            const td2 = createCell(row.pilar_name === previousPilarName ? '' : row.pilar_name);
                             tr.appendChild(td2);
 
-                            const td3 = document.createElement('td');
-                            td3.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                            const td3 = createCell(row.si_code === previousSICode ? '' : row.si_code);
                             tr.appendChild(td3);
 
-                            const td4 = document.createElement('td');
-                            td4.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                            const td4 = createCell(row.si_name === previousSIName ? '' : row.si_name);
                             tr.appendChild(td4);
 
-                            const td5 = document.createElement('td');
-                            td5.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                            const td5 = createCell(row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object);
                             tr.appendChild(td5);
 
-                            const td6 = document.createElement('td');
-                            td6.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                            const td6 = createCell(row.so_name === previousSOName ? '' : row.so_name);
                             tr.appendChild(td6);
 
-                            const td7 = document.createElement('td');
-                            td7.textContent = row.OKR === previousOKRCode ? '' : row.OKR;
+                            const td7 = createCell(row.OKR === previousOKRCode ? '' : row.OKR);
                             tr.appendChild(td7);
 
-                            const td8 = document.createElement('td');
-                            td8.textContent = row.okr_name === previousOKRName ? '' : row.okr_name;
+                            const td8 = createCell(row.okr_name === previousOKRName ? '' : row.okr_name);
                             tr.appendChild(td8);
 
-                            const td9 = document.createElement('td');
-                            td9.textContent = row.Target_OKR_Objective_and_Key_Result;
+                            const td9 = createCell(row.Target_OKR_Objective_and_Key_Result, "right");
                             tr.appendChild(td9);
 
-                            const td10 = document.createElement('td');
-                            td10.textContent = row.UOM;
+                            const td10 = createCell(row.UOM);
                             tr.appendChild(td10);
 
-                            const td11 = document.createElement('td');
-                            td11.textContent = row.Quarter_Progress_Value;
+                            const td11 = createCell(row.Quarter_Progress_Value, "right");
                             tr.appendChild(td11);
 
-                            const td12 = document.createElement('td');
-                            td12.textContent = null;
+                            const td12 = createCell(null);
                             tr.appendChild(td12);
 
-                            const td13 = document.createElement('td');
-                            td13.textContent = null;
+                            const td13 = createCell(null);
                             tr.appendChild(td13);
 
-                            const td14 = document.createElement('td');
-                            td14.textContent = null;
+                            const td14 = createCell(null);
                             tr.appendChild(td14);
 
-                            const td15 = document.createElement('td');
-                            td15.textContent = siStats[row.okr_name].kspSet.size;
+                            const td15 = createCell(siStats[row.okr_name].kspSet.size, "right");
                             tr.appendChild(td15);
 
-                            const td16 = document.createElement('td');
-                            td16.textContent = siStats[row.okr_name].totalOKR+' %';
+                            const td16 = createCell(siStats[row.okr_name].totalOKR + ' %', "right");
                             tr.appendChild(td16);
 
-                            const td17 = document.createElement('td');
-                            td17.textContent = row.OKR_Progress_Details;
+                            const td17 = createCell(row.OKR_Progress_Details);
                             tr.appendChild(td17);
 
-                            const td18 = document.createElement('td');
-                            td18.textContent = Number(siStats[row.okr_name].totalBudget).toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });;
-                            tr.appendChild(td18);
-
-                            const td19 = document.createElement('td');
-                            td19.textContent = Number(siStats[row.okr_name].totalActual_spend).toLocaleString('en-US', {
+                            const td18 = createCell(Number(siStats[row.okr_name].totalBudget).toLocaleString('en-US', {
                                 minimumFractionDigits: 2,
                                 maximumFractionDigits: 2
-                            });
+                            }), "right");
+                            tr.appendChild(td18);
+
+                            const td19 = createCell(Number(siStats[row.okr_name].totalActual_spend).toLocaleString('en-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }), "right");
                             tr.appendChild(td19);
 
-                            const td20 = document.createElement('td');
-                            td20.textContent = row.Responsible_person;
+                            const td20 = createCell(row.Responsible_person);
                             tr.appendChild(td20);
 
 
@@ -339,41 +325,151 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 10
+                    },
+                    1: {
+                        cellWidth: 20
+                    },
+                    2: {
+                        cellWidth: 10
+                    },
+                    3: {
+                        cellWidth: 20
+                    },
+                    4: {
+                        cellWidth: 10
+                    },
+                    5: {
+                        cellWidth: 25
+                    },
+                    6: {
+                        cellWidth: 10
+                    },
+                    7: {
+                        cellWidth: 25
+                    },
+                    8: {
+                        cellWidth: 10
+                    },
+                    9: {
+                        cellWidth: 15
+                    },
+                    10: {
+                        cellWidth: 10
+                    },
+                    11: {
+                        cellWidth: 10
+                    },
+                    12: {
+                        cellWidth: 10
+                    },
+                    13: {
+                        cellWidth: 10
+                    },
+                    14: {
+                        cellWidth: 10
+                    },
+                    15: {
+                        cellWidth: 10
+                    },
+                    16: {
+                        cellWidth: 20
+                    },
+                    17: {
+                        cellWidth: 20
+                    },
+                    18: {
+                        cellWidth: 15
+                    },
+                    19: {
+                        cellWidth: 15
+                    }
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(16);
+                    doc.text('รายงานสรุปผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (ระดับมหาวิทยาลัย)', 14, 15);
+
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20,
+                        doc.internal.pageSize.height - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index === 8 ||data.column.index === 10 || data.column.index === 11 || data.column.index === 12 || data.column.index === 13 || data.column.index === 14 || data.column.index === 15 || data.column.index === 17 || data.column.index === 18) {
+                            data.cell.styles.halign = 'right';
+                        } else {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle table width
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 15,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานสรุปผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (ระดับมหาวิทยาลัย).pdf');
         }
 
         function exportXLS() {

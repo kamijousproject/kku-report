@@ -122,6 +122,11 @@
         </div>
     </div>
     <script>
+        let totalOKRProgress;
+        let alltotalOKRProgress = 0;
+        let totalSO = 0;
+        let totalOKR = 0;
+        let totalKSP = 0;
         $(document).ready(function() {
             laodData();
         });
@@ -149,11 +154,7 @@
                     let previousSOName = '';
                     let previousOKRCode = '';
                     let previousOKRName = '';
-                    let totalOKRProgress;
-                    let alltotalOKRProgress = 0;
-                    let totalSO = 0;
-                    let totalOKR = 0;
-                    let totalKSP = 0;
+
                     const siStats = {}; // เก็บข้อมูล SO, OKR และ KSP ที่ไม่ซ้ำภายในแต่ละ SI
 
 
@@ -196,35 +197,41 @@
                         if (previousSIName !== row.si_name) {
                             const tr = document.createElement('tr');
 
-                            // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                            const td1 = document.createElement('td');
-                            td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;
+                            const createCell = (text, align = "left") => {
+                                const td = document.createElement("td");
+                                td.textContent = text;
+                                td.style.textAlign = align; // กำหนดการจัดตำแหน่งข้อความ
+                                return td;
+                            };
+
+                            // สำหรับ fa_name, ถ้ามันเหมือนกับแถวก่อนหน้าจะเป็นช่องว่าง
+                            const td1 = createCell(row.fa_name === previousFacultyName ? "" : row.fa_name);
                             tr.appendChild(td1);
 
-                            // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                            const td2 = document.createElement('td');
-                            td2.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
+                            // สำหรับ pilar_name, ถ้ามันเหมือนกับแถวก่อนหน้าจะเป็นช่องว่าง
+                            const td2 = createCell(row.pilar_name === previousPilarName ? "" : row.pilar_name);
                             tr.appendChild(td2);
 
-                            const td3 = document.createElement('td');
-                            td3.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                            // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้าจะเป็นช่องว่าง
+                            const td3 = createCell(row.si_name === previousSIName ? "" : row.si_name);
                             tr.appendChild(td3);
 
-                            const td4 = document.createElement('td');
-                            td4.textContent = siStats[row.si_name].soSet.size;
+                            // จำนวน soSet
+                            const td4 = createCell(siStats[row.si_name].soSet.size, "right");
                             tr.appendChild(td4);
 
-                            const td5 = document.createElement('td');
-                            td5.textContent = siStats[row.si_name].okrSet.size;
+                            // จำนวน okrSet
+                            const td5 = createCell(siStats[row.si_name].okrSet.size, "right");
                             tr.appendChild(td5);
 
-                            const td6 = document.createElement('td');
-                            td6.textContent = siStats[row.si_name].kspSet.size;
+                            // จำนวน kspSet
+                            const td6 = createCell(siStats[row.si_name].kspSet.size, "right");
                             tr.appendChild(td6);
 
-                            const td7 = document.createElement('td');
-                            td7.textContent = (siStats[row.si_name].totalOKRProgress).toFixed(2) + ' %';
+                            // ค่า totalOKRProgress แสดงเป็นเปอร์เซ็นต์
+                            const td7 = createCell((siStats[row.si_name].totalOKRProgress).toFixed(2) + " %", "right");
                             tr.appendChild(td7);
+
 
                             tableBody.appendChild(tr);
                             // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
@@ -243,26 +250,32 @@
                     // เพิ่มแถวใน footer สำหรับผลรวม
                     const footerRow = document.createElement('tr');
 
+                    const createCell = (text, align = "left") => {
+                        const td = document.createElement("td");
+                        td.textContent = text;
+                        td.style.textAlign = align; // กำหนดการจัดตำแหน่งข้อความ
+                        return td;
+                    };
+
                     const footerTd1 = document.createElement('td');
                     footerTd1.textContent = 'รวม';
                     footerTd1.colSpan = 3;
                     footerRow.appendChild(footerTd1);
 
-                    const footerTd2 = document.createElement('td');
-                    footerTd2.textContent = totalSO;
+
+                    const footerTd2 = createCell(totalSO, "right");
                     footerRow.appendChild(footerTd2);
 
-                    const footerTd3 = document.createElement('td');
-                    footerTd3.textContent = totalOKR;
+
+                    const footerTd3 = createCell(totalOKR, "right");
                     footerRow.appendChild(footerTd3);
 
-                    const footerTd4 = document.createElement('td');
-                    footerTd4.textContent = totalKSP;
+                    const footerTd4 = createCell(totalKSP, "right");
                     footerRow.appendChild(footerTd4);
 
-                    const footerTd5 = document.createElement('td');
-                    footerTd5.textContent = (alltotalOKRProgress / totalOKR).toFixed(2) + ' %';
+                    const footerTd5 = createCell((alltotalOKRProgress / totalOKR).toFixed(2) + ' %', "right");
                     footerRow.appendChild(footerTd5);
+
 
                     // เพิ่มแถวผลรวมไปยัง <tfoot>
                     const tableFooter = document.querySelector('#reportTableFooter');
@@ -301,42 +314,152 @@
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 40
+                    },
+                    1: {
+                        cellWidth: 40
+                    },
+                    2: {
+                        cellWidth: 130
+                    },
+                    3: {
+                        cellWidth: 20
+                    },
+                    4: {
+                        cellWidth: 20
+                    },
+                    5: {
+                        cellWidth: 20
+                    },
+                    6: {
+                        cellWidth: 20
+                    }
+                },
+                didDrawPage: function(data) {
+                    // Header
+                    doc.setFontSize(16);
+                    doc.text('รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ', 14, 15);
+
+                    // Footer (แสดงแค่ที่ท้ายตาราง)
+                    const pageSize = doc.internal.pageSize;
+                    const pageWidth = pageSize.width;
+                    const pageHeight = pageSize.height;
+
+                    // ข้อความ footer (แก้หมายเลขหน้า)
+                    const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+                    const totalPages = doc.internal.getNumberOfPages();
+
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + currentPage + ' จาก ' + totalPages,
+                        pageWidth - 20,
+                        pageHeight - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Footer row content for table with background color #F2F2F2
+                foot: [
+                    [{
+                            content: 'รวม',
+                            colSpan: 3,
+                            
+                        },
+                        {
+                            content: totalSO,
+                           
+                        },
+                        {
+                            content: totalOKR,
+                            
+                        },
+                        {
+                            content: totalKSP,
+                           
+                        },
+                        {
+                            content: (alltotalOKRProgress / totalOKR).toFixed(2) + ' %',
+                          
+                        }
+                    ]
+                ],
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index === 3 ||data.column.index === 4||data.column.index === 5|| data.column.index === 6
+                        ) {
+                            data.cell.styles.halign = 'right';
+                        } else {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = '#dbe5f1'; // Add the background color for the footer cells
+                        data.cell.styles.textColor = [0, 0, 0];
+                        if (data.column.index === 0 ) {
+                            data.cell.styles.halign = 'center'; // Align the first and last columns to center
+                        } else {
+                            data.cell.styles.halign = 'right'; // Align other columns to right
+                        }
+                    }
+                },
+
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 25,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ.pdf');
         }
+
+
+
 
         function exportXLS() {
             const rows = [];
