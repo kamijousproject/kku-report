@@ -1159,16 +1159,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH act1 AS (
-                        SELECT Faculty,All_PositionTypes,COUNT(*) AS count_staff 
-                        FROM actual_data_1 
-                        WHERE All_PositionTypes!='No Position Type' AND Faculty!='00000'
-                        GROUP BY Faculty,All_PositionTypes)
+                        SELECT Faculty,All_Position_Types,COUNT(*) AS count_staff 
+                        FROM workforce_hcm_actual 
+                        WHERE All_Position_Types!='No Position Type' AND Faculty!='00000'
+                        GROUP BY Faculty,All_Position_Types)
                         ,transform_data AS (
                         SELECT Faculty 
-                        ,sum(CASE WHEN All_PositionTypes = 'บริหาร' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type1
-                        ,sum(CASE WHEN All_PositionTypes = 'วิชาการ' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type2
-                        ,sum(CASE WHEN All_PositionTypes = 'วิจัย' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type3
-                        ,sum(CASE WHEN All_PositionTypes = 'สนับสนุน' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type4
+                        ,sum(CASE WHEN All_Position_Types = 'บริหาร' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type1
+                        ,sum(CASE WHEN All_Position_Types = 'วิชาการ' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type2
+                        ,sum(CASE WHEN All_Position_Types = 'วิจัย' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type3
+                        ,sum(CASE WHEN All_Position_Types = 'สนับสนุน' THEN COALESCE(count_staff, 0) ELSE 0 END) AS Actual_type4
                         FROM act1
                         GROUP BY Faculty)
                         ,4year AS (
@@ -1199,14 +1199,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         )
 
 
-                        SELECT ty.*,f.Alias_Default FROM ty
-
+                        SELECT t.*,f.Alias_Default ,f2.Alias_Default AS pname
+								FROM ty t
                         LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
+                        SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
-                        ) f ON ty.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        WHERE ty.wf_type1_y1 IS NOT NULL 
-                        ORDER BY ty.faculty";
+                        WHERE parent LIKE 'Faculty%') f 
+								ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI 
+								LEFT JOIN Faculty f2
+								ON f.parent=f2.Faculty
+                        ORDER BY f2.Alias_Default,t.faculty";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
