@@ -36,12 +36,36 @@
                                 </div>
                                 <div class="table-responsive">
                                     <?php
+                                    error_reporting(E_ALL);
+                                    ini_set('display_errors', 1);
                                     // Include ไฟล์เชื่อมต่อฐานข้อมูล
                                     include '../server/connectdb.php';
 
                                     // สร้าง instance ของคลาส Database และเชื่อมต่อ
                                     $database = new Database();
                                     $conn = $database->connect();
+
+                                    // ดึงข้อมูล Faculty
+                                    $query_faculty = "SELECT
+                                        DISTINCT abp.Faculty,
+                                        Faculty.Alias_Default
+                                    FROM
+                                        budget_planning_annual_budget_plan abp
+                                        LEFT JOIN budget_planning_project_kpi pj_kpi ON abp.Faculty = pj_kpi.Faculty
+                                        AND abp.Project = pj_kpi.Project
+                                        LEFT JOIN Faculty ON pj_kpi.Faculty = Faculty.Faculty";
+                                    $stmt = $conn->prepare($query_faculty);
+                                    $stmt->execute();
+                                    $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                    // รับค่าที่เลือกจากฟอร์ม
+                                    $selected_faculty = isset($_GET['faculty']) ? $_GET['faculty'] : '';
+
+                                    // WHERE Clause แบบ Dynamic
+                                    $where_clause = "AND 1=1";
+                                    if ($selected_faculty !== '') {
+                                        $where_clause .= " AND annual_bp.Faculty = '$selected_faculty'";
+                                    }
 
                                     $query = "WITH t1 AS (SELECT DISTINCT annual_bp.Faculty,
                                                     annual_bp.Plan,
@@ -67,7 +91,7 @@
                                                     AND sub_p_kpi.Sub_Plan = sub_p_progress.Sub_Plan
                                                     AND sub_p_kpi.Faculty = sub_p_progress.Faculty
                                                     AND sub_p_kpi.KPI=sub_p_progress.KPI
-                                                    WHERE sub_p_kpi.KPI IS NOT NULL)
+                                                    WHERE sub_p_kpi.KPI IS NOT NULL $where_clause)
                                                 
                                                 ,t2 AS (SELECT DISTINCT annual_bp.Faculty,
                                                     NULL AS plan,
@@ -107,6 +131,7 @@
                                                 LEFT JOIN project pj ON t.Project = pj.project_id)
                                                 
                                                     SELECT distinct * FROM t4
+                                                
                                                 ORDER BY Faculty,type,plan,sub_plan,kpi";
 
                                     // เตรียมและ execute คำสั่ง SQL
@@ -116,6 +141,24 @@
                                     // ดึงข้อมูล
                                     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     ?>
+
+                                    <form method="GET" class="d-flex align-items-center gap-2">
+                                        <label for="faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
+                                        <select name="faculty" id="faculty" class="form-control me-2">
+                                            <option value="">เลือกส่วนงาน/หน่วยงาน ทั้งหมด</option>
+                                            <?php
+                                            foreach ($faculties as $faculty):
+                                                if ($faculty['Alias_Default'] != '') {;
+                                            ?>
+                                                    <option value="<?= $faculty['Faculty'] ?>" <?= ($selected_faculty == $faculty['Faculty']) ? 'selected' : '' ?>>
+                                                        <?= $faculty['Alias_Default'] ?>
+                                                    </option>
+
+                                            <?php }
+                                            endforeach; ?>
+                                        </select>
+                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                    </form>
 
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>

@@ -418,6 +418,7 @@
                                             $current_expense = [];
                                             $current_expense_type = [];
                                             $current_kku_item_name = [];
+                                            $kpi_name = [];
 
                                             foreach ($resultsFN as $row):
                                             ?>
@@ -471,16 +472,17 @@
                                                     array_push($current_sub_plan, $row['Sub_Plan']);
                                                     ?>
                                                 <?php endif; ?>
-                                                <?php if ((!in_array($row['kpi_name'], $KKU_Item_Name)) && $row['TYPE'] == '1.sub_plan_kpi'): ?>
+                                                <?php if ((!in_array($row['kpi_name'], $kpi_name)) && $row['TYPE'] == '1.sub_plan_kpi'): ?>
                                                     <tr>
-                                                        <td><?= $row['kpi_name'] ?></td>
-                                                        <td>-</td>
+                                                        <td><?= !empty($row['kpi_name']) ? $row['kpi_name'] : 'ไม่มีค่า kpi_name' ?></td>
+                                                        <td><?= $row['uom_kpi'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <!-- ปี 2568 -->
+                                                        <td><?= $row['kpi_target'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -491,21 +493,9 @@
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
-                                                        <td>-</td>
-                                                        <!-- <td><?= $row['uom_kpi'] ?></td>
-                                                        <td><?= $row['total06'] ?></td>
-                                                        <td><?= $row['allocated_total06'] ?></td>
-                                                        <td><?= $row['total08'] ?></td>
-                                                        <td><?= $row['allocated_total08'] ?></td>
-                                                        <td><?= $row['total02'] ?></td>
-                                                        <td><?= $row['allocated_total02'] ?></td>
-                                                        <td><?= $row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08'] ?></td>
-                                                        <td><?= ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0 ?></td>
-                                                        <td>100%</td>
-                                                        <td><?= $row['Reason'] ?></td> -->
                                                     </tr>
                                                     <?php
-                                                    array_push($KKU_Item_Name, $row['kpi_name']);
+                                                    array_push($kpi_name, $row['kpi_name']);
                                                     ?>
                                                 <?php endif; ?>
                                                 <?php if (!in_array($row['Project'], $current_project)): ?>
@@ -528,22 +518,22 @@
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
-                                                        <!-- ปี 2568 -->
                                                     </tr>
                                                     <?php
                                                     array_push($current_project, $row['Project']);
                                                     ?>
                                                 <?php endif; ?>
-                                                <?php if ((!in_array($row['kpi_name'], $KKU_Item_Name)) && $row['TYPE'] == '2.project_kpi'): ?>
+                                                <?php if ((!in_array($row['kpi_name'], $kpi_name)) && $row['TYPE'] == '2.project_kpi'): ?>
                                                     <tr>
-                                                        <td><?= $row['kpi_name'] ?></td>
-                                                        <td>-</td>
+                                                        <td><?= !empty($row['kpi_name']) ? $row['kpi_name'] : 'ไม่มีค่า kpi_name' ?></td>
+                                                        <td><?= $row['uom_kpi'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <!-- ปี 2568 -->
+                                                        <td><?= $row['kpi_target'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -554,26 +544,14 @@
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
-                                                        <td>-</td>
-                                                        <!-- <td><?= $row['uom_kpi'] ?></td>
-                                                        <td><?= $row['total06'] ?></td>
-                                                        <td><?= $row['allocated_total06'] ?></td>
-                                                        <td><?= $row['total08'] ?></td>
-                                                        <td><?= $row['allocated_total08'] ?></td>
-                                                        <td><?= $row['total02'] ?></td>
-                                                        <td><?= $row['allocated_total02'] ?></td>
-                                                        <td><?= $row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08'] ?></td>
-                                                        <td><?= ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0 ?></td>
-                                                        <td>100%</td>
-                                                        <td><?= $row['Reason'] ?></td> -->
                                                     </tr>
                                                 <?php
-                                                    array_push($KKU_Item_Name, $row['kpi_name']);
+                                                    array_push($kpi_name, $row['kpi_name']);
                                                 endif;
                                                 ?>
                                                 <?php if (!in_array($row['expense'], $current_expense)): ?>
                                                     <tr>
-                                                        <td><?= $row['expense'] ?></td>
+                                                        <td><?= !empty($row['expense']) ? $row['expense'] : 'ไม่มีค่า expense' ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -591,7 +569,6 @@
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
-                                                        <!-- ปี 2568 -->
                                                     </tr>
                                                     <?php
                                                     array_push($current_expense, $row['expense']);
@@ -599,7 +576,7 @@
                                                 <?php endif; ?>
                                                 <?php if (!in_array($row['expense_type'], $current_expense_type)): ?>
                                                     <tr>
-                                                        <td><?= $row['expense_type'] ?></td>
+                                                        <td><?= !empty($row['expense_type']) ? $row['expense_type'] : 'ไม่มีค่า expense_type' ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -617,7 +594,6 @@
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
-                                                        <!-- ปี 2568 -->
                                                     </tr>
                                                     <?php
                                                     array_push($current_expense_type, $row['expense_type']);
@@ -625,7 +601,7 @@
                                                 <?php endif; ?>
                                                 <?php if ((!in_array($row['KKU_Item_Name'], $current_kku_item_name))): ?>
                                                     <tr>
-                                                        <td><?= $row['KKU_Item_Name'] ?></td>
+                                                        <td><?= !empty($row['KKU_Item_Name']) ? $row['KKU_Item_Name'] : 'ไม่มีค่า KKU_Item_Name' ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -633,7 +609,8 @@
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <!-- ปี 2568 -->
-                                                        <td><?= $row['uom_kpi'] ?></td>
+                                                        <!-- <td><?= $row['kpi_target'] ?></td> -->
+                                                        <td>-</td>
                                                         <td><?= $row['total06'] ?></td>
                                                         <td><?= $row['allocated_total06'] ?></td>
                                                         <td><?= $row['total08'] ?></td>
