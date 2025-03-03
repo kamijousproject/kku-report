@@ -308,11 +308,18 @@
                                                         *
                                                     FROM
                                                         t10
+                                                ),
+                                                t12 AS (
+                                                    SELECT
+                                                        t.*, p.project_name
+                                                    FROM
+                                                        t11 t
+                                                        left JOIN project p ON t.Project = p.project_id
                                                 )
                                             SELECT
                                                 *
                                             FROM
-                                                t11
+                                                t12
                                             $where_clause
                                             ORDER BY
                                                 Faculty,
@@ -488,7 +495,7 @@
                                                 <?php endif; ?>
                                                 <?php if (!in_array($row['Project'], $current_project)): ?>
                                                     <tr>
-                                                        <td><?= $row['Project'] ?></td>
+                                                        <td><?= $row['project_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
