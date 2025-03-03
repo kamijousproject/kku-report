@@ -255,17 +255,46 @@ function fetchFacultyData($conn)
                                     function validateForm() {
                                         var faculty = document.getElementById('faculty').value;
                                         if (faculty == '') {
-                                            alert('กรุณาเลือกส่วนงาน/หน่วยงาน');
-                                            return false;
+                                            // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
+                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-budget-carryover.php";
+                                            return false; // ป้องกันการส่งฟอร์ม
                                         }
                                         return true;
                                     }
                                 </script>
 
-
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
+                                            <?php
+
+
+                                            // ตรวจสอบและกำหนดค่า $selectedFacultyName
+                                            $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                            $selectedFacultyName = 'แสดงทุกหน่วยงาน';
+
+                                            if ($selectedFacultyCode) {
+                                                // ค้นหาชื่อคณะจากรหัสคณะที่เลือก
+                                                foreach ($faculties as $faculty) {
+                                                    if ($faculty['Faculty'] === $selectedFacultyCode) {
+                                                        $selectedFacultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            ?>
+                                            <tr>
+                                                <th colspan="11" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+
+
+                                                        <?php
+                                                        $facultyData = str_replace('-', ':', $selectedFacultyName);
+
+                                                        echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
                                                 <th colspan="4">ปี 2567 (ปีปัจจุบัน)</th>

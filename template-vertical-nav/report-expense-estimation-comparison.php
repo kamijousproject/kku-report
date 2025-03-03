@@ -671,16 +671,13 @@ function fetchYearsData($conn)
 
                                 <script>
                                     function validateForm() {
-                                        // ตรวจสอบว่าเลือกส่วนงาน/หน่วยงาน
                                         var faculty = document.getElementById('faculty').value;
-                                        var year = document.getElementById('year').value;
-
-                                        // หากไม่ได้เลือกส่วนงานหรือปี จะมีการแจ้งเตือนและไม่ส่งฟอร์ม
-                                        if (faculty == '' || year == '') {
-                                            alert('กรุณาเลือกส่วนงาน/หน่วยงานและปีงบประมาณ และ ปีงบประมาณ');
-                                            return false;  // ป้องกันการส่งฟอร์ม
+                                        if (faculty == '') {
+                                            // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
+                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-expense-estimation-comparison.php";
+                                            return false; // ป้องกันการส่งฟอร์ม
                                         }
-                                        return true;  // ส่งฟอร์มได้
+                                        return true;
                                     }
                                 </script>
 
@@ -712,7 +709,7 @@ function fetchYearsData($conn)
 
                                                 // ตรวจสอบและกำหนดค่า $selectedFacultyName
                                                 $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-                                                $selectedFacultyName = 'ไม่ได้เลือก';
+                                                $selectedFacultyName = 'แสดงทุกหน่วยงาน';
 
                                                 if ($selectedFacultyCode) {
                                                     // ค้นหาชื่อคณะจากรหัสคณะที่เลือก

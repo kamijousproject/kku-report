@@ -264,7 +264,7 @@ function fetchYearsData($conn)
                                             ส่วนงาน/หน่วยงาน</label>
                                         <select name="faculty" id="faculty" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
+                                            <option value="">เลือก ทุกส่วนงาน</option>
                                             <?php
                                             // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
                                             foreach ($faculties as $faculty) {
@@ -302,16 +302,13 @@ function fetchYearsData($conn)
 
                                 <script>
                                     function validateForm() {
-                                        // ตรวจสอบว่าเลือกส่วนงาน/หน่วยงาน
                                         var faculty = document.getElementById('faculty').value;
-                                        var year = document.getElementById('year').value;
-
-                                        // หากไม่ได้เลือกส่วนงานหรือปี จะมีการแจ้งเตือนและไม่ส่งฟอร์ม
-                                        if (faculty == '' || year == '') {
-                                            alert('กรุณาเลือกส่วนงาน/หน่วยงานและปีงบประมาณ และ ปีงบประมาณ');
-                                            return false;  // ป้องกันการส่งฟอร์ม
+                                        if (faculty == '') {
+                                            // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
+                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-budget-adjustments.php";
+                                            return false; // ป้องกันการส่งฟอร์ม
                                         }
-                                        return true;  // ส่งฟอร์มได้
+                                        return true;
                                     }
                                 </script>
 
@@ -330,6 +327,51 @@ function fetchYearsData($conn)
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
+                                            <tr>
+                                                <?php
+                                                // ตรวจสอบและกำหนดค่า $selectedYear
+                                                $selectedYear = isset($_GET['year']) && $_GET['year'] != '' ? (int) $_GET['year'] : '2568';
+
+                                                // ตรวจสอบและกำหนดค่า $selectedFacultyName
+                                                $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                                $selectedFacultyName = 'แสดงทุกหน่วยงาน';
+
+                                                if ($selectedFacultyCode) {
+                                                    // ค้นหาชื่อคณะจากรหัสคณะที่เลือก
+                                                    foreach ($faculties as $faculty) {
+                                                        if ($faculty['Faculty'] === $selectedFacultyCode) {
+                                                            $selectedFacultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                ?>
+
+                                            <tr>
+                                                <th colspan="8" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+                                                        <?php
+                                                        if ($selectedYear) {
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ " . ($selectedYear - 2) . " ถึง " . $selectedYear;
+                                                        } else {
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ: ไม่ได้เลือกปีงบประมาณ";
+                                                        }
+                                                        ?> </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="8" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+
+
+                                                        <?php
+                                                        $facultyData = str_replace('-', ':', $selectedFacultyName);
+
+                                                        echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
                                                 <th rowspan="2">รายรับจริงปี 66</th>

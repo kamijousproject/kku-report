@@ -356,7 +356,7 @@ function fetchFacultyData($conn)
                                             }
                                             ?>
                                             <tr>
-                                                <th colspan="31" style='text-align: left;'>
+                                                <th colspan="15" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
 
 
