@@ -201,7 +201,7 @@
                                                     array_push($current_sub_plan, $row['Sub_Plan']);
                                                 endif;
                                                 ?>
-                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['Sub_plan_KPI_Name'] == '1.sub_plan'): ?>
+                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '1.sub_plan'): ?>
                                                     <tr>
                                                         <td><?= $row['Sub_plan_KPI_Name'] ?></td>
                                                         <td>-</td>
@@ -246,7 +246,7 @@
                                                     array_push($project_name, $row['project_name']);
                                                 endif;
                                                 ?>
-                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['Sub_plan_KPI_Name'] == '2.project'): ?>
+                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '2.project'): ?>
                                                     <tr>
                                                         <td><?= $row['Sub_plan_KPI_Name'] ?></td>
                                                         <td>-</td>
