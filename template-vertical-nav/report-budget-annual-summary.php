@@ -921,7 +921,7 @@ function fetchFacultyData($conn)
                 for (const cell of row.cells) {
                     let html = cell.innerHTML;
 
-                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                                       // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
                     html = html.replace(/(&nbsp;)+/g, (match) => {
                         const count = match.match(/&nbsp;/g).length;
                         return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"

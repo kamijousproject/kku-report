@@ -116,11 +116,11 @@ function fetchBudgetData($conn, $budget_year1 = null)
     ac.sub_type,
     bap.`Account`,
     bap.KKU_Item_Name,
-    bap.Allocated_Total_Amount_Quantity,
-    SUM(CASE WHEN bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_FN02,
-    SUM(CASE WHEN bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_FN06,
-    SUM(CASE WHEN bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_FN08
-FROM budget_planning_allocated_annual_budget_plan bap
+    bap.Total_Amount_Quantity,
+    SUM(CASE WHEN bap.Fund = 'FN02' THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_FN02,
+    SUM(CASE WHEN bap.Fund = 'FN06' THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_FN06,
+    SUM(CASE WHEN bap.Fund = 'FN08' THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_FN08
+FROM budget_planning_annual_budget_plan bap
 INNER JOIN Faculty ft 
     ON bap.Faculty = ft.Faculty 
     AND ft.parent LIKE 'Faculty%' 
@@ -141,12 +141,12 @@ LEFT JOIN plan p
 
 
     // เพิ่มการจัดกลุ่มข้อมูล
-    $query .= " GROUP BY 
+    $query .= "  GROUP BY 
     bap.Faculty, fta.Alias_Default, ft.Alias_Default, bap.Plan, p.plan_id, p.plan_name, 
     bap.Sub_Plan, sp.sub_plan_id, sp.sub_plan_name, bap.Project, pj.project_id, pj.project_name, 
     CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)), 
     CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 8)), 
-    ac.`type`, ac.sub_type, bap.`Account`, bap.KKU_Item_Name, bap.Allocated_Total_Amount_Quantity
+    ac.`type`, ac.sub_type, bap.`Account`, bap.KKU_Item_Name, bap.Total_Amount_Quantity
 ORDER BY 
     bap.Faculty ASC,
     fta.Alias_Default ASC,
