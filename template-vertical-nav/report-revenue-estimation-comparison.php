@@ -673,7 +673,7 @@ function fetchYearsData($conn)
                                         var faculty = document.getElementById('faculty').value;
                                         if (faculty == '') {
                                             // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
-                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-expense-estimation-comparison.php";
+                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-revenue-estimation-comparison.php";
                                             return false; // ป้องกันการส่งฟอร์ม
                                         }
                                         return true;
