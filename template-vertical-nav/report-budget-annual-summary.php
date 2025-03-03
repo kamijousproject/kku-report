@@ -921,7 +921,7 @@ function fetchFacultyData($conn)
                 for (const cell of row.cells) {
                     let html = cell.innerHTML;
 
-                                       // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
                     html = html.replace(/(&nbsp;)+/g, (match) => {
                         const count = match.match(/&nbsp;/g).length;
                         return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
@@ -968,7 +968,7 @@ function fetchFacultyData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = ' รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.csv';
+            link.download = 'รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -988,7 +988,7 @@ function fetchFacultyData($conn)
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text(" รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี", 10, 500);
+            doc.text("รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -1013,7 +1013,7 @@ function fetchFacultyData($conn)
             });
 
             // บันทึกไฟล์ PDF
-            doc.save(' รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.pdf');
+            doc.save('รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.pdf');
         }
 
         function exportXLS() {
@@ -1057,7 +1057,7 @@ function fetchFacultyData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = ' รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            link.download = 'รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
