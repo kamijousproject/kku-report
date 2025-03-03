@@ -449,7 +449,7 @@
 
                                                 <?php if (!array_key_exists($row['Sub_Plan'], $current_sub_plan)): ?>
                                                     <tr>
-                                                        <td><?= $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 10) . $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -475,7 +475,7 @@
 
                                                 <?php if (!isset($kpi_name[$row['Plan']][$row['Sub_Plan']][$row['kpi_name']]) && $row['TYPE'] == '1.sub_plan_kpi'): ?>
                                                     <tr>
-                                                        <td><?= !empty($row['kpi_name']) ? $row['kpi_name'] : 'ไม่มีค่า kpi_name' ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 20) . (!empty($row['kpi_name']) ? $row['kpi_name'] : 'ไม่มีค่า kpi_name') ?></td>
                                                         <td><?= $row['uom_kpi'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -501,7 +501,7 @@
 
                                                 <?php if (!array_key_exists($row['Project'], $current_project)): ?>
                                                     <tr>
-                                                        <td><?= $row['project_name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 10) . (!empty($row['project_name']) ? $row['project_name'] : 'ไม่มีค่า project_name') ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -527,9 +527,8 @@
 
                                                 <?php if (!isset($kpi_name[$row['Plan']][$row['Sub_Plan']][$row['Project']][$row['kpi_name']]) && $row['TYPE'] == '2.project_kpi'): ?>
                                                     <tr>
-                                                        <td><?= !empty($row['kpi_name']) ? $row['kpi_name'] : 'ไม่มีค่า kpi_name' ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 20) . (!empty($row['kpi_name']) ? $row['kpi_name'] : 'ไม่มีค่า kpi_name') ?></td>
                                                         <td><?= $row['uom_kpi'] ?></td>
-
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -554,7 +553,7 @@
 
                                                 <?php if (!array_key_exists($row['expense'], $current_expense)): ?>
                                                     <tr>
-                                                        <td><?= !empty($row['expense']) ? $row['expense'] : 'ไม่มีค่า expense' ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 20) . (!empty($row['expense']) ? $row['expense'] : 'ไม่มีค่า expense') ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -580,7 +579,7 @@
 
                                                 <?php if (!array_key_exists($row['expense_type'], $current_expense_type)): ?>
                                                     <tr>
-                                                        <td><?= !empty($row['expense_type']) ? $row['expense_type'] : 'ไม่มีค่า expense_type' ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 20) . (!empty($row['expense_type']) ? $row['expense_type'] : 'ไม่มีค่า expense_type') ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -606,7 +605,7 @@
 
                                                 <?php if (!array_key_exists($row['KKU_Item_Name'], $current_kku_item_name)): ?>
                                                     <tr>
-                                                        <td><?= !empty($row['KKU_Item_Name']) ? $row['KKU_Item_Name'] : 'ไม่มีค่า KKU_Item_Name' ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 30) . (!empty($row['KKU_Item_Name']) ? $row['KKU_Item_Name'] : 'ไม่มีค่า KKU_Item_Name') ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -626,7 +625,6 @@
                                                         <td><?= ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0 ?></td>
                                                         <td>100%</td>
                                                         <td><?= $row['Reason'] ?></td>
-                                                    </tr>
                                                     </tr>
                                                     <?php
                                                     $current_kku_item_name[$row['KKU_Item_Name']] = true;
