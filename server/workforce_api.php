@@ -1083,7 +1083,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql = "WITH act1 AS (
                         SELECT Faculty,all_position_types,COUNT(*) AS count_staff 
                         FROM workforce_hcm_actual 
-                        WHERE all_position_types!='No Position Type' AND Faculty!='00000'
+                        WHERE Faculty!='00000'
                         GROUP BY Faculty,all_position_types)
                         ,transform_data AS (
                         SELECT Faculty 

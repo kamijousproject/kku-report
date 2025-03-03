@@ -478,11 +478,7 @@ thead tr:nth-child(3) th {
     doc.save('รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน.pdf');
 }
 
-
-
-
-
-        function exportXLS() {
+function exportXLS() {
             const table = document.getElementById('reportTable');
 
             const rows = [];
@@ -551,9 +547,8 @@ thead tr:nth-child(3) th {
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
             // เขียนไฟล์ Excel
-            XLSX.writeFile(wb, 'รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน.xlsx');
+            XLSX.writeFile(wb, 'report.xlsx');
         }
-    </script>
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
