@@ -1161,7 +1161,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql = "WITH act1 AS (
                         SELECT Faculty,All_Position_Types,COUNT(*) AS count_staff 
                         FROM workforce_hcm_actual 
-                        WHERE All_Position_Types!='No Position Type' AND Faculty!='00000'
+                        WHERE Faculty!='00000'
                         GROUP BY Faculty,All_Position_Types)
                         ,transform_data AS (
                         SELECT Faculty 
@@ -1208,7 +1208,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 								ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI 
 								LEFT JOIN Faculty f2
 								ON f.parent=f2.Faculty
-                        ORDER BY f2.Alias_Default,t.faculty";
+								WHERE t.Faculty LIKE '22%'
+                        ORDER BY f2.Alias_Default,t.faculty
+                        ";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
