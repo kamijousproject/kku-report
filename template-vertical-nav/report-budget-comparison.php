@@ -467,9 +467,9 @@
                                                     array_push($current_sub_plan, $row['Sub_Plan']);
                                                     ?>
                                                 <?php endif; ?>
-                                                <?php if ((!in_array($row['KKU_Item_Name'], $KKU_Item_Name)) && $row['TYPE'] == '1.sub_plan_kpi'): ?>
+                                                <?php if ((!in_array($row['kpi_name'], $KKU_Item_Name)) && $row['TYPE'] == '1.sub_plan_kpi'): ?>
                                                     <tr>
-                                                        <td><?= $row['KKU_Item_Name'] ?></td>
+                                                        <td><?= $row['kpi_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -490,7 +490,7 @@
                                                         <td><?= $row['Reason'] ?></td>
                                                     </tr>
                                                     <?php
-                                                    array_push($KKU_Item_Name, $row['KKU_Item_Name']);
+                                                    array_push($KKU_Item_Name, $row['kpi_name']);
                                                     ?>
                                                 <?php endif; ?>
                                                 <?php if (!in_array($row['Project'], $current_project)): ?>
@@ -519,9 +519,9 @@
                                                     array_push($current_project, $row['Project']);
                                                     ?>
                                                 <?php endif; ?>
-                                                <?php if ((!in_array($row['KKU_Item_Name'], $KKU_Item_Name)) && $row['TYPE'] == '2.project_kpi'): ?>
+                                                <?php if ((!in_array($row['kpi_name'], $KKU_Item_Name)) && $row['TYPE'] == '2.project_kpi'): ?>
                                                     <tr>
-                                                        <td><?= $row['KKU_Item_Name'] ?></td>
+                                                        <td><?= $row['kpi_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -542,7 +542,7 @@
                                                         <td><?= $row['Reason'] ?></td>
                                                     </tr>
                                                     <?php
-                                                    array_push($KKU_Item_Name, $row['KKU_Item_Name']);
+                                                    array_push($KKU_Item_Name, $row['kpi_name']);
                                                     ?>
                                                 <?php endif; ?>
                                             <?php endforeach; ?>
