@@ -611,7 +611,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = ' รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ.csv';
+            link.download = 'รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -631,7 +631,7 @@ function fetchYearsData($conn)
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text(" รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ", 10, 500);
+            doc.text("รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -656,7 +656,7 @@ function fetchYearsData($conn)
             });
 
             // บันทึกไฟล์ PDF
-            doc.save(' รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ.pdf');
+            doc.save('รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ.pdf');
         }
 
         function exportXLS() {
@@ -700,7 +700,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = ' รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            link.download = 'รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
