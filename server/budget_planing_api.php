@@ -228,6 +228,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,a.sub_type
                         ,a.id AS p_id
                         ,f.Alias_Default
+                        ,f2.Alias_Default AS pname
                         FROM budget_planning_annual_budget_plan b
                         LEFT JOIN budget_planning_project_kpi b2
                         ON b.Faculty=b2.Faculty AND b.Project=b2.Project
@@ -237,6 +238,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON b.Account=a.account
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
+                        LEFT JOIN Faculty f2
+                        ON f.parent=f2.Faculty
                         GROUP BY b.Faculty
                         ,b.Account
                         ,b.KKU_Item_Name
@@ -246,7 +249,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,a.`type`
                         ,a.sub_type
                         ,a.id
-                        ,f.Alias_Default)
+                        ,f.Alias_Default
+								,f2.Alias_Default)
 
                         SELECT distinct * FROM t1
                         ORDER BY Faculty,KKU_Strategic_Plan_LOV,p_id";
