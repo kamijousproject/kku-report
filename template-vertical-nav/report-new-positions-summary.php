@@ -83,7 +83,7 @@ thead tr:nth-child(3) th {
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวทิยาลัย</li>
+                            <li class="breadcrumb-item active">รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวิทยาลัย</li>
                         </ol>
                     </div>
                 </div>
@@ -92,7 +92,7 @@ thead tr:nth-child(3) th {
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวทิยาลัย</h4>
+                                    <h4>รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวิทยาลัย</h4>
                                 </div>
                                 <label for="category">เลือกส่วนงาน:</label>
                                 <select name="category" id="category" onchange="fetchData()">
@@ -226,7 +226,7 @@ thead tr:nth-child(3) th {
                     { key: 'Academic_Position', value: row.Academic_Position },
                     { key: 'Hiring_Start_End_Date', value: row.Hiring_Start_End_Date },
                     { key: 'Specific_reasons', value: row.Specific_reasons },
-                    { key: 'Additional_Information', value: row.Additional_Information },
+                    { key: 'Additional_Information', value: row.Additional_Information|| row.Additional_information_other},
                                                                                         
                 ];
 
@@ -308,48 +308,48 @@ thead tr:nth-child(3) th {
         }
 
         function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'mm', 'a4');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
 
-    // Add Thai font
-    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
-    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-    doc.setFont("THSarabun");
-    doc.setFontSize(10);
-    doc.text('รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวิทยาลัย (อัตราใหม่) รายตำแหน่ง', data.settings.margin.left, 10);
-    doc.autoTable({
-        html: '#reportTable',
-        startY: 20,
-        theme: 'grid',
-        styles: {
-            font: "THSarabun",
-            fontSize: 7,
-            cellPadding: 1,
-            lineWidth: 0.1,
-            lineColor: [0, 0, 0],
-            minCellHeight: 5
-        },
-        headStyles: {
-            fillColor: [220, 230, 241],
-            textColor: [0, 0, 0],
-            fontSize: 7,
-            fontStyle: 'bold',
-            halign: 'center',
-            valign: 'middle'
-        },
-        columnStyles: {
-            0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
-        },
-        didParseCell: function(data) {
-            if (data.section === 'body' && data.column.index === 0) {
-                data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
-            }
-        },
-        margin: { top: 15, right: 5, bottom: 10, left: 5 },
-        tableWidth: 'auto'
-    });
-    doc.save('รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวิทยาลัย (อัตราใหม่) รายตำแหน่ง.pdf');
-}
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
+            doc.setFontSize(10);
+            doc.text('รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวิทยาลัย (อัตราใหม่) รายตำแหน่ง', 14, 10);
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 20,
+                theme: 'grid',
+                styles: {
+                    font: "THSarabun",
+                    fontSize: 7,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 5
+                },
+                headStyles: {
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 7,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 0) {
+                        data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
+                    }
+                },
+                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                tableWidth: 'auto'
+            });
+            doc.save('รายงานสรุปคำขออนุมัติกรอบอัตรากำลังพนักงานมหาวิทยาลัยและลูกจ้างของมหาวิทยาลัย (อัตราใหม่) รายตำแหน่ง.pdf');
+        }
 
 
 
