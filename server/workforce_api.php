@@ -963,7 +963,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,IFNULL(NULLIF(a.Workers_Name_Surname, ''), act1.Workers_Name_Surname) AS Workers_Name_Surname2
                         ,IFNULL(NULLIF(a.Personnel_Group, ''),act1.Personnel_Group) AS Personnel_Group2
                         ,IFNULL(NULLIF(a.Job_Family, ''),act1.Job_Family) AS Job_Family2
-                        ,IFNULL(NULLIF(a.Job_Family, ''),act1.POSITION_QUALIFIFCATIONS) AS Position_Qualifications2
+                        ,IFNULL(NULLIF(a.Position_Qualififcations, ''),act1.POSITION_QUALIFIFCATIONS) AS Position_Qualifications2
                         ,IFNULL(NULLIF(a.Contract_Type, ''),act1.Contract_Type) AS Contract_Type2
                         ,act1.Contract_Period_Short_Term
                         ,IFNULL(NULLIF(a.Location_Code, ''),act1.Location_Code) AS Location_Code2

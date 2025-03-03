@@ -223,7 +223,7 @@ thead tr:nth-child(3) th {
                         { key: 'Contract_Type', value: row.Contract_Type2 }, 
                         { key: 'period', value: row.Contract_Period_Short_Term },                             
                         { key: 'Position_Qualifications', value: row.Position_Qualifications2 },    
-                        { key: 'Salary_rate', value: row.Salary_rate },
+                        { key: 'Salary_rate', value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                         { key: 'Fund_FT', value: row.Fund_FT },
                         { key: 'Govt_Fund', value: (parseFloat(row.Govt_Fund|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                         { key: 'Division_Revenue', value: (parseFloat(row.Division_Revenue|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
