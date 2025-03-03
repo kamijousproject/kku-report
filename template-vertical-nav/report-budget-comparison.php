@@ -36,6 +36,9 @@
                                 </div>
                                 </br>
                                 <?php
+                                error_reporting(E_ALL);
+                                ini_set('display_errors', 1);
+
                                 include '../server/connectdb.php';
 
                                 $db = new Database();
@@ -58,98 +61,265 @@
                                 $selected_fund = isset($_GET['fund']) ? $_GET['fund'] : '';
 
                                 // WHERE Clause แบบ Dynamic
-                                $where_clause = "WHERE 1=1 AND acc.type LIKE '%ค่าใช้จ่าย%'";
+                                $where_clause = "WHERE 1=1";
                                 if ($selected_faculty !== '') {
-                                    $where_clause .= " AND bpanbp.Faculty = :faculty AND acc.type LIKE '%ค่าใช้จ่าย%'";
+                                    $where_clause .= " AND Faculty = :faculty";
                                 }
                                 if ($selected_fund !== '') {
-                                    $where_clause .= " AND bpanbp.Fund = :fund AND acc.type LIKE '%ค่าใช้จ่าย%'";
+                                    $where_clause .= " AND fund = :fund";
                                 }
 
                                 // ฟังก์ชันดึงข้อมูล
                                 function fetchBudgetData($conn, $where_clause, $selected_faculty, $selected_fund)
                                 {
-                                    $query = "SELECT
-                                                DISTINCT acc.alias_default AS Account_Alias_Default,
-                                                acc.type,
-                                                acc.sub_type,
-                                                bpanbp.Service,
-                                                bpanbp.Account,
-                                                bpanbp.Faculty,
-                                                bpanbp.Plan,
-                                                bpanbp.Sub_Plan,
-                                                bpanbp.Project,
-                                                bpanbp.KKU_Item_Name,
-                                                bpanbp.Allocated_Total_Amount_Quantity,
-                                                bpanbp.Reason,
-                                                sp_kpi.UoM_for_Sub_plan_KPI,
-                                                sp_kpi.Sub_plan_KPI_Name,
-                                                pj_kpi.UoM_for_Proj_KPI,
-                                                pj_kpi.Proj_KPI_Name,
-                                                bpanbp.Fund,
-                                                bpabp.Total_Amount_Quantity,
-                                                bpabp.Fund,
-                                                f.Alias_Default AS Faculty_Name,
-                                                (
+                                    $query = "WITH
+                                                t1 AS(
                                                     SELECT
-                                                        Faculty_Parent.Alias_Default
+                                                        b.*,
+                                                        p.plan_name,
+                                                        sp.sub_plan_name
                                                     FROM
-                                                        Faculty Faculty_Parent
+                                                        budget_planning_annual_budget_plan b
+                                                        LEFT JOIN plan p ON b.Plan = p.plan_id
+                                                        LEFT JOIN sub_plan sp ON b.Sub_Plan = sp.sub_plan_id
+                                                ),
+                                                t2 AS (
+                                                    SELECT
+                                                        t.*,
+                                                        skpi.UoM_for_Sub_plan_KPI,
+                                                        skpi.KPI,
+                                                        skpi.Sub_plan_KPI_Name,
+                                                        skpi.Sub_plan_KPI_Target
+                                                    FROM
+                                                        t1 t
+                                                        LEFT JOIN budget_planning_subplan_kpi skpi ON t.faculty = skpi.faculty COLLATE utf8mb4_general_ci
+                                                        AND t.plan = skpi.plan
+                                                        AND t.sub_plan = skpi.Sub_Plan
                                                     WHERE
-                                                        Faculty_Parent.Faculty = CONCAT(
-                                                            LEFT(f.Faculty, 2),
-                                                            '000'
-                                                        )
-                                                    LIMIT
-                                                        1
-                                                ) AS Alias_Default_Parent,
-                                                p.plan_name AS Plan_Name,
-                                                sp.sub_plan_name AS Sub_Plan_Name,
-                                                pr.project_name AS Project_Name
-                                            FROM
-                                                budget_planning_allocated_annual_budget_plan bpanbp
-                                                LEFT JOIN (
+                                                        skpi.KPI IS NOT NULL
+                                                ),
+                                                t3 AS (
                                                     SELECT
-                                                        DISTINCT Account,
-                                                        Plan,
-                                                        Sub_Plan,
-                                                        Project,
-                                                        Total_Amount_Quantity,
-                                                        Fund
-                                                    FROM
-                                                        budget_planning_annual_budget_plan
-                                                ) bpabp ON bpanbp.Account = bpabp.Account
-                                                AND bpanbp.Plan = bpabp.Plan
-                                                AND bpanbp.Sub_Plan = bpabp.Sub_Plan
-                                                AND bpanbp.Project = bpabp.Project
-                                                LEFT JOIN (
-                                                    SELECT
-                                                        DISTINCT Plan,
-                                                        Sub_Plan,
                                                         Faculty,
-                                                        UoM_for_Sub_plan_KPI,
-                                                        Sub_plan_KPI_Name
+                                                        Budget_Management_Year,
+                                                        fund,
+                                                        plan,
+                                                        plan_name,
+                                                        sub_plan,
+                                                        sub_plan_name,
+                                                        project,
+                                                        service,
+                                                        reason,
+                                                        kpi,
+                                                        sub_plan_kpi_name AS kpi_name,
+                                                        Sub_plan_KPI_Target AS kpi_target,
+                                                        UoM_for_Sub_plan_KPI AS uom_kpi,
+                                                        account,
+                                                        NULL AS expense,
+                                                        NULL AS expense_type,
+                                                        kku_item_name,
+                                                        CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
+                                                        CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
+                                                        CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
+                                                        '1.sub_plan_kpi' AS TYPE
                                                     FROM
-                                                        budget_planning_subplan_kpi
-                                                ) sp_kpi ON bpanbp.Plan = sp_kpi.Plan
-                                                AND bpanbp.Sub_Plan = sp_kpi.Sub_Plan
-                                                AND bpanbp.Faculty = sp_kpi.Faculty
-                                                LEFT JOIN (
+                                                        t2
+                                                ),
+                                                t4 AS (
                                                     SELECT
-                                                        DISTINCT Faculty,
-                                                        Project,
-                                                        UoM_for_Proj_KPI,
-                                                        Proj_KPI_Name
+                                                        t.*,
+                                                        CASE WHEN t.fund = 'FN02' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total02,
+                                                        CASE WHEN t.fund = 'FN06' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total06,
+                                                        CASE WHEN t.fund = 'FN08' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total08
                                                     FROM
-                                                        budget_planning_project_kpi
-                                                ) pj_kpi ON bpanbp.Faculty = pj_kpi.Faculty
-                                                AND bpanbp.Project = pj_kpi.Project
-                                                LEFT JOIN account acc ON bpanbp.Account = acc.account
-                                                LEFT JOIN Faculty f ON bpanbp.Faculty = f.Faculty
-                                                LEFT JOIN plan p ON bpanbp.Plan = p.plan_id
-                                                LEFT JOIN sub_plan sp ON bpanbp.Sub_Plan = sp.sub_plan_id
-                                                LEFT JOIN project pr ON bpanbp.Project = pr.project_id
-                                                $where_clause";
+                                                        t3 t
+                                                        LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
+                                                        AND t.fund = b.Fund
+                                                        AND t.plan = b.Plan
+                                                        AND t.sub_plan = b.Sub_Plan
+                                                        AND t.project = b.Project
+                                                        AND t.service = b.Service
+                                                        AND t.account = b.Account
+                                                ),
+                                                t5 AS (
+                                                    SELECT
+                                                        t.*,
+                                                        b.UoM_for_Proj_KPI,
+                                                        b.KPI,
+                                                        b.Proj_KPI_Name,
+                                                        b.Proj_KPI_Target
+                                                    FROM
+                                                        t1 t
+                                                        LEFT JOIN budget_planning_project_kpi b ON t.faculty = b.Faculty COLLATE UTF8MB4_GENERAL_CI
+                                                        AND t.project = b.project
+                                                    WHERE
+                                                        b.KPI IS NOT NULL
+                                                ),
+                                                t6 AS (
+                                                    SELECT
+                                                        Faculty,
+                                                        Budget_Management_Year,
+                                                        fund,
+                                                        plan,
+                                                        plan_name,
+                                                        sub_plan,
+                                                        sub_plan_name,
+                                                        project,
+                                                        service,
+                                                        reason,
+                                                        kpi,
+                                                        Proj_KPI_Name AS kpi_name,
+                                                        Proj_KPI_Target AS kpi_target,
+                                                        UoM_for_Proj_KPI AS uom_kpi,
+                                                        account,
+                                                        NULL AS expense,
+                                                        NULL AS expense_type,
+                                                        kku_item_name,
+                                                        CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
+                                                        CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
+                                                        CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
+                                                        '2.project_kpi' AS TYPE
+                                                    FROM
+                                                        t5
+                                                ),
+                                                t7 AS (
+                                                    SELECT
+                                                        t.*,
+                                                        CASE WHEN t.fund = 'FN02' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total02,
+                                                        CASE WHEN t.fund = 'FN06' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total06,
+                                                        CASE WHEN t.fund = 'FN08' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total08
+                                                    FROM
+                                                        t6 t
+                                                        LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
+                                                        AND t.fund = b.Fund
+                                                        AND t.plan = b.Plan
+                                                        AND t.sub_plan = b.Sub_Plan
+                                                        AND t.project = b.Project
+                                                        AND t.service = b.Service
+                                                        AND t.account = b.Account
+                                                ),
+                                                t8 AS (
+                                                    SELECT
+                                                        t.*,
+                                                        a.alias_default,
+                                                        a.type
+                                                    FROM
+                                                        t1 t
+                                                        LEFT JOIN (
+                                                            SELECT
+                                                                *
+                                                            FROM
+                                                                account
+                                                            WHERE
+                                                                id >(
+                                                                    SELECT
+                                                                        id
+                                                                    FROM
+                                                                        account
+                                                                    WHERE
+                                                                        account = 'Expenses'
+                                                                )
+                                                        ) a ON t.account = a.account
+                                                    WHERE
+                                                        a.type IS NOT NULL
+                                                ),
+                                                t9 AS (
+                                                    SELECT
+                                                        Faculty,
+                                                        Budget_Management_Year,
+                                                        fund,
+                                                        plan,
+                                                        plan_name,
+                                                        sub_plan,
+                                                        sub_plan_name,
+                                                        project,
+                                                        service,
+                                                        reason,
+                                                        NULL AS kpi,
+                                                        NULL AS kpi_name,
+                                                        NULL AS kpi_target,
+                                                        NULL AS uom_kpi,
+                                                        account,
+                                                        alias_default AS expense,
+                                                        TYPE AS expense_type,
+                                                        kku_item_name,
+                                                        CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
+                                                        CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
+                                                        CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
+                                                        '3.expense' AS TYPE
+                                                    FROM
+                                                        t8
+                                                ),
+                                                t10 AS (
+                                                    SELECT
+                                                        t.*,
+                                                        CASE WHEN t.fund = 'FN02' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total02,
+                                                        CASE WHEN t.fund = 'FN06' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total06,
+                                                        CASE WHEN t.fund = 'FN08' THEN COALESCE(
+                                                            Allocated_Total_Amount_Quantity,
+                                                            0
+                                                        ) ELSE 0 END AS allocated_total08
+                                                    FROM
+                                                        t9 t
+                                                        LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
+                                                        AND t.fund = b.Fund
+                                                        AND t.plan = b.Plan
+                                                        AND t.sub_plan = b.Sub_Plan
+                                                        AND t.project = b.Project
+                                                        AND t.service = b.Service
+                                                        AND t.account = b.Account
+                                                ),
+                                                t11 AS (
+                                                    SELECT
+                                                        *
+                                                    FROM
+                                                        t4
+                                                    UNION ALL
+                                                    SELECT
+                                                        *
+                                                    FROM
+                                                        t7
+                                                    UNION ALL
+                                                    SELECT
+                                                        *
+                                                    FROM
+                                                        t10
+                                                )
+                                            SELECT
+                                                *
+                                            FROM
+                                                t11
+                                            $where_clause
+                                            ORDER BY
+                                                Faculty,
+                                                fund,
+                                                plan,
+                                                sub_plan,
+                                                project";
 
                                     try {
                                         $stmt = $conn->prepare($query);
@@ -232,79 +402,17 @@
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $current_plan = "";
-                                            $current_sub_plan = "";
-                                            $current_project = "";
-                                            $current_expense = "";
-
-                                            $subplan_totals = [];
+                                            $current_plan = [];
+                                            $current_sub_plan = [];
+                                            $current_project = [];
+                                            $KKU_Item_Name = [];
                                             $expense_totals = [];
 
                                             foreach ($resultsFN as $row):
-                                                // คำนวณค่าผลรวมโดยใช้ Fund เป็นเงื่อนไข
-                                                $fn02_request = ($row['Fund'] === 'FN02') ? $row['Total_Amount_Quantity'] : 0;
-                                                $fn02_allocated = ($row['Fund'] === 'FN02') ? $row['Allocated_Total_Amount_Quantity'] : 0;
-
-                                                $fn08_request = ($row['Fund'] === 'FN08') ? $row['Total_Amount_Quantity'] : 0;
-                                                $fn08_allocated = ($row['Fund'] === 'FN08') ? $row['Allocated_Total_Amount_Quantity'] : 0;
-
-                                                $fn06_request = ($row['Fund'] === 'FN06') ? $row['Total_Amount_Quantity'] : 0;
-                                                $fn06_allocated = ($row['Fund'] === 'FN06') ? $row['Allocated_Total_Amount_Quantity'] : 0;
-
-                                                $total_allocated = $fn02_allocated + $fn08_allocated + $fn06_allocated;
-
-                                                // สร้าง key สำหรับรวมค่า Sub Plan KPI
-                                                $subplan_key = $row['Plan_Name'] . '|' . $row['Sub_Plan_Name'];
-
-                                                if (!isset($subplan_totals[$subplan_key])) {
-                                                    $subplan_totals[$subplan_key] = [
-                                                        'FN02_Request' => 0,
-                                                        'FN02_Allocated' => 0,
-                                                        'FN08_Request' => 0,
-                                                        'FN08_Allocated' => 0,
-                                                        'FN06_Request' => 0,
-                                                        'FN06_Allocated' => 0,
-                                                        'Total_Allocated' => 0
-                                                    ];
-                                                }
-
-                                                // บวกค่าไปที่ระดับ Sub Plan
-                                                $subplan_totals[$subplan_key]['FN02_Request'] += $fn02_request;
-                                                $subplan_totals[$subplan_key]['FN02_Allocated'] += $fn02_allocated;
-                                                $subplan_totals[$subplan_key]['FN08_Request'] += $fn08_request;
-                                                $subplan_totals[$subplan_key]['FN08_Allocated'] += $fn08_allocated;
-                                                $subplan_totals[$subplan_key]['FN06_Request'] += $fn06_request;
-                                                $subplan_totals[$subplan_key]['FN06_Allocated'] += $fn06_allocated;
-                                                $subplan_totals[$subplan_key]['Total_Allocated'] += $total_allocated;
-
-                                                // สร้าง key สำหรับรวมค่า Expense
-                                                $expense_key = $row['Plan_Name'] . '|' . $row['Sub_Plan_Name'] . '|' . $row['Project_Name'] . '|' . $row['Account_Alias_Default'];
-
-                                                if (!isset($expense_totals[$expense_key])) {
-                                                    $expense_totals[$expense_key] = [
-                                                        'FN02_Request' => 0,
-                                                        'FN02_Allocated' => 0,
-                                                        'FN08_Request' => 0,
-                                                        'FN08_Allocated' => 0,
-                                                        'FN06_Request' => 0,
-                                                        'FN06_Allocated' => 0,
-                                                        'Total_Allocated' => 0
-                                                    ];
-                                                }
-
-                                                // บวกค่าไปที่ระดับ Expense
-                                                $expense_totals[$expense_key]['FN02_Request'] += $fn02_request;
-                                                $expense_totals[$expense_key]['FN02_Allocated'] += $fn02_allocated;
-                                                $expense_totals[$expense_key]['FN08_Request'] += $fn08_request;
-                                                $expense_totals[$expense_key]['FN08_Allocated'] += $fn08_allocated;
-                                                $expense_totals[$expense_key]['FN06_Request'] += $fn06_request;
-                                                $expense_totals[$expense_key]['FN06_Allocated'] += $fn06_allocated;
-                                                $expense_totals[$expense_key]['Total_Allocated'] += $total_allocated;
                                             ?>
-
-                                                <?php if ($current_plan !== $row['Plan_Name']): ?>
+                                                <?php if (!in_array($row['plan_name'], $current_plan)): ?>
                                                     <tr>
-                                                        <td><?= $row['Plan_Name'] ?></td>
+                                                        <td><?= $row['Plan'] . ":" . $row['plan_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -323,37 +431,38 @@
                                                         <td>-</td>
                                                         <td>-</td>
                                                     </tr>
-                                                    <?php $current_plan = $row['Plan_Name']; ?>
+                                                    <?php
+                                                    array_push($current_plan, $row['plan_name']);
+                                                    ?>
                                                 <?php endif; ?>
-
-                                                <?php if ($current_sub_plan !== $row['Sub_Plan_Name']): ?>
+                                                <?php if (!in_array($row['Sub_Plan'], $current_sub_plan)): ?>
                                                     <tr>
-                                                        <td>&nbsp;&nbsp;<?= $row['Sub_Plan_Name'] ?></td>
+                                                        <td><?= $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
-                                                        <!-- ปี 2568 -->
                                                         <td>-</td>
-                                                        <td><?= $subplan_totals[$subplan_key]['FN02_Request'] ?></td>
-                                                        <td><?= $subplan_totals[$subplan_key]['FN02_Allocated'] ?></td>
-                                                        <td><?= $subplan_totals[$subplan_key]['FN08_Request'] ?></td>
-                                                        <td><?= $subplan_totals[$subplan_key]['FN08_Allocated'] ?></td>
-                                                        <td><?= $subplan_totals[$subplan_key]['FN06_Request'] ?></td>
-                                                        <td><?= $subplan_totals[$subplan_key]['FN06_Allocated'] ?></td>
-                                                        <td><?= $subplan_totals[$subplan_key]['Total_Allocated'] ?></td>
-                                                        <td><?= $subplan_totals[$subplan_key]['Total_Allocated'] - 0 ?></td>
-                                                        <td>100</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
                                                         <td>-</td>
                                                     </tr>
-                                                    <?php $current_sub_plan = $row['Sub_Plan_Name']; ?>
+                                                    <?php
+                                                    array_push($current_sub_plan, $row['Sub_Plan']);
+                                                    ?>
                                                 <?php endif; ?>
-
-                                                <?php if ($current_expense !== $row['Account_Alias_Default']): ?>
+                                                <?php if ((!in_array($row['KKU_Item_Name'], $KKU_Item_Name)) && $row['TYPE'] == '1.sub_plan_kpi'): ?>
                                                     <tr>
-                                                        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<?= $row['Account_Alias_Default'] . " (" . $row['type'] . " " . $row['sub_type'] . ")" ?></td>
+                                                        <td><?= $row['KKU_Item_Name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -361,24 +470,76 @@
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <!-- ปี 2568 -->
-                                                        <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
-                                                        <td><?= $expense_totals[$expense_key]['FN02_Request'] ?></td>
-                                                        <td><?= $expense_totals[$expense_key]['FN02_Allocated'] ?></td>
-                                                        <td><?= $expense_totals[$expense_key]['FN08_Request'] ?></td>
-                                                        <td><?= $expense_totals[$expense_key]['FN08_Allocated'] ?></td>
-                                                        <td><?= $expense_totals[$expense_key]['FN06_Request'] ?></td>
-                                                        <td><?= $expense_totals[$expense_key]['FN06_Allocated'] ?></td>
-                                                        <td><?= $expense_totals[$expense_key]['Total_Allocated'] ?></td>
-                                                        <td><?= $expense_totals[$expense_key]['Total_Allocated'] - 0 ?></td>
-                                                        <td>100</td>
+                                                        <td><?= $row['uom_kpi'] ?></td>
+                                                        <td><?= $row['total06'] ?></td>
+                                                        <td><?= $row['allocated_total06'] ?></td>
+                                                        <td><?= $row['total08'] ?></td>
+                                                        <td><?= $row['allocated_total08'] ?></td>
+                                                        <td><?= $row['total02'] ?></td>
+                                                        <td><?= $row['allocated_total02'] ?></td>
+                                                        <td><?= $row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08'] ?></td>
+                                                        <td><?= ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0 ?></td>
+                                                        <td>100%</td>
                                                         <td><?= $row['Reason'] ?></td>
                                                     </tr>
-                                                    <?php $current_expense = $row['Account_Alias_Default']; ?>
+                                                    <?php
+                                                    array_push($KKU_Item_Name, $row['KKU_Item_Name']);
+                                                    ?>
                                                 <?php endif; ?>
-
+                                                <?php if (!in_array($row['Project'], $current_project)): ?>
+                                                    <tr>
+                                                        <td><?= $row['Project'] ?></td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <!-- ปี 2568 -->
+                                                    </tr>
+                                                    <?php
+                                                    array_push($current_project, $row['Project']);
+                                                    ?>
+                                                <?php endif; ?>
+                                                <?php if ((!in_array($row['KKU_Item_Name'], $KKU_Item_Name)) && $row['TYPE'] == '2.project_kpi'): ?>
+                                                    <tr>
+                                                        <td><?= $row['KKU_Item_Name'] ?></td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <td>-</td>
+                                                        <!-- ปี 2568 -->
+                                                        <td><?= $row['uom_kpi'] ?></td>
+                                                        <td><?= $row['total06'] ?></td>
+                                                        <td><?= $row['allocated_total06'] ?></td>
+                                                        <td><?= $row['total08'] ?></td>
+                                                        <td><?= $row['allocated_total08'] ?></td>
+                                                        <td><?= $row['total02'] ?></td>
+                                                        <td><?= $row['allocated_total02'] ?></td>
+                                                        <td><?= $row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08'] ?></td>
+                                                        <td><?= ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0 ?></td>
+                                                        <td>100%</td>
+                                                        <td><?= $row['Reason'] ?></td>
+                                                    </tr>
+                                                    <?php
+                                                    array_push($KKU_Item_Name, $row['KKU_Item_Name']);
+                                                    ?>
+                                                <?php endif; ?>
                                             <?php endforeach; ?>
                                         </tbody>
-
                                     </table>
                                     <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                     <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
