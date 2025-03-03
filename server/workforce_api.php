@@ -1134,7 +1134,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN Faculty f2
                         ON f.parent=f2.Faculty
                         -- WHERE ty.wf_type1 IS NOT NULL 
-                        ORDER BY ty.faculty";
+                        ORDER BY f2.Alias_Default,ty.faculty";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
