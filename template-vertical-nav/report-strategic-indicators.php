@@ -82,7 +82,7 @@
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                
+
                                             </tbody>
                                         </table>
                                     </div>
@@ -115,186 +115,379 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    
-                    response.fac.forEach((row) =>{
+
+                    response.fac.forEach((row) => {
                         //console.log(row.y);
-                        $('#dropdown1').append('<option value="'+row.fcode+'">'+row.faculty+'</option>');
-                    });   
+                        $('#dropdown1').append('<option value="' + row.fcode + '">' + row.faculty + '</option>');
+                    });
                 }
             });
             $('#dropdown1').change(function() {
                 let faculty = $(this).val();
                 $.ajax({
-                type: "POST",
-                url: "../server/api.php",
-                data: {
-                    'command': 'get_strategic-indicators',
-                    'faculty':faculty
-                },
-                dataType: "json",
-                success: function(response) {
-                    // console.log(response.plan);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    type: "POST",
+                    url: "../server/api.php",
+                    data: {
+                        'command': 'get_strategic-indicators',
+                        'faculty': faculty
+                    },
+                    dataType: "json",
+                    success: function(response) {
+                        // console.log(response.plan);
+                        const tableBody = document.querySelector('#reportTable tbody');
+                        tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-                    response.plan.forEach((row, index) => {                   
-                        const tr = document.createElement('tr');
-                        var sum1= parseInt(row.s1)+parseInt(row.s2)+parseInt(row.s3)+parseInt(row.s4)
-                        +parseInt(row.s5)+parseInt(row.s6)+parseInt(row.s7)+parseInt(row.s8)+parseInt(row.s9)
-                        +parseInt(row.s10)+parseInt(row.s11);
-                        const columns = [
-                            { key: 'No', value: index+1 },
-                            { key: 'fac_code', value: (row.Alias_Default).substring(0, 2) },
-                            { key: 'fac', value: row.Alias_Default.replace(/^(\d{5}) - /, '') },
-                            { key: 'count_okr', value: parseInt(row.count_okr).toLocaleString() },
-                            { key: 'sum1', value: parseInt(sum1).toLocaleString() },
-                            { key: 'avg1', value: (parseFloat((parseFloat(sum1)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },
-                            { key: 's1', value: parseInt(row.s1).toLocaleString() },
-                            { key: 's2', value: parseInt(row.s2).toLocaleString() },
-                            { key: 's3', value: parseInt(row.s3).toLocaleString() },
-                            { key: 's4', value: parseInt(row.s4).toLocaleString() },
-                            { key: 's5', value: parseInt(row.s5).toLocaleString() },
-                            { key: 's6', value: parseInt(row.s6).toLocaleString() },
-                            { key: 's7', value: parseInt(row.s7).toLocaleString() },
-                            { key: 's8', value: parseInt(row.s8).toLocaleString() },
-                            { key: 's9', value: parseInt(row.s9).toLocaleString() },
-                            { key: 's10', value: parseInt(row.s10).toLocaleString() },
-                            { key: 's11', value: parseInt(row.s11).toLocaleString() },
-                            { key: 'p1', value: (parseInt(row.count_okr)-sum1).toLocaleString() },    
-                            { key: 'p1', value: (((parseInt(row.count_okr)-sum1)*100)/parseInt(row.count_okr)).toLocaleString()+"%" },  
-                            { key: 'dev_plan', value: parseInt(row.dev_plan || 0).toLocaleString() },  
-                            { key: 'avg2', value: (parseFloat((parseFloat(row.dev_plan || 0)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },  
-                            { key: 'divis', value: parseInt(row.divis || 0).toLocaleString() },  
-                            { key: 'avg3', value: (parseFloat((parseFloat(row.divis || 0)*100)/parseFloat(row.count_okr)|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+"%" },                                                                  
-                        ];
+                        response.plan.forEach((row, index) => {
+                            const tr = document.createElement('tr');
+                            var sum1 = parseInt(row.s1) + parseInt(row.s2) + parseInt(row.s3) + parseInt(row.s4) +
+                                parseInt(row.s5) + parseInt(row.s6) + parseInt(row.s7) + parseInt(row.s8) + parseInt(row.s9) +
+                                parseInt(row.s10) + parseInt(row.s11);
+                            const columns = [{
+                                    key: 'No',
+                                    value: index + 1
+                                },
+                                {
+                                    key: 'fac_code',
+                                    value: (row.Alias_Default).substring(0, 2)
+                                },
+                                {
+                                    key: 'fac',
+                                    value: row.Alias_Default.replace(/^(\d{5}) - /, '')
+                                },
+                                {
+                                    key: 'count_okr',
+                                    value: parseInt(row.count_okr).toLocaleString()
+                                },
+                                {
+                                    key: 'sum1',
+                                    value: parseInt(sum1).toLocaleString()
+                                },
+                                {
+                                    key: 'avg1',
+                                    value: (parseFloat((parseFloat(sum1) * 100) / parseFloat(row.count_okr) || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + "%"
+                                },
+                                {
+                                    key: 's1',
+                                    value: parseInt(row.s1).toLocaleString()
+                                },
+                                {
+                                    key: 's2',
+                                    value: parseInt(row.s2).toLocaleString()
+                                },
+                                {
+                                    key: 's3',
+                                    value: parseInt(row.s3).toLocaleString()
+                                },
+                                {
+                                    key: 's4',
+                                    value: parseInt(row.s4).toLocaleString()
+                                },
+                                {
+                                    key: 's5',
+                                    value: parseInt(row.s5).toLocaleString()
+                                },
+                                {
+                                    key: 's6',
+                                    value: parseInt(row.s6).toLocaleString()
+                                },
+                                {
+                                    key: 's7',
+                                    value: parseInt(row.s7).toLocaleString()
+                                },
+                                {
+                                    key: 's8',
+                                    value: parseInt(row.s8).toLocaleString()
+                                },
+                                {
+                                    key: 's9',
+                                    value: parseInt(row.s9).toLocaleString()
+                                },
+                                {
+                                    key: 's10',
+                                    value: parseInt(row.s10).toLocaleString()
+                                },
+                                {
+                                    key: 's11',
+                                    value: parseInt(row.s11).toLocaleString()
+                                },
+                                {
+                                    key: 'p1',
+                                    value: (parseInt(row.count_okr) - sum1).toLocaleString()
+                                },
+                                {
+                                    key: 'p1',
+                                    value: (((parseInt(row.count_okr) - sum1) * 100) / parseInt(row.count_okr)).toLocaleString() + "%"
+                                },
+                                {
+                                    key: 'dev_plan',
+                                    value: parseInt(row.dev_plan || 0).toLocaleString()
+                                },
+                                {
+                                    key: 'avg2',
+                                    value: (parseFloat((parseFloat(row.dev_plan || 0) * 100) / parseFloat(row.count_okr) || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + "%"
+                                },
+                                {
+                                    key: 'divis',
+                                    value: parseInt(row.divis || 0).toLocaleString()
+                                },
+                                {
+                                    key: 'avg3',
+                                    value: (parseFloat((parseFloat(row.divis || 0) * 100) / parseFloat(row.count_okr) || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + "%"
+                                },
+                            ];
 
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            tr.appendChild(td);
+                            columns.forEach(col => {
+                                const td = document.createElement('td');
+                                td.textContent = col.value;
+                                tr.appendChild(td);
+                            });
+                            tableBody.appendChild(tr);
+
                         });
-                        tableBody.appendChild(tr);    
-                        
-                    });
-                },
-                error: function(jqXHR, exception) {
-                    console.error("Error: " + exception);
-                    responseError(jqXHR, exception);
-                }
-            });
+                    },
+                    error: function(jqXHR, exception) {
+                        console.error("Error: " + exception);
+                        responseError(jqXHR, exception);
+                    }
+                });
             });
         });
 
-        
+
 
         function exportCSV() {
             const table = document.getElementById('reportTable');
-        const csvRows = [];
+            const csvRows = [];
 
-        // วนลูปทีละ <tr>
-        for (const row of table.rows) {
-            // เก็บบรรทัดย่อยของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            // วนลูปทีละเซลล์ <td>/<th>
-            for (const cell of row.cells) {
-                let html = cell.innerHTML;
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
 
-                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                html = html.replace(/(&nbsp;)+/g, (match) => {
-                    const count = match.match(/&nbsp;/g).length;
-                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                });
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
 
-                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                html = html.replace(/<br\s*\/?>/gi, '\n');
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                // html = html.replace(/<\/?[^>]+>/g, '');
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
 
-                // 4) แยกเป็น array บรรทัดย่อย
-                const lines = html.split('\n').map(x => x.trimEnd());
-                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
-                if (lines.length > maxSubLine) {
-                    maxSubLine = lines.length;
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
                 }
 
-                cellLines.push(lines);
-            }
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
 
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-                const rowData = [];
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
 
-                // วนลูปแต่ละเซลล์
-                for (const lines of cellLines) {
-                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                    // Escape double quotes
-                    text = text.replace(/"/g, '""');
-                    // ครอบด้วย ""
-                    text = `"${text}"`;
-                    rowData.push(text);
+                    csvRows.push(rowData.join(','));
                 }
-
-                csvRows.push(rowData.join(','));
             }
-        }
 
-        // รวมเป็น CSV + BOM
-        const csvContent = "\uFEFF" + csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'report.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         function exportPDF() {
             const {
                 jsPDF
             } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานจำนวนผลลัพธ์/ตัวชี้วัดที่สอดคล้องกับแผนยุทธศาสตร์มหาวิทยาลัย", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            // Configure autoTable
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
                 },
+                columnStyles: {
+                    0: {
+                        cellWidth: 10
+                    },
+                    1: {
+                        cellWidth: 10
+                    },
+                    2: {
+                        cellWidth: 30
+                    },
+                    3: {
+                        cellWidth: 25
+                    },
+                    4: {
+                        cellWidth: 13
+                    },
+                    5: {
+                        cellWidth: 13
+                    },
+                    6: {
+                        cellWidth: 10
+                    },
+                    7: {
+                        cellWidth: 10
+                    },
+                    8: {
+                        cellWidth: 10
+                    },
+                    9: {
+                        cellWidth: 10
+                    },
+                    10: {
+                        cellWidth: 10
+                    },
+                    11: {
+                        cellWidth: 10
+                    },
+                    12: {
+                        cellWidth: 10
+                    },
+                    13: {
+                        cellWidth: 10
+                    },
+                    14: {
+                        cellWidth: 10
+                    },
+                    15: {
+                        cellWidth: 10
+                    },
+                    16: {
+                        cellWidth: 10
+                    },
+                    17: {
+                        cellWidth: 13
+                    },
+                    18: {
+                        cellWidth: 13
+                    },
+                    19: {
+                        cellWidth: 13
+                    },
+                    20: {
+                        cellWidth: 13
+                    },
+                    21: {
+                        cellWidth: 13
+                    },
+                    22: {
+                        cellWidth: 13
+                    },
+
+                },
+                didDrawPage: function(data) {
+                    // Add header
+                    doc.setFontSize(16);
+                    doc.text('รายงานจำนวนผลลัพธ์/ตัวชี้วัดที่สอดคล้องกับแผนยุทธศาสตร์มหาวิทยาลัย', 14, 15);
+
+                    // Add footer with page number
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
+                        doc.internal.pageSize.width - 20,
+                        doc.internal.pageSize.height - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Handle cell styles
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        const leftAlignedColumns = [2];
+
+                        if (leftAlignedColumns.includes(data.column.index)) {
+                            data.cell.styles.halign = 'left';
+                        } else {
+                            data.cell.styles.halign = 'right';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = [240, 240, 240];
+                        if (data.column.index !== 1) {
+                            data.cell.styles.halign = 'center';
+                        }
+                    }
+                },
+                // Handle table width
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 15,
+                    left: 7
+                },
+                tableWidth: 'auto'
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            // Save the PDF
+            doc.save('รายงานจำนวนผลลัพธ์/ตัวชี้วัดที่สอดคล้องกับแผนยุทธศาสตร์มหาวิทยาลัย.pdf');
         }
+
 
         function exportXLS() {
             const table = document.getElementById('reportTable');
@@ -316,7 +509,7 @@
                 for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
                     // ข้ามเซลล์ที่อยู่ในพื้นที่ merge แล้ว
                     while (skipMap[`${rowIndex},${colIndex}`]) {
-                        rowData.push(""); 
+                        rowData.push("");
                         colIndex++;
                     }
 
@@ -326,7 +519,7 @@
 
                     // ใส่ข้อมูลลงใน Array
                     rowData[colIndex] = cellText;
-                    
+
                     // ตรวจสอบ colSpan / rowSpan
                     const rowspan = cell.rowSpan || 1;
                     const colspan = cell.colSpan || 1;
@@ -335,8 +528,14 @@
                     if (rowspan > 1 || colspan > 1) {
                         // สร้าง object merge ตามรูปแบบ SheetJS
                         const mergeRef = {
-                            s: { r: rowIndex, c: colIndex },                 // จุดเริ่ม (start)
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดจบ (end)
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            }, // จุดเริ่ม (start)
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            } // จุดจบ (end)
                         };
 
                         // เก็บลง merges (รูปแบบเก่าคือ ws['!merges'] = [])
