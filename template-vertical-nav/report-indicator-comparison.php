@@ -80,6 +80,10 @@
                                 <div class="card-title">
                                     <h4>รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน</h4>
                                 </div>
+                                <label for="selectcategory">เลือกส่วนงาน:</label>
+                                <select name="selectcategory" id="selectcategory" onchange="selectFilter()">
+                                    <option value="">-- ทั้งหมด --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -126,7 +130,11 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        let report_plan_status = [];
+        let filterdata = []
+        let categories = new Set();
         $(document).ready(function() {
             laodData();
         });
@@ -140,83 +148,27 @@
                 },
                 dataType: "json",
                 success: function(response) {
+                    report_plan_status = response.plan;
                     // console.log(response.plan);
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    response.plan.forEach(data => {
+                        categories.add(data.fa_name);
 
-                    let previousSICode = '';
-                    let previousSIName = '';
-                    let previousSOCode = '';
-                    let previousSOName = '';
-                    let previousOKRCode = '';
-                    let previousOKRName = '';
-                    response.plan.forEach(row => {
-                        const tr = document.createElement('tr');
+                    })
+                    const categorySelect = document.getElementById("selectcategory");
 
-                        const createCell = (text, align = "left") => {
-                            const td = document.createElement('td');
-                            td.textContent = text;
-                            td.style.textAlign = align; // กำหนดให้ชิดซ้าย
-                            return td;
-                        };
+                    // เพิ่มตัวเลือกทั้งหมด
+                    categorySelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
 
-                        const td1 = createCell(row.si_code === previousSICode ? '' : row.si_code);
-                        tr.appendChild(td1);
-
-                        const td2 = createCell(row.si_name === previousSIName ? '' : row.si_name);
-                        tr.appendChild(td2);
-
-                        const td3 = createCell(row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object);
-                        tr.appendChild(td3);
-
-                        const td4 = createCell(row.so_name === previousSOName ? '' : row.so_name);
-                        tr.appendChild(td4);
-
-                        const td5 = createCell(row.OKR);
-                        tr.appendChild(td5);
-
-                        const td6 = createCell(row.okr_name);
-                        tr.appendChild(td6);
-
-                        const td7 = createCell(row.Target_OKR_Objective_and_Key_Result, "right");
-                        tr.appendChild(td7);
-
-                        const td8 = createCell(row.UOM);
-                        tr.appendChild(td8);
-
-                        const td9 = createCell(row.Strategic_Project);
-                        tr.appendChild(td9);
-
-                        const td10 = createCell(row.ksp_name);
-                        tr.appendChild(td10);
-
-                        const td11 = createCell(Number(row.Budget_Amount).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }), "right");
-                        tr.appendChild(td11);
-
-                        const td12 = createCell(row.Start_Date);
-                        tr.appendChild(td12);
-
-                        const td13 = createCell(row.End_Date);
-                        tr.appendChild(td13);
-
-                        const td14 = createCell(row.Tiers_Deploy);
-                        tr.appendChild(td14);
-
-                        const td15 = createCell(row.Responsible_person);
-                        tr.appendChild(td15);
-
-
-                        tableBody.appendChild(tr);
-
-                        // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
-                        previousSICode = row.si_code;
-                        previousSIName = row.si_name;
-                        previousSOCode = row.Strategic_Object;
-                        previousSOName = row.so_name;
+                    // เพิ่มตัวเลือกสำหรับแต่ละ fa_name ที่ไม่ซ้ำ
+                    categories.forEach(category => {
+                        const option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
                     });
+                    writeBody(response.plan);
+                    // console.log(response.plan);
+
 
 
                 },
@@ -227,26 +179,99 @@
             });
         }
 
-        function exportCSV() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
+        function selectFilter() {
+            const selectedCategory = document.getElementById('selectcategory').value;
+            if (selectedCategory === "") {
+                filterdata = report_plan_status;
+                writeBody(filterdata);
+            } else {
+                // filter ข้อมูลที่ fa_name ตรงกับค่าที่เลือก
+                filterdata = report_plan_status.filter(item => item.fa_name === selectedCategory);
+                writeBody(filterdata);
             }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            document.querySelector('.table-responsive').scrollTop = 0;
         }
+
+
+        function writeBody(data) {
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+            let previousSICode = '';
+            let previousSIName = '';
+            let previousSOCode = '';
+            let previousSOName = '';
+            let previousOKRCode = '';
+            let previousOKRName = '';
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+
+                const createCell = (text, align = "left") => {
+                    const td = document.createElement('td');
+                    td.textContent = text;
+                    td.style.textAlign = align; // กำหนดให้ชิดซ้าย
+                    return td;
+                };
+
+                const td1 = createCell(row.si_code === previousSICode ? '' : row.si_code);
+                tr.appendChild(td1);
+
+                const td2 = createCell(row.si_name === previousSIName ? '' : row.si_name);
+                tr.appendChild(td2);
+
+                const td3 = createCell(row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object);
+                tr.appendChild(td3);
+
+                const td4 = createCell(row.so_name === previousSOName ? '' : row.so_name);
+                tr.appendChild(td4);
+
+                const td5 = createCell(row.OKR);
+                tr.appendChild(td5);
+
+                const td6 = createCell(row.okr_name);
+                tr.appendChild(td6);
+
+                const td7 = createCell(row.Target_OKR_Objective_and_Key_Result, "right");
+                tr.appendChild(td7);
+
+                const td8 = createCell(row.UOM);
+                tr.appendChild(td8);
+
+                const td9 = createCell(row.Strategic_Project);
+                tr.appendChild(td9);
+
+                const td10 = createCell(row.ksp_name);
+                tr.appendChild(td10);
+
+                const td11 = createCell(Number(row.Budget_Amount).toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                }), "right");
+                tr.appendChild(td11);
+
+                const td12 = createCell(row.Start_Date);
+                tr.appendChild(td12);
+
+                const td13 = createCell(row.End_Date);
+                tr.appendChild(td13);
+
+                const td14 = createCell(row.Tiers_Deploy);
+                tr.appendChild(td14);
+
+                const td15 = createCell(row.Responsible_person);
+                tr.appendChild(td15);
+
+
+                tableBody.appendChild(tr);
+
+                // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
+                previousSICode = row.si_code;
+                previousSIName = row.si_name;
+                previousSOCode = row.Strategic_Object;
+                previousSOName = row.so_name;
+            });
+        }
+
 
         function exportPDF() {
             const {
@@ -385,30 +410,137 @@
             doc.save('รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน.pdf');
         }
 
-        function exportXLS() {
-            const rows = [];
+        function exportCSV() {
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
-            }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
+            const numRows = table.rows.length;
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
+            // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
+            let maxCols = 0;
+            for (let row of table.rows) {
+                let colCount = 0;
+                for (let cell of row.cells) {
+                    colCount += cell.colSpan || 1;
+                }
+                maxCols = Math.max(maxCols, colCount);
+            }
+
+            // สร้างตาราง 2D สำหรับเก็บข้อมูล CSV
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(""));
+
+            // ใช้ตัวแปรตรวจสอบว่า cell ไหนถูก merge ไปแล้ว
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
+
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const row = table.rows[rowIndex];
+                let colIndex = 0;
+
+                for (const cell of row.cells) {
+                    // ขยับไปยังช่องที่ยังไม่มีข้อมูล
+                    while (cellMap[rowIndex][colIndex]) {
+                        colIndex++;
+                    }
+
+                    let text = cell.innerText.trim().replace(/"/g, '""'); // Escape double quotes
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ใส่ค่าข้อมูลในตำแหน่งเริ่มต้นของเซลล์
+                    csvMatrix[rowIndex][colIndex] = `"${text}"`;
+
+                    // ทำเครื่องหมายว่าช่องนี้ถูกครอบคลุมโดย cell ที่ merge
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            cellMap[rowIndex + r][colIndex + c] = true;
+
+                            // ช่องที่ถูก merge (ไม่ใช่ช่องแรกของ cell) ให้เป็นว่าง
+                            if (r !== 0 || c !== 0) {
+                                csvMatrix[rowIndex + r][colIndex + c] = '""';
+                            }
+                        }
+                    }
+
+                    // ขยับ index ไปยังคอลัมน์ถัดไป
+                    colIndex += colspan;
+                }
+            }
+
+            // แปลงข้อมูลเป็น CSV
+            const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
             });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = 'รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportXLS() {
+            const table = document.getElementById('reportTable');
+            const numRows = table.rows.length;
+
+            let maxCols = 0;
+            for (let row of table.rows) {
+                let colCount = 0;
+                for (let cell of row.cells) {
+                    colCount += cell.colSpan || 1;
+                }
+                maxCols = Math.max(maxCols, colCount);
+            }
+
+            let sheetData = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(""));
+
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
+
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const row = table.rows[rowIndex];
+                let colIndex = 0;
+
+                for (const cell of row.cells) {
+                    while (cellMap[rowIndex][colIndex]) {
+                        colIndex++;
+                    }
+
+                    let text = cell.innerText.trim();
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    sheetData[rowIndex][colIndex] = text;
+
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            cellMap[rowIndex + r][colIndex + c] = true;
+                            if (r !== 0 || c !== 0) {
+                                sheetData[rowIndex + r][colIndex + c] = null; // Null เพื่อแสดงการ merge
+                            }
+                        }
+                    }
+
+                    colIndex += colspan;
+                }
+            }
+
+            // สร้าง WorkSheet และ WorkBook
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+            // บันทึกไฟล์
+            XLSX.writeFile(wb, "รายงานเปรียบเทียบตัวชี้วัดของแต่ละแผนงาน.xlsx");
         }
     </script>
     <!-- Common JS -->

@@ -83,7 +83,6 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    
                     response.fac.forEach((row) =>{
                         //console.log(row.y);
                         $('#dropdown1').append('<option value="'+row.fcode+'">'+row.faculty+'</option>');
@@ -94,7 +93,7 @@
 
             $('#dropdown1').change(function() {
                 let faculty = $(this).val();
-                //console.log(faculty);
+                console.log(faculty);
                 $.ajax({
                     type: "POST",
                     url: "../server/api.php",
@@ -104,6 +103,7 @@
                     },
                     dataType: "json",
                     success: function(response) {
+                        
                         console.log(response);
                         const tableBody = document.querySelector('#reportTable tbody');
                         tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
@@ -140,7 +140,7 @@
                                     
                                 });
                                 if(index+1==1){
-                                    var str='<tr><td  style="text-align: left;">'+$('#dropdown1 option:selected').text()+'</td>'+
+                                    var str='<tr><td nowrap style="text-align: left;">'+$('#dropdown1 option:selected').text()+'</td>'+
                                         '<td nowrap style="text-align: left;">'+row.pillar_name+'</td>'+
                                         '<td style="text-align: right;">'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
                                         '<td style="text-align: right;">'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
@@ -240,7 +240,7 @@
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = 'report.csv';
+        link.download = 'รายงานการใช้จ่ายงบประมาณตามแผนงาน.csv';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -430,7 +430,7 @@
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = 'report.xlsx'; // Change to .xlsx for proper styling support
+    link.download = 'รายงานการใช้จ่ายงบประมาณตามแผนงาน.xlsx'; // Change to .xlsx for proper styling support
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

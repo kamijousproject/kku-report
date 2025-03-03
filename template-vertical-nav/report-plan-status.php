@@ -123,6 +123,7 @@
             </div>
         </div>
     </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         let report_plan_status = [];
         let filterdata = []
@@ -336,26 +337,28 @@
             });
         }
 
-        function exportCSV() {
-            const rows = [];
-            const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
-            }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+        // function exportCSV() {
+        //     const rows = [];
+        //     const table = document.getElementById('reportTable');
+        //     for (let row of table.rows) {
+        //         const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
+        //         rows.push(cells.join(","));
+        //     }
+        //     const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
+        //     const blob = new Blob([csvContent], {
+        //         type: 'text/csv;charset=utf-8;'
+        //     });
+        //     const url = URL.createObjectURL(blob);
+        //     const link = document.createElement('a');
+        //     link.setAttribute('href', url);
+        //     link.setAttribute('download', 'รายงาน.csv');
+        //     link.style.visibility = 'hidden';
+        //     document.body.appendChild(link);
+        //     link.click();
+        //     document.body.removeChild(link);
+        // }
+
+        
 
         function exportPDF() {
             const {
@@ -393,19 +396,19 @@
                 columnStyles: {
                     0: {
                         cellWidth: 40
-                    }, 
+                    },
                     1: {
                         cellWidth: 15
-                    }, 
+                    },
                     2: {
                         cellWidth: 40
-                    }, 
+                    },
                     3: {
                         cellWidth: 15
-                    }, 
+                    },
                     4: {
                         cellWidth: 60
-                    }, 
+                    },
                     5: {
                         cellWidth: 30
                     },
@@ -418,7 +421,7 @@
                     8: {
                         cellWidth: 30
                     },
-                   
+
                 },
                 didDrawPage: function(data) {
                     // Add header
@@ -446,7 +449,7 @@
 
                     // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
                     if (data.section === 'body') {
-                            data.cell.styles.halign = 'left';
+                        data.cell.styles.halign = 'left';
                     }
 
                     // Style footer row
@@ -472,30 +475,137 @@
             doc.save('รายงานสถานะของแผนงานแต่ละแผน.pdf');
         }
 
-        function exportXLS() {
-            const rows = [];
+        function exportCSV() {
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
-            }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
-            });
-            xlsContent += "</table>";
+            const numRows = table.rows.length;
 
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
+            // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
+            let maxCols = 0;
+            for (let row of table.rows) {
+                let colCount = 0;
+                for (let cell of row.cells) {
+                    colCount += cell.colSpan || 1;
+                }
+                maxCols = Math.max(maxCols, colCount);
+            }
+
+            // สร้างตาราง 2D สำหรับเก็บข้อมูล CSV
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(""));
+
+            // ใช้ตัวแปรตรวจสอบว่า cell ไหนถูก merge ไปแล้ว
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
+
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const row = table.rows[rowIndex];
+                let colIndex = 0;
+
+                for (const cell of row.cells) {
+                    // ขยับไปยังช่องที่ยังไม่มีข้อมูล
+                    while (cellMap[rowIndex][colIndex]) {
+                        colIndex++;
+                    }
+
+                    let text = cell.innerText.trim().replace(/"/g, '""'); // Escape double quotes
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ใส่ค่าข้อมูลในตำแหน่งเริ่มต้นของเซลล์
+                    csvMatrix[rowIndex][colIndex] = `"${text}"`;
+
+                    // ทำเครื่องหมายว่าช่องนี้ถูกครอบคลุมโดย cell ที่ merge
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            cellMap[rowIndex + r][colIndex + c] = true;
+
+                            // ช่องที่ถูก merge (ไม่ใช่ช่องแรกของ cell) ให้เป็นว่าง
+                            if (r !== 0 || c !== 0) {
+                                csvMatrix[rowIndex + r][colIndex + c] = '""';
+                            }
+                        }
+                    }
+
+                    // ขยับ index ไปยังคอลัมน์ถัดไป
+                    colIndex += colspan;
+                }
+            }
+
+            // แปลงข้อมูลเป็น CSV
+            const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
             });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงาน.xls');
-            link.style.visibility = 'hidden';
+            link.href = url;
+            link.download = 'รายงานสถานะของแผนงานแต่ละแผน.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportXLS() {
+            const table = document.getElementById('reportTable');
+            const numRows = table.rows.length;
+
+            let maxCols = 0;
+            for (let row of table.rows) {
+                let colCount = 0;
+                for (let cell of row.cells) {
+                    colCount += cell.colSpan || 1;
+                }
+                maxCols = Math.max(maxCols, colCount);
+            }
+
+            let sheetData = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(""));
+
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
+
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const row = table.rows[rowIndex];
+                let colIndex = 0;
+
+                for (const cell of row.cells) {
+                    while (cellMap[rowIndex][colIndex]) {
+                        colIndex++;
+                    }
+
+                    let text = cell.innerText.trim();
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    sheetData[rowIndex][colIndex] = text;
+
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            cellMap[rowIndex + r][colIndex + c] = true;
+                            if (r !== 0 || c !== 0) {
+                                sheetData[rowIndex + r][colIndex + c] = null; // Null เพื่อแสดงการ merge
+                            }
+                        }
+                    }
+
+                    colIndex += colspan;
+                }
+            }
+
+            // สร้าง WorkSheet และ WorkBook
+            const ws = XLSX.utils.aoa_to_sheet(sheetData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Report");
+
+            // บันทึกไฟล์
+            XLSX.writeFile(wb, "รายงานสถานะของแผนงานแต่ละแผน.xlsx");
         }
     </script>
     <!-- Common JS -->
