@@ -200,7 +200,11 @@
             let previousSOName = '';
             let previousOKRCode = '';
             let previousOKRName = '';
-
+            let totalOKRProgress;
+            alltotalOKRProgress = 0;
+            totalSO = 0;
+            totalOKR = 0;
+            totalKSP = 0;
             const siStats = {}; // เก็บข้อมูล SO, OKR และ KSP ที่ไม่ซ้ำภายในแต่ละ SI
 
 
