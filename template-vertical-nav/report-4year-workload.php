@@ -244,7 +244,7 @@ thead tr:nth-child(3) th {
                         { key: 'sum_RWC', value: row.sum_RWC ||0},
                         { key: 'sum_WCAS', value: row.sum_WCAS ||0},
                         
-                        { key: 'total_type2', value:  parseInt(row.Actual_type2||0) +parseInt(row.sum_FTES||0) +parseInt(row.sum_RWC||0) +parseInt(row.sum_WCAS||0) },
+                        { key: 'total_type2', value:  parseInt(row.sum_FTES||0) +parseInt(row.sum_RWC||0) +parseInt(row.sum_WCAS||0) },
                         { key: 'sum_RWC2', value: row.sum_RWC2 ||0},
                         
                         { key: 'sum_RWC2', value: row.sum_RWC2 ||0},
