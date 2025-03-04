@@ -62,7 +62,7 @@
                                     </select>
                                     <br />
                                     <!-- Submit Button -->
-                                    <button id="submitBtn" disabled>Submit</button>
+                                    <button id="submitBtn" class="btn btn-primary" disabled>Submit</button>
                                     <table id="reportTable" class="table table-bordered">
                                         <div class="card-title">
                                             <h6>รายงานสรุปรายรับรายจ่าย</h6>
