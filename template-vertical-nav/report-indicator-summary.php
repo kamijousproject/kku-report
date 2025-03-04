@@ -201,7 +201,7 @@
 
                                             foreach ($data as $row):
                                             ?>
-                                                <?php if (!in_array($row['plan_name'], $current_plan)): ?>
+                                                <?php if (!in_array($row['plan_name'], $current_plan) && $row['plan_name'] != ''): ?>
                                                     <tr>
                                                         <td><?= $row['Plan'] . ":" . $row['plan_name'] ?></td>
                                                         <td>-</td>
@@ -223,7 +223,7 @@
                                                     array_push($current_plan, $row['plan_name']);
                                                 endif;
                                                 ?>
-                                                <?php if (!in_array($row['Sub_Plan'], $current_sub_plan)): ?>
+                                                <?php if (!in_array($row['Sub_Plan'], $current_sub_plan) && $row['Sub_Plan'] != ''): ?>
                                                     <tr>
                                                         <td><?= str_repeat("&nbsp;", 10) . $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
                                                         <td>-</td>
