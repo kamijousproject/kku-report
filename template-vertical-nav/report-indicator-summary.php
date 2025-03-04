@@ -245,7 +245,7 @@
                                                     array_push($current_sub_plan, $row['Sub_Plan']);
                                                 endif;
                                                 ?>
-                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '1.sub_plan'): ?>
+                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '1.sub_plan' && $row['Sub_plan_KPI_Name'] != ''): ?>
                                                     <tr>
                                                         <td><?= str_repeat("&nbsp;", 20) . $row['Sub_plan_KPI_Name'] ?></td>
                                                         <td>-</td>
@@ -268,7 +268,7 @@
                                                     array_push($Sub_plan_KPI_Name, $row['Sub_plan_KPI_Name']);
                                                 endif;
                                                 ?>
-                                                <?php if (!in_array($row['project_name'], $project_name)): ?>
+                                                <?php if (!in_array($row['project_name'], $project_name) && $row['project_name'] != ''): ?>
                                                     <tr>
                                                         <td><?= str_repeat("&nbsp;", 10) . $row['project_name'] ?></td>
                                                         <td>-</td>
@@ -290,7 +290,7 @@
                                                     array_push($project_name, $row['project_name']);
                                                 endif;
                                                 ?>
-                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name_2) && $row['type'] == '2.project'): ?>
+                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name_2) && $row['type'] == '2.project' && $row['Sub_plan_KPI_Name'] != ''): ?>
                                                     <tr>
                                                         <td><?= str_repeat("&nbsp;", 20) . $row['Sub_plan_KPI_Name'] ?></td>
                                                         <td>-</td>
