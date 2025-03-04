@@ -516,45 +516,78 @@ $totalPages = ceil($totalRows / $limit);
         }
 
         function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('landscape'); // แนวนอนทำให้ตารางกว้างขึ้น
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // โหลดฟอนต์ภาษาไทย
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
 
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM)", 10, 500);
+            // หัวข้อของเอกสาร
+            doc.setFontSize(14);
+            doc.text("รายงานข้อมูลกรอบอัตรากำลัง (จากระบบ HCM)", 10, 10);
 
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
+            let table = document.getElementById("reportTable");
+            let data = [];
+            let headers = [];
+
+            // ดึง Header (หัวตาราง)
+            table.querySelectorAll("thead tr th").forEach(th => headers.push(th.innerText));
+
+            // ดึงข้อมูลของแต่ละแถว
+            table.querySelectorAll("tbody tr").forEach(row => {
+                let rowData = [];
+                row.querySelectorAll("td").forEach(cell => rowData.push(cell.innerText));
+                data.push(rowData);
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM).pdf');
+            // **แบ่งคอลัมน์ออกเป็นชุดๆ (เช่น หน้าละ 10-12 คอลัมน์)**
+            let maxColumnsPerPage = 10; // สามารถปรับให้เหมาะสม
+            let totalPages = Math.ceil(headers.length / maxColumnsPerPage);
+
+            for (let i = 0; i < totalPages; i++) {
+                if (i !== 0) doc.addPage(); // เพิ่มหน้ากระดาษใหม่ถ้าไม่ใช่หน้าแรก
+
+                let startCol = i * maxColumnsPerPage;
+                let endCol = Math.min(startCol + maxColumnsPerPage, headers.length);
+
+                let slicedHeaders = headers.slice(startCol, endCol);
+                let slicedData = data.map(row => row.slice(startCol, endCol));
+
+                doc.autoTable({
+                    head: [slicedHeaders],
+                    body: slicedData,
+                    startY: 20,
+                    styles: {
+                        font: "THSarabun",
+                        fontSize: 8,
+                        cellPadding: 2,
+                        overflow: 'linebreak',
+                        halign: 'center',
+                        valign: 'middle',
+                    },
+                    headStyles: {
+                        fillColor: [102, 153, 225],
+                        textColor: [0, 0, 0],
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.5,
+                        fontStyle: 'bold',
+                    },
+                    margin: { top: 30, left: 5, right: 5, bottom: 20 },
+                    columnStyles: Object.assign({}, ...slicedHeaders.map((_, index) => ({ [index]: { cellWidth: 'auto' } }))) // ขนาดคอลัมน์อัตโนมัติ
+                });
+
+                // **เพิ่มหมายเลขหน้า**
+                doc.setFontSize(10);
+                doc.text(`หน้า ${i + 1} จาก ${totalPages}`, doc.internal.pageSize.width - 20, doc.internal.pageSize.height - 10);
+            }
+
+            doc.save('รายงานข้อมูล.pdf');
         }
+
+
+
 
         function exportXLSX() {
             const table = document.getElementById('reportTable');
