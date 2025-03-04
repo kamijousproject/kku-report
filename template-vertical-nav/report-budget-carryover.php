@@ -266,6 +266,11 @@ function fetchFacultyData($conn)
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
+                                            <tr>
+                                                <th colspan="11" style='text-align: left;'>
+                                                    รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้วประเภทที่ยังไม่มีหนี้
+                                                </th>
+                                            </tr>
                                             <?php
 
 

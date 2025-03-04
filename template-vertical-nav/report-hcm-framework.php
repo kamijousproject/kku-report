@@ -215,6 +215,10 @@ $totalPages = ceil($totalRows / $limit);
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
                                             <tr>
+                                                <th colspan="46" style='text-align: left;'>
+                                                    รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM)</th>
+                                            </tr>
+                                            <tr>
                                                 <th rowspan="2">ลำดับ</th>
                                                 <th rowspan="2">ชื่อ-สกุล</th>
                                                 <th rowspan="2">รหัส</th>

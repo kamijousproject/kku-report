@@ -37,6 +37,10 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
+                                                <th colspan="12" style='text-align: left;'>
+                                                    รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ</th>
+                                            </tr>
+                                            <tr>
                                                 <th>#</th>
                                                 <th>ส่วนงาน/หน่วยงาน</th>
                                                 <th>1. เงินอุดหนุนจากรัฐ</th>
@@ -292,7 +296,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'report.csv';
+            link.download = 'รายงานสรุปงบประมาณรายรับจำแนกตามประเภทรายรับ.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -337,7 +341,7 @@
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            doc.save('รายงานสรุปงบประมาณรายรับจำแนกตามประเภทรายรับ.pdf');
         }
 
         function exportXLS() {
@@ -375,7 +379,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'report.xls';
+            link.download = 'รายงานสรุปงบประมาณรายรับจำแนกตามประเภทรายรับ.xls';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

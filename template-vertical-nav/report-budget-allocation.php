@@ -352,6 +352,39 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
                                             <tr>
+                                                <th colspan="7" style='text-align: left;'>
+                                                    รายงานการจัดสรรเงินรายงวด
+
+
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="7" style='text-align: left;'>
+                                                    <span>
+                                                        <?php
+                                                        // เปลี่ยนชื่อแสดงตาม Scenario ที่เลือก
+                                                        switch ($selectedScenario) {
+                                                            case 'Scenario1':
+                                                                echo 'จัดสรรงวดที่ 1';
+                                                                break;
+                                                            case 'Scenario2':
+                                                                echo 'จัดสรรงวดที่ 2';
+                                                                break;
+                                                            case 'Scenario3':
+                                                                echo 'จัดสรรงวดที่ 3';
+                                                                break;
+                                                            case 'Scenario4':
+                                                                echo 'จัดสรรงวดที่ 4';
+                                                                break;
+                                                            default:
+                                                                echo 'จัดสรรงวดที่ 1'; // ค่าเริ่มต้น
+                                                        }
+                                                        ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+
+                                            <tr>
                                                 <th rowspan="2">รายการ</th>
                                                 <th rowspan="2">รวมทั้งสิ้น</th>
                                                 <th colspan="3">เงินงวด</th>

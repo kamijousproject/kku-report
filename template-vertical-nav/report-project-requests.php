@@ -38,29 +38,29 @@
                                     <select id="dropdown1">
                                         <option value="">เลือกปีบริหารงบประมาณ</option>
                                     </select>
-                                    <br/>
+                                    <br />
                                     <!-- Dropdown 2 (Changes based on Dropdown 1) -->
                                     <label for="dropdown2">ประเภทงบประมาณ:</label>
                                     <select id="dropdown2" disabled>
                                         <option value="">เลือกประเภทงบประมาณ</option>
                                     </select>
-                                    <br/>
+                                    <br />
                                     <!-- Dropdown 3 (Changes based on Dropdown 2) -->
                                     <label for="dropdown3">แหล่งเงิน:</label>
                                     <select id="dropdown3" disabled>
                                         <option value="">เลือกแหล่งเงิน</option>
                                     </select>
-                                    <br/>
+                                    <br />
                                     <!-- Dropdown 3 (Changes based on Dropdown 2) -->
                                     <label for="dropdown4">ส่วนงาน/หน่วยงาน:</label>
                                     <select id="dropdown4" disabled>
                                         <option value="">เลือกส่วนงาน/หน่วยงาน</option>
                                     </select>
-                                    <br/>
+                                    <br />
                                     <!-- Submit Button -->
                                     <button id="submitBtn" disabled>Submit</button>
                                 </div>
-                                <br/>
+                                <br />
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
@@ -88,7 +88,7 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -112,7 +112,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
 
             $.ajax({
                 type: "POST",
@@ -121,17 +121,17 @@
                     'command': 'get_fiscal_year'
                 },
                 dataType: "json",
-                success: function(response) {
-                    
-                    response.bgp.forEach((row) =>{
+                success: function (response) {
+
+                    response.bgp.forEach((row) => {
                         //console.log(row.y);
-                        $('#dropdown1').append('<option value="'+row.y+'">'+row.y+'</option>');
-                    });   
+                        $('#dropdown1').append('<option value="' + row.y + '">' + row.y + '</option>');
+                    });
                 }
             });
 
 
-            $('#dropdown1').change(function() {
+            $('#dropdown1').change(function () {
                 let year = $(this).val();
                 //console.log(year);
                 $('#dropdown2').html('<option value="">เลือกประเภทงบประมาณ</option>').prop('disabled', true);
@@ -147,14 +147,14 @@
                         'fiscal_year': year
                     },
                     dataType: "json",
-                    success: function(response) {
+                    success: function (response) {
                         //console.log(response);
-                        response.fac.forEach((row) =>{
-                            $('#dropdown2').append('<option value="'+row.scenario+'">'+row.scenario+'</option>').prop('disabled', false);
-                        });   
+                        response.fac.forEach((row) => {
+                            $('#dropdown2').append('<option value="' + row.scenario + '">' + row.scenario + '</option>').prop('disabled', false);
+                        });
                     }
                     ,
-                    error: function(jqXHR, exception) {
+                    error: function (jqXHR, exception) {
                         console.error("Error: " + exception);
                         responseError(jqXHR, exception);
                     }
@@ -162,7 +162,7 @@
             });
 
 
-            $('#dropdown2').change(function() {
+            $('#dropdown2').change(function () {
                 let year = $("#dropdown1").val();
                 let scenario = $("#dropdown2").val();
                 //console.log(year);               
@@ -176,23 +176,23 @@
                     data: {
                         'command': 'get_fund',
                         'fiscal_year': year,
-                        'scenario':scenario
+                        'scenario': scenario
                     },
                     dataType: "json",
-                    success: function(response) {
+                    success: function (response) {
                         //console.log(response);
-                        response.fund.forEach((row) =>{
-                            $('#dropdown3').append('<option value="'+row.f+'">'+row.f+'</option>').prop('disabled', false);
-                        });   
+                        response.fund.forEach((row) => {
+                            $('#dropdown3').append('<option value="' + row.f + '">' + row.f + '</option>').prop('disabled', false);
+                        });
                     }
                     ,
-                    error: function(jqXHR, exception) {
+                    error: function (jqXHR, exception) {
                         console.error("Error: " + exception);
                         responseError(jqXHR, exception);
                     }
                 });
             });
-            $('#dropdown3').change(function() {
+            $('#dropdown3').change(function () {
                 let fund = $('#dropdown3').val();
                 var year = $('#dropdown1').val();
                 var scenario = $('#dropdown2').val();
@@ -207,25 +207,25 @@
                         'command': 'get_faculty',
                         'fiscal_year': year,
                         'fund': fund,
-                        'scenario':scenario
+                        'scenario': scenario
                     },
                     dataType: "json",
-                    success: function(response) {
+                    success: function (response) {
                         console.log(response);
-                        response.fac.forEach((row) =>{
-                            $('#dropdown4').append('<option value="'+row.faculty+'">'+row.faculty+'</option>').prop('disabled', false);
-                            
-                        });   
+                        response.fac.forEach((row) => {
+                            $('#dropdown4').append('<option value="' + row.faculty + '">' + row.faculty + '</option>').prop('disabled', false);
+
+                        });
                     }
                     ,
-                    error: function(jqXHR, exception) {
+                    error: function (jqXHR, exception) {
                         console.error("Error: " + exception);
                         responseError(jqXHR, exception);
                     }
                 });
             });
 
-            $('#dropdown4').change(function() {
+            $('#dropdown4').change(function () {
                 if ($(this).val()) {
                     $('#submitBtn').prop('disabled', false);
                 } else {
@@ -234,7 +234,7 @@
             });
 
 
-            $('#submitBtn').click(function() {
+            $('#submitBtn').click(function () {
                 let year = $('#dropdown1').val();
                 let fund = $('#dropdown3').val();
                 let faculty = $('#dropdown4').val();
@@ -243,52 +243,52 @@
                 console.log(fund);
                 console.log(faculty);
                 $.ajax({
-                type: "POST",
-                url: "../server/budget_planing_api.php",
-                data: {
-                    'command': 'kku_bgp_project-requests',
-                    'fiscal_year': year,
-                    'fund': fund,
-                    'faculty': faculty,
-                    'scenario':scenario
-                },
-                dataType: "json",
-                success: function(response) {
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+                    type: "POST",
+                    url: "../server/budget_planing_api.php",
+                    data: {
+                        'command': 'kku_bgp_project-requests',
+                        'fiscal_year': year,
+                        'fund': fund,
+                        'faculty': faculty,
+                        'scenario': scenario
+                    },
+                    dataType: "json",
+                    success: function (response) {
+                        const tableBody = document.querySelector('#reportTable tbody');
+                        tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
                         console.log(response.bgp);
-                        response.bgp.forEach((row, index) => {                   
+                        response.bgp.forEach((row, index) => {
                             const tr = document.createElement('tr');
 
                             const columns = [
-                            { key: 'No', value: index + 1 },
-                            //{ key: 'Alias_Default', value: row.Alias_Default },
-                            //{ key: 'Faculty', value: row.faculty },
-                            //{ key: 'Project', value: row.project },
-                            { key: 'Project_Name', value: row.project_name },
-                            { key: 'KKU_Strategic_Plan_LOV', value: row.pillar_name },
-                            { key: 'OKRs_LOV', value: row.okr_name },
-                            //{ key: 'Fund', value: row.fund },
-                            //{ key: 'Plan', value: row.plan },
-                            { key: 'Plan_Name', value: row.plan_name },
-                            //{ key: 'Sub_Plan', value: row.sub_plan },
-                            { key: 'Sub_Plan_Name', value: row.sub_plan_name },   
-                            
+                                { key: 'No', value: index + 1 },
+                                //{ key: 'Alias_Default', value: row.Alias_Default },
+                                //{ key: 'Faculty', value: row.faculty },
+                                //{ key: 'Project', value: row.project },
+                                { key: 'Project_Name', value: row.project_name },
+                                { key: 'KKU_Strategic_Plan_LOV', value: row.pillar_name },
+                                { key: 'OKRs_LOV', value: row.okr_name },
+                                //{ key: 'Fund', value: row.fund },
+                                //{ key: 'Plan', value: row.plan },
+                                { key: 'Plan_Name', value: row.plan_name },
+                                //{ key: 'Sub_Plan', value: row.sub_plan },
+                                { key: 'Sub_Plan_Name', value: row.sub_plan_name },
 
-                            // ค่าใช้จ่ายแต่ละประเภท
-                            { key: 'Personnel_Expenses', value: parseInt(row.a1).toLocaleString() }, // ค่าใช้จ่ายบุคลากร
-                            { key: 'Operating_Expenses', value: parseInt(row.a2).toLocaleString() }, // ค่าใช้จ่ายดำเนินงาน
-                            { key: 'Investment_Expenses', value: parseInt(row.a3).toLocaleString() }, // ค่าใช้จ่ายลงทุน
-                            { key: 'Subsidy_Operating_Expenses', value: parseInt(row.a4).toLocaleString() }, // ค่าใช้จ่ายเงินอุดหนุนดำเนินงาน
-                            { key: 'Other_Expenses', value: parseInt(row.a5).toLocaleString() }, // ค่าใช้จ่ายอื่น
-                            { key: 'sum', value: (parseInt(row.a1)+parseInt(row.a2)+parseInt(row.a3)+parseInt(row.a4)+parseInt(row.a5)).toLocaleString() }, 
-                            // แผนการใช้จ่ายรายไตรมาส
-                            { key: 'Q1_Spending_Plan', value: parseInt(row.q1).toLocaleString() },
-                            { key: 'Q2_Spending_Plan', value: parseInt(row.q2).toLocaleString() },
-                            { key: 'Q3_Spending_Plan', value: parseInt(row.q3).toLocaleString() },
-                            { key: 'Q4_Spending_Plan', value: parseInt(row.q4).toLocaleString() }
-                        ];
+
+                                // ค่าใช้จ่ายแต่ละประเภท
+                                { key: 'Personnel_Expenses', value: parseInt(row.a1).toLocaleString() }, // ค่าใช้จ่ายบุคลากร
+                                { key: 'Operating_Expenses', value: parseInt(row.a2).toLocaleString() }, // ค่าใช้จ่ายดำเนินงาน
+                                { key: 'Investment_Expenses', value: parseInt(row.a3).toLocaleString() }, // ค่าใช้จ่ายลงทุน
+                                { key: 'Subsidy_Operating_Expenses', value: parseInt(row.a4).toLocaleString() }, // ค่าใช้จ่ายเงินอุดหนุนดำเนินงาน
+                                { key: 'Other_Expenses', value: parseInt(row.a5).toLocaleString() }, // ค่าใช้จ่ายอื่น
+                                { key: 'sum', value: (parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4) + parseInt(row.a5)).toLocaleString() },
+                                // แผนการใช้จ่ายรายไตรมาส
+                                { key: 'Q1_Spending_Plan', value: parseInt(row.q1).toLocaleString() },
+                                { key: 'Q2_Spending_Plan', value: parseInt(row.q2).toLocaleString() },
+                                { key: 'Q3_Spending_Plan', value: parseInt(row.q3).toLocaleString() },
+                                { key: 'Q4_Spending_Plan', value: parseInt(row.q4).toLocaleString() }
+                            ];
                             columns.forEach(col => {
                                 const td = document.createElement('td');
                                 td.textContent = col.value;
@@ -297,10 +297,10 @@
 
 
                             tableBody.appendChild(tr);
-                            
+
                         });
                     },
-                    error: function(jqXHR, exception) {
+                    error: function (jqXHR, exception) {
                         console.error("Error: " + exception);
                         responseError(jqXHR, exception);
                     }
@@ -392,11 +392,11 @@
             doc.setFont("THSarabun");
 
             const filterValues = getFilterValues();
-            
+
             // เพิ่มหัวรายงาน
             doc.setFontSize(16);
             doc.text("รายงานสรุปคำขอรายโครงการ", 150, 10, { align: 'center' });
-            
+
             // เพิ่มข้อมูลจาก dropdown
             doc.setFontSize(10);
             doc.text(`ปีบริหารงบประมาณ: ${filterValues.year}`, 15, 20);
@@ -427,7 +427,7 @@
                 columnStyles: {
                     0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
                 },
-                didParseCell: function(data) {
+                didParseCell: function (data) {
                     if (data.section === 'body' && data.column.index === 0) {
                         data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
                     }
@@ -442,7 +442,7 @@
 
         function exportXLS() {
             const table = document.getElementById('reportTable');
-            
+
             // ดึงค่าจาก dropdown
             const filterValues = getFilterValues();
 
@@ -537,7 +537,7 @@
 
             // นำ merges ไปใช้
             ws['!merges'] = merges;
-            
+
             // กำหนดความกว้างของคอลัมน์
             const cols = [];
             // กำหนดความกว้างตามต้องการ

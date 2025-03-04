@@ -415,6 +415,11 @@ function fetchFacultyData($conn)
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
+                                            <tr>
+                                                <th colspan="18" style='text-align: left;'>
+                                                    รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม
+                                                </th>
+                                            </tr>
                                             <?php
 
 

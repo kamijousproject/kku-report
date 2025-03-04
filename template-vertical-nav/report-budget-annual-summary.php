@@ -338,6 +338,10 @@ function fetchFacultyData($conn)
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
+                                            <tr>
+                                                <th colspan="15" style='text-align: left;'>
+                                                    รายงานสรุปการจัดทำและจัดสรรงบประมาณประจำปี</th>
+                                            </tr>
                                             <?php
 
 
