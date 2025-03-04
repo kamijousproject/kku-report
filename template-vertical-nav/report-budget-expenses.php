@@ -53,6 +53,9 @@
                                         <tbody>
 
                                         </tbody>
+                                        <tfoot id="reportTableFooter">
+                                            <!-- แถวรวมจะถูกเพิ่มที่นี่ -->
+                                        </tfoot>
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
@@ -74,6 +77,9 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        let totalBudgetAmount = 0;
+        let totalAllocatedBudget = 0;
+        let totalActualSpendAmount = 0;
         $(document).ready(function() {
             $.ajax({
                 type: "POST",
@@ -83,37 +89,51 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    response.fac.forEach((row) =>{
+                    response.fac.forEach((row) => {
                         //console.log(row.y);
-                        $('#dropdown1').append('<option value="'+row.fcode+'">'+row.faculty+'</option>');
-                    });   
+                        $('#dropdown1').append('<option value="' + row.fcode + '">' + row.faculty + '</option>');
+                    });
                 }
             });
 
 
             $('#dropdown1').change(function() {
+                totalBudgetAmount = 0
+                totalAllocatedBudget = 0
+                totalActualSpendAmount = 0
                 let faculty = $(this).val();
+                let apiname = 'get_fac_budget_expenses';
                 console.log(faculty);
+                if (faculty === 'KKU Strategic Dept') {
+                    apiname = 'get_kku_budget_expenses'
+
+                } else if (!faculty) {
+                    const tableBody = document.querySelector('#reportTable tbody');
+                    tableBody.innerHTML = '';
+                    const tableFooter = document.querySelector('#reportTableFooter');
+                    tableFooter.innerHTML = "";
+                    return;
+                }
                 $.ajax({
                     type: "POST",
                     url: "../server/api.php",
                     data: {
-                        'command': 'get_kku_budget_expenses',
-                        'faculty':faculty
+                        'command': apiname,
+                        'faculty': faculty
                     },
                     dataType: "json",
                     success: function(response) {
-                        
+
                         console.log(response);
                         const tableBody = document.querySelector('#reportTable tbody');
                         tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-                        
-                        
+
+
                         response.plan.forEach((row, index) => {
-                            if( row.parent=="F00T1-Strategic"){
+                            if (row.parent == "F00T1-Strategic") {
                                 console.log(1);
-                                const ch = response.plan.filter(item =>item.parent === row.pillar_id);
+                                const ch = response.plan.filter(item => item.parent === row.pillar_id);
                                 console.log(ch);
                                 const parseValue = (value) => {
                                     if (value === null || value === undefined) {
@@ -131,43 +151,88 @@
                                 };
                                 const sums = ch.reduce((acc, item) => {
                                     return {
-                                        Budget_Amount: acc.Budget_Amount + parseValue(item.Budget_Amount??'0'),
-                                        Allocated_budget: acc.Allocated_budget + parseValue(item.Allocated_budget??'0'),
-                                        Actual_Spend_Amount: acc.Actual_Spend_Amount + parseValue(item.Actual_Spend_Amount??'0')
+                                        Budget_Amount: acc.Budget_Amount + parseValue(item.Budget_Amount ?? '0'),
+                                        Allocated_budget: acc.Allocated_budget + parseValue(item.Allocated_budget ?? '0'),
+                                        Actual_Spend_Amount: acc.Actual_Spend_Amount + parseValue(item.Actual_Spend_Amount ?? '0')
                                     };
                                 }, {
-                                    Budget_Amount: 0, Allocated_budget: 0, Actual_Spend_Amount: 0
-                                    
+                                    Budget_Amount: 0,
+                                    Allocated_budget: 0,
+                                    Actual_Spend_Amount: 0
+
                                 });
-                                if(index+1==1){
-                                    var str='<tr><td nowrap style="text-align: left;">'+$('#dropdown1 option:selected').text()+'</td>'+
-                                        '<td nowrap style="text-align: left;">'+row.pillar_name+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+                                totalBudgetAmount += sums.Budget_Amount;
+                                totalAllocatedBudget += sums.Allocated_budget;
+                                totalActualSpendAmount += sums.Actual_Spend_Amount;
+                                if (index + 1 == 1) {
+                                    var str = '<tr><td nowrap style="text-align: left;">' + $('#dropdown1 option:selected').text() + '</td>' +
+                                        '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
+                                        '<td style="text-align: right;">' + (parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                                        '<td style="text-align: right;">' + (parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                                        '<td style="text-align: right;">' + (parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
                                     tableBody.insertAdjacentHTML('beforeend', str);
-                                }else{
-                                    var str='<tr><td >'+
-                                        '<td nowrap style="text-align: left;">'+row.pillar_name+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+                                } else {
+                                    var str = '<tr><td >' +
+                                        '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
+                                        '<td style="text-align: right;">' + (parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                                        '<td style="text-align: right;">' + (parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                                        '<td style="text-align: right;">' + (parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
                                     tableBody.insertAdjacentHTML('beforeend', str);
                                 }
-                                
-                            }
-                            else{
-                                var str='<tr><td >'+
-                                        '<td nowrap style="text-align: left;">'+'&nbsp;'.repeat(8)+row.pillar_name+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(row.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(row.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td>'+
-                                        '<td style="text-align: right;">'+(parseFloat(row.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')+'</td></tr>';
+
+                            } else {
+                                var str = '<tr><td >' +
+                                    '<td nowrap style="text-align: left;">' + '&nbsp;'.repeat(8) + row.pillar_name + '</td>' +
+                                    '<td style="text-align: right;">' + (parseFloat(row.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                                    '<td style="text-align: right;">' + (parseFloat(row.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                                    '<td style="text-align: right;">' + (parseFloat(row.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
                                 tableBody.insertAdjacentHTML('beforeend', str);
                             }
-                            
+
                         });
 
-                        
+                        // เพิ่มแถวผลรวมไปยัง <tfoot>
+                        const tableFooter = document.querySelector('#reportTableFooter');
+                        tableFooter.innerHTML = "";
+                        // เพิ่มแถวใน footer สำหรับผลรวม
+                        const footerRow = document.createElement('tr');
+                        const createCell = (text, align = "left") => {
+                            const td = document.createElement("td");
+                            td.textContent = text;
+                            td.style.textAlign = align; // กำหนดการจัดตำแหน่งข้อความ
+                            return td;
+                        };
+
+                        const footerTd1 = document.createElement('td');
+                        footerTd1.textContent = 'รวม';
+                        footerTd1.colSpan = 2;
+                        footerRow.appendChild(footerTd1);
+
+
+                        const footerTd2 = createCell(Number(totalBudgetAmount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }), "right");
+                        footerRow.appendChild(footerTd2);
+
+
+                        const footerTd3 = createCell(Number(totalAllocatedBudget).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }), "right");
+                        footerRow.appendChild(footerTd3);
+
+                        const footerTd4 = createCell(Number(totalActualSpendAmount).toLocaleString('en-US', {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2
+                        }), "right");
+                        footerRow.appendChild(footerTd4);
+
+
+
+                        tableFooter.appendChild(footerRow);
+
+
                     },
                     error: function(jqXHR, exception) {
                         console.error("Error: " + exception);
@@ -177,192 +242,248 @@
             });
         });
 
-        
+
 
         function exportCSV() {
-        const table = document.getElementById('reportTable');
-        const csvRows = [];
+            const table = document.getElementById('reportTable');
+            const csvRows = [];
 
-        // วนลูปทีละ <tr>
-        for (const row of table.rows) {
-            // เก็บบรรทัดย่อยของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            // วนลูปทีละเซลล์ <td>/<th>
-            for (const cell of row.cells) {
-                let html = cell.innerHTML;
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
 
-                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                html = html.replace(/(&nbsp;)+/g, (match) => {
-                    const count = match.match(/&nbsp;/g).length;
-                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                });
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
 
-                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                html = html.replace(/<br\s*\/?>/gi, '\n');
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                // html = html.replace(/<\/?[^>]+>/g, '');
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
 
-                // 4) แยกเป็น array บรรทัดย่อย
-                const lines = html.split('\n').map(x => x.trimEnd());
-                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
-                if (lines.length > maxSubLine) {
-                    maxSubLine = lines.length;
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
                 }
 
-                cellLines.push(lines);
-            }
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
 
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-                const rowData = [];
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
 
-                // วนลูปแต่ละเซลล์
-                for (const lines of cellLines) {
-                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                    // Escape double quotes
-                    text = text.replace(/"/g, '""');
-                    // ครอบด้วย ""
-                    text = `"${text}"`;
-                    rowData.push(text);
+                    csvRows.push(rowData.join(','));
                 }
-
-                csvRows.push(rowData.join(','));
             }
+
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานการใช้จ่ายงบประมาณตามแผนงาน.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
-        // รวมเป็น CSV + BOM
-        const csvContent = "\uFEFF" + csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'รายงานการใช้จ่ายงบประมาณตามแผนงาน.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-    }
+        function exportPDF() {
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
 
-    function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'mm', [305, 215.9]); // Legal landscape size
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
 
-    // เพิ่มฟอนต์ภาษาไทย
-    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
-    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-    doc.setFont("THSarabun");
+            // Configure autoTable
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 25,
+                theme: 'grid',
+                styles: {
+                    font: "THSarabun",
+                    fontSize: 8,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
+                },
+                headStyles: {
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 8,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle',
+                    minCellHeight: 12
+                },
+                columnStyles: {
+                    0: {
+                        cellWidth: 50
+                    },
+                    1: {
+                        cellWidth: 150
+                    },
+                    2: {
+                        cellWidth: 30
+                    },
+                    3: {
+                        cellWidth: 30
+                    },
+                    4: {
+                        cellWidth: 30
+                    },
+                },
+                didDrawPage: function(data) {
+                    // Header
+                    doc.setFontSize(16);
+                    doc.text('รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ', 14, 15);
 
-    // จัดการตาราง
-    doc.autoTable({
-        html: '#reportTable',
-        startY: 25,
-        theme: 'grid',
-        styles: {
-            font: "THSarabun",
-            fontSize: 8,
-            cellPadding: 1.5,
-            lineWidth: 0.1,
-            lineColor: [0, 0, 0],
-            minCellHeight: 6
-        },
-        headStyles: {
-            fillColor: [220, 230, 241],
-            textColor: [0, 0, 0],
-            fontSize: 9,
-            fontStyle: 'bold',
-            halign: 'center',
-            valign: 'middle',
-            minCellHeight: 12
-        },
-        columnStyles: {
-            0: { cellWidth: 50 },
-            1: { cellWidth: 150 },
-            2: { cellWidth: 30 },
-            3: { cellWidth: 30 },
-            4: { cellWidth: 30 }
-        },
-        margin: { top: 25, right: 7, bottom: 15, left: 7 },
-        tableWidth: 'auto',
-        
-        didParseCell: function (data) {
-            // ตรวจจับ rowspan
-            if (data.cell.rowSpan > 1) {
-                data.cell.styles.valign = 'middle'; // จัดให้อยู่ตรงกลาง
-                data.cell.styles.halign = 'center';
-            }
+                    // Footer (แสดงแค่ที่ท้ายตาราง)
+                    const pageSize = doc.internal.pageSize;
+                    const pageWidth = pageSize.width;
+                    const pageHeight = pageSize.height;
 
-            // จัดแนวข้อมูล
-            if (data.section === 'head') {
-                data.cell.styles.halign = 'center';
-            }
-            if (data.section === 'body') {
-                if ([2, 3, 4].includes(data.column.index)) {
-                    data.cell.styles.halign = 'right';
-                } else {
-                    data.cell.styles.halign = 'left';
-                }
-            }
-        },
+                    // ข้อความ footer (แก้หมายเลขหน้า)
+                    const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+                    const totalPages = doc.internal.getNumberOfPages();
 
-        didDrawCell: function (data) {
-            // ตรวจจับเซลล์ที่ข้ามหน้าใหม่
-            if (data.row.section === 'body' && data.cell.raw.hasAttribute('rowspan')) {
-                let cellY = data.cell.y;
-                let pageHeight = doc.internal.pageSize.height;
+                    doc.setFontSize(10);
+                    doc.text(
+                        'หน้า ' + currentPage + ' จาก ' + totalPages,
+                        pageWidth - 20,
+                        pageHeight - 10, {
+                            align: 'right'
+                        }
+                    );
+                },
+                // Footer row content for table with background color #F2F2F2
+                foot: [
+                    [{
+                            content: 'รวม',
+                            colSpan: 2,
 
-                // ถ้าตำแหน่งเซลล์ต่ำกว่าขอบล่างของหน้า ให้ขึ้นหน้าใหม่
-                if (cellY + data.cell.height > pageHeight - 20) {
-                    doc.addPage();
-                    doc.autoTable.previous.finalY = 25; // รีเซ็ตตำแหน่ง Y
-                }
-            }
-        },
+                        },
+                        {
+                            content: totalActualSpendAmount,
 
-        didDrawPage: function (data) {
-            // หัวกระดาษ
-            doc.setFontSize(16);
-            doc.text('รายงานการใช้จ่ายงบประมาณตามแผนงาน', 14, 15);
+                        },
+                        {
+                            content: totalBudgetAmount,
 
-            // หมายเลขหน้า
-            doc.setFontSize(10);
-            doc.text(
-                'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
-                doc.internal.pageSize.width - 20,
-                doc.internal.pageSize.height - 10, {
-                    align: 'right'
-                }
-            );
+                        },
+                        {
+                            content: totalAllocatedBudget,
+
+                        }
+                    ]
+                ],
+                didParseCell: function(data) {
+                    // Center align all header cells
+                    if (data.section === 'head') {
+                        data.cell.styles.halign = 'center';
+                        data.cell.styles.valign = 'middle';
+                        data.cell.styles.cellPadding = 1;
+                    }
+
+                    // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
+                    if (data.section === 'body') {
+                        if (data.column.index === 2 || data.column.index === 3 || data.column.index === 4 ) {
+                            data.cell.styles.halign = 'right';
+                        } else {
+                            data.cell.styles.halign = 'left';
+                        }
+                    }
+
+                    // Style footer row
+                    if (data.section === 'foot') {
+                        data.cell.styles.fontStyle = 'bold';
+                        data.cell.styles.fillColor = '#dbe5f1'; // Add the background color for the footer cells
+                        data.cell.styles.textColor = [0, 0, 0];
+                        if (data.column.index === 0) {
+                            data.cell.styles.halign = 'center'; // Align the first and last columns to center
+                        } else {
+                            data.cell.styles.halign = 'right'; // Align other columns to right
+                        }
+                    }
+                },
+
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 25,
+                    left: 7
+                },
+                tableWidth: 'auto'
+            });
+
+            // Save the PDF
+            doc.save('รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ.pdf');
         }
-    });
 
-    // บันทึกเป็นไฟล์ PDF
-    doc.save('รายงานการใช้จ่ายงบประมาณ.pdf');
-}
 
-function exportXLS() {
+        function exportXLS() {
             const table = document.getElementById('reportTable');
 
-            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============ 
             const {
                 theadRows,
                 theadMerges
             } = parseThead(table.tHead);
 
-            // ============ ส่วนที่ 2: ประมวลผล TBODY ============
+            // ============ ส่วนที่ 2: ประมวลผล TBODY ============ 
             const tbodyRows = parseTbody(table.tBodies[0]);
 
-            const allRows = [...theadRows, ...tbodyRows];
+            // ============ ส่วนที่ 3: ประมวลผล TFOOT (รองรับ Merge) ============ 
+            let tfootRows = [];
+            let tfootMerges = [];
+            let tfoot = table.tFoot;
+
+            if (tfoot && tfoot.rows.length > 0) {
+                const parsedTfoot = parseTfoot(tfoot);
+                tfootRows = parsedTfoot.tfootRows; // เปลี่ยนชื่อเป็น tfootRows
+                tfootMerges = parsedTfoot.tfootMerges; // เปลี่ยนชื่อเป็น tfootMerges
+            }
+
+            // รวมทุกแถว (thead + tbody + tfoot)
+            const allRows = [...theadRows, ...tbodyRows, ...tfootRows];
 
             // สร้าง Workbook + Worksheet
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-            // ใส่ merges ของ thead ลงใน sheet
-            ws['!merges'] = theadMerges;
+            // ใส่ merges ของ thead และ tfoot ลงใน sheet
+            ws['!merges'] = [...theadMerges, ...tfootMerges];
 
             // กำหนดให้ Header (thead) อยู่กึ่งกลาง
             theadRows.forEach((row, rowIndex) => {
@@ -412,6 +533,78 @@ function exportXLS() {
             URL.revokeObjectURL(url);
         }
 
+
+        function parseTfoot(tfoot) {
+            const tfootRows = [];
+            const tfootMerges = [];
+
+            if (!tfoot) {
+                return {
+                    tfootRows,
+                    tfootMerges
+                };
+            }
+
+            // Map กันการเขียนทับ merge
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < tfoot.rows.length; rowIndex++) {
+                const tr = tfoot.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    // ข้ามเซลล์ที่ถูก merge ครอบไว้
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    // ไม่แยก <br/> → แค่แทน &nbsp; เป็น space
+                    let text = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // &nbsp; => spaces
+                        .replace(/<br\s*\/?>/gi, ' ') // ถ้ามี <br/> ใน tfoot ก็เปลี่ยนเป็นช่องว่าง (ไม่แตกแถว)
+                        .replace(/<\/?[^>]+>/g, '') // ลบ tag อื่น ถ้าเหลือ
+                        .trim();
+
+                    rowData[colIndex] = text;
+
+                    // ดู rowSpan/colSpan
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        // Push merges object
+                        tfootMerges.push({
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
+                        });
+
+                        // Mark skipMap
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r === 0 && c === 0) continue;
+                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                    colIndex++;
+                }
+                tfootRows.push(rowData);
+            }
+
+            return {
+                tfootRows,
+                tfootMerges
+            };
+        }
 
         /**
          * -----------------------

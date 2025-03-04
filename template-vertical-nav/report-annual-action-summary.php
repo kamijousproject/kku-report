@@ -142,7 +142,7 @@
                 },
                 dataType: "json",
                 success: function(response) {
-                    // console.log(response.plan);
+                    console.log(response.plan);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
@@ -196,6 +196,31 @@
                         //  console.log(`SI: ${si},  Unique KSP Count: ${siStats[si].kspSet.size}, totalOKR ${totalOKR}, real percent ${siStats[si].totalOKR},sumBudget ${totalBudget}`);
                     });
 
+
+
+                    okrResults = {};
+                    // เก็บข้อมูลใน okrResults
+                    response.quarter.forEach(row => {
+                        if (!okrResults[row.OKR]) {
+                            okrResults[row.OKR] = {
+                                Q1: "",
+                                Q2: "",
+                                Q3: "",
+                                Q4: ""
+                            };
+                        }
+
+                        if (row.Version === "Q1_Prog") {
+                            okrResults[row.OKR].Q1 = row.Quarter_Progress_Value;
+                        } else if (row.Version === "Q2_Prog") {
+                            okrResults[row.OKR].Q2 = row.Quarter_Progress_Value;
+                        } else if (row.Version === "Q3_Prog") {
+                            okrResults[row.OKR].Q3 = row.Quarter_Progress_Value;
+                        } else if (row.Version === "Q4_Prog") {
+                            okrResults[row.OKR].Q4 = row.Quarter_Progress_Value;
+                        }
+                    });
+
                     response.plan.forEach(row => {
 
                         if (previousOKRName !== row.okr_name) {
@@ -238,22 +263,42 @@
                             const td10 = createCell(row.UOM);
                             tr.appendChild(td10);
 
-                            const td11 = createCell(row.Quarter_Progress_Value, "right");
-                            tr.appendChild(td11);
+                            if (okrResults[row.OKR]) {
+                                const okrProgress = okrResults[row.OKR];
 
-                            const td12 = createCell(null);
-                            tr.appendChild(td12);
+                                const formatNumber = (value) => {
+                                    return value ? parseFloat(value).toLocaleString('en-US', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    }) : '';
+                                };
 
-                            const td13 = createCell(null);
-                            tr.appendChild(td13);
+                                const td11 = createCell(formatNumber(okrProgress.Q1), "right");
+                                tr.appendChild(td11);
 
-                            const td14 = createCell(null);
-                            tr.appendChild(td14);
+                                const td12 = createCell(formatNumber(okrProgress.Q2), "right");
+                                tr.appendChild(td12);
 
-                            const td15 = createCell(siStats[row.okr_name].kspSet.size, "right");
+                                const td13 = createCell(formatNumber(okrProgress.Q3), "right");
+                                tr.appendChild(td13);
+
+                                const td14 = createCell(formatNumber(okrProgress.Q4), "right");
+                                tr.appendChild(td14);
+                            }
+
+
+                            // คำนวณผลรวมของ Q1, Q2, Q3, Q4
+                            let totalQuarterProgress = 0;
+
+                            if (okrResults[row.OKR]) {
+                                const okrProgress = okrResults[row.OKR];
+                                totalQuarterProgress = (parseFloat(okrProgress.Q1) || 0) + (parseFloat(okrProgress.Q2) || 0) + (parseFloat(okrProgress.Q3) || 0) + (parseFloat(okrProgress.Q4) || 0);
+                            }
+
+                            const td15 = createCell(totalQuarterProgress.toFixed(2), "right"); // แสดงผลรวม
                             tr.appendChild(td15);
 
-                            const td16 = createCell(siStats[row.okr_name].totalOKR + ' %', "right");
+                            const td16 = createCell((totalQuarterProgress / row.Target_OKR_Objective_and_Key_Result) * 100 + ' %', "right");
                             tr.appendChild(td16);
 
                             const td17 = createCell(row.OKR_Progress_Details);
@@ -273,6 +318,7 @@
 
                             const td20 = createCell(row.Responsible_person);
                             tr.appendChild(td20);
+
 
 
                             tableBody.appendChild(tr);
@@ -527,6 +573,7 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
         function exportXLS() {
             const table = document.getElementById('reportTable');
 

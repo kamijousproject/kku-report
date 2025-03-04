@@ -135,6 +135,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
         let report_plan_status = [];
+        let quarter = [];
         let filterdata = []
         let categories = new Set();
         $(document).ready(function() {
@@ -151,6 +152,7 @@
                 dataType: "json",
                 success: function(response) {
                     report_plan_status = response.plan;
+                    quarter = response.quarter;
                     response.plan.forEach(data => {
                         categories.add(data.fa_name);
 
@@ -244,105 +246,134 @@
                 //  console.log(`SI: ${si},  Unique KSP Count: ${siStats[si].kspSet.size}, totalOKR ${totalOKR}, real percent ${siStats[si].totalOKR},sumBudget ${totalBudget}`);
             });
 
+            okrResults = {};
+            // เก็บข้อมูลใน okrResults
+            quarter.forEach(row => {
+                if (!okrResults[row.OKR]) {
+                    okrResults[row.OKR] = {
+                        Q1: "",
+                        Q2: "",
+                        Q3: "",
+                        Q4: ""
+                    };
+                }
+
+                if (row.Version === "Q1_Prog") {
+                    okrResults[row.OKR].Q1 = row.Quarter_Progress_Value;
+                } else if (row.Version === "Q2_Prog") {
+                    okrResults[row.OKR].Q2 = row.Quarter_Progress_Value;
+                } else if (row.Version === "Q3_Prog") {
+                    okrResults[row.OKR].Q3 = row.Quarter_Progress_Value;
+                } else if (row.Version === "Q4_Prog") {
+                    okrResults[row.OKR].Q4 = row.Quarter_Progress_Value;
+                }
+            });
+
+
             data.forEach(row => {
 
                 if (previousOKRName !== row.okr_name) {
                     const tr = document.createElement('tr');
 
-                    const td1 = document.createElement('td');
-                    td1.textContent = row.fa_name === previousFacultyName ? '' : row.fa_name;;
+                    const createCell = (text, align = "left") => {
+                        const td = document.createElement('td');
+                        td.textContent = text;
+                        td.style.textAlign = align;
+                        return td;
+                    };
+
+                    const td1 = createCell(row.fa_name === previousFacultyName ? '' : row.fa_name);
                     tr.appendChild(td1);
-                    // สำหรับ si_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                    const td2 = document.createElement('td');
-                    td2.textContent = row.pilar_code === previousPilarCode ? '' : row.pilar_code;;
+
+                    const td2 = createCell(row.pilar_code === previousPilarCode ? '' : row.pilar_code);
                     tr.appendChild(td2);
 
-                    // สำหรับ so_name, ถ้ามันเหมือนกับแถวก่อนหน้านี้จะเป็นช่องว่าง
-                    const td3 = document.createElement('td');
-                    td3.textContent = row.pilar_name === previousPilarName ? '' : row.pilar_name;
+                    const td3 = createCell(row.pilar_name === previousPilarName ? '' : row.pilar_name);
                     tr.appendChild(td3);
 
-                    const td4 = document.createElement('td');
-                    td4.textContent = row.si_code === previousSICode ? '' : row.si_code;
+                    const td4 = createCell(row.si_code === previousSICode ? '' : row.si_code);
                     tr.appendChild(td4);
 
-                    const td5 = document.createElement('td');
-                    td5.textContent = row.si_name === previousSIName ? '' : row.si_name;
+                    const td5 = createCell(row.si_name === previousSIName ? '' : row.si_name);
                     tr.appendChild(td5);
 
-                    const td6 = document.createElement('td');
-                    td6.textContent = row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object;
+                    const td6 = createCell(row.Strategic_Object === previousSOCode ? '' : row.Strategic_Object);
                     tr.appendChild(td6);
 
-                    const td7 = document.createElement('td');
-                    td7.textContent = row.so_name === previousSOName ? '' : row.so_name;
+                    const td7 = createCell(row.so_name === previousSOName ? '' : row.so_name);
                     tr.appendChild(td7);
 
-                    const td8 = document.createElement('td');
-                    td8.textContent = row.OKR === previousOKRCode ? '' : row.OKR;
+                    const td8 = createCell(row.OKR === previousOKRCode ? '' : row.OKR);
                     tr.appendChild(td8);
 
-                    const td9 = document.createElement('td');
-                    td9.textContent = row.okr_name === previousOKRName ? '' : row.okr_name;
+                    const td9 = createCell(row.okr_name === previousOKRName ? '' : row.okr_name);
                     tr.appendChild(td9);
 
-                    const td10 = document.createElement('td');
-                    td10.textContent = row.Target_OKR_Objective_and_Key_Result;
+                    const td10 = createCell(row.Target_OKR_Objective_and_Key_Result);
                     tr.appendChild(td10);
 
-                    const td11 = document.createElement('td');
-                    td11.textContent = row.UOM;
+                    const td11 = createCell(row.UOM);
                     tr.appendChild(td11);
 
-                    const td12 = document.createElement('td');
-                    td12.textContent = row.Quarter_Progress_Value;
+                    // การจัดการกับ okrProgress
+                    if (okrResults[row.OKR]) {
+                        const okrProgress = okrResults[row.OKR];
+
+                        const formatNumber = (value) => {
+                            return value ? parseFloat(value).toLocaleString('en-US', {
+                                minimumFractionDigits: 2,
+                                maximumFractionDigits: 2
+                            }) : '';
+                        };
+
+                        const tdQ1 = createCell(formatNumber(okrProgress.Q1), "right");
+                        tr.appendChild(tdQ1);
+
+                        const tdQ2 = createCell(formatNumber(okrProgress.Q2), "right");
+                        tr.appendChild(tdQ2);
+
+                        const tdQ3 = createCell(formatNumber(okrProgress.Q3), "right");
+                        tr.appendChild(tdQ3);
+
+                        const tdQ4 = createCell(formatNumber(okrProgress.Q4), "right");
+                        tr.appendChild(tdQ4);
+                    }
+
+                    // คำนวณผลรวมของ Q1, Q2, Q3, Q4
+                    let totalQuarterProgress = 0;
+
+                    if (okrResults[row.OKR]) {
+                        const okrProgress = okrResults[row.OKR];
+                        totalQuarterProgress = (parseFloat(okrProgress.Q1) || 0) + (parseFloat(okrProgress.Q2) || 0) + (parseFloat(okrProgress.Q3) || 0) + (parseFloat(okrProgress.Q4) || 0);
+                    }
+
+                    const tdTotal = createCell(totalQuarterProgress.toFixed(2), "right");
+                    tr.appendChild(tdTotal);
+
+                    const tdProgressPercentage = createCell(((totalQuarterProgress / row.Target_OKR_Objective_and_Key_Result) * 100).toFixed(2) + ' %', "right");
+                    tr.appendChild(tdProgressPercentage);
+
+                    const td12 = createCell(row.OKR_Progress_Details);
                     tr.appendChild(td12);
 
-                    const td13 = document.createElement('td');
-                    td13.textContent = null;
+                    const td13 = createCell(Number(siStats[row.okr_name].totalBudget).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }), "right");
                     tr.appendChild(td13);
 
-                    const td14 = document.createElement('td');
-                    td14.textContent = null;
+                    const td14 = createCell(Number(siStats[row.okr_name].totalActual_spend).toLocaleString('en-US', {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    }), "right");
                     tr.appendChild(td14);
 
-                    const td15 = document.createElement('td');
-                    td15.textContent = null;
+                    const td15 = createCell(row.Responsible_person);
                     tr.appendChild(td15);
-
-                    const td16 = document.createElement('td');
-                    td16.textContent = siStats[row.okr_name].kspSet.size;
-                    tr.appendChild(td16);
-
-                    const td17 = document.createElement('td');
-                    td17.textContent = siStats[row.okr_name].totalOKR + ' %';
-                    tr.appendChild(td17);
-
-                    const td18 = document.createElement('td');
-                    td18.textContent = row.OKR_Progress_Details;
-                    tr.appendChild(td18);
-
-                    const td19 = document.createElement('td');
-                    td19.textContent = Number(siStats[row.okr_name].totalBudget).toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });;
-                    tr.appendChild(td19);
-
-                    const td20 = document.createElement('td');
-                    td20.textContent = Number(siStats[row.okr_name].totalActual_spend).toLocaleString('en-US', {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2
-                    });
-                    tr.appendChild(td20);
-
-                    const td21 = document.createElement('td');
-                    td21.textContent = row.Responsible_person;
-                    tr.appendChild(td21);
-
 
                     tableBody.appendChild(tr);
                 }
+
 
 
                 // เก็บค่า si_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
@@ -360,7 +391,7 @@
         }
 
 
-      
+
         function exportPDF() {
             const {
                 jsPDF

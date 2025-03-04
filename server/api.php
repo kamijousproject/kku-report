@@ -382,7 +382,62 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 echo json_encode($response);
             }
             break;
+
         case "get_kku_budget_expenses":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+                $faculty = $_POST["faculty"];
+
+                $sqlPlan = "WITH t1 AS (
+    SELECT *
+    FROM pilars2
+    WHERE pillar_id LIKE 'F00SI%' OR pillar_id LIKE 'F00P%'
+    ORDER BY id
+),
+t2 AS (
+  SELECT 
+       REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS KKU_Strategic_Plan_LOV,
+        SUM(Budget_Amount) AS Budget_Amount
+    FROM planning_kku_action_plan pkap
+    GROUP BY KKU_Strategic_Plan_LOV
+),
+t3 AS (
+    SELECT 
+        REPLACE(
+            SUBSTRING_INDEX(REPLACE(pkpp.Strategic_Object, '_', ''), '-', 1), 
+            'SO', 'SI'
+        ) AS Plan_LOV, 
+        SUM(pkpp.Allocated_budget) AS Allocated_budget, 
+        SUM(pkpp.Actual_Spend_Amount) AS Actual_Spend_Amount
+    FROM planning_kku_project_progress AS pkpp
+    GROUP BY Plan_LOV
+)
+SELECT t1.*, t2.Budget_Amount, t3.Allocated_budget, t3.Actual_Spend_Amount
+FROM t1
+LEFT JOIN t2 ON t1.pillar_id = t2.KKU_Strategic_Plan_LOV
+LEFT JOIN t3 ON t1.pillar_id = t3.Plan_LOV;
+
+";
+                $stmtPlan = $conn->prepare($sqlPlan);
+                // $stmtPlan->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "get_fac_budget_expenses":
             try {
                 $db = new Database();
                 $conn = $db->connect();
@@ -547,11 +602,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmtPlan = $conn->prepare($sqlPlan);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+
+                $sqlQuarter = "SELECT p.OKR,p.Version,p.Quarter_Progress_Value FROM planning_kku_okr_progress as p";
+                $stmtQuarter = $conn->prepare($sqlQuarter);
+                $stmtQuarter->execute();
+                $quarter = $stmtQuarter->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
 
                 $response = array(
-                    'plan' => $plan
+                    'plan' => $plan,
+                    'quarter' => $quarter
                 );
+                $jsonResponse = json_encode($response);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    echo 'JSON encoding error: ' . json_last_error_msg();
+                }
                 echo json_encode($response);
             } catch (PDOException $e) {
                 $response = array(
@@ -562,13 +627,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
             break;
 
-            case "get_department_action_summary":
-                try {
-                    $db = new Database();
-                    $conn = $db->connect();
-    
-                    // เชื่อมต่อฐานข้อมูล
-                    $sqlPlan = "SELECT 
+        case "get_department_action_summary":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sqlPlan = "SELECT 
                                 pfop.*,
                                 CONCAT(
                                 LEFT(SUBSTRING_INDEX(pfop.Strategic_Object, '-', 1), LOCATE('SO', pfop.Strategic_Object) - 1),
@@ -603,23 +668,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 ) AS f ON pfop.Faculty = f.Faculty
                                 LEFT JOIN ksp ON ksp.ksp_id = pfap.Strategic_Project
                                 ORDER BY Faculty, si_code,pfop.Strategic_Object, okr.okr_id,ksp.ksp_id";
-                    $stmtPlan = $conn->prepare($sqlPlan);
-                    $stmtPlan->execute();
-                    $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
-                    $conn = null;
-    
-                    $response = array(
-                        'plan' => $plan
-                    );
-                    echo json_encode($response);
-                } catch (PDOException $e) {
-                    $response = array(
-                        'status' => 'error',
-                        'message' => 'Database error: ' . $e->getMessage()
-                    );
-                    echo json_encode($response);
-                }
-                break;
+                $stmtPlan = $conn->prepare($sqlPlan);
+                $stmtPlan->execute();
+                $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
+
+                
+                $sqlQuarter = "SELECT p.OKR,p.Version,p.Quarter_Progress_Value FROM planning_faculty_okr_progress as p";
+                $stmtQuarter = $conn->prepare($sqlQuarter);
+                $stmtQuarter->execute();
+                $quarter = $stmtQuarter->fetchAll(PDO::FETCH_ASSOC);
+                $conn = null;
+
+                $response = array(
+                    'plan' => $plan,
+                    'quarter' => $quarter
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
 
         case "get_strategic_issues":
             try {
@@ -1217,7 +1289,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql = "SELECT DISTINCT f.Alias_Default AS faculty ,b.faculty as fcode
                         FROM planning_faculty_action_plan b
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
-                        ON b.faculty=f.faculty";
+                        ON b.faculty=f.faculty
+								
+								UNION all 
+                        
+                        SELECT DISTINCT k.Alias_Default AS faculty ,kku.faculty as fcode
+                        FROM planning_kku_action_plan kku
+                        LEFT JOIN (SELECT * from Faculty WHERE Faculty LIKE 'KKU Strategic Dept%') k
+                        ON kku.faculty=k.faculty ";
 
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
