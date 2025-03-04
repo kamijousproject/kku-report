@@ -249,7 +249,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             pkpp.Strategic_Project,
                             ksp.ksp_name,
                             pkpp.Progress_Status,
-                            pkpp.Strategic_Project_Progress_Details
+                            pkpp.Strategic_Project_Progress_Details,
+                            pkpp.Obstacles
+
                         FROM planning_kku_project_progress AS pkpp
                         LEFT JOIN ksp ON ksp.ksp_id = TRIM(pkpp.Strategic_Project)
                         LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI')
@@ -266,7 +268,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             pfpp.Strategic_Project,
                             ksp.ksp_name,
                             pfpp.Progress_Status,
-                            pfpp.Strategic_Project_Progress_Details
+                            pfpp.Strategic_Project_Progress_Details,
+                            pfpp.Obstacles
                         FROM planning_faculty_project_progress AS pfpp
                         LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfpp.Strategic_Project)
                         LEFT JOIN pilars2 AS si ON si.pillar_id = REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI')
@@ -390,35 +393,34 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $faculty = $_POST["faculty"];
 
                 $sqlPlan = "WITH t1 AS (
-    SELECT *
-    FROM pilars2
-    WHERE pillar_id LIKE 'F00SI%' OR pillar_id LIKE 'F00P%'
-    ORDER BY id
-),
-t2 AS (
-  SELECT 
-       REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS KKU_Strategic_Plan_LOV,
-        SUM(Budget_Amount) AS Budget_Amount
-    FROM planning_kku_action_plan pkap
-    GROUP BY KKU_Strategic_Plan_LOV
-),
-t3 AS (
-    SELECT 
-        REPLACE(
-            SUBSTRING_INDEX(REPLACE(pkpp.Strategic_Object, '_', ''), '-', 1), 
-            'SO', 'SI'
-        ) AS Plan_LOV, 
-        SUM(pkpp.Allocated_budget) AS Allocated_budget, 
-        SUM(pkpp.Actual_Spend_Amount) AS Actual_Spend_Amount
-    FROM planning_kku_project_progress AS pkpp
-    GROUP BY Plan_LOV
-)
-SELECT t1.*, t2.Budget_Amount, t3.Allocated_budget, t3.Actual_Spend_Amount
-FROM t1
-LEFT JOIN t2 ON t1.pillar_id = t2.KKU_Strategic_Plan_LOV
-LEFT JOIN t3 ON t1.pillar_id = t3.Plan_LOV;
-
-";
+                                SELECT *
+                                FROM pilars2
+                                WHERE pillar_id LIKE 'F00SI%' OR pillar_id LIKE 'F00P%'
+                                ORDER BY id
+                            ),
+                            t2 AS (
+                            SELECT 
+                                REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS KKU_Strategic_Plan_LOV,
+                                    SUM(Budget_Amount) AS Budget_Amount
+                                FROM planning_kku_action_plan pkap
+                                GROUP BY KKU_Strategic_Plan_LOV
+                            ),
+                            t3 AS (
+                                SELECT 
+                                    REPLACE(
+                                        SUBSTRING_INDEX(REPLACE(pkpp.Strategic_Object, '_', ''), '-', 1), 
+                                        'SO', 'SI'
+                                    ) AS Plan_LOV, 
+                                    SUM(pkpp.Allocated_budget) AS Allocated_budget, 
+                                    SUM(pkpp.Actual_Spend_Amount) AS Actual_Spend_Amount
+                                FROM planning_kku_project_progress AS pkpp
+                                GROUP BY Plan_LOV
+                            )
+                            SELECT t1.*, t2.Budget_Amount, t3.Allocated_budget, t3.Actual_Spend_Amount
+                            FROM t1
+                            LEFT JOIN t2 ON t1.pillar_id = t2.KKU_Strategic_Plan_LOV
+                            LEFT JOIN t3 ON t1.pillar_id = t3.Plan_LOV;
+                            ";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 // $stmtPlan->bindParam(':faculty', $faculty, PDO::PARAM_STR);
                 $stmtPlan->execute();
@@ -443,74 +445,7 @@ LEFT JOIN t3 ON t1.pillar_id = t3.Plan_LOV;
                 $conn = $db->connect();
                 $faculty = $_POST["faculty"];
                 // เชื่อมต่อฐานข้อมูล
-                /* $sqlPlan = "SELECT 
-                            pkpp.Faculty,
-                            Faculty.Alias_Default AS fa_name,
-                            CONCAT(
-                            LEFT(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), LOCATE('SO', pkpp.Strategic_Object) - 1),
-                            'P',
-                            SUBSTRING(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), LOCATE('SO', pkpp.Strategic_Object) + 2, 2 ) ) as pilar_code,
-                            p.pilar_name,
-                            REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI')AS si_code,
-                            si.pilar_name AS si_name,
-                            pkpp.Strategic_Object,
-                            so.pilar_name AS so_name,
-                            pkpp.Strategic_Project,
-                            ksp.ksp_name,
-                            pkap.Budget_Amount AS budget,
-                            pkpp.Allocated_budget,
-                            pkpp.Actual_Spend_Amount
-                            FROM planning_kku_project_progress AS pkpp
-                            LEFT JOIN Faculty ON Faculty.Faculty = pkpp.Faculty
-                            LEFT JOIN pilar AS p 
-                            ON p.pilar_id = CONCAT(
-                            LEFT(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), LOCATE('SO', pkpp.Strategic_Object) - 1),
-                            'P',
-                            SUBSTRING(
-                            SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1),
-                            LOCATE('SO', pkpp.Strategic_Object) + 2,2))
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pkpp.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON so.pilar_id = pkpp.Strategic_Object
-                            LEFT JOIN ksp ON ksp.ksp_id = TRIM(pkpp.Strategic_Project)
-                            LEFT JOIN planning_kku_action_plan AS pkap ON TRIM(pkap.Strategic_Project) = TRIM(pkpp.Strategic_Project)
-
-                            UNION ALL 
-
-                            SELECT 
-                            pfpp.Faculty,
-                            f.Alias_Default AS fa_name,
-                            CONCAT(
-                            LEFT(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), LOCATE('SO', pfpp.Strategic_Object) - 1),
-                            'P',
-                            SUBSTRING(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), LOCATE('SO', pfpp.Strategic_Object) + 2, 2 ) ) as pilar_code,
-                            p.pilar_name,
-                            REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI')AS si_code,
-                            si.pilar_name AS si_name,
-                            pfpp.Strategic_Object,
-                            so.pilar_name AS so_name,
-                            pfpp.Strategic_Project,
-                            ksp.ksp_name,
-                            pfap.Budget_Amount AS budget,
-                            pfpp.Allocated_budget,
-                            pfpp.Actual_Spend_Amount
-                            FROM planning_faculty_project_progress AS pfpp
-                            LEFT JOIN (
-                                                        SELECT DISTINCT Faculty, Alias_Default
-                                                        FROM Faculty
-                                                    ) AS f ON pfpp.Faculty = f.Faculty
-                            LEFT JOIN pilar AS p 
-                            ON p.pilar_id = CONCAT(
-                            LEFT(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), LOCATE('SO', pfpp.Strategic_Object) - 1),
-                            'P',
-                            SUBSTRING(
-                            SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1),
-                            LOCATE('SO', pfpp.Strategic_Object) + 2,2))
-                            LEFT JOIN pilar AS si ON si.pilar_id = REPLACE(SUBSTRING_INDEX(pfpp.Strategic_Object, '-', 1), 'SO', 'SI')
-                            LEFT JOIN pilar AS so ON so.pilar_id = pfpp.Strategic_Object
-                            LEFT JOIN ksp ON ksp.ksp_id = TRIM(pfpp.Strategic_Project)
-                            LEFT JOIN planning_faculty_action_plan AS pfap ON TRIM(pfap.Strategic_Project) = TRIM(pfpp.Strategic_Project)
-
-                            ORDER BY fa_name, pilar_code, si_code, Strategic_Object, Strategic_Project"; */
+              
                 $sqlPlan = "WITH t1 AS(
                             SELECT *
                             FROM pilars2
@@ -832,13 +767,6 @@ LEFT JOIN t3 ON t1.pillar_id = t3.Plan_LOV;
                 $db = new Database();
                 $conn = $db->connect();
                 $faculty = $_POST["faculty"];
-                // เชื่อมต่อฐานข้อมูล
-                /* $sqlPlan = "SELECT
-                            f.Alias_Default AS fa_name,
-                            pfsp.* 
-                            FROM planning_faculty_strategic_plan AS pfsp
-                            LEFT JOIN (SELECT DISTINCT Faculty, Alias_Default FROM Faculty) AS f ON pfsp.Faculty = f.Faculty
-                            ORDER BY fa_name"; */
                 $sqlPlan = "WITH t1 AS (
                             SELECT Faculty,COUNT(*) AS count_okr
                             FROM planning_faculty_strategic_plan

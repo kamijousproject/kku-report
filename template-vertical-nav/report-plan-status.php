@@ -94,6 +94,7 @@
                                                 <th class="align-middle" rowspan="2">รหัส</th>
                                                 <th class="align-middle" rowspan="2">แผนงาน/โครงการ</th>
                                                 <th colspan="4">สถานะ (Status)</th>
+                                                <th class="align-middle" rowspan="2">ปัญหาอุปสรรค/แนวทางแก้ไขปัญหา/ข้อเสนอแนะ</th>
                                             </tr>
                                             <tr class="text-nowrap">
                                                 <th>ยังไม่ดำเนินการ</th>
@@ -329,6 +330,12 @@
                     td9.innerHTML = ``;
                     tr.appendChild(td9);
                 }
+                const td10 = document.createElement('td');
+                td10.style.textAlign = "left";
+                td10.innerHTML = row.Obstacles;
+                    tr.appendChild(td10);
+
+                
                 tableBody.appendChild(tr);
                 // เก็บค่า fa_name และ so_name ของแถวนี้ไว้ใช้ในการเปรียบเทียบในแถวถัดไป
                 previousFacultyName = row.fa_name;
@@ -395,19 +402,19 @@
                 },
                 columnStyles: {
                     0: {
-                        cellWidth: 40
+                        cellWidth: 30
                     },
                     1: {
                         cellWidth: 15
                     },
                     2: {
-                        cellWidth: 40
+                        cellWidth: 30
                     },
                     3: {
                         cellWidth: 15
                     },
                     4: {
-                        cellWidth: 60
+                        cellWidth: 50
                     },
                     5: {
                         cellWidth: 30
@@ -416,6 +423,9 @@
                         cellWidth: 30
                     },
                     7: {
+                        cellWidth: 30
+                    },
+                    8: {
                         cellWidth: 30
                     },
                     8: {

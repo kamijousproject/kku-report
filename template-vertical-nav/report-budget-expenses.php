@@ -1,6 +1,53 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    .table-responsive {
+        max-height: 30rem;
+        /* กำหนดความสูงให้ตารางมี Scroll */
+        overflow-y: auto;
+    }
+
+    .table thead th {
+        position: sticky;
+        background-color: #F2F2F2;
+        top: 0;
+        z-index: 10;
+    }
+
+    #reportTable th {
+        background-color: #F2F2F2;
+    }
+
+    .table thead tr th {
+        z-index: 11;
+    }
+
+    .table thead tr:first-child th {
+        /* ให้แถวแรก (th ที่ colspan) ตรึงที่ด้านบน */
+        position: sticky;
+        top: 0;
+        background: #F2F2F2;
+        z-index: 10;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    .table thead tr:nth-child(2) th {
+        /* ให้แถวที่สอง (th ที่มี day column) ตรึงอยู่ที่ด้านบน */
+        position: sticky;
+        top: 45.4px;
+        background: #F2F2F2;
+        z-index: 9;
+        border-bottom: 1px solid #ffffff;
+        /* เพิ่มเส้นขอบใต้ */
+    }
+
+    /* ให้แถวที่สองไม่ถูกบดบังด้วยแถวแรก */
+    .table thead tr:nth-child(2) th {
+        z-index: 9;
+    }
+</style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -43,11 +90,11 @@
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr class="text-nowrap">
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th>เสาหลัก/ยุทธศาสตร์/กลยุทธ์</th>
-                                                <th>กรอบวงเงินงบประมาณ (บาท)</th>
-                                                <th>งบประมาณที่ได้รับการจัดสรร (บาท)</th>
-                                                <th>งบประมาณที่ใช้ (บาท)</th>
+                                                <th class="align-middle" rowspan="2">ส่วนงาน/หน่วยงาน</th>
+                                                <th class="align-middle" rowspan="2">เสาหลัก/ยุทธศาสตร์/กลยุทธ์</th>
+                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ (บาท)</th>
+                                                <th class="align-middle" rowspan="2">งบประมาณที่ได้รับการจัดสรร (บาท)</th>
+                                                <th class="align-middle" rowspan="2">งบประมาณที่ใช้ (บาท)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -248,59 +295,65 @@
             const table = document.getElementById('reportTable');
             const csvRows = [];
 
-            // วนลูปทีละ <tr>
-            for (const row of table.rows) {
-                // เก็บบรรทัดย่อยของแต่ละเซลล์
-                const cellLines = [];
-                let maxSubLine = 1;
+            // วนลูปที่แต่ละแถว (thead, tbody, tfoot)
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const row = table.rows[rowIndex];
+                const rowData = [];
 
-                // วนลูปทีละเซลล์ <td>/<th>
-                for (const cell of row.cells) {
-                    let html = cell.innerHTML;
+                // เช็คว่าเป็นแถวสุดท้าย (tfoot) หรือไม่
+                if (rowIndex === table.rows.length - 1) {
+                    // สำหรับแถว tfoot ให้เลื่อนข้อมูล
+                    const text1 = row.cells[0] ? row.cells[0].innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
+                        .replace(/<br\s*\/?>/gi, ' ')
+                        .replace(/<\/?[^>]+>/g, '').trim() : '';
 
-                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                    html = html.replace(/(&nbsp;)+/g, (match) => {
-                        const count = match.match(/&nbsp;/g).length;
-                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                    });
+                    const text2 = ''; // ให้ col2 เป็น "ค่าว่าง" (empty string)
 
-                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                    html = html.replace(/<br\s*\/?>/gi, '\n');
+                    const text3 = row.cells[1] ? row.cells[1].innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
+                        .replace(/<br\s*\/?>/gi, ' ')
+                        .replace(/<\/?[^>]+>/g, '').trim() : '';
 
-                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                    // html = html.replace(/<\/?[^>]+>/g, '');
+                    const text4 = row.cells[2] ? row.cells[3].innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
+                        .replace(/<br\s*\/?>/gi, ' ')
+                        .replace(/<\/?[^>]+>/g, '').trim() : '';
 
-                    // 4) แยกเป็น array บรรทัดย่อย
-                    const lines = html.split('\n').map(x => x.trimEnd());
-                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+                    const text5 = row.cells[3] ? row.cells[3].innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
+                        .replace(/<br\s*\/?>/gi, ' ')
+                        .replace(/<\/?[^>]+>/g, '').trim() : '';
 
-                    if (lines.length > maxSubLine) {
-                        maxSubLine = lines.length;
-                    }
+                    // เลื่อนข้อมูลจาก col2 ไป col3, col3 ไป col4, col4 ไป col5
+                    rowData.push(`"${text1}"`); // col1
+                    rowData.push(`"${text2}"`); // col2 เป็นค่าว่าง
+                    rowData.push(`"${text3}"`); // col3 (ข้อมูลจากเดิม col2)
+                    rowData.push(`"${text4}"`); // col4 (ข้อมูลจากเดิม col3)
+                    rowData.push(`"${text5}"`); // col5 (ข้อมูลจากเดิม col4)
+                } else {
+                    // สำหรับแถวอื่นๆ (thead, tbody) ไม่ทำการ merge
+                    for (const cell of row.cells) {
+                        let text = cell.innerHTML
+                            .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
+                            .replace(/<br\s*\/?>/gi, ' ')
+                            .replace(/<\/?[^>]+>/g, '').trim();
 
-                    cellLines.push(lines);
-                }
-
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-                for (let i = 0; i < maxSubLine; i++) {
-                    const rowData = [];
-
-                    // วนลูปแต่ละเซลล์
-                    for (const lines of cellLines) {
-                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
                         // Escape double quotes
                         text = text.replace(/"/g, '""');
                         // ครอบด้วย ""
-                        text = `"${text}"`;
-                        rowData.push(text);
+                        rowData.push(`"${text}"`);
                     }
-
-                    csvRows.push(rowData.join(','));
                 }
+
+                // เพิ่มแถวข้อมูลลงใน csvRows
+                csvRows.push(rowData.join(','));
             }
 
-            // รวมเป็น CSV + BOM
+            // สร้าง CSV และ BOM
             const csvContent = "\uFEFF" + csvRows.join("\n");
+
+            // สร้าง Blob และดาวน์โหลดไฟล์ CSV
             const blob = new Blob([csvContent], {
                 type: 'text/csv;charset=utf-8;'
             });
@@ -313,6 +366,7 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
 
         function exportPDF() {
             const {
@@ -367,7 +421,7 @@
                 didDrawPage: function(data) {
                     // Header
                     doc.setFontSize(16);
-                    doc.text('รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ', 14, 15);
+                    doc.text('รายงานการใช้จ่ายงบประมาณตามแผนงาน', 14, 15);
 
                     // Footer (แสดงแค่ที่ท้ายตาราง)
                     const pageSize = doc.internal.pageSize;
@@ -418,7 +472,7 @@
 
                     // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
                     if (data.section === 'body') {
-                        if (data.column.index === 2 || data.column.index === 3 || data.column.index === 4 ) {
+                        if (data.column.index === 2 || data.column.index === 3 || data.column.index === 4) {
                             data.cell.styles.halign = 'right';
                         } else {
                             data.cell.styles.halign = 'left';
@@ -448,9 +502,8 @@
             });
 
             // Save the PDF
-            doc.save('รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ.pdf');
+            doc.save('รายงานการใช้จ่ายงบประมาณตามแผนงาน.pdf');
         }
-
 
         function exportXLS() {
             const table = document.getElementById('reportTable');
@@ -605,6 +658,8 @@
                 tfootMerges
             };
         }
+
+
 
         /**
          * -----------------------
