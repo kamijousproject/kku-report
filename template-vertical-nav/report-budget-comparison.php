@@ -399,7 +399,7 @@ function fetchFacultyData($conn)
                                         var faculty = document.getElementById('faculty').value;
                                         if (faculty == '') {
                                             // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
-                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-budget-comparison%20copy.php?";
+                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-budget-comparison.php";
                                             return false; // ป้องกันการส่งฟอร์ม
                                         }
                                         return true;
