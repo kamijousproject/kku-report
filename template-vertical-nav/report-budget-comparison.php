@@ -88,7 +88,7 @@ $faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 function fetchBudgetData($conn, $faculty = null)
 {
     try {
-        $query = "SELECT 
+        $query = "SELECT DISTINCT 
     bap.Faculty,
     ft.Alias_Default,
     bap.Plan,
@@ -97,22 +97,22 @@ function fetchBudgetData($conn, $faculty = null)
     bap.Sub_Plan,
     sp.sub_plan_id,
     sp.sub_plan_name,
-    GROUP_CONCAT(DISTINCT psk.Sub_plan_KPI_Name ORDER BY psk.Sub_plan_KPI_Name) AS Sub_plan_KPI_Name,
+    psk.Sub_plan_KPI_Name,
     bap.Project,
     pj.project_id,
     pj.project_name,
-    GROUP_CONCAT(DISTINCT ppk.Proj_KPI_Name ORDER BY ppk.Proj_KPI_Name) AS Proj_KPI_Name,
+    ppk.Proj_KPI_Name,
     CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
     CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
     ac.`type`,
-    ac.sub_type,
-    bap.`Account`,
-    bap.KKU_Item_Name,
+	 ac.sub_type,
+	 bap.KKU_Item_Name,
+	 bap.`Account`,
+	 bap.Reason,
     SUM(bap.Total_Amount_Quantity) AS Total_Amount_Quantity,
     bap.Fund,
-    bap.Reason,
-    GROUP_CONCAT(DISTINCT psk.UoM_for_Sub_plan_KPI ORDER BY psk.UoM_for_Sub_plan_KPI) AS UoM_for_Sub_plan_KPI,
-    -- ค่า Sub_plan_KPI_Target สำหรับปี 2567
+    psk.UoM_for_Sub_plan_KPI,
+        -- ค่า Sub_plan_KPI_Target สำหรับปี 2567
     SUM(
         CASE 
             WHEN bap.Budget_Management_Year = '2567' 
@@ -139,14 +139,14 @@ function fetchBudgetData($conn, $faculty = null)
             ELSE 0 
         END
     ) AS Allocated_Total_Amount_Quantity_FN06_1,
-    SUM(
+        SUM(
         CASE 
             WHEN baap.Fund = 'FN02' AND bap.Budget_Management_Year = '2567' 
             THEN baap.Allocated_Total_Amount_Quantity 
             ELSE 0 
         END
     ) AS Allocated_Total_Amount_Quantity_FN02_1,
-    SUM(
+        SUM(
         CASE 
             WHEN baap.Fund = 'FN08' AND bap.Budget_Management_Year = '2567' 
             THEN baap.Allocated_Total_Amount_Quantity 
@@ -256,6 +256,8 @@ SUM(
 ) 
 AS Allocated_Total_Amount_Quantity_All_FN_2
 
+
+
 FROM budget_planning_annual_budget_plan bap
 INNER JOIN Faculty ft 
     ON bap.Faculty = ft.Faculty 
@@ -272,7 +274,7 @@ LEFT JOIN budget_planning_subplan_kpi psk
     ON bap.Faculty = psk.Faculty
     AND bap.Plan = psk.Plan
     AND bap.Sub_Plan = psk.Sub_Plan
-    LEFT JOIN budget_planning_project_kpi ppk
+	 LEFT JOIN budget_planning_project_kpi ppk
     ON bap.Faculty = ppk.Faculty
     AND bap.Project = ppk.Project
 LEFT JOIN budget_planning_allocated_annual_budget_plan baap
@@ -292,15 +294,19 @@ WHERE ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
 
         $query .= "GROUP BY 
     bap.Faculty, ft.Alias_Default, bap.Plan, p.plan_id, p.plan_name, 
-    bap.Sub_Plan, sp.sub_plan_id, sp.sub_plan_name, bap.Project, 
-    pj.project_id, pj.project_name, baap.Allocated_Total_Amount_Quantity, 
-    bap.Account, ac.type, ac.sub_type, bap.KKU_Item_Name, bap.Reason, bap.Fund
-    ORDER BY 
+    bap.Sub_Plan, sp.sub_plan_id, sp.sub_plan_name, psk.Sub_plan_KPI_Name,
+    bap.Project, pj.project_id, pj.project_name, ppk.Proj_KPI_Name,
+    a1, a2, ac.`type`,ac.sub_type,bap.KKU_Item_Name, bap.Fund,bap.`Account`,
+	 bap.Reason,
+    psk.UoM_for_Sub_plan_KPI, psk.Sub_plan_KPI_Target, baap.Allocated_Total_Amount_Quantity
+ORDER BY 
     bap.Faculty ASC,
     bap.Plan ASC, 
     bap.Sub_Plan ASC, 
     bap.Project ASC,
-    ac.`type` ASC";
+    ac.`type` ASC,
+    ac.sub_type ASC,
+    	 bap.`Account` ASC ";
 
         $stmt = $conn->prepare($query);
 
