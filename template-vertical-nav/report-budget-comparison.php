@@ -88,7 +88,7 @@ $faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 function fetchBudgetData($conn, $faculty = null)
 {
     try {
-        $query = "SELECT DISTINCT 
+        $query = "SELECT 
     bap.Faculty,
     ft.Alias_Default,
     bap.Plan,
@@ -107,11 +107,11 @@ function fetchBudgetData($conn, $faculty = null)
     ac.`type`,
 	 ac.sub_type,
 	 bap.KKU_Item_Name,
-	 bap.`Account`,
-	 bap.Reason,
     SUM(bap.Total_Amount_Quantity) AS Total_Amount_Quantity,
     bap.Fund,
     psk.UoM_for_Sub_plan_KPI,
+    bap.`Account`,
+	 bap.Reason,
         -- ค่า Sub_plan_KPI_Target สำหรับปี 2567
     SUM(
         CASE 
@@ -1002,10 +1002,18 @@ function fetchFacultyData($conn)
                                                                 $total2 = $subplandata['Allocated_Total_Amount_Quantity_FN6_2'] +
                                                                     $subplandata['Allocated_Total_Amount_Quantity_FN2_2'] +
                                                                     $subplandata['Allocated_Total_Amount_Quantity_FN8_2'];
+
                                                                 echo "<tr>";
-                                                                echo "<td >" . str_repeat("&nbsp;", 8) . 'KPI :' . htmlspecialchars($subPlanKPI) . "</td>";
+                                                                echo "<td>" . str_repeat("&nbsp;", 8) . 'KPI :' . htmlspecialchars($subPlanKPI) . "</td>";
+
+                                                                // ตรวจสอบค่า $subPlanKPI และแสดง UoM_for_Sub_plan_KPI ที่ตรงกัน
+                                                                if ($subPlanKPI === $subPlanKPI) { // เปลี่ยนเงื่อนไขนี้ตามที่คุณต้องการ
+                                                                    echo "<td>" . htmlspecialchars($subplandata['UoM_for_Sub_plan_KPI']) . "</td>";
+                                                                } else {
+                                                                    echo "<td>-</td>"; // แสดงค่าว่างหากไม่ตรงเงื่อนไข
+                                                                }
+
                                                                 // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                                echo "<td>" . htmlspecialchars($subplandata['UoM_for_Sub_plan_KPI']) . "</td>";
                                                                 echo "<td>" . formatNumber($subplandata['Sub_plan_KPI_Target_1']) . "</td>";
                                                                 echo "<td>" . formatNumber($subplandata['Allocated_Total_Amount_Quantity_FN06_1']) . "</td>";
                                                                 echo "<td>" . formatNumber($subplandata['Allocated_Total_Amount_Quantity_FN02_1']) . "</td>";
@@ -1033,13 +1041,9 @@ function fetchFacultyData($conn)
                                                                 }
 
                                                                 echo "<td>" . $percentage . "</td>";
-
-                                                                echo "<td >" .
-                                                                    '' .
-                                                                    "</td>";
+                                                                echo "<td></td>";
                                                                 echo "</tr>";
                                                             }
-
 
                                                             // วนลูป Project
                                                             foreach ($subplandata['Project'] as $project => $projectdata) {
