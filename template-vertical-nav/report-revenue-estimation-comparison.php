@@ -700,7 +700,10 @@ function fetchYearsData($conn)
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
 
-
+                                            <tr>
+                                                <th colspan="31" style='text-align: left;'>
+                                                    รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ</th>
+                                            </tr>
                                             <?php
                                             // ตรวจสอบและกำหนดค่า $selectedYear
                                             $selectedYear = isset($_GET['year']) && $_GET['year'] != '' ? (int) $_GET['year'] : '2568';

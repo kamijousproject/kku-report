@@ -701,6 +701,9 @@ function fetchYearsData($conn)
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
                                             <tr>
+                                                <th colspan="31" style='text-align: left;'>
+                                                    รายงานแสดงการเปรียบเทียบการประมาณการรายจ่ายกับจ่ายจริง</th>
+                                            </tr>
 
                                             <tr>
                                                 <?php

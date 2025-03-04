@@ -272,6 +272,10 @@ function fetchYearsData($conn)
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
+                                                <th colspan="4" style='text-align: left;'>
+                                                    รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ</th>
+                                            </tr>
+                                            <tr>
                                                 <th>งบประมาณรายจ่าย</th>
                                                 <th value="fn06">เงินอุดหนุนจากรัฐ</th>
                                                 <th value="fn08">เงินนอกงบประมาณ</th>
