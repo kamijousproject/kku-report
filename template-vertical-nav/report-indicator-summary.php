@@ -193,6 +193,7 @@
                                             $current_plan = [];
                                             $current_sub_plan = [];
                                             $Sub_plan_KPI_Name = [];
+                                            $Sub_plan_KPI_Name_2 = [];
 
                                             $project_name = [];
                                             $Proj_KPI_Name = [];
@@ -224,7 +225,7 @@
                                                 ?>
                                                 <?php if (!in_array($row['Sub_Plan'], $current_sub_plan)): ?>
                                                     <tr>
-                                                        <td><?= $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 10) . $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -246,7 +247,7 @@
                                                 ?>
                                                 <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '1.sub_plan'): ?>
                                                     <tr>
-                                                        <td><?= $row['Sub_plan_KPI_Name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 20) . $row['Sub_plan_KPI_Name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -269,7 +270,7 @@
                                                 ?>
                                                 <?php if (!in_array($row['project_name'], $project_name)): ?>
                                                     <tr>
-                                                        <td><?= $row['project_name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 10) . $row['project_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -289,9 +290,9 @@
                                                     array_push($project_name, $row['project_name']);
                                                 endif;
                                                 ?>
-                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '2.project'): ?>
+                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name_2) && $row['type'] == '2.project'): ?>
                                                     <tr>
-                                                        <td><?= $row['Sub_plan_KPI_Name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 20) . $row['Sub_plan_KPI_Name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -309,7 +310,7 @@
                                                         <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
                                                     </tr>
                                                 <?php
-                                                    array_push($Sub_plan_KPI_Name, $row['Sub_plan_KPI_Name']);
+                                                    array_push($Sub_plan_KPI_Name_2, $row['Sub_plan_KPI_Name']);
                                                 endif;
                                                 ?>
                                             <?php endforeach; ?>
