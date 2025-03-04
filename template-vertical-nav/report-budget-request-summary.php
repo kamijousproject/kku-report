@@ -64,6 +64,8 @@
                                     <!-- Submit Button -->
                                     <button id="submitBtn" class="btn btn-primary" disabled>Submit</button>
                                     <table id="reportTable" class="table table-bordered">
+                                        <br>
+                                        <br>
                                         <div class="card-title">
                                             <h6>รายงานสรุปรายรับรายจ่าย</h6>
                                         </div>
@@ -455,7 +457,7 @@
             doc.setFontSize(10);
             // กลับไปใช้ตัวอักษรปกติ
             doc.setFont("THSarabun", "normal");
-            lines = doc.splitTextToSize("ปีบริหารงบประมาณ: " + y, 100); // กำหนดความกว้างของแต่ละบรรทัด
+            lines = doc.splitTextToSize("ปีงบประมาณ: " + y, 100); // กำหนดความกว้างของแต่ละบรรทัด
             doc.text(lines, 10, yPos);
             yPos += 10;
             lines = doc.splitTextToSize("ประเภทงบประมาณ: ", 100); // กำหนดความกว้างของแต่ละบรรทัด
@@ -499,7 +501,7 @@
             const headers = [
                 ["รายงานสรุปคำขอตั้งงบประมาณรายจ่ายประจำปี (สรุปประมาณการรายรับและประมาณการรายจ่าย)"], // แถวชื่อรายงาน
                 [""], // แถวเว้นว่างเพื่อความสวยงาม
-                ["ปีบริหารงบประมาณ: " + y, "", "", ""],
+                ["ปีงบประมาณ: " + y, "", "", ""],
                 ["ประเภทงบประมาณ:", "", "", ""],
                 ["ส่วนงาน/หน่วยงาน: " + f, "", "", ""],
                 [] // แถวว่างเป็นตัวแบ่ง
