@@ -32,7 +32,6 @@
                             <div class="card-body">
                                 <div class="card-title">
                                     <h4>รายงานสรุปรายการ ตัวชี้วัดแผน/ผลของแผนงานย่อย</h4>
-                                    <p>ส่วนงาน/หน่วยงาน: คณะบริหารธุรกิจ</p>
                                 </div>
                                 <div class="table-responsive">
                                     <?php
