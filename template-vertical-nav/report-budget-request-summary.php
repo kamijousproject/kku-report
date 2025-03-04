@@ -106,6 +106,7 @@
     <script>
         let y = "";
         let f = "";
+        var fund = "";
         $(document).ready(function() {
 
             $.ajax({
@@ -142,7 +143,7 @@
                     },
                     dataType: "json",
                     success: function(response) {
-                        console.log(response);
+                        // console.log(response);
                         response.fac.forEach((row) => {
                             $('#dropdown2').append('<option value="' + row.scenario + '">' + row.scenario + '</option>').prop('disabled', false);
 
@@ -173,7 +174,7 @@
                         },
                         dataType: "json",
                         success: function(response) {
-                            console.log(response);
+                            // console.log(response);
                             response.fac.forEach((row) => {
                                 $('#dropdown4').append('<option value="' + row.faculty + '">' + row.faculty + '</option>').prop('disabled', false);
 
@@ -200,6 +201,7 @@
                 let year = $('#dropdown1').val();
                 let scenario = $('#dropdown2').val();
                 let faculty = $('#dropdown4').val();
+                fund = $('#dropdown2').val();
                 y = $('#dropdown1').find('option:selected').text();;
                 f = $('#dropdown4').find('option:selected').text();;
                 $.ajax({
@@ -496,13 +498,12 @@
 
         function exportXLS() {
             const table = document.getElementById('reportTable');
-
             // เพิ่ม header เป็นแถวแรก
             const headers = [
                 ["รายงานสรุปคำขอตั้งงบประมาณรายจ่ายประจำปี (สรุปประมาณการรายรับและประมาณการรายจ่าย)"], // แถวชื่อรายงาน
                 [""], // แถวเว้นว่างเพื่อความสวยงาม
                 ["ปีงบประมาณ: " + y, "", "", ""],
-                ["ประเภทงบประมาณ:", "", "", ""],
+                ["ประเภทงบประมาณ: "+ fund, "", "", ""],
                 ["ส่วนงาน/หน่วยงาน: " + f, "", "", ""],
                 [] // แถวว่างเป็นตัวแบ่ง
             ];
