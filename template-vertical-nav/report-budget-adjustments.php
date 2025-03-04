@@ -117,7 +117,7 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
      LIMIT 1) AS Faculty_Name,
     bap.Sub_Plan, sp.sub_plan_name,
     bap.Project, pj.project_name,
-    bap.`Account`, ac.sub_type,
+    bap.`Account`,ac.alias_default, ac.sub_type,
     bap.KKU_Item_Name,
     CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
     CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
@@ -168,7 +168,7 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
     // เพิ่มการจัดกลุ่มข้อมูล
     $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
     bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
-    bap.KKU_Item_Name, ft.Alias_Default
+    bap.KKU_Item_Name, ft.Alias_Default,ac.alias_default
     ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
                 ac.sub_type ASC, 
                 
@@ -425,6 +425,8 @@ function fetchYearsData($conn)
                                                     $subPlan = $row['Sub_Plan'];
                                                     $project = $row['project_name'];
                                                     $subType = $row['sub_type'];
+                                                    $superSubType = $row['alias_default'];
+
 
                                                     // เก็บข้อมูลของ Plan
                                                     if (!isset($summary[$plan])) {
@@ -481,6 +483,25 @@ function fetchYearsData($conn)
                                                             'Difference_2568_2567' => 0,
                                                             'Percentage_Difference_2568_2567' => 0,
                                                             'Reason' => '',
+                                                            'super_sub_types' => [], // เก็บข้อมูลของ KKU_Item_Name
+                                                        ];
+                                                    }
+                                                    // เก็บข้อมูลของ KKU_Item_Name
+                                                    $superSubTypeName = (!empty($row['alias_default']))
+                                                        ? "<strong>" . htmlspecialchars($row['Account']) . " </strong> : " . htmlspecialchars(removeLeadingNumbers($row['alias_default']))
+                                                        : "" . htmlspecialchars($row['Account']) . "";
+                                                    // เก็บข้อมูลของ Sub_Type
+                                                    if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['super_sub_types'][$superSubType])) {
+                                                        $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['super_sub_types'][$superSubType] = [
+                                                            'name' => $superSubTypeName,
+                                                            'a3' => $row['Account'],
+                                                            'Total_Amount_2566' => 0,
+                                                            'Total_Amount_2567' => 0,
+                                                            'TOTAL_BUDGET_2567' => 0,
+                                                            'Total_Amount_2568' => 0,
+                                                            'Difference_2568_2567' => 0,
+                                                            'Percentage_Difference_2568_2567' => 0,
+                                                            'Reason' => '',
                                                             'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
@@ -508,12 +529,16 @@ function fetchYearsData($conn)
                                                     $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['Total_Amount_2568'] += $row['Total_Amount_2568'];
-
+                                                    // รวมข้อมูลของ Sub_Type
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['super_sub_types'][$superSubType]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['super_sub_types'][$superSubType]['Total_Amount_2567'] += $row['Total_Amount_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['super_sub_types'][$superSubType]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['super_sub_types'][$superSubType]['Total_Amount_2568'] += $row['Total_Amount_2568'];
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
-                                                        : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
-                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['kku_items'][] = [
+                                                        ? "" . htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                        : "" . htmlspecialchars($row['Account']) . "";
+                                                    $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['sub_types'][$subType]['super_sub_types'][$superSubType]['kku_items'][] = [
                                                         'name' => $kkuItemName,
                                                         'Total_Amount_2566' => $row['Total_Amount_2566'],
                                                         'Total_Amount_2567' => $row['Total_Amount_2567'],
@@ -529,7 +554,7 @@ function fetchYearsData($conn)
                                                 foreach ($summary as $plan => $data) {
                                                     // แสดงผลรวมของ Plan
                                                     echo "<tr>";
-                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($plan) . "</strong> : " . htmlspecialchars($data['plan_name']) . "<br></td>";
+                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($plan) . " : " . htmlspecialchars($data['plan_name']) . "<br></td>";
                                                     echo "<td>" . formatNumber($data['Total_Amount_2566']) . "</td>";
                                                     echo "<td>" . formatNumber($data['Total_Amount_2567']) . "</td>";
                                                     echo "<td>" . formatNumber($data['TOTAL_BUDGET_2567']) . "</td>";
@@ -552,7 +577,7 @@ function fetchYearsData($conn)
                                                         $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
 
                                                         // แสดงผลข้อมูล
-                                                        echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . "</strong> : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
+                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . " : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
 
 
                                                         echo "<td>" . formatNumber($subData['Total_Amount_2566']) . "</td>";
@@ -572,7 +597,7 @@ function fetchYearsData($conn)
                                                         // แสดงผลรวมของแต่ละ Project
                                                         foreach ($subData['projects'] as $project => $projectData) {
                                                             echo "<tr>";
-                                                            echo "<td style='text-align: left;'><strong>" . str_repeat("&nbsp;", 16) . htmlspecialchars($project) . "<br></td>";
+                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($project) . "<br></td>";
                                                             echo "<td>" . formatNumber($projectData['Total_Amount_2566']) . "</td>";
                                                             echo "<td>" . formatNumber($projectData['Total_Amount_2567']) . "</td>";
                                                             echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_2567']) . "</td>";
@@ -610,18 +635,37 @@ function fetchYearsData($conn)
                                                                 echo "</tr>";
 
                                                                 // แสดงข้อมูล KKU_Item_Name
-                                                                foreach ($subTypeData['kku_items'] as $kkuItem) {
+                                                                foreach ($subTypeData['super_sub_types'] as $superSubType) {
                                                                     echo "<tr>";
 
-                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $kkuItem['name'] . "<br></td>";
-                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
-                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
-                                                                    echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2567']) . "</td>";
-                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2568']) . "</td>";
-                                                                    echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
-                                                                    echo "<td>" . formatNumber($kkuItem['Percentage_Difference_2568_2567']) . "</td>";
-                                                                    echo "<td>" . (isset($kkuItem['Reason']) && !empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : "") . "</td>";
+                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $superSubType['name'] . "<br></td>";
+                                                                    echo "<td>" . formatNumber($superSubType['Total_Amount_2566']) . "</td>";
+                                                                    echo "<td>" . formatNumber($superSubType['Total_Amount_2567']) . "</td>";
+                                                                    echo "<td>" . formatNumber($superSubType['TOTAL_BUDGET_2567']) . "</td>";
+                                                                    echo "<td>" . formatNumber($superSubType['Total_Amount_2568']) . "</td>";
+
+                                                                    // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
+                                                                    $subTypeDifference = $superSubType['Total_Amount_2568'] - $superSubType['TOTAL_BUDGET_2567'];
+                                                                    $subTypePercentage_Difference = ($superSubType['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $superSubType['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                                    echo "<td>" . formatNumber($subTypeDifference) . "</td>";
+                                                                    echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
+                                                                    echo "<td>" . "</td>";
                                                                     echo "</tr>";
+                                                                    // แสดงข้อมูล KKU_Item_Name
+                                                                    foreach ($superSubType['kku_items'] as $kkuItem) {
+                                                                        echo "<tr>";
+
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $kkuItem['name'] . "<br></td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2567']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
+                                                                        echo "<td>" . formatNumber($kkuItem['Percentage_Difference_2568_2567']) . "</td>";
+                                                                        echo "<td>" . (isset($kkuItem['Reason']) && !empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : "") . "</td>";
+                                                                        echo "</tr>";
+                                                                    }
                                                                 }
                                                             }
                                                         }
