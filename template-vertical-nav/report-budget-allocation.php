@@ -229,7 +229,7 @@ END AS Pre_Release_Amount,
         $query .= " WHERE bpd.Scenario = :scenarioColumnValue";
     }
 
-    $query .= " AND ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
+    $query .= " AND ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 
     $query .= " ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
 ac.sub_type ASC, 

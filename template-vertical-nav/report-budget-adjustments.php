@@ -158,7 +158,7 @@ LEFT JOIN budget_planning_actual bpa
     AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
     AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
     AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
-WHERE ac.id < (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
+WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 
     // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
     if ($faculty) {

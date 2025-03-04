@@ -285,7 +285,7 @@ LEFT JOIN budget_planning_allocated_annual_budget_plan baap
     AND baap.Plan = bap.Plan
     AND baap.Sub_Plan = bap.Sub_Plan
     AND baap.`Account` = bap.`Account`
-WHERE ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')";
+WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 
         if ($faculty) {
             $query .= " AND bap.Faculty = :faculty

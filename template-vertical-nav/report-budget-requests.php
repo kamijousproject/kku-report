@@ -134,7 +134,7 @@ LEFT JOIN `account` ac
     ON ac.`account` = bap.`Account`
 LEFT JOIN plan p 
     ON p.plan_id = bap.Plan
-    WHERE ac.id > (SELECT MAX(id) FROM account WHERE account = 'Expenses')
+    WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
 
 ";
 
