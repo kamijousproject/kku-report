@@ -41,12 +41,22 @@
                                                 <th>ส่วนงาน/หน่วยงาน</th>
                                                 <th>1. เงินอุดหนุนจากรัฐ</th>
                                                 <th>2. เงินและทรัพย์สินซึ่งมีผู้บริจาคให้แก่มหาวิทยาลัย</th>
-                                                <th>3. เงินกองทุนที่รัฐบาลหรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้หรือผลประโยชน์จากกองทุน</th>
-                                                <th>4. ค่าธรรมเนียม ค่าบำรุง ค่าตอบแทน เบี้ยปรับ และค่าบริการต่างๆ ของมหาวิทยาลัย</th>
-                                                <th>5. รายได้หรือผลประโยชน์ที่ได้จากการลงทุนหรือการร่วมลงทุนจากทรัพย์สินของมหาวิทยาลัย</th>
-                                                <th>6. รายได้หรือผลประโยชน์ที่ได้จากการใช้ทรัพย์สินหรือจัดทำเพื่อเป็นที่ราชพัสดุหรือทรัพย์สินของมหาวิทยาลัยปกครอง ดูแล ใช้ หรือจัดทำประโยชน์</th>
-                                                <th>7. เงินอุดหนุนจากหน่วยงานภายนอก เงินทุนอุดหนุนการวิจัยหรือการบริการวิชาการที่ได้รับจากหน่วยงานของรัฐ</th>
-                                                <th>8. เงินและผลประโยชน์ที่ได้รับจากการบริการวิชาการ การวิจัย และนำทรัพย์สินทางปัญญาไปทำประโยชน์</th>
+                                                <th>3.
+                                                    เงินกองทุนที่รัฐบาลหรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้หรือผลประโยชน์จากกองทุน
+                                                </th>
+                                                <th>4. ค่าธรรมเนียม ค่าบำรุง ค่าตอบแทน เบี้ยปรับ และค่าบริการต่างๆ
+                                                    ของมหาวิทยาลัย</th>
+                                                <th>5.
+                                                    รายได้หรือผลประโยชน์ที่ได้จากการลงทุนหรือการร่วมลงทุนจากทรัพย์สินของมหาวิทยาลัย
+                                                </th>
+                                                <th>6.
+                                                    รายได้หรือผลประโยชน์ที่ได้จากการใช้ทรัพย์สินหรือจัดทำเพื่อเป็นที่ราชพัสดุหรือทรัพย์สินของมหาวิทยาลัยปกครอง
+                                                    ดูแล ใช้ หรือจัดทำประโยชน์</th>
+                                                <th>7. เงินอุดหนุนจากหน่วยงานภายนอก
+                                                    เงินทุนอุดหนุนการวิจัยหรือการบริการวิชาการที่ได้รับจากหน่วยงานของรัฐ
+                                                </th>
+                                                <th>8. เงินและผลประโยชน์ที่ได้รับจากการบริการวิชาการ การวิจัย
+                                                    และนำทรัพย์สินทางปัญญาไปทำประโยชน์</th>
                                                 <th>9. รายได้ผลประโยชน์อื่นๆ</th>
                                                 <th>รวมทั้งหมด</th>
                                             </tr>
@@ -110,7 +120,7 @@
                                             </tr> -->
                                         </tbody>
                                         <tfoot>
-                                           
+
                                         </tfoot>
                                     </table>
                                 </div>
@@ -133,9 +143,9 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
-        $(document).ready(function() {
+        $(document).ready(function () {
             laodData();
-            
+
         });
 
         function laodData() {
@@ -146,18 +156,18 @@
                     'command': 'kku_bgp_budget-revenue-summary'
                 },
                 dataType: "json",
-                success: function(response) {
+                success: function (response) {
                     console.log(response.bgp);
                     const tableBody = document.querySelector('#reportTable tbody');
                     tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
-                    response.bgp.forEach((row, index) => {                   
+                    response.bgp.forEach((row, index) => {
                         const tr = document.createElement('tr');
-                        var total = parseInt(row.a1)+parseInt(row.a2)+parseInt(row.a3)+parseInt(row.a4)
-                        +parseInt(row.a5)+parseInt(row.a6)+parseInt(row.a7)+parseInt(row.a8)+
-                        parseInt(row.a9);
+                        var total = parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4)
+                            + parseInt(row.a5) + parseInt(row.a6) + parseInt(row.a7) + parseInt(row.a8) +
+                            parseInt(row.a9);
                         const columns = [
-                            { key: 'No', value: index+1 },
+                            { key: 'No', value: index + 1 },
                             { key: 'fac', value: row.Alias_Default },
                             { key: 'a1', value: parseInt(row.a1).toLocaleString() },
                             { key: 'a2', value: parseInt(row.a2).toLocaleString() },
@@ -168,7 +178,7 @@
                             { key: 'a7', value: parseInt(row.a7).toLocaleString() },
                             { key: 'a8', value: parseInt(row.a8).toLocaleString() },
                             { key: 'a9', value: parseInt(row.a9).toLocaleString() },
-                            { key: 'total', value: total.toLocaleString() },                                                                    
+                            { key: 'total', value: total.toLocaleString() },
                         ];
 
                         columns.forEach(col => {
@@ -176,117 +186,117 @@
                             td.textContent = col.value;
                             tr.appendChild(td);
                         });
-                        tableBody.appendChild(tr);    
-                        
+                        tableBody.appendChild(tr);
+
                     });
-                    calculateSum(); 
+                    calculateSum();
                 },
-                error: function(jqXHR, exception) {
+                error: function (jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
             });
         }
         function calculateSum() {
-        const table = document.querySelector('table');
-        const rows = table.querySelectorAll('tbody tr');
-        const footer = table.querySelector('tfoot');
-        const columns = rows[0].querySelectorAll('td').length;
+            const table = document.querySelector('table');
+            const rows = table.querySelectorAll('tbody tr');
+            const footer = table.querySelector('tfoot');
+            const columns = rows[0].querySelectorAll('td').length;
 
-        // Create footer row
-        let footerRow = document.createElement('tr');
-        footerRow.innerHTML = '<td colspan="2">รวม</td>';
+            // Create footer row
+            let footerRow = document.createElement('tr');
+            footerRow.innerHTML = '<td colspan="2">รวม</td>';
 
-        // Initialize sums for each column
-        let sums = new Array(columns - 2).fill(0);
+            // Initialize sums for each column
+            let sums = new Array(columns - 2).fill(0);
 
-        // Calculate sums
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            cells.forEach((cell, index) => {
-                if (index >= 2) { // Skip the first two columns (e.g., "ส่วนงาน/หน่วยงาน")
-                    // Remove commas and convert to a number
-                    const value = parseFloat(cell.textContent.replace(/,/g, '')) || 0;
-                    sums[index - 2] += value;
-                }
+            // Calculate sums
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    if (index >= 2) { // Skip the first two columns (e.g., "ส่วนงาน/หน่วยงาน")
+                        // Remove commas and convert to a number
+                        const value = parseFloat(cell.textContent.replace(/,/g, '')) || 0;
+                        sums[index - 2] += value;
+                    }
+                });
             });
-        });
 
-        // Add sums to the footer row
-        sums.forEach(sum => {
-            // Format the sum with commas
-            footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
-        });
+            // Add sums to the footer row
+            sums.forEach(sum => {
+                // Format the sum with commas
+                footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
+            });
 
-        // Add the footer row to the table
-        footer.appendChild(footerRow);
-    }
+            // Add the footer row to the table
+            footer.appendChild(footerRow);
+        }
         function exportCSV() {
             const table = document.getElementById('reportTable');
-        const csvRows = [];
+            const csvRows = [];
 
-        // วนลูปทีละ <tr>
-        for (const row of table.rows) {
-            // เก็บบรรทัดย่อยของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            // วนลูปทีละเซลล์ <td>/<th>
-            for (const cell of row.cells) {
-                let html = cell.innerHTML;
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
 
-                // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                html = html.replace(/(&nbsp;)+/g, (match) => {
-                    const count = match.match(/&nbsp;/g).length;
-                    return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                });
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
 
-                // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                html = html.replace(/<br\s*\/?>/gi, '\n');
+                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-                // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                // html = html.replace(/<\/?[^>]+>/g, '');
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // html = html.replace(/<\/?[^>]+>/g, '');
 
-                // 4) แยกเป็น array บรรทัดย่อย
-                const lines = html.split('\n').map(x => x.trimEnd());
-                // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
-                if (lines.length > maxSubLine) {
-                    maxSubLine = lines.length;
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
                 }
 
-                cellLines.push(lines);
-            }
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
 
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-                const rowData = [];
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
 
-                // วนลูปแต่ละเซลล์
-                for (const lines of cellLines) {
-                    let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                    // Escape double quotes
-                    text = text.replace(/"/g, '""');
-                    // ครอบด้วย ""
-                    text = `"${text}"`;
-                    rowData.push(text);
+                    csvRows.push(rowData.join(','));
                 }
-
-                csvRows.push(rowData.join(','));
             }
-        }
 
-        // รวมเป็น CSV + BOM
-        const csvContent = "\uFEFF" + csvRows.join("\n");
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'report.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         function exportPDF() {
@@ -331,45 +341,45 @@
         }
 
         function exportXLS() {
-        const table = document.getElementById('reportTable');
+            const table = document.getElementById('reportTable');
 
-        // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
-        // จะสร้าง aoa ของ thead + merges array
-        const { theadRows, theadMerges } = parseThead(table.tHead);
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+            // จะสร้าง aoa ของ thead + merges array
+            const { theadRows, theadMerges } = parseThead(table.tHead);
 
-        // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
-        const tbodyRows = parseTbody(table.tBodies[0]);
+            // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
+            const tbodyRows = parseTbody(table.tBodies[0]);
 
-        // รวม rows ทั้งหมด: thead + tbody
-        const allRows = [...theadRows, ...tbodyRows];
+            // รวม rows ทั้งหมด: thead + tbody
+            const allRows = [...theadRows, ...tbodyRows];
 
-        // สร้าง Workbook + Worksheet
-        const wb = XLSX.utils.book_new();
-        const ws = XLSX.utils.aoa_to_sheet(allRows);
+            // สร้าง Workbook + Worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-        // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
-        // สังเกตว่า thead อยู่แถวบนสุดของ allRows (index เริ่มจาก 0 ตาม parseThead)
-        ws['!merges'] = theadMerges;
+            // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+            // สังเกตว่า thead อยู่แถวบนสุดของ allRows (index เริ่มจาก 0 ตาม parseThead)
+            ws['!merges'] = theadMerges;
 
-        // เพิ่ม worksheet ลงใน workbook
-        XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            // เพิ่ม worksheet ลงใน workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
-        // เขียนไฟล์เป็น .xls (BIFF8)
-        const excelBuffer = XLSX.write(wb, {
-            bookType: 'xls',
-            type: 'array'
-        });
+            // เขียนไฟล์เป็น .xls (BIFF8)
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xls',
+                type: 'array'
+            });
 
-        // สร้าง Blob + ดาวน์โหลด
-        const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = 'report.xls';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+            // สร้าง Blob + ดาวน์โหลด
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'report.xls';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         /**
@@ -382,114 +392,114 @@
          * - return: { theadRows: [][] , theadMerges: [] }
          */
         function parseThead(thead) {
-        const theadRows = [];
-        const theadMerges = [];
+            const theadRows = [];
+            const theadMerges = [];
 
-        if (!thead) {
+            if (!thead) {
+                return { theadRows, theadMerges };
+            }
+
+            // Map กันการเขียนทับ merge
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+                const tr = thead.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    // ข้ามเซลล์ที่ถูก merge ครอบไว้
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    // ไม่แยก <br/> → แค่แทน &nbsp; เป็น space
+                    let text = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // &nbsp; => spaces
+                        .replace(/<br\s*\/?>/gi, ' ') // ถ้ามี <br/> ใน thead ก็เปลี่ยนเป็นช่องว่าง (ไม่แตกแถว)
+                        .replace(/<\/?[^>]+>/g, '')   // ลบ tag อื่น ถ้าเหลือ
+                        .trim();
+
+                    rowData[colIndex] = text;
+
+                    // ดู rowSpan/colSpan
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        // Push merges object
+                        theadMerges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        // Mark skipMap
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r === 0 && c === 0) continue;
+                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                    colIndex++;
+                }
+                theadRows.push(rowData);
+            }
+
             return { theadRows, theadMerges };
         }
 
-        // Map กันการเขียนทับ merge
-        const skipMap = {};
+        /**
+         * -----------------------
+         * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+         * -----------------------
+         * - ไม่ทำ merge (ตัวอย่าง) เพื่อความง่าย
+         * - ถ้าใน tbody มี colSpan/rowSpan ต้องประยุกต์ skipMap ต่อเอง
+         */
+        function parseTbody(tbody) {
+            const rows = [];
 
-        for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
-            const tr = thead.rows[rowIndex];
-            const rowData = [];
-            let colIndex = 0;
+            if (!tbody) return rows;
 
-            for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            // ข้ามเซลล์ที่ถูก merge ครอบไว้
-            while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData[colIndex] = "";
-                colIndex++;
-            }
+            for (const tr of tbody.rows) {
+                // เก็บ sub-lines ของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            const cell = tr.cells[cellIndex];
-            // ไม่แยก <br/> → แค่แทน &nbsp; เป็น space
-            let text = cell.innerHTML
-                .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // &nbsp; => spaces
-                .replace(/<br\s*\/?>/gi, ' ') // ถ้ามี <br/> ใน thead ก็เปลี่ยนเป็นช่องว่าง (ไม่แตกแถว)
-                .replace(/<\/?[^>]+>/g, '')   // ลบ tag อื่น ถ้าเหลือ
-                .trim();
+                for (const cell of tr.cells) {
+                    // (a) แปลง &nbsp; → space ตามจำนวน
+                    // (b) แปลง <br/> → \n เพื่อนำไป split เป็นหลายบรรทัด
+                    let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return ' '.repeat(count);
+                    });
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-            rowData[colIndex] = text;
+                    // (c) ลบแท็กอื่น ๆ (ถ้าต้องการ)
+                    html = html.replace(/<\/?[^>]+>/g, '');
 
-            // ดู rowSpan/colSpan
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
-
-            if (rowspan > 1 || colspan > 1) {
-                // Push merges object
-                theadMerges.push({
-                s: { r: rowIndex, c: colIndex },
-                e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                });
-
-                // Mark skipMap
-                for (let r = 0; r < rowspan; r++) {
-                for (let c = 0; c < colspan; c++) {
-                    if (r === 0 && c === 0) continue;
-                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                    // (d) split ด้วย \n → ได้หลาย sub-lines
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+                    cellLines.push(lines);
                 }
+
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+                    for (const lines of cellLines) {
+                        rowData.push(lines[i] || ''); // ถ้าไม่มีบรรทัด => ใส่ว่าง
+                    }
+                    rows.push(rowData);
                 }
             }
-            colIndex++;
-            }
-            theadRows.push(rowData);
+
+            return rows;
         }
-
-        return { theadRows, theadMerges };
-    }
-
-    /**
-     * -----------------------
-     * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
-     * -----------------------
-     * - ไม่ทำ merge (ตัวอย่าง) เพื่อความง่าย
-     * - ถ้าใน tbody มี colSpan/rowSpan ต้องประยุกต์ skipMap ต่อเอง
-     */
-    function parseTbody(tbody) {
-        const rows = [];
-
-        if (!tbody) return rows;
-
-        for (const tr of tbody.rows) {
-            // เก็บ sub-lines ของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
-
-            for (const cell of tr.cells) {
-            // (a) แปลง &nbsp; → space ตามจำนวน
-            // (b) แปลง <br/> → \n เพื่อนำไป split เป็นหลายบรรทัด
-            let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
-                const count = match.match(/&nbsp;/g).length;
-                return ' '.repeat(count);
-            });
-            html = html.replace(/<br\s*\/?>/gi, '\n');
-
-            // (c) ลบแท็กอื่น ๆ (ถ้าต้องการ)
-            html = html.replace(/<\/?[^>]+>/g, '');
-
-            // (d) split ด้วย \n → ได้หลาย sub-lines
-            const lines = html.split('\n').map(x => x.trimEnd());
-            if (lines.length > maxSubLine) {
-                maxSubLine = lines.length;
-            }
-            cellLines.push(lines);
-            }
-
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-            const rowData = [];
-            for (const lines of cellLines) {
-                rowData.push(lines[i] || ''); // ถ้าไม่มีบรรทัด => ใส่ว่าง
-            }
-            rows.push(rowData);
-            }
-        }
-
-        return rows;
-    }
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>

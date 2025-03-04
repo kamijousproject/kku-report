@@ -443,163 +443,316 @@ $totalPages = ceil($totalRows / $limit);
         </div>
     </div>
     <script>
-    function exportCSV() {
-        const rows = [];
-        const table = document.getElementById('reportTable');
-
-        for (let row of table.rows) {
-            const cells = Array.from(row.cells).map(cell => {
-                let text = cell.innerText.trim();
-
-                // เช็คว่าเป็นตัวเลข float (ไม่มี , ในหน้าเว็บ)
-                if (!isNaN(text) && text !== "") {
-                    text = `"${parseFloat(text).toLocaleString("en-US", { minimumFractionDigits: 2 })}"`;
-                }
-
-                return text;
-            });
-
-            rows.push(cells.join(",")); // ใช้ , เป็นตัวคั่น CSV
-        }
-
-        const csvContent = "\uFEFF" + rows.join("\n"); // ป้องกัน Encoding เพี้ยน
-        const blob = new Blob([csvContent], {
-            type: 'text/csv;charset=utf-8;'
-        });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.setAttribute('href', url);
-        link.setAttribute('download', 'รายงาน.csv');
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    }
-
-    function exportPDF() {
-        const {
-            jsPDF
-        } = window.jspdf;
-        const doc = new jsPDF('landscape');
-
-        // เพิ่มฟอนต์ภาษาไทย
-        doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-        doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-        doc.setFont("THSarabun");
-
-        // ตั้งค่าฟอนต์และข้อความ
-        doc.setFontSize(12);
-        doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-        // ใช้ autoTable สำหรับสร้างตาราง
-        doc.autoTable({
-            html: '#reportTable',
-            startY: 20,
-            styles: {
-                font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                fontSize: 10,
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            bodyStyles: {
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-            headStyles: {
-                fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                lineWidth: 0.5, // ความหนาของเส้นขอบ
-            },
-        });
-
-        // บันทึกไฟล์ PDF
-        doc.save('รายงาน.pdf');
-    }
-
-    function exportXLSX() {
+        function exportCSV() {
             const table = document.getElementById('reportTable');
-            const rows = [];
-            const merges = [];
-            const mergedCells = {}; // ใช้เก็บตำแหน่งเซลล์ที่ถูก merge
+            const csvRows = [];
 
-            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-                const row = table.rows[rowIndex];
-                const rowData = [];
-                let colIndex = 0; // ควบคุม index ของคอลัมน์ใน Excel
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-                for (let cellIndex = 0; cellIndex < row.cells.length; cellIndex++) {
-                    let cell = row.cells[cellIndex];
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
 
-                    // ข้ามช่องที่ถูก merge ไว้แล้ว
-                    while (mergedCells[`${rowIndex},${colIndex}`]) {
-                        rowData[colIndex] = "";
-                        colIndex++;
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
+
+
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    html = html.replace(/<\/?[^>]+>/g, '');
+
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
                     }
 
-                    let cellText = cell.innerText.trim();
-                    rowData[colIndex] = cellText; // ใช้ colIndex ให้คงค่าเดิมใน merged cell
-
-                    let rowspan = cell.rowSpan || 1;
-                    let colspan = cell.colSpan || 1;
-
-                    if (rowspan > 1 || colspan > 1) {
-                        merges.push({
-                            s: { r: rowIndex, c: colIndex }, // จุดเริ่มต้น
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดสิ้นสุด
-                        });
-
-                        // บันทึกว่าเซลล์เหล่านี้ถูก merge แล้ว
-                        for (let r = 0; r < rowspan; r++) {
-                            for (let c = 0; c < colspan; c++) {
-                                if (r !== 0 || c !== 0) {
-                                    mergedCells[`${rowIndex + r},${colIndex + c}`] = true;
-                                }
-                            }
-                        }
-                    }
-
-                    colIndex += colspan;
+                    cellLines.push(lines);
                 }
-                rows.push(rowData);
+
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
+
+                    csvRows.push(rowData.join(','));
+                }
             }
 
-            // สร้างไฟล์ Excel
-            const XLSX = window.XLSX;
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-
-            // ✅ เพิ่ม Merge Cells
-            ws['!merges'] = merges;
-
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-            // ✅ ดาวน์โหลดไฟล์ Excel
-            const excelBuffer = XLSX.write(wb, {
-                bookType: 'xlsx',
-                type: 'array'
-            });
-            const blob = new Blob([excelBuffer], {
-                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
             });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงาน.xlsx';
+            link.download = 'รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM).csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
 
+        function exportPDF() {
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF('landscape');
+
+            // เพิ่มฟอนต์ภาษาไทย
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
+
+            // ตั้งค่าฟอนต์และข้อความ
+            doc.setFontSize(12);
+            doc.text("รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM)", 10, 500);
+
+            // ใช้ autoTable สำหรับสร้างตาราง
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 20,
+                styles: {
+                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
+                    fontSize: 10,
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                },
+                bodyStyles: {
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                },
+                headStyles: {
+                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
+                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
+                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
+                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                },
+            });
+
+            // บันทึกไฟล์ PDF
+            doc.save('รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM).pdf');
+        }
+
+        function exportXLSX() {
+            const table = document.getElementById('reportTable');
+
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+            const {
+                theadRows,
+                theadMerges
+            } = parseThead(table.tHead);
+
+            // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br />, ไม่ merge) ============
+            const tbodyRows = parseTbody(table.tBodies[0]);
+
+            // รวม rows ทั้งหมด: thead + tbody
+            const allRows = [...theadRows, ...tbodyRows];
+
+            // สร้าง Workbook + Worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+            // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+            ws['!merges'] = theadMerges;
+
+            // ตั้งค่า vertical-align: bottom ให้ทุกเซลล์
+            applyCellStyles(ws, "bottom");
+
+            // เพิ่ม worksheet ลงใน workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์เป็น .xlsx (แทน .xls เพื่อรองรับ style)
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xlsx',
+                type: 'array'
+            });
+
+            // สร้าง Blob + ดาวน์โหลด
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานข้อมูลกรอบอัตรากำลัง(จากระบบHCM).xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * -----------------------
+         * 1) parseThead: รองรับ merge
+         * -----------------------
+         */
+        function parseThead(thead) {
+            const theadRows = [];
+            const theadMerges = [];
+
+            if (!thead) {
+                return {
+                    theadRows,
+                    theadMerges
+                };
+            }
+
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+                const tr = thead.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let text = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // แทนที่ &nbsp; ด้วยช่องว่าง
+                        .replace(/<\/?[^>]+>/g, '') // ลบแท็ก HTML ทั้งหมด
+                        .trim();
+
+                    rowData[colIndex] = text;
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        theadMerges.push({
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r === 0 && c === 0) continue;
+                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                    colIndex++;
+                }
+                theadRows.push(rowData);
+            }
+
+            return {
+                theadRows,
+                theadMerges
+            };
+        }
+
+        /**
+         * -----------------------
+         * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+         * -----------------------
+         */
+        function parseTbody(tbody) {
+            const rows = [];
+
+            if (!tbody) return rows;
+
+            for (const tr of tbody.rows) {
+                const cellLines = [];
+                let maxSubLine = 1;
+
+                for (const cell of tr.cells) {
+                    let html = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, match => {
+                            const count = match.match(/&nbsp;/g).length;
+                            return ' '.repeat(count);
+                        })
+                        .replace(/<\/?[^>]+>/g, ''); // ลบแท็ก HTML ทั้งหมด
+
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+                    cellLines.push(lines);
+                }
+
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+                    for (const lines of cellLines) {
+                        rowData.push(lines[i] || '');
+                    }
+                    rows.push(rowData);
+                }
+            }
+
+            return rows;
+        }
+
+        /**
+         * -----------------------
+         * 3) applyCellStyles: ตั้งค่า vertical-align ให้ทุก cell
+         * -----------------------
+         */
+        function applyCellStyles(ws, verticalAlign) {
+            if (!ws['!ref']) return;
+
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = XLSX.utils.encode_cell({
+                        r: R,
+                        c: C
+                    });
+                    if (!ws[cell_address]) continue;
+
+                    if (!ws[cell_address].s) ws[cell_address].s = {};
+                    ws[cell_address].s.alignment = {
+                        vertical: verticalAlign
+                    };
+                }
+            }
+        }
     </script>
-    <!-- Common JS -->
-    <script src="../assets/plugins/common/common.min.js"></script>
-    <!-- Custom script -->
-    <script src="../js/custom.min.js"></script>
-    <!-- โหลดไลบรารี xlsx จาก CDN -->
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
 
 
+    <!-- โหลดไลบรารีที่จำเป็น -->
+    <script src="../assets/plugins/common/common.min.js"></script>
+    <script src="../js/custom.min.js"></script>
+
+
+    <!-- โหลดฟอนต์ THSarabun (ตรวจสอบไม่ให้ประกาศซ้ำ) -->
+    <script>
+        if (typeof window.thsarabunnew_webfont_normal === 'undefined') {
+            window.thsarabunnew_webfont_normal = "data:font/truetype;base64,AAEAAA...";
+        }
+    </script>
 </body>
 
 </html>
