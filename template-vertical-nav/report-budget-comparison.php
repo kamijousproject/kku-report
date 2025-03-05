@@ -137,19 +137,15 @@
 
                                 // รับค่าที่เลือกจากฟอร์ม
                                 $selected_faculty = isset($_GET['faculty']) ? $_GET['faculty'] : '';
-                                $selected_fund = isset($_GET['fund']) ? $_GET['fund'] : '';
 
                                 // WHERE Clause แบบ Dynamic
                                 $where_clause = "WHERE 1=1";
                                 if ($selected_faculty !== '') {
                                     $where_clause .= " AND Faculty = :faculty";
                                 }
-                                if ($selected_fund !== '') {
-                                    $where_clause .= " AND fund = :fund";
-                                }
-
+                           
                                 // ฟังก์ชันดึงข้อมูล
-                                function fetchBudgetData($conn, $where_clause, $selected_faculty, $selected_fund)
+                                function fetchBudgetData($conn, $where_clause, $selected_faculty)
                                 {
                                     $query = "WITH
                                                 t1 AS(
@@ -414,9 +410,6 @@
                                         if ($selected_faculty !== '') {
                                             $stmt->bindParam(':faculty', $selected_faculty, PDO::PARAM_STR);
                                         }
-                                        if ($selected_fund !== '') {
-                                            $stmt->bindParam(':fund', $selected_fund, PDO::PARAM_STR);
-                                        }
 
                                         $stmt->execute();
                                         return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -426,7 +419,7 @@
                                     }
                                 }
 
-                                $resultsFN = fetchBudgetData($conn, $where_clause, $selected_faculty, $selected_fund);
+                                $resultsFN = fetchBudgetData($conn, $where_clause, $selected_faculty);
                                 ?>
 
                                 <form method="GET" class="d-flex align-items-center gap-2">
@@ -438,14 +431,6 @@
                                                 <?= $faculty['Alias_Default'] ?>
                                             </option>
                                         <?php endforeach; ?>
-                                    </select>
-
-                                    <label for="fund" class="me-2">เลือกแหล่งงบประมาณ:</label>
-                                    <select name="fund" id="fund" class="form-control me-2">
-                                        <option value="">ทุกแหล่งงบประมาณ</option>
-                                        <option value="FN02" <?= ($selected_fund == "FN02") ? 'selected' : '' ?>>FN02</option>
-                                        <option value="FN08" <?= ($selected_fund == "FN08") ? 'selected' : '' ?>>FN08</option>
-                                        <option value="FN06" <?= ($selected_fund == "FN06") ? 'selected' : '' ?>>FN06</option>
                                     </select>
 
                                     <button type="submit" class="btn btn-primary">ค้นหา</button>
