@@ -658,7 +658,7 @@
                                                     var s10=Math.round(((parseInt(row9.e2)*100)/(parseInt(row9.a2)))* 100) / 100 || 0;
                                                     var s3=(parseInt(row9.c6)+parseInt(row9.o6));
                                                     var s8=(parseInt(row9.c2)+parseInt(row9.o2));
-                                                    str1+='<br/>'+'&nbsp;'.repeat(64)+row9.KKU_Item_Name;
+                                                    str1+='<br/>'+'&nbsp;'.repeat(64)+row9.KKU_Item_Name2;
                                                     str2+='<br/>'+parseInt(row9.a6).toLocaleString();
                                                     str3+='<br/>'+s3.toLocaleString();
                                                     str4+='<br/>'+s4.toLocaleString();

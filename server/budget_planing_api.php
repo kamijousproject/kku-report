@@ -84,11 +84,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when type='9.รายได้ผลประโยชน์อย่างอื่น' then Total_Amount ELSE 0 END) AS a9
                         FROM t2
                         GROUP BY Faculty)
-                        SELECT t.*,f.Alias_Default FROM t3 t
+                        SELECT t.*,f.Alias_Default,f2.Alias_Default AS pname
+								FROM t3 t
                         LEFT JOIN (
-                        SELECT DISTINCT Faculty, Alias_Default 
-                        FROM Faculty) f 
+                        SELECT DISTINCT Faculty, Alias_Default,parent 
+                        FROM Faculty
+								WHERE parent LIKE 'Faculty%') f 
                         ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
+                        LEFT JOIN Faculty f2
+                        ON f.parent=f2.Faculty COLLATE UTF8MB4_GENERAL_CI
                         order by f.Alias_Default";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -175,7 +179,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM t5
                         GROUP BY Faculty,plan,replace(sub_plan,'SP_',''),project,f1,f2,KKU_Item_Name,type,sub_type,account)
                         ,t7 AS (
-                        SELECT t.*,p.plan_name,CONCAT(t.sub_plan,' ',sp.sub_plan_name) AS sub_plan_name,pr.project_name ,a.id AS account,aa.id AS sub_account
+                        SELECT t.*,p.plan_name,CONCAT(t.sub_plan,' : ',sp.sub_plan_name) AS sub_plan_name,pr.project_name ,a.id AS account,aa.id AS sub_account
                         FROM t6 t
                         LEFT JOIN plan p
                         ON t.plan = p.plan_id
@@ -196,7 +200,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 								ON t.sub_type2 =a2.alias_default COLLATE UTF8MB4_GENERAL_CI
 								LEFT JOIN account a3
 								ON t.account2 =a3.account COLLATE UTF8MB4_GENERAL_CI)
-                        SELECT *,CONCAT(atype,' ',TYPE2) AS TYPE,CONCAT(asubtype,' ',sub_type2) AS sub_type, CONCAT(account2,' ',aname) AS accname FROM t8
+                        SELECT *,CONCAT(atype,' : ',REGEXP_REPLACE(TYPE2, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS TYPE
+								,CONCAT(asubtype,' : ',REGEXP_REPLACE(sub_type2, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS sub_type
+								,CONCAT(account2,' : ',REGEXP_REPLACE(aname, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS accname 
+								,CASE 
+							        WHEN KKU_Item_Name IS NOT NULL AND KKU_Item_Name != '' 
+							        THEN CONCAT(account2, ' : ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*\\.\\s*', ''))
+							        ELSE NULL 
+							    END AS KKU_Item_Name2 
+								FROM t8
                         ORDER BY Faculty,plan,sub_plan,project,account,sub_account";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -227,13 +239,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when b.Fund='FN06' then b.Total_Amount_Quantity ELSE 0 END) AS t06
                         ,sum(case when b.Fund='FN02' then b.Total_Amount_Quantity ELSE 0 END) AS t02
                         ,sum(case when b.Fund='FN08' then b.Total_Amount_Quantity ELSE 0 END) AS t08
-                        ,b.Account
+                        ,b.Account AS account2
                         ,b.KKU_Item_Name
                         ,b.Budget_Management_Year
                         ,b2.KKU_Strategic_Plan_LOV
                         ,p.pillar_name
-                        ,a.`type`
-                        ,a.sub_type
+                        ,a.`type` AS TYPE2
+                        ,a.sub_type AS sub_type2
                         ,a.id AS p_id
                         ,f.Alias_Default
                         ,f2.Alias_Default AS pname
@@ -259,8 +271,26 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,a.id
                         ,f.Alias_Default
 								,f2.Alias_Default)
-
-                        SELECT distinct * FROM t1
+,t2 AS (
+								SELECT t.*,a.account AS atype,a2.account AS asubtype, a3.alias_default AS aname
+								FROM t1 t
+								LEFT JOIN account a
+								ON t.type2 =a.alias_default COLLATE UTF8MB4_GENERAL_CI
+								LEFT JOIN account a2
+								ON t.sub_type2 =a2.alias_default COLLATE UTF8MB4_GENERAL_CI
+								LEFT JOIN account a3
+								ON t.account2 =a3.account COLLATE UTF8MB4_GENERAL_CI)
+								
+                        SELECT *
+								,CONCAT(atype,' : ',REGEXP_REPLACE(TYPE2, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS TYPE
+								,CONCAT(asubtype,' : ',REGEXP_REPLACE(sub_type2, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS sub_type
+								,CONCAT(account2,' : ',REGEXP_REPLACE(aname, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS accname 
+								,CASE 
+							        WHEN KKU_Item_Name IS NOT NULL AND KKU_Item_Name != '' 
+							        THEN CONCAT(account2, ' : ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*\\.\\s*', ''))
+							        ELSE NULL 
+							    END AS KKU_Item_Name2 
+								FROM t2
                         ORDER BY Faculty,KKU_Strategic_Plan_LOV,p_id";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -323,10 +353,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,b.Principles_of_good_governance
                         ,b.SDGs)
                         ,t2 AS (
-                        SELECT t.* ,f.Alias_Default
+                        SELECT t.* ,f.Alias_Default,f2.Alias_Default AS pname
                         FROM t1 t
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
-                        ON t.faculty=f.faculty)
+                        ON t.faculty=f.faculty
+								left JOIN Faculty f2
+								ON f.parent=f2.Faculty)
                         ,t3 AS (
                         SELECT tt.*,pl.plan_name
                         FROM t2 tt
@@ -728,10 +760,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS (
                 SELECT distinct sub_type,'revenue' as ftype FROM account
-                WHERE id < (SELECT id FROM account WHERE account='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%'
+                WHERE id < (SELECT id FROM account WHERE parent='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%'
                 UNION ALL 
                 SELECT distinct sub_type,'expense' AS ftype FROM account
-                WHERE id > (SELECT id FROM account WHERE account='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%')
+                WHERE id > (SELECT id FROM account WHERE parent='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%')
                 ,t2 AS (
                 SELECT Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario 
                 FROM budget_planning_allocated_annual_budget_plan b
@@ -825,10 +857,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS (
                 SELECT distinct sub_type,'revenue' as ftype FROM account
-                WHERE id < (SELECT id FROM account WHERE account='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%'
+                WHERE id < (SELECT id FROM account WHERE parent='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%'
                 UNION ALL 
                 SELECT distinct sub_type,'expense' AS ftype FROM account
-                WHERE id > (SELECT id FROM account WHERE account='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%')
+                WHERE id > (SELECT id FROM account WHERE parent='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%')
                 ,t2 AS (
                 SELECT Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario 
                 FROM budget_planning_allocated_annual_budget_plan b

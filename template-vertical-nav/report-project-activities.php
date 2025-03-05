@@ -1,7 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>     
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
 
+.content-body {
+    flex-grow: 1;
+    overflow: hidden; /* Prevent body scrolling */
+    display: flex;
+    flex-direction: column;
+}
+
+.container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto; /* Scrollable content only inside table */
+    max-height: 60vh; /* Set a fixed height */
+    border: 1px solid #ccc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+thead tr:nth-child(1) th {
+    position: sticky;
+    top: 0;
+    background: #f4f4f4;
+    z-index: 1000;
+}
+
+thead tr:nth-child(2) th {
+    position: sticky;
+    top: 44px; /* Adjust height based on previous row */
+    background: #f4f4f4;
+    z-index: 999;
+}
+
+thead tr:nth-child(3) th {
+    position: sticky;
+    top: 89px; /* Adjust height based on previous rows */
+    background: #f4f4f4;
+    z-index: 998;
+}
+.nowrap {
+    white-space: nowrap;
+}
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -33,6 +96,10 @@
                                 <div class="card-title">
                                     <h4>ตารางข้อมูลแผนงานและโครงการ</h4>
                                 </div>
+                                <label for="category">เลือกส่วนงาน:</label>
+                                <select name="category" id="category" onchange="fetchData()">
+                                    <option value="">-- Loading Categories --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
@@ -86,14 +153,12 @@
             </div>
         </div>
     </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
+        let all_data;
         $(document).ready(function () {
-            laodData();
-
-        });
-
-        function laodData() {
             $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
@@ -101,114 +166,137 @@
                     'command': 'kku_bgp_project-activities'
                 },
                 dataType: "json",
-                success: function (response) {
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
-
-                    response.bgp.forEach((row, index) => {
-                        const tr = document.createElement('tr');
-
-                        const columns = [
-                            { key: 'Alias_Default', value: row.Alias_Default },
-                            { key: 'Plan_Name', value: row.plan_name },
-                            { key: 'Sub_Plan_Name', value: row.sub_plan_name },
-                            { key: 'Project_Name', value: row.project_name },
-                            { key: 'Fund', value: row.Fund },
-                            { key: 'Total_Amount_Quantity', value: row.Total_Amount_Quantity },
-                            { key: 'Proj_KPI_Name', value: row.Proj_KPI_Name },
-                            { key: 'Proj_KPI_Target', value: row.Proj_KPI_Target },
-                            { key: 'UoM_for_Proj_KPI', value: row.UoM_for_Proj_KPI },
-                            { key: 'Objective', value: row.Objective },
-                            { key: 'Project_Output', value: row.Project_Output },
-                            { key: 'Project_Outcome', value: row.Project_Outcome },
-                            { key: 'Project_Impact', value: row.Project_Impact },
-                            { key: 'Pillar_Name', value: row.pillar_name },
-                            { key: 'OKR_Name', value: row.okr_name },
-                            { key: 'Principles_of_Good_Governance', value: row.Principles_of_good_governance },
-                            { key: 'SDGs', value: row.SDGs }
-                        ];
-
-
-                        columns.forEach(col => {
-                            const td = document.createElement('td');
-                            td.textContent = col.value;
-                            tr.appendChild(td);
-                        });
-
-
-                        tableBody.appendChild(tr);
-
+                success: function(response) {
+                    all_data=response.bgp;
+                    const fac = [...new Set(all_data.map(item => item.pname))];
+                    let dropdown = document.getElementById("category");
+                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        dropdown.appendChild(option);
                     });
                 },
-                error: function (jqXHR, exception) {
+                error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
             });
+
+        });
+
+        function fetchData() {
+            let category = document.getElementById("category").value;
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            if(category=="all"){
+                data=all_data;
+            }
+            else{
+                data= all_data.filter(item=>item.pname===category);
+            }
+            data.forEach((row, index) => {
+                const tr = document.createElement('tr');
+
+                const columns = [
+                    { key: 'Alias_Default', value: row.Alias_Default },
+                    { key: 'Plan_Name', value: row.plan_name ,nowrap: true},
+                    { key: 'Sub_Plan_Name', value: row.sub_plan_name,nowrap: true} ,
+                    { key: 'Project_Name', value: row.project_name },
+                    { key: 'Fund', value: row.Fund },
+                    { key: 'Total_Amount_Quantity', value: row.Total_Amount_Quantity },
+                    { key: 'Proj_KPI_Name', value: row.Proj_KPI_Name },
+                    { key: 'Proj_KPI_Target', value: row.Proj_KPI_Target },
+                    { key: 'UoM_for_Proj_KPI', value: row.UoM_for_Proj_KPI },
+                    { key: 'Objective', value: row.Objective },
+                    { key: 'Project_Output', value: row.Project_Output },
+                    { key: 'Project_Outcome', value: row.Project_Outcome },
+                    { key: 'Project_Impact', value: row.Project_Impact },
+                    { key: 'Pillar_Name', value: row.pillar_name ,nowrap: true},
+                    { key: 'OKR_Name', value: row.okr_name },
+                    { key: 'Principles_of_Good_Governance', value: row.Principles_of_good_governance },
+                    { key: 'SDGs', value: row.SDGs }
+                ];
+
+
+                columns.forEach(col => {
+                    const td = document.createElement('td');
+                    td.textContent = col.value;
+                    if (col.nowrap) {
+                        td.classList.add("nowrap");
+                    }
+                    tr.appendChild(td);
+                });
+
+
+                tableBody.appendChild(tr);
+
+            });
+                
         }
         function exportCSV() {
             const table = document.getElementById('reportTable');
-            const csvRows = [];
+            const numRows = table.rows.length;
 
-            // วนลูปทีละ <tr>
-            for (const row of table.rows) {
-                // เก็บบรรทัดย่อยของแต่ละเซลล์
-                const cellLines = [];
-                let maxSubLine = 1;
-
-                // วนลูปทีละเซลล์ <td>/<th>
-                for (const cell of row.cells) {
-                    let html = cell.innerHTML;
-
-                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
-                    html = html.replace(/(&nbsp;)+/g, (match) => {
-                        const count = match.match(/&nbsp;/g).length;
-                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
-                    });
-
-                    // 2) แปลง <br/> เป็น \n เพื่อแตกเป็นแถวใหม่ใน CSV
-                    html = html.replace(/<br\s*\/?>/gi, '\n');
-
-                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
-                    // html = html.replace(/<\/?[^>]+>/g, '');
-
-                    // 4) แยกเป็น array บรรทัดย่อย
-                    const lines = html.split('\n').map(x => x.trimEnd());
-                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
-
-                    if (lines.length > maxSubLine) {
-                        maxSubLine = lines.length;
-                    }
-
-                    cellLines.push(lines);
+            // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
+            let maxCols = 0;
+            for (let row of table.rows) {
+                let colCount = 0;
+                for (let cell of row.cells) {
+                    colCount += cell.colSpan || 1;
                 }
+                maxCols = Math.max(maxCols, colCount);
+            }
 
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-                for (let i = 0; i < maxSubLine; i++) {
-                    const rowData = [];
+            // สร้างตาราง 2D เก็บค่าจากตาราง HTML
+            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
 
-                    // วนลูปแต่ละเซลล์
-                    for (const lines of cellLines) {
-                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                        // Escape double quotes
-                        text = text.replace(/"/g, '""');
-                        // ครอบด้วย ""
-                        text = `"${text}"`;
-                        rowData.push(text);
+            // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
+            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+
+            for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
+                const row = table.rows[rowIndex];
+                let colIndex = 0;
+
+                for (const cell of row.cells) {
+                    // ขยับไปช่องว่างที่ยังไม่มีข้อมูล (เผื่อช่องก่อนหน้าถูก merge)
+                    while (cellMap[rowIndex][colIndex]) {
+                        colIndex++;
                     }
 
-                    csvRows.push(rowData.join(','));
+                    let text = cell.textContent.trim().replace(/"/g, '""'); // Escape double quotes
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    // ใส่ข้อมูลลงในช่องเริ่มต้นของ cell ที่ merge
+                    csvMatrix[rowIndex][colIndex] = `"${text}"`;
+
+                    // ทำเครื่องหมายว่า cell นี้ครอบคลุมพื้นที่ไหนบ้าง
+                    for (let r = 0; r < rowspan; r++) {
+                        for (let c = 0; c < colspan; c++) {
+                            cellMap[rowIndex + r][colIndex + c] = true;
+
+                            // ช่องที่ไม่ใช่ช่องเริ่มต้นของเซลล์ merge ให้เป็นว่าง (เพื่อไม่ให้ข้อมูลซ้ำ)
+                            if (r !== 0 || c !== 0) {
+                                csvMatrix[rowIndex + r][colIndex + c] = '""';
+                            }
+                        }
+                    }
+
+                    // ขยับ index ไปยังเซลล์ถัดไป
+                    colIndex += colspan;
                 }
             }
 
-            // รวมเป็น CSV + BOM
-            const csvContent = "\uFEFF" + csvRows.join("\n");
+            // แปลงข้อมูลเป็น CSV
+            const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานโครงการ/กิจกรรม.csv';
+            link.download = 'report.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -216,206 +304,120 @@
         }
 
         function exportPDF() {
-            const {
-                jsPDF
-            } = window.jspdf;
-            const doc = new jsPDF('landscape');
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
-
-            // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
+            doc.text("ตารางข้อมูลแผนงานและโครงการ", 10, 10);
             doc.autoTable({
                 html: '#reportTable',
                 startY: 20,
+                theme: 'grid',
                 styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    font: "THSarabun",
+                    fontSize: 7,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 5
                 },
                 headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 7,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle'
                 },
+                
+                didParseCell: function(data) {
+                    data.cell.styles.halign = 'center';
+                    
+                    /* if (data.section === 'body' && data.column.index === 0) {
+                        data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
+                    } */
+                },
+                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                tableWidth: 'auto'
             });
-
-            // บันทึกไฟล์ PDF
-            doc.save('รายงานโครงการ/กิจกรรม.pdf');
+            doc.save('ตารางข้อมูลแผนงานและโครงการ.pdf');
         }
 
         function exportXLS() {
-            const table = document.getElementById('reportTable');
+    const table = document.getElementById('reportTable');
 
-            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
-            // จะสร้าง aoa ของ thead + merges array
-            const { theadRows, theadMerges } = parseThead(table.tHead);
+    const rows = [];
+    const merges = [];
+    const skipMap = {};
 
-            // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
-            const tbodyRows = parseTbody(table.tBodies[0]);
+    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+        const tr = table.rows[rowIndex];
+        const rowData = [];
+        let colIndex = 0;
 
-            // รวม rows ทั้งหมด: thead + tbody
-            const allRows = [...theadRows, ...tbodyRows];
-
-            // สร้าง Workbook + Worksheet
-            const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(allRows);
-
-            // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
-            // สังเกตว่า thead อยู่แถวบนสุดของ allRows (index เริ่มจาก 0 ตาม parseThead)
-            ws['!merges'] = theadMerges;
-
-            // เพิ่ม worksheet ลงใน workbook
-            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-            // เขียนไฟล์เป็น .xls (BIFF8)
-            const excelBuffer = XLSX.write(wb, {
-                bookType: 'xls',
-                type: 'array'
-            });
-
-            // สร้าง Blob + ดาวน์โหลด
-            const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = url;
-            link.download = 'รายงานโครงการ/กิจกรรม.xls';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            URL.revokeObjectURL(url);
-        }
-
-        /**
-         * -----------------------
-         * 1) parseThead: รองรับ merge
-         * -----------------------
-         * - ใช้ skipMap จัดการ colSpan/rowSpan
-         * - ไม่แยก <br/> เป็นแถวใหม่ (โดยทั่วไป header ไม่ต้องแตกแถว)
-         * - ถ้า thead มีหลาย <tr> ก็จะได้หลาย row
-         * - return: { theadRows: [][] , theadMerges: [] }
-         */
-        function parseThead(thead) {
-            const theadRows = [];
-            const theadMerges = [];
-
-            if (!thead) {
-                return { theadRows, theadMerges };
+        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+            while (skipMap[`${rowIndex},${colIndex}`]) {
+                rowData.push("");
+                colIndex++;
             }
 
-            // Map กันการเขียนทับ merge
-            const skipMap = {};
+            const cell = tr.cells[cellIndex];
+            let cellText = cell.innerText.trim();
 
-            for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
-                const tr = thead.rows[rowIndex];
-                const rowData = [];
-                let colIndex = 0;
+            // เช็คว่าเป็น Header หรือไม่
+            const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
 
-                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-                    // ข้ามเซลล์ที่ถูก merge ครอบไว้
-                    while (skipMap[`${rowIndex},${colIndex}`]) {
-                        rowData[colIndex] = "";
-                        colIndex++;
-                    }
+            rowData[colIndex] = {
+                v: cellText,
+                s: {
+                    alignment: {
+                        vertical: "top",
+                        horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
+                    },
+                    font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                }
+            };
 
-                    const cell = tr.cells[cellIndex];
-                    // ไม่แยก <br/> → แค่แทน &nbsp; เป็น space
-                    let text = cell.innerHTML
-                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // &nbsp; => spaces
-                        .replace(/<br\s*\/?>/gi, ' ') // ถ้ามี <br/> ใน thead ก็เปลี่ยนเป็นช่องว่าง (ไม่แตกแถว)
-                        .replace(/<\/?[^>]+>/g, '')   // ลบ tag อื่น ถ้าเหลือ
-                        .trim();
+            const rowspan = cell.rowSpan || 1;
+            const colspan = cell.colSpan || 1;
 
-                    rowData[colIndex] = text;
+            if (rowspan > 1 || colspan > 1) {
+                merges.push({
+                    s: { r: rowIndex, c: colIndex },
+                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                });
 
-                    // ดู rowSpan/colSpan
-                    const rowspan = cell.rowSpan || 1;
-                    const colspan = cell.colSpan || 1;
-
-                    if (rowspan > 1 || colspan > 1) {
-                        // Push merges object
-                        theadMerges.push({
-                            s: { r: rowIndex, c: colIndex },
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                        });
-
-                        // Mark skipMap
-                        for (let r = 0; r < rowspan; r++) {
-                            for (let c = 0; c < colspan; c++) {
-                                if (r === 0 && c === 0) continue;
-                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
-                            }
+                for (let r = 0; r < rowspan; r++) {
+                    for (let c = 0; c < colspan; c++) {
+                        if (!(r === 0 && c === 0)) {
+                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
                         }
                     }
-                    colIndex++;
-                }
-                theadRows.push(rowData);
-            }
-
-            return { theadRows, theadMerges };
-        }
-
-        /**
-         * -----------------------
-         * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
-         * -----------------------
-         * - ไม่ทำ merge (ตัวอย่าง) เพื่อความง่าย
-         * - ถ้าใน tbody มี colSpan/rowSpan ต้องประยุกต์ skipMap ต่อเอง
-         */
-        function parseTbody(tbody) {
-            const rows = [];
-
-            if (!tbody) return rows;
-
-            for (const tr of tbody.rows) {
-                // เก็บ sub-lines ของแต่ละเซลล์
-                const cellLines = [];
-                let maxSubLine = 1;
-
-                for (const cell of tr.cells) {
-                    // (a) แปลง &nbsp; → space ตามจำนวน
-                    // (b) แปลง <br/> → \n เพื่อนำไป split เป็นหลายบรรทัด
-                    let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
-                        const count = match.match(/&nbsp;/g).length;
-                        return ' '.repeat(count);
-                    });
-                    html = html.replace(/<br\s*\/?>/gi, '\n');
-
-                    // (c) ลบแท็กอื่น ๆ (ถ้าต้องการ)
-                    html = html.replace(/<\/?[^>]+>/g, '');
-
-                    // (d) split ด้วย \n → ได้หลาย sub-lines
-                    const lines = html.split('\n').map(x => x.trimEnd());
-                    if (lines.length > maxSubLine) {
-                        maxSubLine = lines.length;
-                    }
-                    cellLines.push(lines);
-                }
-
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-                for (let i = 0; i < maxSubLine; i++) {
-                    const rowData = [];
-                    for (const lines of cellLines) {
-                        rowData.push(lines[i] || ''); // ถ้าไม่มีบรรทัด => ใส่ว่าง
-                    }
-                    rows.push(rowData);
                 }
             }
 
-            return rows;
+            colIndex++;
         }
+        rows.push(rowData);
+    }
+
+    // สร้าง Workbook
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+
+    // นำ merges ไปใช้
+    ws['!merges'] = merges;
+
+    // เพิ่ม Worksheet ลงใน Workbook
+    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+    // เขียนไฟล์ Excel
+    XLSX.writeFile(wb, 'report.xlsx');
+}
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>

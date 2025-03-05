@@ -348,7 +348,7 @@
                 plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
                 //console.log(plan);
                 plan.forEach((row) => {
-                    $('#dropdown4').append('<option value="' + row.plan_name + '">' + row.plan + " : " + row.plan_name + '</option>').prop('disabled', false);
+                    $('#dropdown4').append('<option value="' + row.plan_name + '">' + row.plan_name + '</option>').prop('disabled', false);
                 });
             });
             $('#dropdown4').change(function () {
