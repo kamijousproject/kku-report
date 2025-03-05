@@ -143,7 +143,7 @@
                                 if ($selected_faculty !== '') {
                                     $where_clause .= " AND Faculty = :faculty";
                                 }
-                           
+
                                 // ฟังก์ชันดึงข้อมูล
                                 function fetchBudgetData($conn, $where_clause, $selected_faculty)
                                 {
@@ -512,28 +512,39 @@
                                             }
                                         }
 
-                                        // แสดงข้อมูลในรูปแบบ HTML
                                         echo "<tbody>";
-                                        foreach ($groupedData as $planKey => $planData) {
-                                            echo "<tr>
-                                                    <td><strong>" . $planData['plan_name'] . "</strong></td>
-                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                </tr>";
+                                        $shownPlans = [];
+                                        $shownSubPlans = [];
+                                        $shownProjects = [];
+                                        $shownExpenses = [];
+                                        $shownExpenseTypes = [];
 
-                                            foreach ($planData['sub_plans'] as $subPlanKey => $subPlanData) {
-                                                $cleanSubPlanItem = str_replace("SP_", "", $subPlanKey);
+                                        foreach ($groupedData as $planKey => $planData) {
+                                            if (!in_array($planData['plan_name'], $shownPlans)) {
                                                 echo "<tr>
-                                                        <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $cleanSubPlanItem . " : " . $subPlanData['sub_plan_name'] . "</td>
+                                                        <td><strong>" . $planData['plan_name'] . "</strong></td>
                                                         <td>-</td><td>-</td><td>-</td><td>-</td>
                                                         <td>-</td><td>-</td><td>-</td><td>-</td>
                                                         <td>-</td><td>-</td><td>-</td><td>-</td>
                                                         <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                     </tr>";
+                                                $shownPlans[] = $planData['plan_name'];
+                                            }
 
-                                                // ✅ กรองค่าซ้ำออกจาก sub plan items
+                                            foreach ($planData['sub_plans'] as $subPlanKey => $subPlanData) {
+                                                $cleanSubPlanItem = str_replace("SP_", "", $subPlanKey);
+
+                                                if (!in_array($subPlanData['sub_plan_name'], $shownSubPlans)) {
+                                                    echo "<tr>
+                                                            <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $cleanSubPlanItem . " : " . $subPlanData['sub_plan_name'] . "</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        </tr>";
+                                                    $shownSubPlans[] = $subPlanData['sub_plan_name'];
+                                                }
+
                                                 $uniqueSubPlanItems = array_unique($subPlanData['sub_plan_items']);
                                                 foreach ($uniqueSubPlanItems as $subPlanItem) {
                                                     foreach ($resultsFN as $row) {
@@ -560,53 +571,52 @@
                                                 }
 
                                                 foreach ($subPlanData['projects'] as $projectKey => $projectData) {
-                                                    echo "<tr>
-                                                            <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $projectData['project_name'] . "</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                        </tr>";
+                                                    if (!in_array($projectData['project_name'], $shownProjects)) {
+                                                        echo "<tr>
+                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $projectData['project_name'] . "</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            </tr>";
+                                                        $shownProjects[] = $projectData['project_name'];
+                                                    }
 
-                                                    // ✅ กรองค่าซ้ำออกจาก project items
                                                     $uniqueProjectItems = array_unique($projectData['project_items']);
                                                     foreach ($uniqueProjectItems as $projectItem) {
-                                                        foreach ($resultsFN as $row) {
-                                                            if ($row['kpi_name'] === $projectItem && $row['Project'] === $projectKey) {
-                                                                echo "<tr>
-                                                                        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $projectItem . "</td>
-                                                                        <td>" . $row['uom_kpi'] . "</td>
-                                                                        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                        <td>" . $row['kpi_target'] . "</td>
-                                                                        <td>" . $row['total06'] . "</td>
-                                                                        <td>" . $row['allocated_total06'] . "</td>
-                                                                        <td>" . $row['total08'] . "</td>
-                                                                        <td>" . $row['allocated_total08'] . "</td>
-                                                                        <td>" . $row['total02'] . "</td>
-                                                                        <td>" . $row['allocated_total02'] . "</td>
-                                                                        <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
-                                                                        <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
-                                                                        <td>100%</td>
-                                                                        <td>" . $row['Reason'] . "</td>
-                                                                    </tr>";
-                                                                break;
-                                                            }
-                                                        }
+                                                        echo "<tr>
+                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $projectItem . "</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            </tr>";
                                                     }
                                                 }
                                             }
 
                                             if (!empty($planData['expenses'])) {
                                                 foreach ($planData['expenses'] as $expenseKey => $expenseData) {
-                                                    echo "<tr>
-                                                            <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $expenseKey . "</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                        </tr>";
+                                                    $expenseAccount = "";
+                                                    foreach ($resultsFN as $row) {
+                                                        if ($row['expense'] === $expenseKey) {
+                                                            $expenseAccount = $row['Account'] . " : ";
+                                                            break;
+                                                        }
+                                                    }
 
-                                                    if (!empty($expenseData['expense_type'])) {
+                                                    if (!in_array($expenseKey, $shownExpenses)) {
+                                                        echo "<tr>
+                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $expenseAccount . $expenseKey . "</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            </tr>";
+                                                        $shownExpenses[] = $expenseKey;
+                                                    }
+
+                                                    if (!in_array($expenseData['expense_type'], $shownExpenseTypes)) {
                                                         echo "<tr>
                                                                 <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $expenseData['expense_type'] . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
@@ -614,31 +624,27 @@
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                             </tr>";
+                                                        $shownExpenseTypes[] = $expenseData['expense_type'];
                                                     }
 
                                                     $uniqueKkuItems = array_unique($expenseData['kku_items']);
                                                     foreach ($uniqueKkuItems as $kkuItem) {
-                                                        foreach ($resultsFN as $row) {
-                                                            if ($row['KKU_Item_Name'] === $kkuItem && $row['expense'] === $expenseKey) {
-                                                                echo "<tr>
-                                                                        <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $row['Account'] . " : " . $kkuItem . "</td>
-                                                                        <td>" . $row['uom_kpi'] . "</td>
-                                                                        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                        <td>" . $row['kpi_target'] . "</td>
-                                                                        <td>" . $row['total06'] . "</td>
-                                                                        <td>" . $row['allocated_total06'] . "</td>
-                                                                        <td>" . $row['total08'] . "</td>
-                                                                        <td>" . $row['allocated_total08'] . "</td>
-                                                                        <td>" . $row['total02'] . "</td>
-                                                                        <td>" . $row['allocated_total02'] . "</td>
-                                                                        <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
-                                                                        <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
-                                                                        <td>100%</td>
-                                                                        <td>" . $row['Reason'] . "</td>
-                                                                    </tr>";
-                                                                break;
-                                                            }
-                                                        }
+                                                        echo "<tr>
+                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $row['Account'] . " : " . $kkuItem . "</td>
+                                                                <td>" . $row['uom_kpi'] . "</td>
+                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                <td>" . $row['kpi_target'] . "</td>
+                                                                <td>" . $row['total06'] . "</td>
+                                                                <td>" . $row['allocated_total06'] . "</td>
+                                                                <td>" . $row['total08'] . "</td>
+                                                                <td>" . $row['allocated_total08'] . "</td>
+                                                                <td>" . $row['total02'] . "</td>
+                                                                <td>" . $row['allocated_total02'] . "</td>
+                                                                <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
+                                                                <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
+                                                                <td>100%</td>
+                                                                <td>" . $row['Reason'] . "</td>
+                                                            </tr>";
                                                     }
                                                 }
                                             }
