@@ -575,7 +575,7 @@ function fetchYearsData($conn)
                                                 foreach ($summary as $plan => $data) {
                                                     // แสดงผลรวมของ Plan
                                                     echo "<tr>";
-                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($plan) . " : " . htmlspecialchars($data['plan_name']) . "<br></td>";
+                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($data['plan_name']) . "<br></td>";
                                                     echo "<td>" . formatNumber($data['Total_Amount_2566']) . "</td>";
                                                     echo "<td>" . formatNumber($data['Total_Amount_2567']) . "</td>";
                                                     echo "<td>" . formatNumber($data['TOTAL_BUDGET_2567']) . "</td>";
