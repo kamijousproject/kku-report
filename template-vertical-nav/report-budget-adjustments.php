@@ -118,9 +118,9 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     bap.Sub_Plan, sp.sub_plan_name,
     bap.Project, pj.project_name,
     bap.`Account`,ac.alias_default, ac.sub_type,ac.type,
-    bap.KKU_Item_Name,
-    CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
-    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2,
+    bap.KKU_Item_Name,ac.parent,
+    CONCAT(LEFT(ac.parent, 2), REPEAT('0', 8)) AS a1,
+    CONCAT(LEFT(ac.parent, 6), REPEAT('0', 4)) AS a2,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
@@ -167,7 +167,7 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 
     // เพิ่มการจัดกลุ่มข้อมูล
     $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
-    bap.Project, pj.project_name, bap.`Account`, ac.sub_type, ac.type,
+    bap.Project, pj.project_name, bap.`Account`,ac.parent, ac.sub_type, ac.type,
     bap.KKU_Item_Name, ft.Alias_Default,ac.alias_default
     ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, ac.type ASC,
                 ac.sub_type ASC, 
