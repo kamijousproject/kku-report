@@ -1,7 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    .table-responsive {
+    border: 1px solid #ccc;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
 
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+</style>
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -34,15 +48,24 @@
                                     <h4>รายงานสรุปคำขออนุมัติกรอบอัตรากำลัง ประจำปีงบประมาณ แยกตามประเภทบุคลากร</h4>
                                 </div>
                                 <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()">
+                                <select name="category" id="category">
                                     <option value="">-- Loading Categories --</option>
                                 </select>
+                                <br/>
+                                <label for="dropdown2">ปีงบประมาณ:</label>
+                                <select name="dropdown2" id="dropdown2" disabled>
+                                    <option value="">-- Loading Categories --</option>
+                                </select>
+                                <br/>
+                                <button id="submitBtn" disabled>Submit</button>
+                                <br/><br/>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <!-- แถวที่ 1 -->
                                             <tr>
-                                                <th colspan="4">ส่วนงาน/หน่วยงาน</th>
+                                                <th>ปีงบประมาณ</th>
+                                                <th colspan="3" style="background-color: white;" id="fiscal_year"></th>
                                             </tr>
                                             <!-- แถวที่ 2 -->
                                             <tr>
@@ -208,12 +231,29 @@
             });
             
         });
-        function fetchData() {
+        $('#category').change(function() {
+            $('#dropdown2').html('<option value="">เลือกปีงบประมาณ</option>').prop('disabled', true);
+            $('#submitBtn').prop('disabled', true);
+
+            $('#dropdown2').append('<option value="">-- Select --</option><option value="all">2568</option>').prop('disabled', false);
+        });
+        $('#dropdown2').change(function() {
+            if ($(this).val()) {
+                $('#submitBtn').prop('disabled', false);
+            } else {
+                $('#submitBtn').prop('disabled', true);
+            }
+        });
+        $('#submitBtn').click(function() {
             let category = document.getElementById("category").value;
             let resultDiv = document.getElementById("result");
             var categoryDropdown = document.getElementById("category");
             var categoryText = categoryDropdown.options[categoryDropdown.selectedIndex].text;
             document.getElementById("faculty").textContent=categoryText;
+
+            var fyear = document.getElementById("dropdown2");
+            var categoryText = fyear.options[fyear.selectedIndex].text;
+            document.getElementById("fiscal_year").textContent=categoryText;
             var Sumresearch=0;
             var Sumresearch2=0;
             var Sumacademic=0;
@@ -403,7 +443,7 @@
             document.getElementById("emp3_sum").innerText=Sumemp3;
             document.getElementById("type1_sum").innerText=Sumtype1;
             document.getElementById("type2_sum").innerText=Sumtype2;
-        }
+        });
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const csvRows = [];

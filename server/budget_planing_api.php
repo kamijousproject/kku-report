@@ -120,7 +120,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,t1_1 AS (
                         SELECT account,alias_default,TYPE,sub_type
                         FROM account
-                            where id > (SELECT id FROM account WHERE account = 'Expenses'))
+                            where id > (SELECT id FROM account WHERE parent = 'Expenses'))
                         ,t2 AS (
                         SELECT b.*,f.parent,f.Alias_Default AS f2
                         FROM budget_planning_allocated_annual_budget_plan b
@@ -163,7 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             AND t.account=a.account
                             AND replace(t.service,'SR_','')=a.service)
                         , t6 AS (
-                        SELECT Faculty,plan,sub_plan,project,f1,f2,KKU_Item_Name,type,sub_type
+                        SELECT Faculty,plan,replace(sub_plan,'SP_','') AS sub_plan,project,f1,f2,KKU_Item_Name,TYPE AS TYPE2,sub_type AS sub_type2,account AS account2
                         ,sum(case when fund='FN02' then COALESCE(Allocated_Total_Amount_Quantity,0) ELSE 0 END) AS a2
                         ,sum(case when fund='FN02' then COALESCE(COMMITMENTS,0) ELSE 0 END) AS c2
                         ,sum(case when fund='FN02' then COALESCE(OBLIGATIONS,0) ELSE 0 END) AS o2
@@ -173,22 +173,30 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when fund='FN06' then COALESCE(OBLIGATIONS,0) ELSE 0 END) AS o6
                         ,sum(case when fund='FN06' then COALESCE(EXPENDITURES,0) ELSE 0 END) AS e6
                         FROM t5
-                        GROUP BY Faculty,plan,sub_plan,project,f1,f2,KKU_Item_Name,type,sub_type)
+                        GROUP BY Faculty,plan,replace(sub_plan,'SP_',''),project,f1,f2,KKU_Item_Name,type,sub_type,account)
                         ,t7 AS (
-                        SELECT t.*,p.plan_name,sp.sub_plan_name,pr.project_name ,a.id AS account,aa.id AS sub_account
+                        SELECT t.*,p.plan_name,CONCAT(t.sub_plan,' ',sp.sub_plan_name) AS sub_plan_name,pr.project_name ,a.id AS account,aa.id AS sub_account
                         FROM t6 t
                         LEFT JOIN plan p
                         ON t.plan = p.plan_id
                         LEFT JOIN sub_plan sp
-                        on t.sub_plan=sp.sub_plan_id
+                        on t.sub_plan=replace(sp.sub_plan_id,'SP_','')
                         LEFT JOIN project pr
                         ON t.project=pr.project_id
                         LEFT JOIN account a
-                        ON t.type=a.alias_default COLLATE UTF8MB4_GENERAL_CI
+                        ON t.type2=a.alias_default COLLATE UTF8MB4_GENERAL_CI
                         LEFT JOIN account aa
-                        ON t.sub_type=aa.alias_default COLLATE UTF8MB4_GENERAL_CI)
-
-                        SELECT * FROM t7
+                        ON t.sub_type2=aa.alias_default COLLATE UTF8MB4_GENERAL_CI)
+								,t8 AS (
+								SELECT t.*,a.account AS atype,a2.account AS asubtype, a3.alias_default AS aname
+								FROM t7 t
+								LEFT JOIN account a
+								ON t.type2 =a.alias_default COLLATE UTF8MB4_GENERAL_CI
+								LEFT JOIN account a2
+								ON t.sub_type2 =a2.alias_default COLLATE UTF8MB4_GENERAL_CI
+								LEFT JOIN account a3
+								ON t.account2 =a3.account COLLATE UTF8MB4_GENERAL_CI)
+                        SELECT *,CONCAT(atype,' ',TYPE2) AS TYPE,CONCAT(asubtype,' ',sub_type2) AS sub_type, CONCAT(account2,' ',aname) AS accname FROM t8
                         ORDER BY Faculty,plan,sub_plan,project,account,sub_account";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
