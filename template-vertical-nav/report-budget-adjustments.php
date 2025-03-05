@@ -656,7 +656,7 @@ function fetchYearsData($conn)
                                                                     foreach ($superSubType['kku_items'] as $kkuItem) {
                                                                         echo "<tr>";
 
-                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $kkuItem['name'] . "<br></td>";
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $kkuItem['name'] . "<br></td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2567']) . "</td>";
