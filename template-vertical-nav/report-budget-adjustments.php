@@ -119,7 +119,15 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     bap.Project, pj.project_name,
     bap.`Account`,ac.alias_default, ac.sub_type,ac.type,
     bap.KKU_Item_Name,ac.parent,
-    CONCAT(LEFT(ac.parent, 2), REPEAT('0', 8)) AS a1,
+            CASE 
+    WHEN ac.alias_default COLLATE utf8mb4_0900_ai_ci = ac.sub_type COLLATE utf8mb4_0900_ai_ci 
+    AND ac.sub_type COLLATE utf8mb4_0900_ai_ci != ac.`type` COLLATE utf8mb4_0900_ai_ci 
+    THEN ac.parent
+    WHEN ac.alias_default COLLATE utf8mb4_0900_ai_ci != ac.sub_type COLLATE utf8mb4_0900_ai_ci 
+    AND ac.sub_type COLLATE utf8mb4_0900_ai_ci = ac.`type` COLLATE utf8mb4_0900_ai_ci
+    THEN ac.parent
+    ELSE CONCAT(LEFT(ac.`account`, 4), REPEAT('0', 6))
+END AS a1,
     CONCAT(LEFT(ac.parent, 6), REPEAT('0', 4)) AS a2,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
