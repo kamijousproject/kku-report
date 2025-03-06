@@ -88,140 +88,15 @@ $conn = $db->connect();
 function fetchBudgetData($conn, $faculty = null)
 {
     try {
-        $query = "WITH RECURSIVE account_hierarchy AS (
-    -- Anchor member: เริ่มจาก account ทุกตัว
-    SELECT 
-        a1.account,
-        a1.account AS account1, -- account สำหรับ level1
-        a1.alias_default AS level1,
-        a1.parent,
-        CAST(NULL AS CHAR(255)) AS account2, -- account สำหรับ level2
-        CAST(NULL AS CHAR(255)) AS level2,
-        CAST(NULL AS CHAR(255)) AS account3, -- account สำหรับ level3
-        CAST(NULL AS CHAR(255)) AS level3,
-        CAST(NULL AS CHAR(255)) AS account4, -- account สำหรับ level4
-        CAST(NULL AS CHAR(255)) AS level4,
-        CAST(NULL AS CHAR(255)) AS account5, -- account สำหรับ level5
-        CAST(NULL AS CHAR(255)) AS level5,
-        1 AS depth
-    FROM account a1
-    WHERE a1.parent IS NOT NULL
-    UNION ALL
-    -- Recursive member: หา parent ต่อไปเรื่อยๆ
-    SELECT 
-        ah.account,
-        ah.account1,
-        ah.level1,
-        a2.parent,
-        CASE WHEN ah.depth = 1 THEN a2.account ELSE ah.account2 END AS account2,
-        CASE WHEN ah.depth = 1 THEN a2.alias_default ELSE ah.level2 END AS level2,
-        CASE WHEN ah.depth = 2 THEN a2.account ELSE ah.account3 END AS account3,
-        CASE WHEN ah.depth = 2 THEN a2.alias_default ELSE ah.level3 END AS level3,
-        CASE WHEN ah.depth = 3 THEN a2.account ELSE ah.account4 END AS account4,
-        CASE WHEN ah.depth = 3 THEN a2.alias_default ELSE ah.level4 END AS level4,
-        CASE WHEN ah.depth = 4 THEN a2.account ELSE ah.account5 END AS account5,
-        CASE WHEN ah.depth = 4 THEN a2.alias_default ELSE ah.level5 END AS level5,
-        ah.depth + 1 AS depth
-    FROM account_hierarchy ah
-    JOIN account a2 
-        ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
-    WHERE ah.parent IS NOT NULL
-    AND ah.depth < 5 -- จำกัดระดับสูงสุดที่ 5
-),
--- หาความลึกสูงสุดสำหรับแต่ละ account
-hierarchy_with_max AS (
-    SELECT 
-        account,
-        account1 AS CurrentAccount,
-        level1 AS Current,
-        account2 AS ParentAccount,
-        level2 AS Parent,
-        account3 AS GrandparentAccount,
-        level3 AS Grandparent,
-        account4 AS GreatGrandparentAccount,
-        level4 AS GreatGrandparent,
-        account5 AS GreatGreatGrandparentAccount,
-        level5 AS GreatGreatGrandparent,
-        depth,
-        MAX(depth) OVER (PARTITION BY account) AS max_depth
-    FROM account_hierarchy
-)
--- เลือกเฉพาะแถวที่ depth = max_depth สำหรับแต่ละ account
-,main AS (SELECT 
-    CurrentAccount,
-    Current,
-    ParentAccount,
-    Parent,
-    GrandparentAccount,
-    Grandparent,
-    GreatGrandparentAccount,
-    GreatGrandparent,
-    GreatGreatGrandparentAccount,
-    GreatGreatGrandparent,
-    depth AS TotalLevels
-FROM hierarchy_with_max
-WHERE depth = max_depth
-ORDER BY account)
-,t1 AS(
-SELECT 
-        bap.Faculty AS Faculty_Id,
+        $query = "SELECT 
+        bap.Faculty, 
         ft.Faculty, 
         ft.Alias_Default, 
         bpa.BUDGET_PERIOD,
-       
+        CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
         ac.`type`,
-            CASE 
-        WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
-        WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
-        WHEN m.TotalLevels = 3 THEN m.ParentAccount
-    END AS a1,
-    
-    CASE 
-        WHEN m.TotalLevels IN (4, 5) THEN m.GrandparentAccount
-        WHEN m.TotalLevels = 3 THEN m.ParentAccount
-    END AS a2,
-    
-    CASE 
-        WHEN m.TotalLevels IN (3, 4, 5) THEN m.ParentAccount
-    END AS a3,
-    
-    CASE 
-        WHEN m.TotalLevels IN (2, 3, 4, 5) THEN m.CurrentAccount
-    END AS a4,
-        CASE  
-    WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 4 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 3 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-END AS Name_a1,
-
-CASE 
-    WHEN (m.TotalLevels = 5 AND COALESCE(m.GreatGrandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name) 
-         OR (m.TotalLevels = 4 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name) 
-         OR (m.TotalLevels = 3 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-    THEN NULL
-    WHEN m.TotalLevels = 5 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 4 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 3 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-END AS Name_a2,
-
-CASE 
-    WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-         OR (m.TotalLevels = 4 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-         OR (m.TotalLevels = 3 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-    THEN NULL
-    WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-END AS Name_a3,
-
-CASE 
-    WHEN (m.TotalLevels = 5 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-         OR (m.TotalLevels = 4 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-    THEN NULL
-    WHEN m.TotalLevels = 5 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-END AS Name_a4
-,
+        CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2, 
         ac.sub_type,
-        ac.alias_default AS Account_Name_default,
         bap.`Account`,
         bap.KKU_Item_Name,
         SUM(CASE WHEN bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN02,
@@ -242,58 +117,33 @@ END AS Name_a4
             WHEN SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 THEN 100
             ELSE (SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) / 
                   SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) * 100
-        END AS Percentage_2568_to_2567,
-            m.CurrentAccount,
-    m.Current,
-    m.ParentAccount,
-    m.Parent,
-    m.GrandparentAccount,
-    m.Grandparent,
-    m.GreatGrandparentAccount,
-    m.GreatGrandparent,
-    m.GreatGreatGrandparentAccount,
-    m.GreatGreatGrandparent,
-    m.TotalLevels
+        END AS Percentage_2568_to_2567
         FROM budget_planning_allocated_annual_budget_plan bap
         INNER JOIN Faculty ft ON bap.Faculty = ft.Faculty AND ft.parent LIKE 'Faculty%'
         LEFT JOIN plan p ON bap.Plan = p.plan_id
         LEFT JOIN sub_plan sp ON bap.Sub_Plan = sp.sub_plan_id
         LEFT JOIN project pj ON bap.Project = pj.project_id
         INNER JOIN account ac ON bap.`Account` = ac.`account`
-        LEFT JOIN main m
-ON bap.`Account`=m.CurrentAccount
         INNER JOIN budget_planning_actual bpa ON bpa.PROJECT = bap.Project
             AND bpa.`ACCOUNT` = bap.`Account`
             AND bpa.PLAN = bap.Plan
             AND bpa.FUND = bap.Fund
             AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
-            AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-";
+            AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)";
 
         if ($faculty) {
             $query .= " AND bap.Faculty = :faculty";
         }
 
-        $query .= "GROUP BY 
+        $query .= " GROUP BY 
             bap.Faculty, 
             ft.Faculty, 
             ft.Alias_Default, 
             bpa.BUDGET_PERIOD, 
-            bap.`Account`,ac.alias_default, 
+            bap.`Account`, 
             ac.`type`, 
             ac.sub_type, 
-            bap.KKU_Item_Name,
-            m.CurrentAccount,
-    m.Current,
-    m.ParentAccount,
-    m.Parent,
-    m.GrandparentAccount,
-    m.Grandparent,
-    m.GreatGrandparentAccount,
-    m.GreatGrandparent,
-    m.GreatGreatGrandparentAccount,
-    m.GreatGreatGrandparent,
-    m.TotalLevels
+            bap.KKU_Item_Name
         ORDER BY 
             bap.Faculty ASC, 
             ac.`type` ASC, 
