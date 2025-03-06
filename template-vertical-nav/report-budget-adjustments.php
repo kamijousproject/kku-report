@@ -255,7 +255,7 @@ CASE
     WHEN m.TotalLevels = 5 THEN m.CurrentAccount
     WHEN m.TotalLevels = 4 THEN NULL
     WHEN m.TotalLevels = 3 THEN NULL
-END AS a4,
+END AS a4
 
 FROM budget_planning_annual_budget_plan bap
 INNER JOIN Faculty ft 
