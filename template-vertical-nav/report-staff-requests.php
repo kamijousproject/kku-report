@@ -285,20 +285,20 @@ th, td {
                             Sumtype1+=1;
                             if(row.All_PositionTypes=="วิชาการ")
                             {
-                                academic+=1;
-                                Sumacademic+=1;
+                                //academic+=1;
+                                //Sumacademic+=1;
                             }
                             if(row.All_PositionTypes=="วิจัย")
                             {
-                                research+=1;
-                                Sumresearch+=1;
+                                //research+=1;
+                                //Sumresearch+=1;
                             }
                             if(row.All_PositionTypes=="สนับสนุน")
                             {
-                                support+=1;
-                                Sumsupport+=1;
+                                //support+=1;
+                                //Sumsupport+=1;
                             }
-                            if(row.Contract_Type=="สัญญาระยะสั้น")
+                            if(row.Position=="อาจารย์" && row.All_PositionTypes=="วิชาการ" && row.Employment_Type=="ลูกจ้างชั่วคราว")
                             {
                                 shortTerm+=1;
                                 SumshortTerm+=1;
@@ -313,7 +313,7 @@ th, td {
                                 emp2+=1;
                                 Sumemp2+=1;
                             }
-                            if(row.Employment_Type=="ผู้ปฏิบัติงานในมหาวิทยาลัย")
+                            if(row.Employment_Type=="จ้างที่ปรึกษา")
                             {
                                 emp3+=1;
                                 Sumemp3+=1;
@@ -336,10 +336,10 @@ th, td {
                         }
                         else{}
                     });
-                    document.getElementById("research1").innerText=research;
+                    document.getElementById("research1").innerText="-";
                     document.getElementById("research2").innerText=research2;
-                    document.getElementById("academic1").innerText=academic;
-                    document.getElementById("support1").innerText=support;
+                    document.getElementById("academic1").innerText="-";
+                    document.getElementById("support1").innerText="-";
                     document.getElementById("support2").innerText=support2;
                     document.getElementById("period").innerText=shortTerm;
                     document.getElementById("emp1").innerText=emp1;
@@ -384,8 +384,8 @@ th, td {
                             }
                             if(row.Contract_Type=="สัญญาระยะสั้น")
                             {
-                                shortTerm+=1;
-                                SumshortTerm+=1;
+                                //shortTerm+=1;
+                                //SumshortTerm+=1;
                             }
                             if(row.Employment_Type=="ชาวต่างประเทศ")
                             {
@@ -425,7 +425,7 @@ th, td {
                     document.getElementById("academic1_new").innerText=academic;
                     document.getElementById("support1_new").innerText=support;
                     document.getElementById("support2_new").innerText=support2;
-                    document.getElementById("period_new").innerText=shortTerm;
+                    document.getElementById("period_new").innerText="-";
                     document.getElementById("emp1_new").innerText=emp1;
                     document.getElementById("emp2_new").innerText=emp2;
                     document.getElementById("emp3_new").innerText=emp3;

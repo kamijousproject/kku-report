@@ -126,7 +126,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM account
                             where id > (SELECT id FROM account WHERE parent = 'Expenses'))
                         ,t2 AS (
-                        SELECT b.*,f.parent,f.Alias_Default AS f2
+                        SELECT b.*,f.parent,replace(f.Alias_Default,'-',':') AS f2
                         FROM budget_planning_allocated_annual_budget_plan b
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
