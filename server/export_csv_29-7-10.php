@@ -1,6 +1,5 @@
 <?php
 include 'connectdb.php';
-include 'functions.php'; // นำเข้าฟังก์ชันที่เราสร้าง
 
 $database = new Database();
 $conn = $database->connect();
