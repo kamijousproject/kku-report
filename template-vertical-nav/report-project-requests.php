@@ -97,8 +97,14 @@ thead tr:nth-child(3) th {
                                     <h4>รายงานสรุปคำขอรายโครงการ</h4>
                                 </div>
                                 <div class="info-section">
+                                    <label for="dropdown5">ปีงบประมาณ:</label>
+                                    <select id="dropdown5">
+                                        <option value="">เลือกปีงบประมาณ</option>
+                                        <option value="">2568</option>
+                                    </select>
+                                    <br />
                                     <label for="dropdown1">ปีบริหารงบประมาณ:</label>
-                                    <select id="dropdown1">
+                                    <select id="dropdown1" disabled>
                                         <option value="">เลือกปีบริหารงบประมาณ</option>
                                     </select>
                                     <br />
@@ -223,7 +229,9 @@ thead tr:nth-child(3) th {
                     }
                 });
             });
-
+            $('#dropdown5').change(function () {
+                $('#dropdown1').prop('disabled', false);
+            });
 
             $('#dropdown2').change(function () {
                 let year = $("#dropdown1").val();
@@ -244,7 +252,8 @@ thead tr:nth-child(3) th {
                     dataType: "json",
                     success: function (response) {
                         //console.log(response);
-                        response.fund.forEach((row) => {
+                        response.fund.sort((a, b) => a - b);
+                        response.fund.sort((a, b) => a - b).forEach((row) => {
                             $('#dropdown3').append('<option value="' + row.f + '">' + row.f + '</option>').prop('disabled', false);
                         });
                     }
@@ -374,6 +383,16 @@ thead tr:nth-child(3) th {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
 
+            const filters = getFilterValues();
+            const reportHeader = [
+                `"รายงานสรุปคำขอรายโครงการ"`, // ชื่อรายงาน (สามารถปรับแต่งได้)
+                `"ปีงบประมาณ: ${filters.fyear}"`,
+                `"ปีบริหารงบประมาณ: ${filters.year}"`,
+                `"ประเภทงบประมาณ: ${filters.budgetType}"`,
+                `"แหล่งเงิน: ${filters.fundSource}"`,
+                `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
+                
+            ];
             // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
             let maxCols = 0;
             for (let row of table.rows) {
@@ -426,12 +445,15 @@ thead tr:nth-child(3) th {
             }
 
             // แปลงข้อมูลเป็น CSV
-            const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
+            const csvContent = "\uFEFF" + 
+        reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
+        '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
+        csvMatrix.map(row => row.join(',')).join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'report.csv';
+            link.download = 'รายงานสรุปคำขอรายโครงการ.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -442,7 +464,8 @@ thead tr:nth-child(3) th {
                 year: document.getElementById('dropdown1').options[document.getElementById('dropdown1').selectedIndex].text,
                 budgetType: document.getElementById('dropdown2').options[document.getElementById('dropdown2').selectedIndex].text,
                 fundSource: document.getElementById('dropdown3').options[document.getElementById('dropdown3').selectedIndex].text,
-                department: document.getElementById('dropdown4').options[document.getElementById('dropdown4').selectedIndex].text
+                department: document.getElementById('dropdown4').options[document.getElementById('dropdown4').selectedIndex].text,
+                fyear: document.getElementById('dropdown5').options[document.getElementById('dropdown5').selectedIndex].text,
             };
         }
         function exportPDF() {
@@ -462,14 +485,15 @@ thead tr:nth-child(3) th {
 
             // เพิ่มข้อมูลจาก dropdown
             doc.setFontSize(10);
-            doc.text(`ปีบริหารงบประมาณ: ${filterValues.year}`, 15, 20);
+            doc.text(`ปีงบประมาณ: ${filterValues.fyear}`, 15, 20);
+            doc.text(`ปีบริหารงบประมาณ: ${filterValues.year}`, 150, 20);
             doc.text(`ประเภทงบประมาณ: ${filterValues.budgetType}`, 15, 25);
-            doc.text(`แหล่งเงิน: ${filterValues.fundSource}`, 150, 20);
-            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 150, 25);
+            doc.text(`แหล่งเงิน: ${filterValues.fundSource}`, 15, 30);
+            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 35);
 
             doc.autoTable({
                 html: '#reportTable',
-                startY: 35,
+                startY: 40,
                 theme: 'grid',
                 styles: {
                     font: "THSarabun",
@@ -513,6 +537,8 @@ thead tr:nth-child(3) th {
             const headerRows = [
                 [{ v: "รายงานสรุปคำขอรายโครงการ", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
                 [
+                    { v: "ปีงบประมาณ:", s: { font: { bold: true } } },
+                    { v: filterValues.fyear },
                     { v: "ปีบริหารงบประมาณ:", s: { font: { bold: true } } },
                     { v: filterValues.year }
                 ],
@@ -535,7 +561,7 @@ thead tr:nth-child(3) th {
             const skipMap = {};
 
             // จัดการกับการรวมเซลล์ในส่วนหัวรายงาน
-            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }); // รวมเซลล์หัวรายงาน
+            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 15 } }); // รวมเซลล์หัวรายงาน
 
             // ปรับ offset สำหรับตาราง (เพิ่มจำนวนแถวหัวรายงาน)
             const rowOffset = headerRows.length;

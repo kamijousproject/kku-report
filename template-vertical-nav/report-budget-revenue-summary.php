@@ -312,7 +312,12 @@ thead tr:nth-child(3) th {
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
-
+            const filters = getFilterValues();
+            const reportHeader = [
+                `"รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ"`,
+                `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
+                
+            ];
             // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
             let maxCols = 0;
             for (let row of table.rows) {
@@ -365,18 +370,26 @@ thead tr:nth-child(3) th {
             }
 
             // แปลงข้อมูลเป็น CSV
-            const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
+            const csvContent = "\uFEFF" + 
+        reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
+        '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
+        csvMatrix.map(row => row.join(',')).join('\n');
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'report.csv';
+            link.download = 'รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+        function getFilterValues() {
+            return {
 
+                department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
+            };
+        }
         function exportPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
@@ -385,11 +398,14 @@ thead tr:nth-child(3) th {
             doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
+            const filterValues = getFilterValues();
             doc.setFontSize(12);
-            doc.text("รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", 10, 10);
+            doc.text("รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", 150, 10,{ align: 'center' });
+            doc.setFontSize(10);
+            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 20);
             doc.autoTable({
                 html: '#reportTable',
-                startY: 20,
+                startY: 25,
                 theme: 'grid',
                 styles: {
                     font: "THSarabun",
@@ -439,76 +455,115 @@ thead tr:nth-child(3) th {
         }
 
         function exportXLS() {
-    const table = document.getElementById('reportTable');
+            const table = document.getElementById('reportTable');
 
-    const rows = [];
-    const merges = [];
-    const skipMap = {};
+            // ดึงค่าจาก dropdown
+            const filterValues = getFilterValues();
 
-    for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
-        const tr = table.rows[rowIndex];
-        const rowData = [];
-        let colIndex = 0;
+            // สร้างข้อมูลสำหรับหัวรายงาน (4 แถวแรก)
+            const headerRows = [
+                [{ v: "รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
 
-        for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData.push("");
-                colIndex++;
-            }
+                [
+                    { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },
+                    { v: filterValues.department }
+                ],
+                [] // ว่างไว้ 1 แถว
+            ];
 
-            const cell = tr.cells[cellIndex];
-            let cellText = cell.innerText.trim();
+            // สร้างข้อมูลจากตาราง
+            const rows = [];
+            const merges = [];
+            const skipMap = {};
 
-            // เช็คว่าเป็น Header หรือไม่
-            const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
+            // จัดการกับการรวมเซลล์ในส่วนหัวรายงาน
+            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }); // รวมเซลล์หัวรายงาน
 
-            rowData[colIndex] = {
-                v: cellText,
-                s: {
-                    alignment: {
-                        vertical: "top",
-                        horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
-                    },
-                    font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
-                }
-            };
+            // ปรับ offset สำหรับตาราง (เพิ่มจำนวนแถวหัวรายงาน)
+            const rowOffset = headerRows.length;
 
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
+            for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
+                const tr = table.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
 
-            if (rowspan > 1 || colspan > 1) {
-                merges.push({
-                    s: { r: rowIndex, c: colIndex },
-                    e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                });
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex + rowOffset},${colIndex}`]) {
+                        rowData.push("");
+                        colIndex++;
+                    }
 
-                for (let r = 0; r < rowspan; r++) {
-                    for (let c = 0; c < colspan; c++) {
-                        if (!(r === 0 && c === 0)) {
-                            skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                    const cell = tr.cells[cellIndex];
+                    let cellText = cell.innerText.trim();
+
+                    // เช็คว่าเป็น Header หรือไม่
+                    const isHeader = tr.parentNode.tagName.toLowerCase() === "thead";
+
+                    rowData[colIndex] = {
+                        v: cellText,
+                        s: {
+                            alignment: {
+                                vertical: "top",
+                                horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
+                            },
+                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                        }
+                    };
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        merges.push({
+                            s: { r: rowIndex + rowOffset, c: colIndex },
+                            e: { r: rowIndex + rowOffset + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (!(r === 0 && c === 0)) {
+                                    skipMap[`${rowIndex + rowOffset + r},${colIndex + c}`] = true;
+                                }
+                            }
                         }
                     }
+
+                    colIndex++;
                 }
+                rows.push(rowData);
             }
 
-            colIndex++;
+            // รวมข้อมูลหัวรายงานและข้อมูลตาราง
+            const allRows = [...headerRows, ...rows];
+
+            // สร้าง Workbook
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+            // นำ merges ไปใช้
+            ws['!merges'] = merges;
+
+            // กำหนดความกว้างของคอลัมน์
+            const cols = [];
+            // กำหนดความกว้างตามต้องการ
+            cols.push({ wch: 10 }); // ที่
+            cols.push({ wch: 30 }); // โครงการ/กิจกรรม
+            cols.push({ wch: 45 }); // ประเด็นยุทธศาสตร์
+            cols.push({ wch: 20 }); // OKR
+            cols.push({ wch: 35 }); // แผนงาน
+            cols.push({ wch: 35 }); // แผนงานย่อย
+            // คอลัมน์ที่เหลือความกว้าง 15
+            for (let i = 0; i < 10; i++) {
+                cols.push({ wch: 15 });
+            }
+            ws['!cols'] = cols;
+
+            // เพิ่ม Worksheet ลงใน Workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์ Excel
+            XLSX.writeFile(wb, `รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ.xlsx`);
         }
-        rows.push(rowData);
-    }
-
-    // สร้าง Workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(rows);
-
-    // นำ merges ไปใช้
-    ws['!merges'] = merges;
-
-    // เพิ่ม Worksheet ลงใน Workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-
-    // เขียนไฟล์ Excel
-    XLSX.writeFile(wb, 'report.xlsx');
-}
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
