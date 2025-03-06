@@ -580,9 +580,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM budget_planning_annual_budget_plan b
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
-                        LEFT JOIN account a
-                        ON b.account=a.account
-                        WHERE a.id>(SELECT id FROM account WHERE parent='Expenses') and b.Budget_Management_Year= :fyear AND b.fund= :fund AND f.Alias_Default= :faculty and b.scenario=:scenario)
+                        
+                        WHERE b.Budget_Management_Year= :fyear AND b.fund= :fund AND f.Alias_Default= :faculty and b.scenario=:scenario)
                         ,t1_1 AS (
                         SELECT t.faculty
                         ,t.fund
