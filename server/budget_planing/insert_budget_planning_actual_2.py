@@ -3,11 +3,6 @@ import sys
 import pandas as pd
 import pymysql
 
-# # กำหนด path ของไฟล์ CSV
-# current_dir = os.path.dirname(__file__)
-# # แก้เป็นชื่อไฟล์จริงของคุณ
-# file_path = os.path.join(current_dir, 'test.csv')
-
 # ตรวจสอบว่ามีพารามิเตอร์ไฟล์ CSV ที่ส่งมาหรือไม่
 if len(sys.argv) < 2:
     print("Error: No CSV file provided.")
@@ -31,7 +26,6 @@ df = pd.read_csv(file_path, skiprows=6, dtype={
                  'account_description': str})  # ข้าม header 6 แถวแรก
 
 # เลือกเฉพาะข้อมูลที่ต้องการเก็บ
-# คอลัมน์ Account, Description, Prior Periods, Period Activity, Ending Balances
 df_filtered = df.iloc[:, [0, 3, 13, 14, 16, 17, 18, 20]]
 
 # เปลี่ยนชื่อคอลัมน์ให้ตรงกับ Database
@@ -46,11 +40,9 @@ conn = pymysql.connect(host=str_hosting, user=str_username,
                        password=str_password, database=str_database)
 cursor = conn.cursor()
 
-create_table_query = """
-TRUNCATE TABLE budget_planning_allocated_annual_budget_plan;
-);
-"""
-cursor.execute(create_table_query)
+# ล้างข้อมูลในตารางก่อนทำการ INSERT
+truncate_query = "TRUNCATE TABLE budget_planning_actual_2;"
+cursor.execute(truncate_query)
 conn.commit()
 
 # คำสั่งสร้างตารางถ้ายังไม่มี
@@ -84,7 +76,7 @@ for index, row in df_filtered.iterrows():
 # Commit ข้อมูลที่ Insert
 conn.commit()
 
-# 🔥 ลบ Record ที่ไม่ต้องการ
+# ลบ Record ที่ไม่ต้องการ
 delete_query = """
 DELETE FROM budget_planning_actual_2
 WHERE account IN ('0', '', 'Account Segment', 'Account', 'Total for Account Segment', 'End of Report');
