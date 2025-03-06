@@ -97,7 +97,7 @@ try:
             row['Position Qualififcations'],
             row['Fund(FT)'],
             row['Job Family'],
-            row['Requested_HC_unit'],
+            row['Requested HC (unit)'],
             row['Personnel Group'],
             row['Field of Study'],
             row['Employment Type'],
