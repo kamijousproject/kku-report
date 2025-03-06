@@ -842,7 +842,22 @@ function fetchYearsData($conn)
                                                                     if ($superSubType != null) {
                                                                         // แสดงข้อมูล KKU_Item_Name
                                                                         foreach ($subTypeData['super_sub_types'] as $superSubType) {
+                                                                            echo "<tr>";
 
+                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $superSubType['name'] . "<br></td>";
+                                                                            echo "<td>" . formatNumber($superSubType['Total_Amount_2566']) . "</td>";
+                                                                            echo "<td>" . formatNumber($superSubType['Total_Amount_2567']) . "</td>";
+                                                                            echo "<td>" . formatNumber($superSubType['TOTAL_BUDGET_2567']) . "</td>";
+                                                                            echo "<td>" . formatNumber($superSubType['Total_Amount_2568']) . "</td>";
+
+                                                                            // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
+                                                                            $subTypeDifference = $superSubType['Total_Amount_2568'] - $superSubType['TOTAL_BUDGET_2567'];
+                                                                            $subTypePercentage_Difference = ($superSubType['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $superSubType['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                                            echo "<td>" . formatNumber($subTypeDifference) . "</td>";
+                                                                            echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
+                                                                            echo "<td>" . "</td>";
+                                                                            echo "</tr>";
                                                                             // แสดงข้อมูล KKU_Item_Name
                                                                             foreach ($superSubType['kku_items'] as $kkuItem) {
                                                                                 echo "<tr>";
