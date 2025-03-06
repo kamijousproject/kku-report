@@ -254,7 +254,7 @@ SELECT
 
 FROM budget_planning_annual_budget_plan bap
 INNER JOIN Faculty ft 
-    ON CAST(SUBSTRING(ft.Faculty, 2) AS UNSIGNED) = CAST(bap.Faculty AS UNSIGNED)
+    ON ft.Faculty = bap.Faculty 
     AND ft.parent LIKE 'Faculty%' 
 LEFT JOIN main m ON bap.Account = m.CurrentAccount
 LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan

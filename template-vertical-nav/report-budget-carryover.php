@@ -430,8 +430,8 @@ function fetchFacultyData($conn)
 
                                                 // เก็บข้อมูลของ KKU_Item_Name
                                                 $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                    ? "<strong>" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
-                                                    : "<strong>" . htmlspecialchars($row['Account']) . "</strong>";
+                                                    ? "" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                    : "" . htmlspecialchars($row['Account']) . "</strong>";
                                                 $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['kku_items'][] = [
                                                     'name' => $kkuItemName,
                                                     'Total_Amount_2567_FN06' => $row['Total_Amount_2567_FN06'],
@@ -478,7 +478,7 @@ function fetchFacultyData($conn)
                                                     // แสดงผลลัพธ์ในรูปแบบตาราง
                                                     echo "<tr>";
                                                     // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                    echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                    echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
 
                                                     // Check if the keys exist before accessing them
                                                     echo "<td>" . (isset($total_summary['Total_Amount_2567_FN06']) ? formatNumber($total_summary['Total_Amount_2567_FN06']) : '0') . "</td>";
@@ -519,10 +519,10 @@ function fetchFacultyData($conn)
 
                                                 if ($selectedFaculty == null) {
                                                     $facultyData = str_replace('-', ':', $data['Alias_Default']);
-                                                    echo "<td style='text-align: left;'><strong>" . htmlspecialchars($facultyData) . "<br></td>";
+                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "<br></td>";
                                                 }
                                                 if ($selectedFaculty != null) {
-                                                    echo "<td style='text-align: left;'><strong>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                    echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
                                                 }
 
                                                 // Check if the keys exist before accessing them
@@ -559,7 +559,7 @@ function fetchFacultyData($conn)
                                                         $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $type);
 
                                                         // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                        echo "<td style='text-align: left; '>" . htmlspecialchars($datatype['a1']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($datatype['a1']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
 
                                                         echo "<td>" . formatNumber($datatype['Total_Amount_2567_FN06']) . "</td>";
                                                         echo "<td>" . formatNumber($datatype['Total_Amount_2567_FN08']) . "</td>";
@@ -585,7 +585,7 @@ function fetchFacultyData($conn)
                                                                 $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $sub_type);
 
                                                                 // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($SubTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . htmlspecialchars($SubTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
 
                                                                 echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN06']) . "</td>";
                                                                 echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN08']) . "</td>";
@@ -608,7 +608,7 @@ function fetchFacultyData($conn)
                                                                 if (isset($SubTypeData['kku_items']) && is_array($SubTypeData['kku_items'])) {
                                                                     foreach ($SubTypeData['kku_items'] as $kkuItem) {
                                                                         echo "<tr>";
-                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $kkuItem['name'] . "<br></td>";
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $kkuItem['name'] . "<br></td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
                                                                         echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
