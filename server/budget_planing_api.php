@@ -760,9 +760,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS (
-                SELECT distinct sub_type,'revenue' as ftype FROM account
-                WHERE id < (SELECT id FROM account WHERE parent='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%'
-                UNION ALL 
+
                 SELECT distinct sub_type,'expense' AS ftype FROM account
                 WHERE id > (SELECT id FROM account WHERE parent='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%')
                 ,t2 AS (
@@ -770,14 +768,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 FROM budget_planning_allocated_annual_budget_plan b
                 GROUP BY Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario )
                 ,t3 AS (
-                SELECT Faculty,plan,subplan,project,fund,service,account,fiscal_year,scenario 
+                SELECT Faculty,plan,subplan,project,fund,service,account,fiscal_year,BUDGET_PERIOD,scenario 
                 ,sum(COMMITMENTS) AS COMMITMENTS
                 ,sum(OBLIGATIONS) AS OBLIGATIONS
                 ,sum(EXPENDITURES) AS EXPENDITURES
                 ,sum(BUDGET_ADJUSTMENTS) AS BUDGET_ADJUSTMENTS
                 ,sum(INITIAL_BUDGET) AS INITIAL_BUDGET
                 FROM budget_planning_actual b
-                GROUP BY Faculty,plan,subplan,project,fund,service,account,fiscal_year,scenario )
+                GROUP BY Faculty,plan,subplan,project,fund,service,account,fiscal_year,BUDGET_PERIOD,scenario )
                 ,t4 AS ( 
                 SELECT tt.*,t.kku_item_name
                 FROM t2 t
@@ -854,7 +852,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $plan = $_POST["plan"];
                 $subplan = $_POST["subplan"];
                 $project = $_POST["project"];
-                $etype = $_POST["etype"];
+                $bgyear = $_POST["bgyear"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS (
                 SELECT distinct sub_type,'revenue' as ftype FROM account
@@ -867,7 +865,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 FROM budget_planning_allocated_annual_budget_plan b
                 GROUP BY Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario )
                 ,t3 AS (
-                SELECT Faculty,plan,subplan,project,fund,service,account,fiscal_year,scenario 
+                SELECT Faculty,plan,subplan,project,fund,service,account,fiscal_year,BUDGET_PERIOD,scenario 
                 ,SUM(COMMITMENTS) AS COMMITMENTS
                 ,SUM(OBLIGATIONS) AS OBLIGATIONS
                 ,SUM(EXPENDITURES) AS EXPENDITURES
@@ -876,7 +874,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ,SUM(INITIAL_BUDGET) AS INITIAL_BUDGET
                 ,SUM(FUNDS_AVAILABLE_AMOUNT) AS FUNDS_AVAILABLE_AMOUNT
                 FROM budget_planning_actual b
-                GROUP BY Faculty,plan,subplan,project,fund,service,account,fiscal_year,scenario)
+                GROUP BY Faculty,plan,subplan,project,fund,service,account,fiscal_year,BUDGET_PERIOD,scenario)
                 ,t4 AS ( 
                 SELECT tt.*,t.kku_item_name
                 FROM t2 t
@@ -927,7 +925,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 LEFT JOIN account a
                 ON t.smain=a.alias_default COLLATE UTF8MB4_GENERAL_CI)
                 SELECT* FROM t9
-                where ftype=:etype
+                where BUDGET_PERIOD=:bgyear
                 ORDER BY id";
 
                 $cmd = $conn->prepare($sql);
@@ -938,7 +936,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $cmd->bindParam(':plan', $plan, PDO::PARAM_STR);
                 $cmd->bindParam(':subplan', $subplan, PDO::PARAM_STR);
                 $cmd->bindParam(':project', $project, PDO::PARAM_STR);
-                $cmd->bindParam(':etype', $etype, PDO::PARAM_STR);
+                $cmd->bindParam(':bgyear', $bgyear, PDO::PARAM_STR);
                 
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);

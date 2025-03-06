@@ -125,11 +125,7 @@
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
-                                            <tr>
-                                                <th colspan="16" style='text-align: left;'>
-                                                    รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กรตามแหล่งเงินตามแผนงาน/โครงการโดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ
-                                                </th>
-                                            </tr>
+                                            
                                             <!-- แถวแรก: หัวข้อหลัก -->
                                             <tr>
                                                 <th rowspan="3">รายการ</th>
@@ -775,50 +771,310 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
-
         function exportPDF() {
-            const { jsPDF } = window.jspdf;
-            const doc = new jsPDF('l', 'mm', 'a4');
-
-            // Add Thai font
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
-            doc.setFontSize(10);
-            doc.text('รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร', 14, 10);
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                theme: 'grid',
-                styles: {
-                    font: "THSarabun",
-                    fontSize: 7,
-                    cellPadding: 1,
-                    lineWidth: 0.1,
-                    lineColor: [0, 0, 0],
-                    minCellHeight: 5
-                },
-                headStyles: {
-                    fillColor: [220, 230, 241],
-                    textColor: [0, 0, 0],
-                    fontSize: 7,
-                    fontStyle: 'bold',
-                    halign: 'center',
-                    valign: 'middle'
-                },
-                columnStyles: {
-                    0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
-                },
-                didParseCell: function (data) {
-                    if (data.section === 'body' && data.column.index === 0) {
-                        data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
-                    }
-                },
-                margin: { top: 15, right: 5, bottom: 10, left: 5 },
-                tableWidth: 'auto'
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4');
+    
+    // ตั้งค่ามาร์จินและขนาดกระดาษ
+    const marginLeft = 5;
+    const marginRight = 5;
+    const marginTop = 15;
+    const marginBottom = 10;
+    const pageWidth = doc.internal.pageSize.width;
+    const usableWidth = pageWidth - marginLeft - marginRight;
+    
+    // ตั้งค่าฟอนต์
+    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+    doc.setFont("THSarabun");
+    doc.setFontSize(10);
+    doc.text('รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร', marginLeft, marginTop - 5);
+    
+    // ฟังก์ชันตรวจสอบว่าเป็นตัวเลขหรือไม่
+    function isNumeric(str) {
+        if (typeof str != "string") return false;
+        return !isNaN(str) && !isNaN(parseFloat(str));
+    }
+    
+    // นับจำนวนคอลัมน์ในตาราง
+    const table = document.getElementById('reportTable');
+    if (!table) {
+        console.error('ไม่พบตาราง reportTable');
+        return;
+    }
+    
+    // ตรวจสอบจำนวนคอลัมน์จากส่วนหัวตาราง
+    const headerRows = table.querySelectorAll('thead tr');
+    let maxColumns = 0;
+    headerRows.forEach(row => {
+        let colCount = 0;
+        const cells = row.querySelectorAll('th');
+        cells.forEach(cell => {
+            const colspan = parseInt(cell.getAttribute('colspan') || 1);
+            colCount += colspan;
+        });
+        maxColumns = Math.max(maxColumns, colCount);
+    });
+    
+    console.log(`จำนวนคอลัมน์ที่พบในตาราง: ${maxColumns}`);
+    
+    // ลดขนาดตัวอักษรตามจำนวนคอลัมน์
+    let fontSize = 8;
+    if (maxColumns > 10) fontSize = 6;
+    if (maxColumns > 15) fontSize = 5;
+    
+    // สร้างตารางใหม่สำหรับจัดการ <br/> ในข้อมูล
+    const tempTable = document.createElement('table');
+    tempTable.style.display = 'none';
+    document.body.appendChild(tempTable);
+    
+    try {
+        // คัดลอกส่วนหัวตารางอย่างถูกต้อง
+        const thead = document.createElement('thead');
+        tempTable.appendChild(thead);
+        
+        // คัดลอกแถวหัวตารางทั้งหมด
+        headerRows.forEach(originalHeaderRow => {
+            const newHeaderRow = document.createElement('tr');
+            const cells = originalHeaderRow.querySelectorAll('th');
+            
+            cells.forEach(cell => {
+                const newCell = document.createElement('th');
+                
+                // คัดลอก attributes สำคัญ (rowspan, colspan)
+                const rowspan = cell.getAttribute('rowspan');
+                if (rowspan) newCell.setAttribute('rowspan', rowspan);
+                
+                const colspan = cell.getAttribute('colspan');
+                if (colspan) newCell.setAttribute('colspan', colspan);
+                
+                const style = cell.getAttribute('style');
+                if (style) newCell.setAttribute('style', style);
+                
+                newCell.textContent = cell.textContent.trim();
+                newHeaderRow.appendChild(newCell);
             });
-            doc.save('รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กรตามแหล่งเงินตามแผนงาน/โครงการโดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ.pdf');
+            
+            thead.appendChild(newHeaderRow);
+        });
+        
+        // สร้าง tbody
+        const tbody = document.createElement('tbody');
+        tempTable.appendChild(tbody);
+        
+        // ประมวลผลข้อมูลแต่ละแถว
+        const dataRows = table.querySelectorAll('tbody tr');
+        
+        dataRows.forEach(originalRow => {
+            const cells = originalRow.querySelectorAll('td');
+            
+            // เก็บข้อมูลจากทุกเซลล์ในแถว
+            const rowData = [];
+            cells.forEach(cell => {
+                rowData.push({
+                    html: cell.innerHTML,
+                    text: cell.textContent
+                });
+            });
+            
+            // ตรวจสอบว่าเซลล์แรกมี <br/> หรือไม่
+            if (rowData.length > 0 && rowData[0].html.includes('<br')) {
+                // แยกข้อความในเซลล์แรกด้วย <br>
+                const parts = rowData[0].html.split(/<br\s*\/?>/i);
+                
+                // ตรวจสอบว่าเซลล์อื่นๆ มีข้อมูลแยกด้วย <br> ตรงกันหรือไม่
+                const otherCellsParts = [];
+                for (let i = 1; i < rowData.length; i++) {
+                    if (rowData[i].html.includes('<br')) {
+                        otherCellsParts[i] = rowData[i].html.split(/<br\s*\/?>/i);
+                    } else {
+                        // ถ้าเซลล์นี้ไม่มี <br> ต้องเติมอาร์เรย์ว่างให้ครบจำนวน parts
+                        otherCellsParts[i] = Array(parts.length).fill('');
+                    }
+                }
+                
+                // สร้างแถวใหม่สำหรับแต่ละส่วนที่แยกได้
+                for (let partIndex = 0; partIndex < parts.length; partIndex++) {
+                    const part = parts[partIndex].trim();
+                    if (!part) continue; // ข้ามข้อมูลที่ว่างเปล่า
+                    
+                    const newRow = document.createElement('tr');
+                    
+                    // สร้างเซลล์แรก
+                    const firstCell = document.createElement('td');
+                    
+                    // คัดลอกข้อมูลต้นฉบับ
+                    const htmlPart = part;
+                    
+                    // นับจำนวน &nbsp; เพื่อคำนวณการเยื้อง
+                    const matches = htmlPart.match(/&nbsp;/g);
+                    const spaces = matches ? matches.length : 0;
+                    
+                    // แปลง HTML entities เป็นข้อความ
+                    const div = document.createElement('div');
+                    div.innerHTML = htmlPart;
+                    const originalText = div.textContent;
+                    
+                    // สร้างข้อความใหม่ที่มีการเยื้องด้วยช่องว่าง
+                    const indent = Math.floor(spaces / 8); // ทุก 8 &nbsp; = 1 ระดับ
+                    
+                    // 1. ปรับข้อความให้ไม่มีช่องว่างนำ
+                    const trimmedText = originalText.trim();
+                    
+                    // 2. สร้างช่องว่างขึ้นใหม่ตามระดับการเยื้อง
+                    const spacesPerIndent = 4; // จำนวนช่องว่างต่อระดับการเยื้อง 1 ระดับ
+                    const leadingSpaces = ' '.repeat(indent * spacesPerIndent);
+                    
+                    // 3. เพิ่มช่องว่างนำหน้าข้อความ
+                    const indentedText = leadingSpaces + trimmedText;
+                    
+                    // ตั้งค่าเซลล์ให้รักษาช่องว่าง
+                    firstCell.style.whiteSpace = 'pre';
+                    firstCell.textContent = indentedText;
+                    
+                    // จัดการกับ &nbsp; ในข้อความ
+                    // ในต้นฉบับจริง &nbsp; จะถูกใช้ 8 ตัวต่อระดับการเยื้อง
+                    
+                    // ตรวจนับจำนวน &nbsp; โดยตรงจาก HTML
+                    let indentLevel = 0;
+                    const nbspCount = (part.match(/&nbsp;/g) || []).length;
+                    indentLevel = Math.floor(nbspCount / 8); // ทุก 8 &nbsp; = 1 ระดับ
+                    
+                    // สร้างช่องว่างแทน &nbsp; ในข้อความจริง
+                    let cleanText = part.replace(/&nbsp;/g, ' ');
+                    // แปลง HTML entities กลับเป็นข้อความปกติ
+                    const tempDiv2 = document.createElement('div');
+                    tempDiv2.innerHTML = cleanText;
+                    let textContent = tempDiv2.textContent;
+                    
+                    // เพิ่มการเยื้องด้วย CSS สำหรับ PDF
+                    if (indentLevel > 0) {
+                        firstCell.style.paddingLeft = (indentLevel * 8) + 'mm';
+                    }
+                    
+                    firstCell.textContent = textContent.trim();
+                    newRow.appendChild(firstCell);
+                    
+                    // สร้างเซลล์อื่นๆ
+                    for (let i = 1; i < rowData.length; i++) {
+                        const cell = document.createElement('td');
+                        
+                        // ถ้าเซลล์นี้มีข้อมูลที่แยกด้วย <br> และมีข้อมูลในส่วนที่ตรงกับเซลล์แรก
+                        if (otherCellsParts[i] && partIndex < otherCellsParts[i].length) {
+                            const cellContent = otherCellsParts[i][partIndex];
+                            // แปลง HTML entities
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = cellContent;
+                            cell.textContent = tempDiv.textContent.trim();
+                            
+                            // จัดให้ตัวเลขอยู่ตรงกลาง
+                            if (isNumeric(cell.textContent)) {
+                                cell.style.textAlign = 'center';
+                            }
+                        } else {
+                            cell.textContent = '';
+                        }
+                        
+                        newRow.appendChild(cell);
+                    }
+                    
+                    tbody.appendChild(newRow);
+                }
+            } else {
+                // ถ้าไม่มี <br/> ก็คัดลอกแถวปกติ
+                const newRow = document.createElement('tr');
+                
+                rowData.forEach(cellData => {
+                    const cell = document.createElement('td');
+                    cell.textContent = cellData.text.trim();
+                    newRow.appendChild(cell);
+                });
+                
+                tbody.appendChild(newRow);
+            }
+        });
+        
+        // กำหนดความกว้างคอลัมน์
+        const columnStyles = {};
+        
+        // คอลัมน์แรก (รายการ) ให้กว้างกว่า
+        columnStyles[0] = {
+            cellWidth: usableWidth * 0.30,
+            halign: 'left'
+        };
+        
+        // คอลัมน์ที่เหลือแบ่งพื้นที่ที่เหลือ
+        const otherColWidth = (usableWidth * 0.70) / (maxColumns - 1);
+        for (let i = 1; i < maxColumns; i++) {
+            columnStyles[i] = {
+                cellWidth: otherColWidth,
+                halign: 'center'
+            };
         }
+        
+        // สร้าง PDF
+        doc.autoTable({
+            html: tempTable,
+            startY: marginTop,
+            theme: 'grid',
+            styles: {
+                font: "THSarabun",
+                fontSize: fontSize,
+                cellPadding: 1,
+                lineWidth: 0.1,
+                lineColor: [0, 0, 0],
+                minCellHeight: 4,
+                overflow: 'linebreak',
+                textColor: [0, 0, 0]
+            },
+            headStyles: {
+                fillColor: [220, 230, 241],
+                textColor: [0, 0, 0],
+                fontSize: fontSize,
+                fontStyle: 'bold',
+                halign: 'center',
+                valign: 'middle'
+            },
+            columnStyles: columnStyles,
+            margin: { top: marginTop, right: marginRight, bottom: marginBottom, left: marginLeft },
+            tableWidth: usableWidth,
+            showHead: 'everyPage',
+            tableLineWidth: 0.1,
+            tableLineColor: [0, 0, 0],
+            didDrawCell: function(data) {
+                // ปรับความสูงของเซลล์หัวตาราง
+                if (data.section === 'head') {
+                    const cell = data.cell;
+                    if (cell.raw.getAttribute('rowspan') || cell.raw.getAttribute('colspan')) {
+                        // เพิ่มความสูงสำหรับเซลล์ที่มี rowspan หรือ colspan
+                        cell.styles.minCellHeight = 8;
+                    }
+                }
+            },
+            didParseCell: function(data) {
+                // จัดการกับการตั้งค่า align ของเซลล์
+                if (data.section === 'head') {
+                    const style = data.cell.raw.getAttribute('style');
+                    if (style && style.includes('text-align: left')) {
+                        data.cell.styles.halign = 'left';
+                    }
+                }
+                
+                // สำหรับเซลล์ข้อมูล คอลัมน์แรกใช้ text-align: left
+                if (data.section === 'body' && data.column.index === 0) {
+                    data.cell.styles.halign = 'left';
+                }
+            }
+        });
+    } finally {
+        // ลบตารางชั่วคราว
+        if (tempTable.parentNode) {
+            tempTable.parentNode.removeChild(tempTable);
+        }
+    }
+    
+    doc.save('รายงานเปรียบเทียบงบประมาณ.pdf');
+}
 
         function exportXLS() {
             const table = document.getElementById('reportTable');

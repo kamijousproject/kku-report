@@ -1,106 +1,65 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-<style>
-    #reportTable th:nth-child(1),
-    #reportTable td:nth-child(1) {
-        width: 300px;
-        /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
-    }
-
-    #reportTable th,
-    #reportTable td {
-        text-align: center;
-        /* จัดข้อความให้อยู่ตรงกลาง */
-        vertical-align: middle;
-        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-        white-space: nowrap;
-        /* ป้องกันข้อความตัดบรรทัด */
-    }
-
-    .wide-column {
-        min-width: 250px;
-        /* ปรับขนาด column ให้กว้างขึ้น */
-        word-break: break-word;
-        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
-        white-space: pre-line;
-        /* รักษารูปแบบการขึ้นบรรทัด */
-        vertical-align: top;
-        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
-        padding: 10px;
-        /* เพิ่มช่องว่างด้านใน */
-    }
-
-    .wide-column div {
-        margin-bottom: 5px;
-        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
-    }
-
-    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        /* ลบช่องว่างระหว่างเซลล์ */
-    }
-
-    /* ทำให้หัวตารางติดอยู่กับด้านบน */
-    th {
-        position: sticky;
-        /* ทำให้ header ติดอยู่กับด้านบน */
-        top: 0;
-        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
-        background-color: #fff;
-        /* กำหนดพื้นหลังให้กับหัวตาราง */
-        z-index: 2;
-        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        /* เพิ่มเงาให้หัวตาราง */
-        padding: 8px;
-    }
-
-    /* เพิ่มเงาให้กับแถวหัวตาราง */
-    th,
-    td {
-
-        border: 2px solid #000;
-        /* เพิ่มความหนาของเส้นขอบเซลล์ */
-        padding: 8px;
-        /* เพิ่มช่องว่างภายในเซลล์ */
-    }
-
-    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
-    .table-responsive {
-        max-height: 60vh;
-        /* กำหนดความสูงของตาราง */
-        overflow-y: auto;
-        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
-    }
-
-    .container-custom {
-        max-width: 1200px;
-        /* กำหนดค่าความกว้างสูงสุด */
-        width: 120%;
-        /* ใช้ 90% ของหน้าจอเพื่อให้ขนาดพอดี */
-        margin: 0 auto;
-        /* จัดให้อยู่ตรงกลาง */
-    }
-
-    table {
-        font-size: 12px;
-
-        /* ลดขนาดตัวอักษรของตารางในหน้าจอเล็ก */
-        border: 3px solid #000;
-        /* กำหนดเส้นขอบของตารางให้หนาขึ้น */
-    }
-
-    thead th {
-        border-bottom: 3px solid #000;
-        /* ทำให้เส้นขอบของหัวตารางหนากว่า */
+<style>     
+#main-wrapper {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
 
 
-    }
+
+.container {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+
+.table-responsive {
+    flex-grow: 1;
+    overflow-y: auto; /* Scrollable content only inside table */
+    max-height: 60vh; /* Set a fixed height */
+    border: 1px solid #ccc;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+thead tr:nth-child(1) th {
+    position: sticky;
+    top: 0;
+    background: #f4f4f4;
+    z-index: 1000;
+}
+
+thead tr:nth-child(2) th {
+    position: sticky;
+    top: 65px; /* Adjust height based on previous row */
+    background: #f4f4f4;
+    z-index: 999;
+}
+
+thead tr:nth-child(3) th {
+    position: sticky;
+    top: 105px; /* Adjust height based on previous rows */
+    background: #f4f4f4;
+    z-index: 998;
+}
+.nowrap {
+    white-space: nowrap;
+}
 </style>
-
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -139,15 +98,29 @@
 
                                     <div class="row g-3">
                                         <div class="col-md-6">
-                                            <label for="fiscal_year" class="form-label">เลือกปีบริหารงบประมาณ:</label>
+                                            <label for="fiscal_year" class="form-label">เลือกปีงบประมาณ:</label>
                                             <select name="fiscal_year" id="dropdown1">
                                                 <option value="">--- เลือก ---</option>
 
                                             </select>
                                         </div>
                                         <div class="col-md-6">
+                                            <label for="plan_name" class="form-label">เลือกแผนงาน:</label>
+                                            <select name="plan_name" id="dropdown5">
+                                                <option value="">--- เลือก ---</option>
+
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="project_name" class="form-label">เลือกปีบริหารงบประมาณ:</label>
+                                            <select name="budget_year" id="dropdown2">
+                                                <option value="">--- เลือก ---</option>
+
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
                                             <label for="sub_plan_name" class="form-label">เลือกแผนงานย่อย:</label>
-                                            <select name="sub_plan_name" id="dropdown5">
+                                            <select name="sub_plan_name" id="dropdown6">
                                                 <option value="">--- เลือก ---</option>
 
                                             </select>
@@ -155,21 +128,21 @@
 
                                         <div class="col-md-6">
                                             <label for="faculty_alias" class="form-label">เลือกส่วนงาน/หน่วยงาน:</label>
-                                            <select name="faculty_alias" id="dropdown2">
+                                            <select name="faculty_alias" id="dropdown3">
                                                 <option value="">--- เลือก ---</option>
 
                                             </select>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="project_name" class="form-label">เลือกโครงการ:</label>
-                                            <select name="project_name" id="dropdown6">
+                                            <select name="project_name" id="dropdown7">
                                                 <option value="">--- เลือก ---</option>
 
                                             </select>
                                         </div>
                                         <div class="col-md-6">
                                             <label for="fund" class="form-label">เลือกแหล่งเงิน:</label>
-                                            <select name="fund" id="dropdown3">
+                                            <select name="fund" id="dropdown4">
                                                 <option value="">--- เลือก ---</option>
 
                                             </select>
@@ -177,25 +150,19 @@
 
                                         <div class="col-md-6">
                                             <label for="scenario" class="form-label">เลือกประเภทงบประมาณ:</label>
-                                            <select name="scenario" id="dropdown7">
+                                            <select name="scenario" id="dropdown8">
                                                 <option value="">--- เลือก ---</option>
 
                                             </select>
                                         </div>
-                                        <div class="col-md-6">
-                                            <label for="plan_name" class="form-label">เลือกแผนงาน:</label>
-                                            <select name="plan_name" id="dropdown4">
-                                                <option value="">--- เลือก ---</option>
-
-                                            </select>
-                                        </div>
-                                        <div class="col-md-6">
+                                        
+                                        <!-- <div class="col-md-6">
                                             <label for="project_name" class="form-label">เลือกประเภทรายการ:</label>
                                             <select name="project_name" id="dropdown8">
                                                 <option value="">--- เลือก ---</option>
 
                                             </select>
-                                        </div>
+                                        </div> -->
 
 
                                         <div class="col-md-2">
@@ -214,27 +181,27 @@
                                                 <th colspan="4">ยอดรวมงบประมาณ</th>
                                                 <th colspan="8">เงินประจำงวด</th>
                                                 <th colspan="2">ผูกพัน</th>
-                                                <th colspan="2">ผูกพันงบประมาณตามข้อตกลง/สัญญา</th>
-                                                <th rowspan="2">จำนวนงบประมาณเบิกจ่าย</th>
-                                                <th rowspan="2">เบิกงบประมาณเกินส่งคืน</th>
+                                                <th colspan="2" nowrap>ผูกพันงบประมาณ<br/>ตามข้อตกลง/สัญญา</th>
+                                                <th rowspan="2" nowrap>จำนวนงบประมาณเบิกจ่าย</th>
+                                                <th rowspan="2" nowrap>เบิกงบประมาณเกินส่งคืน</th>
                                             </tr>
                                             <tr>
                                                 <th>จำนวนงบประมาณ</th>
-                                                <th>จำนวนงบประมาณโอนเข้า</th>
-                                                <th>จำนวนงบประมาณโอนออก</th>
-                                                <th>คงเหลือไม่อนุมัติงวดเงิน</th>
-                                                <th>ผูกพันงบประมาณ</th>
+                                                <th nowrap>จำนวนงบประมาณ<br/>โอนเข้า</th>
+                                                <th nowrap>จำนวนงบประมาณ<br/>โอนออก</th>
+                                                <th nowrap>คงเหลือไม่อนุมัติ<br/>งวดเงิน</th>
+                                                <th nowrap>ผูกพันงบประมาณ</th>
                                                 <th>ร้อยละ</th>
-                                                <th>คงเหลือหลังผูกพันงบประมาณ</th>
+                                                <th nowrap>คงเหลือหลังผูกพัน<br/>งบประมาณ</th>
                                                 <th>ร้อยละ</th>
-                                                <th>เบิกจ่ายงบประมาณ</th>
+                                                <th nowrap>เบิกจ่ายงบประมาณ</th>
                                                 <th>ร้อยละ</th>
-                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
+                                                <th nowrap>คงเหลือหลังเบิกจ่าย<br/>งบประมาณ</th>
                                                 <th>ร้อยละ</th>
-                                                <th>จำนวนงบประมาณ</th>
-                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
-                                                <th>จำนวนงบประมาณ</th>
-                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
+                                                <th nowrap>จำนวนงบประมาณ</th>
+                                                <th nowrap>คงเหลือหลังเบิกจ่าย<br/>งบประมาณ</th>
+                                                <th nowrap>จำนวนงบประมาณ</th>
+                                                <th nowrap>คงเหลือหลังเบิกจ่าย<br/>งบประมาณ</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -256,11 +223,11 @@
         </div>
     </div>
 
-    <div class="footer">
+<!--     <div class="footer">
         <div class="copyright">
             <p>Copyright &copy; <a href="#">KKU</a> 2025</p>
         </div>
-    </div>
+    </div> -->
     </div>
     <script>
         $(document).ready(function () {
@@ -304,9 +271,9 @@
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const fac = [...new Set(alldata.filter(item => item.fiscal_year === fyear).map(item => item.fname))];
+                const bgy = [...new Set(alldata.filter(item => item.fiscal_year === fyear).map(item => item.BUDGET_PERIOD))];
                 //console.log(fac);
-                fac.forEach((row) => {
+                bgy.forEach((row) => {
                     $('#dropdown2').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
             });
@@ -314,7 +281,7 @@
 
             $('#dropdown2').change(function () {
                 let fyear = $('#dropdown1').val();
-                let fac = $('#dropdown2').val();
+                let bgyear = $('#dropdown2').val();
                 //console.log(alldata);
                 $('#dropdown3').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown4').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
@@ -323,16 +290,17 @@
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const fund = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac).map(item => item.fund))];
+                const fac = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.BUDGET_PERIOD === bgyear).map(item => item.fname))];
+                fac.sort();
                 //console.log(fac);
-                fund.forEach((row) => {
+                fac.forEach((row) => {
                     $('#dropdown3').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
             });
             $('#dropdown3').change(function () {
                 let fyear = $('#dropdown1').val();
-                let fac = $('#dropdown2').val();
-                let fund = $('#dropdown3').val();
+                let bgyear = $('#dropdown2').val();
+                let fac = $('#dropdown3').val();
                 //console.log(alldata);
                 $('#dropdown4').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown5').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
@@ -340,86 +308,91 @@
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const planMap = new Map(
-                    alldata
-                        .filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund)
-                        .map(item => [item.plan, item.plan_name]) // [key, value] = [plan, plan_name]
-                );
-                plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
+                const fund = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.BUDGET_PERIOD === bgyear && item.fname===fac).map(item => item.fund))];
+                //plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
                 //console.log(plan);
-                plan.forEach((row) => {
-                    $('#dropdown4').append('<option value="' + row.plan_name + '">' + row.plan_name + '</option>').prop('disabled', false);
+                fund.sort();
+                fund.forEach((row) => {
+                    $('#dropdown4').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
             });
             $('#dropdown4').change(function () {
                 let fyear = $('#dropdown1').val();
-                let fac = $('#dropdown2').val();
-                let fund = $('#dropdown3').val();
-                let plan = $('#dropdown4').val();
+                let bgyear = $('#dropdown2').val();
+                let fac = $('#dropdown3').val();
+                let fund = $('#dropdown4').val();
                 $('#dropdown5').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown6').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
                 //const splan = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac&& item.fund === fund&& item.plan_name === plan).map(item => item.sub_plan_name))];
-                const splanMap = new Map(
+                const planMap = new Map(
                     alldata
-                        .filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan)
-                        .map(item => [item.subplan, item.sub_plan_name]) // [key, value] = [plan, plan_name]
+                        .filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.BUDGET_PERIOD === bgyear)
+                        .map(item => [item.plan, item.plan_name]) // [key, value] = [plan, plan_name]
                 );
-                splan = Array.from(splanMap, ([subplan, sub_plan_name]) => ({ subplan, sub_plan_name }));
-
-                splan.forEach((row) => {
-                    $('#dropdown5').append('<option value="' + row.sub_plan_name + '">' + row.subplan + " : " + row.sub_plan_name + '</option>').prop('disabled', false);
+                var plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
+                plan.sort((a, b) => a.plan - b.plan);
+                plan.forEach((row) => {
+                    $('#dropdown5').append('<option value="' + row.plan_name + '">' + row.plan_name + '</option>').prop('disabled', false);
                 });
             });
             $('#dropdown5').change(function () {
                 let fyear = $('#dropdown1').val();
-                let fac = $('#dropdown2').val();
-                let fund = $('#dropdown3').val();
-                let plan = $('#dropdown4').val();
-                let subplan = $('#dropdown5').val();
+                let bgyear = $('#dropdown2').val();
+                let fac = $('#dropdown3').val();
+                let fund = $('#dropdown4').val();
+                let plan = $('#dropdown5').val();
                 $('#dropdown6').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const pro = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan).map(item => item.project_name))];
-                //console.log(pro);
-                pro.forEach((row) => {
-                    $('#dropdown6').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
+                //
+                const splanMap = new Map(
+                    alldata
+                        .filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.BUDGET_PERIOD === bgyear)
+                        .map(item => [item.subplan, item.sub_plan_name]) // [key, value] = [plan, plan_name]
+                );
+                var subplan = Array.from(splanMap, ([subplan, sub_plan_name]) => ({ subplan, sub_plan_name }));
+                subplan.sort((a, b) => a.subplan - b.subplan);
+                subplan.forEach((row) => {
+                    $('#dropdown6').append('<option value="' + row.sub_plan_name + '">' + row.subplan + " : " + row.sub_plan_name + '</option>').prop('disabled', false);
                 });
             });
             $('#dropdown6').change(function () {
                 let fyear = $('#dropdown1').val();
-                let fac = $('#dropdown2').val();
-                let fund = $('#dropdown3').val();
-                let plan = $('#dropdown4').val();
-                let subplan = $('#dropdown5').val();
-                let project = $('#dropdown6').val();
+                let bgyear = $('#dropdown2').val();
+                let fac = $('#dropdown3').val();
+                let fund = $('#dropdown4').val();
+                let plan = $('#dropdown5').val();
+                let subplan = $('#dropdown6').val();
                 //console.log(alldata);
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const sc = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project).map(item => item.scenario))];
+                const pro = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan&& item.BUDGET_PERIOD === bgyear).map(item => item.project_name))];
+                //const sc = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project).map(item => item.scenario))];
                 //console.log(fac);
-                sc.forEach((row) => {
+                pro.sort();
+                pro.forEach((row) => {
                     $('#dropdown7').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
             });
             $('#dropdown7').change(function () {
                 let fyear = $('#dropdown1').val();
-                let fac = $('#dropdown2').val();
-                let fund = $('#dropdown3').val();
-                let plan = $('#dropdown4').val();
-                let subplan = $('#dropdown5').val();
-                let project = $('#dropdown6').val();
-                let scenario = $('#dropdown7').val();
+                let bgyear = $('#dropdown2').val();
+                let fac = $('#dropdown3').val();
+                let fund = $('#dropdown4').val();
+                let plan = $('#dropdown5').val();
+                let subplan = $('#dropdown6').val();
+                let project = $('#dropdown7').val();
                 //console.log(alldata);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const etype = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project && item.scenario === scenario).map(item => item.ftype))];
+                const sc = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project&& item.BUDGET_PERIOD === bgyear).map(item => item.scenario))];
                 //console.log(fac);
-                etype.forEach((row) => {
+                sc.forEach((row) => {
                     $('#dropdown8').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
             });
@@ -430,7 +403,7 @@
                     $('#submitBtn').prop('disabled', false);
 
 
-                    let fyear = $('#dropdown1').val();
+                    /* let fyear = $('#dropdown1').val();
                     function convertFYtoBuddhistYear(fyear) {
                         if (fyear.startsWith('FY')) {
 
@@ -440,52 +413,51 @@
                         }
                         return fyear;
                     }
+ */
 
-
-                    let buddhistYear = convertFYtoBuddhistYear(fyear);
-                    let fac = $('#dropdown2').val();
-                    let fund = $('#dropdown3').val();
-                    let plan = $('#dropdown4 option:selected').text();
-                    let subplan = $('#dropdown5 option:selected').text();
-                    let project = $('#dropdown6').val();
-                    let scenario = $('#dropdown7').val();
-                    let etype = $('#dropdown8').val();
-
-
+                    /* let fyear = $('#dropdown1').val();
+                    let bgyear = $('#dropdown2').val();
+                    let fac = $('#dropdown3').val();
+                    let fund = $('#dropdown4 option:selected').text();
+                    let plan = $('#dropdown5 option:selected').text();
+                    let subplan = $('#dropdown6').val();
+                    let project = $('#dropdown7').val();
+                    let scenario = $('#dropdown8').val();
+ */
+                    /* 
                     $('#reportTable thead').empty();
 
 
                     $('#reportTable thead').append(`
                <tr>
-                <th style="text-align: left;" colspan="19">รายงานสรุปยอดงบประมาณคงเหลือ
-</th>
-            </tr>
-            <tr>
-                <th style="text-align: left;" colspan="19">ปีงบประมาณ : ${fyear}</th>
-            </tr>
-            
-             <tr>
-                <th style="text-align: left;" colspan="19">ปีบริหารงบประมาณ  : ${buddhistYear}</th>
-            </tr>
+                    <th style="text-align: left;" colspan="19">รายงานสรุปยอดงบประมาณคงเหลือ</th>
+                </tr>
+                <tr>
+                    <th style="text-align: left;" colspan="19">ปีงบประมาณ : ${fyear}</th>
+                </tr>
+                
+                <tr>
+                    <th style="text-align: left;" colspan="19">ปีบริหารงบประมาณ  : ${buddhistYear}</th>
+                </tr>
 
-             <tr>
-                <th style="text-align: left;" colspan="19">ประเภทงบประมาณ : ${scenario}</th>
-            </tr>
-            <tr>
-                <th style="text-align: left;" colspan="19">แหล่งเงิน : ${fund}</th>
-            </tr>
-                        <tr>
-                <th style="text-align: left;" colspan="19">ส่วนงาน/หน่วยงาน : ${fac}</th>
-            </tr>
-            <tr>
-                <th style="text-align: left;" colspan="19">แผนงาน(ผลผลิต) [Plan] : ${plan}</th>
-            </tr>
-            <tr>
-                <th style="text-align: left;" colspan="19">แผนงานย่อย(ผลผลิตย่อย/กิจกรรม) [Sub plan] : ${subplan}</th>
-            </tr>
-            <tr>
-                <th style="text-align: left;" colspan="19">โครงการ [Project] : ${project}</th>
-            </tr>
+                <tr>
+                    <th style="text-align: left;" colspan="19">ประเภทงบประมาณ : ${scenario}</th>
+                </tr>
+                <tr>
+                    <th style="text-align: left;" colspan="19">แหล่งเงิน : ${fund}</th>
+                </tr>
+                            <tr>
+                    <th style="text-align: left;" colspan="19">ส่วนงาน/หน่วยงาน : ${fac}</th>
+                </tr>
+                <tr>
+                    <th style="text-align: left;" colspan="19">แผนงาน(ผลผลิต) [Plan] : ${plan}</th>
+                </tr>
+                <tr>
+                    <th style="text-align: left;" colspan="19">แผนงานย่อย(ผลผลิตย่อย/กิจกรรม) [Sub plan] : ${subplan}</th>
+                </tr>
+                <tr>
+                    <th style="text-align: left;" colspan="19">โครงการ [Project] : ${project}</th>
+                </tr>
            
 
                                                         <tr>
@@ -514,8 +486,7 @@
                                                 <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
                                                 <th>จำนวนงบประมาณ</th>
                                                 <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
-                                            </tr>
-        `);
+                                            </tr>`); */
                 } else {
                     $('#submitBtn').prop('disabled', true);
                 }
@@ -527,13 +498,13 @@
 
             $('#submitBtn').click(function () {
                 let fyear = $('#dropdown1').val();
-                let fac = $('#dropdown2').val();
-                let fund = $('#dropdown3').val();
-                let plan = $('#dropdown4').val();
-                let subplan = $('#dropdown5').val();
-                let project = $('#dropdown6').val();
-                let scenario = $('#dropdown7').val();
-                let etype = $('#dropdown8').val();
+                let bgyear = $('#dropdown2').val();
+                let fac = $('#dropdown3').val();
+                let fund = $('#dropdown4').val();
+                let plan = $('#dropdown5').val();
+                let subplan = $('#dropdown6').val();
+                let project = $('#dropdown7').val();
+                let scenario = $('#dropdown8').val();
                 $.ajax({
                     type: "POST",
                     url: "../server/budget_planing_api.php",
@@ -546,7 +517,7 @@
                         'subplan': subplan,
                         'project': project,
                         'scenario': scenario,
-                        'etype': etype
+                        'bgyear': bgyear
                     },
                     dataType: "json",
                     success: function (response) {
@@ -562,7 +533,7 @@
                         const sub_account = [...new Set(response.bgp.map(item => item.sub_type))]; */
                         //console.log(smain);
                         smain.forEach((row1, index) => {
-                            const sm = response.bgp.filter(item => item.smain === row1 && item.fiscal_year === fyear && item.fund === fund && item.fname === fac && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project && item.scenario === scenario && item.ftype === etype);
+                            const sm = response.bgp.filter(item => item.smain === row1 && item.fiscal_year === fyear && item.fund === fund && item.fname === fac && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project && item.scenario === scenario && item.BUDGET_PERIOD === bgyear);
                             //console.log(sm);
                             const parseValue = (value) => {
                                 if (value === null || value === undefined) {
