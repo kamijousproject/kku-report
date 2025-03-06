@@ -623,7 +623,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN okr ok
                         ON replace(b2.OKRs_LOV,'_','-')=ok.okr_id)
                         ,t4 AS (
-                        SELECT t.*,pl.plan_name,sp.sub_plan_name
+                        SELECT t.*,pl.plan_name,CONCAT(replace(t.sub_plan,'SP_',''),' : ',sp.sub_plan_name) AS sub_plan_name
                         FROM t3 t
                         LEFT JOIN plan pl
                         ON t.plan=pl.plan_id
