@@ -88,15 +88,178 @@ $conn = $db->connect();
 function fetchBudgetData($conn, $faculty = null)
 {
     try {
-        $query = "SELECT 
-        bap.Faculty, 
+        $query = "WITH RECURSIVE account_hierarchy AS (
+    -- Anchor member: เริ่มจาก account ทุกตัว
+    SELECT 
+        a1.account,
+        a1.account AS account1, -- account สำหรับ level1
+        a1.alias_default AS level1,
+        a1.parent,
+        CAST(NULL AS CHAR(255)) AS account2, -- account สำหรับ level2
+        CAST(NULL AS CHAR(255)) AS level2,
+        CAST(NULL AS CHAR(255)) AS account3, -- account สำหรับ level3
+        CAST(NULL AS CHAR(255)) AS level3,
+        CAST(NULL AS CHAR(255)) AS account4, -- account สำหรับ level4
+        CAST(NULL AS CHAR(255)) AS level4,
+        CAST(NULL AS CHAR(255)) AS account5, -- account สำหรับ level5
+        CAST(NULL AS CHAR(255)) AS level5,
+        1 AS depth
+    FROM account a1
+    WHERE a1.parent IS NOT NULL
+    UNION ALL
+    -- Recursive member: หา parent ต่อไปเรื่อยๆ
+    SELECT 
+        ah.account,
+        ah.account1,
+        ah.level1,
+        a2.parent,
+        CASE WHEN ah.depth = 1 THEN a2.account ELSE ah.account2 END AS account2,
+        CASE WHEN ah.depth = 1 THEN a2.alias_default ELSE ah.level2 END AS level2,
+        CASE WHEN ah.depth = 2 THEN a2.account ELSE ah.account3 END AS account3,
+        CASE WHEN ah.depth = 2 THEN a2.alias_default ELSE ah.level3 END AS level3,
+        CASE WHEN ah.depth = 3 THEN a2.account ELSE ah.account4 END AS account4,
+        CASE WHEN ah.depth = 3 THEN a2.alias_default ELSE ah.level4 END AS level4,
+        CASE WHEN ah.depth = 4 THEN a2.account ELSE ah.account5 END AS account5,
+        CASE WHEN ah.depth = 4 THEN a2.alias_default ELSE ah.level5 END AS level5,
+        ah.depth + 1 AS depth
+    FROM account_hierarchy ah
+    JOIN account a2 
+        ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
+    WHERE ah.parent IS NOT NULL
+    AND ah.depth < 5 -- จำกัดระดับสูงสุดที่ 5
+),
+-- หาความลึกสูงสุดสำหรับแต่ละ account
+hierarchy_with_max AS (
+    SELECT 
+        account,
+        account1 AS CurrentAccount,
+        level1 AS Current,
+        account2 AS ParentAccount,
+        level2 AS Parent,
+        account3 AS GrandparentAccount,
+        level3 AS Grandparent,
+        account4 AS GreatGrandparentAccount,
+        level4 AS GreatGrandparent,
+        account5 AS GreatGreatGrandparentAccount,
+        level5 AS GreatGreatGrandparent,
+        depth,
+        MAX(depth) OVER (PARTITION BY account) AS max_depth
+    FROM account_hierarchy
+)
+-- เลือกเฉพาะแถวที่ depth = max_depth สำหรับแต่ละ account
+,main AS (SELECT 
+    CurrentAccount,
+    Current,
+    ParentAccount,
+    Parent,
+    GrandparentAccount,
+    Grandparent,
+    GreatGrandparentAccount,
+    GreatGrandparent,
+    GreatGreatGrandparentAccount,
+    GreatGreatGrandparent,
+    depth AS TotalLevels
+FROM hierarchy_with_max
+WHERE depth = max_depth
+ORDER BY account)
+,t1 AS(
+SELECT 
+        bap.Faculty AS Faculty_Id,
         ft.Faculty, 
         ft.Alias_Default, 
         bpa.BUDGET_PERIOD,
-        CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
+       
         ac.`type`,
-        CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 6)) AS a2, 
+CASE 
+    WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
+    WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
+    WHEN m.TotalLevels = 3 THEN m.ParentAccount
+END AS a1,
+
+CASE 
+    WHEN m.TotalLevels = 5 THEN m.GrandparentAccount
+    WHEN m.TotalLevels = 4 THEN m.ParentAccount
+    WHEN m.TotalLevels = 3 THEN m.CurrentAccount
+END AS a2,
+
+COALESCE(
+    CASE  
+        WHEN m.TotalLevels = 5 THEN m.ParentAccount
+        WHEN m.TotalLevels = 4 THEN m.CurrentAccount
+        WHEN m.TotalLevels = 3 THEN NULL
+    END,
+    bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
+) AS a3
+,
+
+COALESCE(
+    CASE  
+        WHEN m.TotalLevels = 5 THEN m.CurrentAccount
+        WHEN m.TotalLevels = 4 THEN NULL
+        WHEN m.TotalLevels = 3 THEN NULL
+    END,
+    bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
+) AS a4
+,
+        CASE  
+    WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, bap.KKU_Item_Name)
+    WHEN m.TotalLevels = 4 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
+    WHEN m.TotalLevels = 3 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
+END AS Name_a1,
+
+CASE 
+    WHEN (m.TotalLevels = 5 AND COALESCE(m.GreatGrandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name) 
+         OR (m.TotalLevels = 4 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name) 
+         OR (m.TotalLevels = 3 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+    THEN NULL
+    WHEN m.TotalLevels = 5 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
+    WHEN m.TotalLevels = 4 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
+    WHEN m.TotalLevels = 3 THEN COALESCE(m.Current, bap.KKU_Item_Name)
+END AS Name_a2,
+
+COALESCE(
+    CASE  
+        WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+             OR (m.TotalLevels = 4 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+             OR (m.TotalLevels = 3 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+        THEN bap.KKU_Item_Name  -- เปลี่ยนจาก NULL เป็น bap.KKU_Item_Name
+        WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
+        WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, bap.KKU_Item_Name)
+    END,
+    bap.KKU_Item_Name -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.KKU_Item_Name
+) AS Name_a3,
+
+
+CASE
+    WHEN (
+        COALESCE(
+            CASE  
+                WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+                     OR (m.TotalLevels = 4 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+                     OR (m.TotalLevels = 3 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+                THEN bap.KKU_Item_Name  
+                WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
+                WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, bap.KKU_Item_Name)
+            END,
+            bap.KKU_Item_Name
+        ) = bap.KKU_Item_Name
+    )
+    THEN NULL
+    ELSE COALESCE(
+        CASE  
+            WHEN (m.TotalLevels = 5 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+                 OR (m.TotalLevels = 4 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
+            THEN NULL
+            WHEN m.TotalLevels = 5 THEN COALESCE(m.Current, bap.KKU_Item_Name)
+        END,
+        bap.KKU_Item_Name
+    )
+END AS Name_a4
+
+
+,
         ac.sub_type,
+        ac.alias_default AS Account_Name_default,
         bap.`Account`,
         bap.KKU_Item_Name,
         SUM(CASE WHEN bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN02,
@@ -117,13 +280,26 @@ function fetchBudgetData($conn, $faculty = null)
             WHEN SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 THEN 100
             ELSE (SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) / 
                   SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) * 100
-        END AS Percentage_2568_to_2567
+        END AS Percentage_2568_to_2567,
+            m.CurrentAccount,
+    m.Current,
+    m.ParentAccount,
+    m.Parent,
+    m.GrandparentAccount,
+    m.Grandparent,
+    m.GreatGrandparentAccount,
+    m.GreatGrandparent,
+    m.GreatGreatGrandparentAccount,
+    m.GreatGreatGrandparent,
+    m.TotalLevels
         FROM budget_planning_allocated_annual_budget_plan bap
         INNER JOIN Faculty ft ON bap.Faculty = ft.Faculty AND ft.parent LIKE 'Faculty%'
         LEFT JOIN plan p ON bap.Plan = p.plan_id
         LEFT JOIN sub_plan sp ON bap.Sub_Plan = sp.sub_plan_id
         LEFT JOIN project pj ON bap.Project = pj.project_id
         INNER JOIN account ac ON bap.`Account` = ac.`account`
+        LEFT JOIN main m
+ON bap.`Account`=m.CurrentAccount
         INNER JOIN budget_planning_actual bpa ON bpa.PROJECT = bap.Project
             AND bpa.`ACCOUNT` = bap.`Account`
             AND bpa.PLAN = bap.Plan
@@ -140,15 +316,29 @@ function fetchBudgetData($conn, $faculty = null)
             ft.Faculty, 
             ft.Alias_Default, 
             bpa.BUDGET_PERIOD, 
-            bap.`Account`, 
+            bap.`Account`,ac.alias_default, 
             ac.`type`, 
             ac.sub_type, 
-            bap.KKU_Item_Name
+            bap.KKU_Item_Name,
+            m.CurrentAccount,
+    m.Current,
+    m.ParentAccount,
+    m.Parent,
+    m.GrandparentAccount,
+    m.Grandparent,
+    m.GreatGrandparentAccount,
+    m.GreatGrandparent,
+    m.GreatGreatGrandparentAccount,
+    m.GreatGreatGrandparent,
+    m.TotalLevels
         ORDER BY 
             bap.Faculty ASC, 
             ac.`type` ASC, 
             ac.sub_type ASC,
-            bap.`Account` ASC";
+            bap.`Account` ASC
+
+)
+SELECT * FROM t1";
 
         $stmt = $conn->prepare($query);
 
@@ -344,13 +534,14 @@ function fetchFacultyData($conn)
                                             // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
                                             $summary = [];
                                             foreach ($results as $row) {
-                                                $Alias_Default = $row['Alias_Default'];
-                                                $type = $row['type'];
-                                                $sub_type = $row['sub_type'];
+                                                $Faculty = $row['Alias_Default'];
+                                                $Name_a1 = $row['Name_a1'];
+                                                $Name_a2 = $row['Name_a2'];
+                                                $Name_a3 = $row['Name_a3'];
 
-                                                // Initialize the Alias_Default array if it doesn't exist
-                                                if (!isset($summary[$Alias_Default])) {
-                                                    $summary[$Alias_Default] = [
+
+                                                if (!isset($summary[$Faculty])) {
+                                                    $summary[$Faculty] = [
                                                         'Alias_Default' => $row['Alias_Default'],
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
@@ -362,14 +553,15 @@ function fetchFacultyData($conn)
                                                         'Total_Amount_2568_SUM' => 0,
                                                         'Difference_2568_2567' => 0,
                                                         'Percentage_2568_to_2567' => 0,
-                                                        'type' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        'Name_a1' => [], // เก็บข้อมูลของ Sub_Plan
                                                     ];
                                                 }
-
-                                                // Initialize the type array if it doesn't exist
-                                                if (!isset($summary[$Alias_Default]['type'][$type])) {
-                                                    $summary[$Alias_Default]['type'][$type] = [
-                                                        'type' => $row['type'],
+                                                $ItemName_a1 = (!empty($row['Name_a1']))
+                                                    ? "" . htmlspecialchars($row['a1']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a1']))
+                                                    : "" . htmlspecialchars($row['a1']) . "";
+                                                if (!isset($summary[$Faculty]['Name_a1'][$Name_a1])) {
+                                                    $summary[$Faculty]['Name_a1'][$Name_a1] = [
+                                                        'name' => $ItemName_a1,
                                                         'a1' => $row['a1'],
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
@@ -381,14 +573,15 @@ function fetchFacultyData($conn)
                                                         'Total_Amount_2568_SUM' => 0,
                                                         'Difference_2568_2567' => 0,
                                                         'Percentage_2568_to_2567' => 0,
-                                                        'sub_type' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        'Name_a2' => [], // เก็บข้อมูลของ Sub_Plan
                                                     ];
                                                 }
-
-                                                // Initialize the sub_type array if it doesn't exist
-                                                if (!isset($summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type])) {
-                                                    $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type] = [
-                                                        'sub_type' => $row['sub_type'],
+                                                $ItemName_a2 = (!empty($row['Name_a2']))
+                                                    ? "" . htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']))
+                                                    : "" . htmlspecialchars($row['a2']) . "";
+                                                if (!isset($summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
+                                                    $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
+                                                        'name' => $ItemName_a2,
                                                         'a2' => $row['a2'],
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
@@ -400,40 +593,68 @@ function fetchFacultyData($conn)
                                                         'Total_Amount_2568_SUM' => 0,
                                                         'Difference_2568_2567' => 0,
                                                         'Percentage_2568_to_2567' => 0,
-                                                        'kku_items' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        'Name_a3' => [], // เก็บข้อมูลของ Sub_Plan
+                                                    ];
+                                                }
+                                                $ItemName_a3 = (!empty($row['Name_a3']))
+                                                    ? "" . htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']))
+                                                    : "" . htmlspecialchars($row['a3']) . "";
+                                                if (!isset($summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
+                                                    $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
+                                                        'name' => $ItemName_a3,
+                                                        'a3' => $row['a3'],
+                                                        'Total_Amount_2567_FN06' => 0,
+                                                        'Total_Amount_2567_FN08' => 0,
+                                                        'Total_Amount_2567_FN02' => 0,
+                                                        'Total_Amount_2567_SUM' => 0,
+                                                        'Total_Amount_2568_FN06' => 0,
+                                                        'Total_Amount_2568_FN08' => 0,
+                                                        'Total_Amount_2568_FN02' => 0,
+                                                        'Total_Amount_2568_SUM' => 0,
+                                                        'Difference_2568_2567' => 0,
+                                                        'Percentage_2568_to_2567' => 0,
+                                                        'Name_a4' => [], // เก็บข้อมูลของ Sub_Plan
                                                     ];
                                                 }
 
-                                                // รวมข้อมูลของ Alias_Default
-                                                $summary[$Alias_Default]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$Alias_Default]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$Alias_Default]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$Alias_Default]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$Alias_Default]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$Alias_Default]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+                                                // รวมข้อมูลของ Faculty
+                                                $summary[$Faculty]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
-                                                // รวมข้อมูลของ type
-                                                $summary[$Alias_Default]['type'][$type]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$Alias_Default]['type'][$type]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$Alias_Default]['type'][$type]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$Alias_Default]['type'][$type]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$Alias_Default]['type'][$type]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$Alias_Default]['type'][$type]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+                                                // รวมข้อมูลของ Name_a1
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
-                                                // รวมข้อมูลของ Subtype
-                                                $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+                                                // รวมข้อมูลของ Name_a2
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+
+                                                // รวมข้อมูลของ Name_a2
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
                                                 // เก็บข้อมูลของ KKU_Item_Name
-                                                $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                    ? "" . htmlspecialchars($row['Account']) . "</strong> : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
-                                                    : "" . htmlspecialchars($row['Account']) . "</strong>";
-                                                $summary[$Alias_Default]['type'][$type]['sub_type'][$sub_type]['kku_items'][] = [
-                                                    'name' => $kkuItemName,
+                                                $ItemName_a4 = (!empty($row['Name_a4']))
+                                                    ? "" . htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']))
+                                                    : "" . htmlspecialchars($row['Account']) . "";
+                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][] = [
+                                                    'name' => $ItemName_a4,
                                                     'Total_Amount_2567_FN06' => $row['Total_Amount_2567_FN06'],
                                                     'Total_Amount_2567_FN08' => $row['Total_Amount_2567_FN08'],
                                                     'Total_Amount_2567_FN02' => $row['Total_Amount_2567_FN02'],
@@ -473,6 +694,7 @@ function fetchFacultyData($conn)
                                                     $total_summary['Total_Amount_2568_FN02'] += (float) ($row['Total_Amount_2568_FN02'] ?? 0);
                                                 }
                                             }
+
                                             if ($selectedFaculty == null) {
                                                 if (isset($summary) && is_array($summary)) {
                                                     // แสดงผลลัพธ์ในรูปแบบตาราง
@@ -510,7 +732,6 @@ function fetchFacultyData($conn)
                                                     echo "<tr><td colspan='7' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
                                                 }
                                             }
-
                                             // แสดงผลลัพธ์
                                             foreach ($summary as $Alias_Default => $data) {
                                                 // แสดงผลรวมของ Plan
@@ -552,24 +773,24 @@ function fetchFacultyData($conn)
 
                                                 echo "</tr>";
 
-                                                // แสดงข้อมูลของ type
-                                                if (isset($data['type']) && is_array($data['type'])) {
-                                                    foreach ($data['type'] as $type => $datatype) {
+                                                // แสดงข้อมูลของ Name_a1
+                                                if (isset($data['Name_a1']) && is_array($data['Name_a1'])) {
+                                                    foreach ($data['Name_a1'] as $Name_a1 => $dataName_a1) {
                                                         echo "<tr>";
-                                                        $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $type);
+                                                        $cleanedName_a1 = preg_replace('/^[\d.]+\s*/', '', $Name_a1);
 
-                                                        // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($datatype['a1']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+                                                        // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a1
+                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($dataName_a1['a1']) . " : " . htmlspecialchars($cleanedName_a1) . "<br></td>";
 
-                                                        echo "<td>" . formatNumber($datatype['Total_Amount_2567_FN06']) . "</td>";
-                                                        echo "<td>" . formatNumber($datatype['Total_Amount_2567_FN08']) . "</td>";
-                                                        echo "<td>" . formatNumber($datatype['Total_Amount_2567_FN02']) . "</td>";
-                                                        $total1 = $datatype['Total_Amount_2567_FN06'] + $datatype['Total_Amount_2567_FN08'] + $datatype['Total_Amount_2567_FN02'];
+                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN06']) . "</td>";
+                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN08']) . "</td>";
+                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN02']) . "</td>";
+                                                        $total1 = $dataName_a1['Total_Amount_2567_FN06'] + $dataName_a1['Total_Amount_2567_FN08'] + $dataName_a1['Total_Amount_2567_FN02'];
                                                         echo "<td>" . formatNumber($total1) . "</td>";
-                                                        echo "<td>" . formatNumber($datatype['Total_Amount_2568_FN06']) . "</td>";
-                                                        echo "<td>" . formatNumber($datatype['Total_Amount_2568_FN08']) . "</td>";
-                                                        echo "<td>" . formatNumber($datatype['Total_Amount_2568_FN02']) . "</td>";
-                                                        $total2 = $datatype['Total_Amount_2568_FN06'] + $datatype['Total_Amount_2568_FN08'] + $datatype['Total_Amount_2568_FN02'];
+                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN06']) . "</td>";
+                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN08']) . "</td>";
+                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN02']) . "</td>";
+                                                        $total2 = $dataName_a1['Total_Amount_2568_FN06'] + $dataName_a1['Total_Amount_2568_FN08'] + $dataName_a1['Total_Amount_2568_FN02'];
                                                         echo "<td>" . formatNumber($total2) . "</td>";
                                                         $Difference = $total2 - $total1;
                                                         echo "<td>" . formatNumber($Difference) . "</td>";
@@ -577,25 +798,23 @@ function fetchFacultyData($conn)
                                                         echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
                                                         echo "</tr>";
-
-                                                        // แสดงข้อมูลของ sub_type
-                                                        if (isset($datatype['sub_type']) && is_array($datatype['sub_type'])) {
-                                                            foreach ($datatype['sub_type'] as $sub_type => $SubTypeData) {
+                                                        if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
+                                                            foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
                                                                 echo "<tr>";
-                                                                $cleanedSubType = preg_replace('/^[\d.]+\s*/', '', $sub_type);
+                                                                $cleanedName_a2 = preg_replace('/^[\d.]+\s*/', '', $Name_a2);
 
-                                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . htmlspecialchars($SubTypeData['a2']) . " : " . htmlspecialchars($cleanedSubType) . "<br></td>";
+                                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a2
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . htmlspecialchars($dataName_a2['a2']) . " : " . htmlspecialchars($cleanedName_a2) . "<br></td>";
 
-                                                                echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN06']) . "</td>";
-                                                                echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN08']) . "</td>";
-                                                                echo "<td>" . formatNumber($SubTypeData['Total_Amount_2567_FN02']) . "</td>";
-                                                                $total1 = $SubTypeData['Total_Amount_2567_FN06'] + $SubTypeData['Total_Amount_2567_FN08'] + $SubTypeData['Total_Amount_2567_FN02'];
+                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN06']) . "</td>";
+                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN08']) . "</td>";
+                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN02']) . "</td>";
+                                                                $total1 = $dataName_a2['Total_Amount_2567_FN06'] + $dataName_a2['Total_Amount_2567_FN08'] + $dataName_a2['Total_Amount_2567_FN02'];
                                                                 echo "<td>" . formatNumber($total1) . "</td>";
-                                                                echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN06']) . "</td>";
-                                                                echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN08']) . "</td>";
-                                                                echo "<td>" . formatNumber($SubTypeData['Total_Amount_2568_FN02']) . "</td>";
-                                                                $total2 = $SubTypeData['Total_Amount_2568_FN06'] + $SubTypeData['Total_Amount_2568_FN08'] + $SubTypeData['Total_Amount_2568_FN02'];
+                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN06']) . "</td>";
+                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN08']) . "</td>";
+                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN02']) . "</td>";
+                                                                $total2 = $dataName_a2['Total_Amount_2568_FN06'] + $dataName_a2['Total_Amount_2568_FN08'] + $dataName_a2['Total_Amount_2568_FN02'];
                                                                 echo "<td>" . formatNumber($total2) . "</td>";
                                                                 $Difference = $total2 - $total1;
                                                                 echo "<td>" . formatNumber($Difference) . "</td>";
@@ -603,23 +822,58 @@ function fetchFacultyData($conn)
                                                                 echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
                                                                 echo "</tr>";
+                                                                if ($Name_a3 != null) {
+                                                                    if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
+                                                                        foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
+                                                                            echo "<tr>";
+                                                                            $cleanedName_a3 = preg_replace('/^[\d.]+\s*/', '', $Name_a3);
 
-                                                                // แสดงข้อมูล KKU_Item_Name
-                                                                if (isset($SubTypeData['kku_items']) && is_array($SubTypeData['kku_items'])) {
-                                                                    foreach ($SubTypeData['kku_items'] as $kkuItem) {
-                                                                        echo "<tr>";
-                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $kkuItem['name'] . "<br></td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_SUM']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN06']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN08']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN02']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_SUM']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Difference_2568_2567']) . "</td>";
-                                                                        echo "<td>" . formatNumber($kkuItem['Percentage_2568_to_2567']) . "</td>";
-                                                                        echo "</tr>";
+                                                                            // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a3
+                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($dataName_a3['a3']) . " : " . htmlspecialchars($cleanedName_a3) . "<br></td>";
+
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN06']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN08']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN02']) . "</td>";
+                                                                            $total1 = $dataName_a3['Total_Amount_2567_FN06'] + $dataName_a3['Total_Amount_2567_FN08'] + $dataName_a3['Total_Amount_2567_FN02'];
+                                                                            echo "<td>" . formatNumber($total1) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN06']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN08']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN02']) . "</td>";
+                                                                            $total2 = $dataName_a3['Total_Amount_2568_FN06'] + $dataName_a3['Total_Amount_2568_FN08'] + $dataName_a3['Total_Amount_2568_FN02'];
+                                                                            echo "<td>" . formatNumber($total2) . "</td>";
+                                                                            $Difference = $total2 - $total1;
+                                                                            echo "<td>" . formatNumber($Difference) . "</td>";
+                                                                            $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                                            echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+
+                                                                            echo "</tr>";
+
+
+                                                                            if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
+                                                                                foreach ($dataName_a3['Name_a4'] as $dataName_a4) {
+                                                                                    echo "<tr>";
+                                                                                    // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a4
+                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 30) . $dataName_a4['name'] . "<br></td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN06']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN08']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN02']) . "</td>";
+                                                                                    $total1 = $dataName_a4['Total_Amount_2567_FN06'] + $dataName_a4['Total_Amount_2567_FN08'] + $dataName_a4['Total_Amount_2567_FN02'];
+                                                                                    echo "<td>" . formatNumber($total1) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN06']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN08']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN02']) . "</td>";
+                                                                                    $total2 = $dataName_a4['Total_Amount_2568_FN06'] + $dataName_a4['Total_Amount_2568_FN08'] + $dataName_a4['Total_Amount_2568_FN02'];
+                                                                                    echo "<td>" . formatNumber($total2) . "</td>";
+                                                                                    $Difference = $total2 - $total1;
+                                                                                    echo "<td>" . formatNumber($Difference) . "</td>";
+                                                                                    $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                                                    echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+
+                                                                                    echo "</tr>";
+
+                                                                                }
+                                                                            }
+                                                                        }
                                                                     }
                                                                 }
                                                             }
