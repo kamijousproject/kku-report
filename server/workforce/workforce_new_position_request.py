@@ -35,6 +35,7 @@ try:
         'Position Qualififcations': '',
         'Fund(FT)': 0,
         'Job Family': '',
+        'Requested HC (unit)': '',
         'Personnel Group': '',
         'Field of Study': '',
         'Employment Type': '',
@@ -76,12 +77,12 @@ try:
         insert_query = '''
         INSERT INTO workforce_new_position_request (
             Account, Scenario, Version, Faculty, NHR, Personnel_Type, All_PositionTypes,
-            Position, Job_Code, Position_Qualififcations, Fund_FT, Job_Family, Personnel_Group,
+            Position, Job_Code, Position_Qualififcations, Fund_FT, Job_Family, Requested_HC_unit, Personnel_Group,
             Field_of_Study, Employment_Type, Contract_Type, Salary_Wages_Baht_per_month,
             Specific_reasons, Workers_Name_Surname, Age_years, Academic_Position,
             Hiring_Start_End_Date, Nationality_only_foreigners, Additional_information_other,
             WF_Plan, WF_SubPlan, WF_Project
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         '''
         cursor.execute(insert_query, (
             row['Account'],
@@ -96,6 +97,7 @@ try:
             row['Position Qualififcations'],
             row['Fund(FT)'],
             row['Job Family'],
+            row['Requested_HC_unit'],
             row['Personnel Group'],
             row['Field of Study'],
             row['Employment Type'],
