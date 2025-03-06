@@ -635,7 +635,7 @@ function fetchYearsData($conn)
                                                     if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['type'][$Type]['sub_types'][$subType]['super_sub_types'][$superSubType])) {
                                                         $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['type'][$Type]['sub_types'][$subType]['super_sub_types'][$superSubType] = [
                                                             'name' => $superSubTypeName,
-                                                            'a3' => $row['Account'],
+                                                            'a3' => $row['a3'],
                                                             'Total_Amount_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
