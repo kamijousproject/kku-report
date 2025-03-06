@@ -106,59 +106,172 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     }
 
     // สร้างคิวรี
-    $query = "SELECT 
-    bap.id, bap.Faculty,
+    $query = "WITH RECURSIVE account_hierarchy AS (
+    -- Anchor member: เริ่มจาก account ทุกตัว
+    SELECT 
+        a1.account,
+        a1.account AS account1, -- account สำหรับ level1
+        a1.alias_default AS level1,
+        a1.parent,
+        CAST(NULL AS CHAR(255)) AS account2, -- account สำหรับ level2
+        CAST(NULL AS CHAR(255)) AS level2,
+        CAST(NULL AS CHAR(255)) AS account3, -- account สำหรับ level3
+        CAST(NULL AS CHAR(255)) AS level3,
+        CAST(NULL AS CHAR(255)) AS account4, -- account สำหรับ level4
+        CAST(NULL AS CHAR(255)) AS level4,
+        CAST(NULL AS CHAR(255)) AS account5, -- account สำหรับ level5
+        CAST(NULL AS CHAR(255)) AS level5,
+        1 AS depth
+    FROM account a1
+    WHERE a1.parent IS NOT NULL
+    UNION ALL
+    -- Recursive member: หา parent ต่อไปเรื่อยๆ
+    SELECT 
+        ah.account,
+        ah.account1,
+        ah.level1,
+        a2.parent,
+        CASE WHEN ah.depth = 1 THEN a2.account ELSE ah.account2 END AS account2,
+        CASE WHEN ah.depth = 1 THEN a2.alias_default ELSE ah.level2 END AS level2,
+        CASE WHEN ah.depth = 2 THEN a2.account ELSE ah.account3 END AS account3,
+        CASE WHEN ah.depth = 2 THEN a2.alias_default ELSE ah.level3 END AS level3,
+        CASE WHEN ah.depth = 3 THEN a2.account ELSE ah.account4 END AS account4,
+        CASE WHEN ah.depth = 3 THEN a2.alias_default ELSE ah.level4 END AS level4,
+        CASE WHEN ah.depth = 4 THEN a2.account ELSE ah.account5 END AS account5,
+        CASE WHEN ah.depth = 4 THEN a2.alias_default ELSE ah.level5 END AS level5,
+        ah.depth + 1 AS depth
+    FROM account_hierarchy ah
+    JOIN account a2 
+        ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
+    WHERE ah.parent IS NOT NULL
+    AND ah.depth < 5 -- จำกัดระดับสูงสุดที่ 5
+),
+-- หาความลึกสูงสุดสำหรับแต่ละ account
+hierarchy_with_max AS (
+    SELECT 
+        account,
+        account1 AS CurrentAccount,
+        level1 AS Current,
+        account2 AS ParentAccount,
+        level2 AS Parent,
+        account3 AS GrandparentAccount,
+        level3 AS Grandparent,
+        account4 AS GreatGrandparentAccount,
+        level4 AS GreatGrandparent,
+        account5 AS GreatGreatGrandparentAccount,
+        level5 AS GreatGreatGrandparent,
+        depth,
+        MAX(depth) OVER (PARTITION BY account) AS max_depth
+    FROM account_hierarchy
+)
+-- เลือกเฉพาะแถวที่ depth = max_depth สำหรับแต่ละ account
+,main AS (SELECT 
+    CurrentAccount,
+    Current,
+    ParentAccount,
+    Parent,
+    GrandparentAccount,
+    Grandparent,
+    GreatGrandparentAccount,
+    GreatGrandparent,
+    GreatGreatGrandparentAccount,
+    GreatGreatGrandparent,
+    depth AS TotalLevels
+FROM hierarchy_with_max
+WHERE depth = max_depth
+ORDER BY account)
+,t1 AS(
+SELECT 
+    bap.id, 
+    bap.Faculty, 
     bap.Plan,
     ft.Alias_Default AS Faculty_name,
     MAX(p.plan_name) AS plan_name,
     (SELECT fc.Alias_Default 
      FROM Faculty fc 
-     WHERE fc.Faculty = bap.Faculty 
-     LIMIT 1) AS Faculty_Name,
-    bap.Sub_Plan, sp.sub_plan_name,
-    bap.Project, pj.project_name,
-    bap.`Account`,ac.alias_default, ac.sub_type,ac.type,
-    bap.KKU_Item_Name,ac.parent,
-    CONCAT(LEFT(ac.parent, 4), REPEAT('0', 6)) AS a1,
-    CONCAT(LEFT(ac.parent, 6), REPEAT('0', 4)) AS a2,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-    COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
-    AS Difference_2568_2567,
+     WHERE CAST(SUBSTRING(fc.Faculty, 2) AS UNSIGNED) = CAST(bap.Faculty AS UNSIGNED)
+     LIMIT 1) AS Faculty_Name_Main,
+    bap.Sub_Plan, 
+    sp.sub_plan_name,
+    bap.Project, 
+    pj.project_name,
+    ac.alias_default, 
+    ac.sub_type, 
+    ac.type,
+    bap.KKU_Item_Name, 
+    bap.Account,
+    SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+    SUM(CASE WHEN bap.Budget_Management_Year = 2567 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+    SUM(CASE WHEN bap.Budget_Management_Year = 2566 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2568 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
+    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2566 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
+    (SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+     COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)) 
+     AS Difference_2568_2567,
     CASE
-        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
+        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
         THEN 100
         ELSE 
             (
-                SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+                SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
             ) / 
-            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
+            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = 2567 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
     END AS Percentage_Difference_2568_2567,
-    bap.Reason
+    bap.Reason,
+    m.CurrentAccount,
+    m.Current,
+    m.ParentAccount,
+    m.Parent,
+    m.GrandparentAccount,
+    m.Grandparent,
+    m.GreatGrandparentAccount,
+    m.GreatGrandparent,
+    m.GreatGreatGrandparentAccount,
+    m.GreatGreatGrandparent,
+    m.TotalLevels,
+    
+    -- กำหนดค่า a1, a2, a3, a4 ตามเงื่อนไขของ TotalLevels
+    CASE 
+        WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
+        WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
+        WHEN m.TotalLevels = 3 THEN m.ParentAccount
+    END AS a1,
+    
+    CASE 
+        WHEN m.TotalLevels IN (4, 5) THEN m.GrandparentAccount
+        WHEN m.TotalLevels = 3 THEN m.ParentAccount
+    END AS a2,
+    
+    CASE 
+        WHEN m.TotalLevels IN (3, 4, 5) THEN m.ParentAccount
+    END AS a3,
+    
+    CASE 
+        WHEN m.TotalLevels IN (2, 3, 4, 5) THEN m.CurrentAccount
+    END AS a4
+
 FROM budget_planning_annual_budget_plan bap
-    INNER JOIN Faculty ft 
-        ON bap.Faculty = ft.Faculty 
-        AND ft.parent LIKE 'Faculty%' 
+INNER JOIN Faculty ft 
+    ON CAST(SUBSTRING(ft.Faculty, 2) AS UNSIGNED) = CAST(bap.Faculty AS UNSIGNED)
+    AND ft.parent LIKE 'Faculty%' 
+LEFT JOIN main m ON bap.Account = m.CurrentAccount
 LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan
 LEFT JOIN project pj ON pj.project_id = bap.Project
-LEFT JOIN `account` ac ON ac.`account` = bap.`Account`
+LEFT JOIN `account` ac ON ac.account COLLATE utf8mb4_general_ci = bap.Account COLLATE utf8mb4_general_ci
 LEFT JOIN plan p ON p.plan_id = bap.Plan
 LEFT JOIN budget_planning_actual bpa
     ON bpa.FACULTY = bap.Faculty
-    AND bpa.`ACCOUNT` = bap.`Account`
+    AND bpa.ACCOUNT = bap.Account
     AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
     AND bpa.PROJECT = bap.Project
     AND bpa.PLAN = bap.Plan
     AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
     AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
     AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
-WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
+WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
+";
 
     // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
     if ($faculty) {
@@ -166,13 +279,26 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
     }
 
     // เพิ่มการจัดกลุ่มข้อมูล
-    $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
-    bap.Project, pj.project_name, bap.`Account`,ac.parent, ac.sub_type, ac.type,
-    bap.KKU_Item_Name, ft.Alias_Default,ac.alias_default
-    ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, ac.type ASC,
-                ac.sub_type ASC, 
-                ac.alias_default ASC,
-                bap.`Account` ASC";
+    $query .= " GROUP BY 
+    bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
+    bap.Project, pj.project_name, bap.Account, ac.sub_type, 
+    bap.KKU_Item_Name, ft.Alias_Default, ac.alias_default, ac.type, p.plan_name,bap.Reason,bap.Reason,
+    m.CurrentAccount,
+    m.Current,
+    m.ParentAccount,
+    m.Parent,
+    m.GrandparentAccount,
+    m.Grandparent,
+    m.GreatGrandparentAccount,
+    m.GreatGrandparent,
+    m.GreatGreatGrandparentAccount,
+    m.GreatGreatGrandparent,m.TotalLevels
+
+ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, ac.type ASC,
+                ac.sub_type ASC, bap.Account ASC
+
+)
+SELECT * FROM t1";
 
     // เตรียมคำสั่ง SQL
 
