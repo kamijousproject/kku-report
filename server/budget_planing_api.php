@@ -385,7 +385,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT tt.*,ok.okr_name
                         FROM t6 tt
                         LEFT JOIN okr ok
-                        ON tt.OKRs_LOV=ok.okr_id)
+                        ON replace(tt.OKRs_LOV,'_','-')=ok.okr_id)
 
                         SELECT DISTINCT * FROM t7
                         ORDER BY Faculty,fund,plan,sub_plan,project,KKU_Strategic_Plan_LOV,OKRs_LOV";
