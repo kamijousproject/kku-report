@@ -387,7 +387,7 @@
                 didDrawPage: function(data) {
                     // Add header
                     doc.setFontSize(16);
-                    doc.text('รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน(มหาวิทยาลัย)', 14, 15);
+                    doc.text('รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)', 14, 15);
 
                     // Add footer with page number
                     doc.setFontSize(10);
@@ -437,7 +437,7 @@
             });
 
             // Save the PDF
-            doc.save('รายงานแผนงานระดับต่างๆของหน่วยงาน(มหาวิทยาลัย).pdf');
+            doc.save('รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย).pdf');
         }
 
         function exportCSV() {
@@ -454,10 +454,13 @@
                 maxCols = Math.max(maxCols, colCount);
             }
 
-            // สร้างตาราง 2D สำหรับเก็บข้อมูล CSV
+            // สร้างตาราง 2D สำหรับเก็บข้อมูล CSV (+1 เพื่อเพิ่มแถวใหม่ด้านบน)
             let csvMatrix = Array.from({
-                length: numRows
-            }, () => Array(maxCols).fill(""));
+                length: numRows + 1
+            }, () => Array(maxCols).fill('""'));
+
+            // ✅ เพิ่ม "text" ใน cell แรกของ CSV
+            csvMatrix[0][0] = `"รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)"`;
 
             // ใช้ตัวแปรตรวจสอบว่า cell ไหนถูก merge ไปแล้ว
             let cellMap = Array.from({
@@ -469,7 +472,6 @@
                 let colIndex = 0;
 
                 for (const cell of row.cells) {
-                    // ขยับไปยังช่องที่ยังไม่มีข้อมูล
                     while (cellMap[rowIndex][colIndex]) {
                         colIndex++;
                     }
@@ -479,22 +481,19 @@
                     const rowspan = cell.rowSpan || 1;
                     const colspan = cell.colSpan || 1;
 
-                    // ใส่ค่าข้อมูลในตำแหน่งเริ่มต้นของเซลล์
-                    csvMatrix[rowIndex][colIndex] = `"${text}"`;
+                    // ✅ ขยับ index ข้อมูลลง 1 แถว เพื่อรองรับแถว "text"
+                    csvMatrix[rowIndex + 1][colIndex] = `"${text}"`;
 
-                    // ทำเครื่องหมายว่าช่องนี้ถูกครอบคลุมโดย cell ที่ merge
                     for (let r = 0; r < rowspan; r++) {
                         for (let c = 0; c < colspan; c++) {
                             cellMap[rowIndex + r][colIndex + c] = true;
 
-                            // ช่องที่ถูก merge (ไม่ใช่ช่องแรกของ cell) ให้เป็นว่าง
                             if (r !== 0 || c !== 0) {
-                                csvMatrix[rowIndex + r][colIndex + c] = '""';
+                                csvMatrix[rowIndex + r + 1][colIndex + c] = '""';
                             }
                         }
                     }
 
-                    // ขยับ index ไปยังคอลัมน์ถัดไป
                     colIndex += colspan;
                 }
             }
@@ -507,7 +506,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานแผนงานระดับต่างๆของหน่วยงาน(มหาวิทยาลัย).csv';
+            link.download = 'รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย).csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -515,199 +514,90 @@
         }
 
 
+
         function exportXLS() {
-            const table = document.querySelector("table");
-            if (!table) return;
+            const table = document.getElementById('reportTable');
 
-            const thead = table.querySelector("thead");
-            const tbody = table.querySelector("tbody");
-            const tfoot = table.querySelector("tfoot");
-
-            function parseTableSection(section, rowOffset = 0) {
-                if (!section) return {
-                    rows: [],
-                    merges: []
-                };
-
-                const rows = [];
-                const merges = [];
-                const skipMap = {};
-
-                for (let rowIndex = 0; rowIndex < section.rows.length; rowIndex++) {
-                    const tr = section.rows[rowIndex];
-                    const rowData = [];
-                    let colIndex = 0;
-
-                    for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-                        while (skipMap[`${rowOffset + rowIndex},${colIndex}`]) {
-                            rowData[colIndex] = "";
-                            colIndex++;
-                        }
-
-                        const cell = tr.cells[cellIndex];
-                        let text = cell.innerHTML
-                            .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
-                            .replace(/<br\s*\/?\>/gi, ' ')
-                            .replace(/<\/?.+?>/g, '')
-                            .trim();
-
-                        rowData[colIndex] = text;
-
-                        const rowspan = cell.rowSpan || 1;
-                        const colspan = cell.colSpan || 1;
-
-                        if (rowspan > 1 || colspan > 1) {
-                            let sRow = rowOffset + rowIndex;
-                            let eRow = sRow + rowspan - 1;
-                            let sCol = colIndex;
-                            let eCol = sCol + colspan - 1;
-
-                            merges.push({
-                                s: {
-                                    r: sRow,
-                                    c: sCol
-                                },
-                                e: {
-                                    r: eRow,
-                                    c: eCol
-                                }
-                            });
-
-                            for (let r = 0; r < rowspan; r++) {
-                                for (let c = 0; c < colspan; c++) {
-                                    if (r === 0 && c === 0) continue;
-                                    skipMap[`${sRow + r},${sCol + c}`] = true;
-                                }
-                            }
-                        }
-                        colIndex++;
-                    }
-                    rows.push(rowData);
-                }
-
-                return {
-                    rows,
-                    merges
-                };
-            }
-
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
             const {
-                rows: theadRows,
-                merges: theadMerges
-            } = parseTableSection(thead, 0);
-            const {
-                rows: tbodyRows,
-                merges: tbodyMerges
-            } = parseTableSection(tbody, theadRows.length);
-            const {
-                rows: tfootRows,
-                merges: tfootMerges
-            } = parseTableSection(tfoot, theadRows.length + tbodyRows.length);
+                theadRows,
+                theadMerges
+            } = parseThead(table.tHead);
 
-            const allRows = [...theadRows, ...tbodyRows, ...tfootRows];
+            // ============ ส่วนที่ 2: ประมวลผล TBODY ============
+            const tbodyRows = parseTbody(table.tBodies[0]);
 
-            // กรองค่า undefined หรือ null ออกจาก array
-            const sanitizedRows = allRows.map(row => row.map(cell => cell ?? ""));
+            // ============ ส่วนที่ 3: ข้อความพิเศษในแถวแรก (row0) ============
+            const row0 = ['รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย)']; // เพิ่มข้อความพิเศษที่แถวแรก
 
+            // สร้าง allRows โดยให้ row0 เป็นแถวแรก
+            const allRows = [row0, ...theadRows, ...tbodyRows];
+
+            // สร้าง Workbook + Worksheet
             const wb = XLSX.utils.book_new();
-            const ws = XLSX.utils.aoa_to_sheet(sanitizedRows);
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-            // ตรวจสอบขอบเขตของ Merge ก่อนใส่ใน Sheet
-            const maxRow = sanitizedRows.length - 1;
-            const maxCol = Math.max(...sanitizedRows.map(row => row.length), 0) - 1;
+            // ใส่ merges ของ thead ลงใน sheet
+            // ทำการย้ายการ merge เพื่อไม่ให้กระทบกับ row0
+            ws['!merges'] = theadMerges.map(merge => ({
+                s: {
+                    r: merge.s.r + 1,
+                    c: merge.s.c
+                }, // เลื่อนแถวที่ merge ลงไป 1
+                e: {
+                    r: merge.e.r + 1,
+                    c: merge.e.c
+                } // เลื่อนแถวที่ merge ลงไป 1
+            }));
 
-            const validMerges = [...theadMerges, ...tbodyMerges, ...tfootMerges].filter(
-                ({
-                    s,
-                    e
-                }) =>
-                s.r <= e.r && s.c <= e.c && // ตรวจสอบว่า start <= end
-                s.r >= 0 && e.r <= maxRow && // เช็คว่าจำนวนแถวอยู่ในช่วงที่มีข้อมูล
-                s.c >= 0 && e.c <= maxCol // เช็คว่าจำนวนคอลัมน์อยู่ในช่วงที่มีข้อมูล
-            );
+            // กำหนดให้ Header (thead) อยู่กึ่งกลาง
+            theadRows.forEach((row, rowIndex) => {
+                row.forEach((_, colIndex) => {
+                    const cellAddress = XLSX.utils.encode_cell({
+                        r: rowIndex + 1, // เริ่มจากแถวที่ 1 เพื่อไม่ให้ซ้ำกับ row0
+                        c: colIndex
+                    });
+                    if (!ws[cellAddress]) return;
+                    ws[cellAddress].s = {
+                        alignment: {
+                            horizontal: "center",
+                            vertical: "center"
+                        }, // จัดให้อยู่กึ่งกลาง
+                        font: {
+                            bold: true
+                        } // ทำให้ header ตัวหนา
+                    };
+                });
+            });
 
-            if (validMerges.length > 0) {
-                ws["!merges"] = validMerges;
-            }
+            // ตั้งค่าความกว้างของคอลัมน์ให้พอดีกับเนื้อหา
+            ws['!cols'] = new Array(theadRows[0].length).fill({
+                wch: 15
+            });
 
+            // เพิ่ม worksheet ลงใน workbook
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-            XLSX.writeFile(wb, "รายงานผลการดำเนินงานตามแผนปฏิบัติการประจำปีงบประมาณ (จำแนกตามประเด็นยุทธศาสตร์-ระดับมหาวิทยาลัย).xlsx");
+
+            // เขียนไฟล์เป็น .xls
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xls',
+                type: 'array'
+            });
+
+            // สร้าง Blob + ดาวน์โหลดไฟล์
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.ms-excel'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานแผนงานระดับต่าง ๆ ของหน่วยงาน (มหาวิทยาลัย).xls';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
-
-        function parseTfoot(tfoot) {
-            if (!tfoot) return {
-                tfootRows: [],
-                tfootMerges: []
-            };
-
-            const tfootRows = [];
-            const tfootMerges = [];
-            const skipMap = {};
-
-            for (let rowIndex = 0; rowIndex < tfoot.rows.length; rowIndex++) {
-                const tr = tfoot.rows[rowIndex];
-                const rowData = [];
-                let colIndex = 0;
-
-                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-                    // ข้ามเซลล์ที่ถูก merge ครอบไว้
-                    while (skipMap[`${rowIndex},${colIndex}`]) {
-                        rowData[colIndex] = "";
-                        colIndex++;
-                    }
-
-                    const cell = tr.cells[cellIndex];
-                    let text = cell.innerHTML
-                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
-                        .replace(/<br\s*\/?>/gi, ' ')
-                        .replace(/<\/?[^>]+>/g, '')
-                        .trim();
-
-                    rowData[colIndex] = text;
-
-                    const rowspan = cell.rowSpan || 1;
-                    const colspan = cell.colSpan || 1;
-
-                    if (rowspan > 1 || colspan > 1) {
-                        tfootMerges.push({
-                            s: {
-                                r: rowIndex,
-                                c: colIndex
-                            },
-                            e: {
-                                r: rowIndex + rowspan - 1,
-                                c: colIndex + colspan - 1
-                            }
-                        });
-
-                        for (let r = 0; r < rowspan; r++) {
-                            for (let c = 0; c < colspan; c++) {
-                                if (r === 0 && c === 0) continue;
-                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
-                            }
-                        }
-                    }
-                    colIndex++;
-                }
-                tfootRows.push(rowData);
-            }
-
-            return {
-                tfootRows,
-                tfootMerges
-            };
-        }
-
-        /**
-         * -----------------------
-         * 1) parseThead: รองรับ merge
-         * -----------------------
-         * - ใช้ skipMap จัดการ colSpan/rowSpan
-         * - ไม่แยก <br/> เป็นแถวใหม่ (โดยทั่วไป header ไม่ต้องแตกแถว)
-         * - ถ้า thead มีหลาย <tr> ก็จะได้หลาย row
-         * - return: { theadRows: [][] , theadMerges: [] }
-         */
         function parseThead(thead) {
             const theadRows = [];
             const theadMerges = [];

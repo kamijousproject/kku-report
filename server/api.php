@@ -948,7 +948,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ON t.faculty=tt.Faculty
                             LEFT JOIN Faculty f
                             ON t.faculty = f.Faculty)
-
                             SELECT * FROM t6
                             ";
                 $stmtPlan = $conn->prepare($sqlPlan);
@@ -1283,13 +1282,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM planning_faculty_action_plan b
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
-								
-								UNION all 
-                        
-                        SELECT DISTINCT k.Alias_Default AS faculty ,kku.faculty as fcode
-                        FROM planning_kku_action_plan kku
-                        LEFT JOIN (SELECT * from Faculty WHERE Faculty LIKE 'KKU Strategic Dept%') k
-                        ON kku.faculty=k.faculty ";
+							 ";
 
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();

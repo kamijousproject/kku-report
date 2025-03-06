@@ -449,10 +449,13 @@
                 maxCols = Math.max(maxCols, colCount);
             }
 
-            // สร้างตาราง 2D สำหรับเก็บข้อมูล CSV
+            // สร้างตาราง 2D สำหรับเก็บข้อมูล CSV (+1 เพื่อเพิ่มแถวใหม่ด้านบน)
             let csvMatrix = Array.from({
-                length: numRows
-            }, () => Array(maxCols).fill(""));
+                length: numRows + 1
+            }, () => Array(maxCols).fill('""'));
+
+            // ✅ เพิ่ม "text" ใน cell แรกของ CSV
+            csvMatrix[0][0] = `"รายงานภาพรวมของยุทธศาสตร์"`;
 
             // ใช้ตัวแปรตรวจสอบว่า cell ไหนถูก merge ไปแล้ว
             let cellMap = Array.from({
@@ -464,7 +467,6 @@
                 let colIndex = 0;
 
                 for (const cell of row.cells) {
-                    // ขยับไปยังช่องที่ยังไม่มีข้อมูล
                     while (cellMap[rowIndex][colIndex]) {
                         colIndex++;
                     }
@@ -474,22 +476,19 @@
                     const rowspan = cell.rowSpan || 1;
                     const colspan = cell.colSpan || 1;
 
-                    // ใส่ค่าข้อมูลในตำแหน่งเริ่มต้นของเซลล์
-                    csvMatrix[rowIndex][colIndex] = `"${text}"`;
+                    // ✅ ขยับ index ข้อมูลลง 1 แถว เพื่อรองรับแถว "text"
+                    csvMatrix[rowIndex + 1][colIndex] = `"${text}"`;
 
-                    // ทำเครื่องหมายว่าช่องนี้ถูกครอบคลุมโดย cell ที่ merge
                     for (let r = 0; r < rowspan; r++) {
                         for (let c = 0; c < colspan; c++) {
                             cellMap[rowIndex + r][colIndex + c] = true;
 
-                            // ช่องที่ถูก merge (ไม่ใช่ช่องแรกของ cell) ให้เป็นว่าง
                             if (r !== 0 || c !== 0) {
-                                csvMatrix[rowIndex + r][colIndex + c] = '""';
+                                csvMatrix[rowIndex + r + 1][colIndex + c] = '""';
                             }
                         }
                     }
 
-                    // ขยับ index ไปยังคอลัมน์ถัดไป
                     colIndex += colspan;
                 }
             }
@@ -509,6 +508,8 @@
             URL.revokeObjectURL(url);
         }
 
+
+
         function exportXLS() {
             const table = document.getElementById('reportTable');
 
@@ -521,20 +522,34 @@
             // ============ ส่วนที่ 2: ประมวลผล TBODY ============
             const tbodyRows = parseTbody(table.tBodies[0]);
 
-            const allRows = [...theadRows, ...tbodyRows];
+            // ============ ส่วนที่ 3: ข้อความพิเศษในแถวแรก (row0) ============
+            const row0 = ['รายงานภาพรวมของยุทธศาสตร์']; // เพิ่มข้อความพิเศษที่แถวแรก
+
+            // สร้าง allRows โดยให้ row0 เป็นแถวแรก
+            const allRows = [row0, ...theadRows, ...tbodyRows];
 
             // สร้าง Workbook + Worksheet
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(allRows);
 
             // ใส่ merges ของ thead ลงใน sheet
-            ws['!merges'] = theadMerges;
+            // ทำการย้ายการ merge เพื่อไม่ให้กระทบกับ row0
+            ws['!merges'] = theadMerges.map(merge => ({
+                s: {
+                    r: merge.s.r + 1,
+                    c: merge.s.c
+                }, // เลื่อนแถวที่ merge ลงไป 1
+                e: {
+                    r: merge.e.r + 1,
+                    c: merge.e.c
+                } // เลื่อนแถวที่ merge ลงไป 1
+            }));
 
             // กำหนดให้ Header (thead) อยู่กึ่งกลาง
             theadRows.forEach((row, rowIndex) => {
                 row.forEach((_, colIndex) => {
                     const cellAddress = XLSX.utils.encode_cell({
-                        r: rowIndex,
+                        r: rowIndex + 1, // เริ่มจากแถวที่ 1 เพื่อไม่ให้ซ้ำกับ row0
                         c: colIndex
                     });
                     if (!ws[cellAddress]) return;
@@ -578,16 +593,6 @@
             URL.revokeObjectURL(url);
         }
 
-
-        /**
-         * -----------------------
-         * 1) parseThead: รองรับ merge
-         * -----------------------
-         * - ใช้ skipMap จัดการ colSpan/rowSpan
-         * - ไม่แยก <br/> เป็นแถวใหม่ (โดยทั่วไป header ไม่ต้องแตกแถว)
-         * - ถ้า thead มีหลาย <tr> ก็จะได้หลาย row
-         * - return: { theadRows: [][] , theadMerges: [] }
-         */
         function parseThead(thead) {
             const theadRows = [];
             const theadMerges = [];

@@ -228,9 +228,9 @@
             let this_fa;
             data.forEach((row, index) => {
                 if (row.parent.endsWith("T1-Strategic")) {
-                    console.log(1);
+                    // console.log(1);
                     const ch = data.filter(item => item.parent === row.pillar_id);
-                    console.log(ch);
+                    // console.log(ch);
                     const parseValue = (value) => {
                         if (value === null || value === undefined) {
                             return 0;
@@ -257,18 +257,18 @@
                         Actual_Spend_Amount: 0
 
                     });
-                    console.log('check fa',this_fa,'  ',row.fa_name);
-                    
+                    // console.log('check fa',this_fa,'  ',row.fa_name);
+
                     totalBudgetAmount += sums.Budget_Amount;
                     totalAllocatedBudget += sums.Allocated_budget;
                     totalActualSpendAmount += sums.Actual_Spend_Amount;
                     if (index + 1 == 1 || this_fa !== row.fa_name) {
-                            var str = '<tr><td nowrap style="text-align: left;">' + row.fa_name + '</td>' +
-                                '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
-                                '<td style="text-align: right;">' + (parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
-                                '<td style="text-align: right;">' + (parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
-                                '<td style="text-align: right;">' + (parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
-                            tableBody.insertAdjacentHTML('beforeend', str);
+                        var str = '<tr><td nowrap style="text-align: left;">' + row.fa_name + '</td>' +
+                            '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
+                            '<td style="text-align: right;">' + (parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                            '<td style="text-align: right;">' + (parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                            '<td style="text-align: right;">' + (parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
+                        tableBody.insertAdjacentHTML('beforeend', str);
                     } else {
                         var str = '<tr><td >' +
                             '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
@@ -337,6 +337,9 @@
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const csvRows = [];
+            const titleRow = ['"รายงานการใช้จ่ายงบประมาณตามแผนงาน"', '', '', '', '']; // คอลัมน์ที่เหลือเป็นค่าว่าง
+            csvRows.push(titleRow.join(',')); // เพิ่มเป็นบรรทัดแรก
+
 
             // วนลูปที่แต่ละแถว (thead, tbody, tfoot)
             for (let rowIndex = 0; rowIndex < table.rows.length; rowIndex++) {
@@ -571,21 +574,26 @@
                 tfootMerges = parsedTfoot.tfootMerges; // เปลี่ยนชื่อเป็น tfootMerges
             }
 
+            // สมมติว่ามี 5 คอลัมน์ในตาราง
+            const totalColumns = 5;
+
+            // กำหนด firstRowText ให้ใช้ข้อความในคอลัมน์แรกและช่องที่เหลือเป็นช่องว่าง
+            const firstRowText = ['รายงานการใช้จ่ายงบประมาณตามแผนงาน', '', '', '', ''];
+
             // รวมทุกแถว (thead + tbody + tfoot)
-            const allRows = [...theadRows, ...tbodyRows, ...tfootRows];
+            const allRows = [firstRowText, ...theadRows, ...tbodyRows, ...tfootRows];
+
+            console.log(allRows);
 
             // สร้าง Workbook + Worksheet
             const wb = XLSX.utils.book_new();
             const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-            // ใส่ merges ของ thead และ tfoot ลงใน sheet
-            ws['!merges'] = [...theadMerges, ...tfootMerges];
-
             // กำหนดให้ Header (thead) อยู่กึ่งกลาง
             theadRows.forEach((row, rowIndex) => {
                 row.forEach((_, colIndex) => {
                     const cellAddress = XLSX.utils.encode_cell({
-                        r: rowIndex,
+                        r: rowIndex + 1, // เพิ่ม 1 เนื่องจาก row 0 ถูกใช้ในการแสดงข้อความ
                         c: colIndex
                     });
                     if (!ws[cellAddress]) return;
@@ -628,6 +636,7 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
 
 
         function parseTfoot(tfoot) {
