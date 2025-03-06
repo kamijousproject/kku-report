@@ -247,7 +247,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,a.`type` AS TYPE2
                         ,a.sub_type AS sub_type2
                         ,a.id AS p_id
-                        ,f.Alias_Default
+                        ,replace(f.Alias_Default,'-',':') as Alias_Default
                         ,f2.Alias_Default AS pname
                         FROM budget_planning_annual_budget_plan b
                         LEFT JOIN budget_planning_project_kpi b2
@@ -260,6 +260,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON b.faculty=f.faculty
                         LEFT JOIN Faculty f2
                         ON f.parent=f2.Faculty
+                        WHERE a.id > (SELECT id FROM account WHERE parent = 'Expenses')
                         GROUP BY b.Faculty
                         ,b.Account
                         ,b.KKU_Item_Name
