@@ -233,24 +233,29 @@ SELECT
     m.TotalLevels,
     
     -- กำหนดค่า a1, a2, a3, a4 ตามเงื่อนไขของ TotalLevels
-    CASE 
-        WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
-        WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
-        WHEN m.TotalLevels = 3 THEN m.ParentAccount
-    END AS a1,
-    
-    CASE 
-        WHEN m.TotalLevels IN (4, 5) THEN m.GrandparentAccount
-        WHEN m.TotalLevels = 3 THEN m.ParentAccount
-    END AS a2,
-    
-    CASE 
-        WHEN m.TotalLevels IN (3, 4, 5) THEN m.ParentAccount
-    END AS a3,
-    
-    CASE 
-        WHEN m.TotalLevels IN (2, 3, 4, 5) THEN m.CurrentAccount
-    END AS a4
+CASE 
+    WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
+    WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
+    WHEN m.TotalLevels = 3 THEN m.ParentAccount
+END AS a1,
+
+CASE 
+    WHEN m.TotalLevels = 5 THEN m.GrandparentAccount
+    WHEN m.TotalLevels = 4 THEN m.ParentAccount
+    WHEN m.TotalLevels = 3 THEN m.CurrentAccount
+END AS a2,
+
+CASE 
+    WHEN m.TotalLevels = 5 THEN m.ParentAccount
+    WHEN m.TotalLevels = 4 THEN m.CurrentAccount
+    WHEN m.TotalLevels = 3 THEN NULL
+END AS a3,
+
+CASE 
+    WHEN m.TotalLevels = 5 THEN m.CurrentAccount
+    WHEN m.TotalLevels = 4 THEN NULL
+    WHEN m.TotalLevels = 3 THEN NULL
+END AS a4
 
 FROM budget_planning_annual_budget_plan bap
 INNER JOIN Faculty ft 
