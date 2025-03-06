@@ -80,21 +80,19 @@
                                 <div class="card-title">
                                     <h4>รายงานการใช้จ่ายงบประมาณตามแผนงาน</h4>
                                 </div>
-                                <div class="info-section">
-                                    <label for="dropdown1">ส่วนงาน:</label>
-                                    <select id="dropdown1">
-                                        <option value="">-- เลือกส่วนงาน --</option>
-                                    </select>
-                                </div>
+                                <label for="selectcategory">เลือกส่วนงาน:</label>
+                                <select name="selectcategory" id="selectcategory" onchange="selectFilter()">
+                                    <option value="">-- ทั้งหมด --</option>
+                                </select>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr class="text-nowrap">
-                                                <th class="align-middle" rowspan="2">ส่วนงาน/หน่วยงาน</th>
-                                                <th class="align-middle" rowspan="2">เสาหลัก/ยุทธศาสตร์/กลยุทธ์</th>
-                                                <th class="align-middle" rowspan="2">กรอบวงเงินงบประมาณ (บาท)</th>
-                                                <th class="align-middle" rowspan="2">งบประมาณที่ได้รับการจัดสรร (บาท)</th>
-                                                <th class="align-middle" rowspan="2">งบประมาณที่ใช้ (บาท)</th>
+                                                <th>ส่วนงาน/หน่วยงาน</th>
+                                                <th>เสาหลัก/ยุทธศาสตร์/กลยุทธ์</th>
+                                                <th>กรอบวงเงินงบประมาณ (บาท)</th>
+                                                <th>งบประมาณที่ได้รับการจัดสรร (บาท)</th>
+                                                <th>งบประมาณที่ใช้ (บาท)</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -124,170 +122,215 @@
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+        let report_plan_status = [];
+        let filterdata = []
+        let categories = new Set();
         let totalBudgetAmount = 0;
         let totalAllocatedBudget = 0;
         let totalActualSpendAmount = 0;
         $(document).ready(function() {
+            // $.ajax({
+            //     type: "POST",
+            //     url: "../server/api.php",
+            //     data: {
+            //         'command': 'get_faculty_action_plan'
+            //     },
+            //     dataType: "json",
+            //     success: function(response) {
+            //         response.fac.forEach((row) => {
+            //             //console.log(row.y);
+            //             $('#dropdown1').append('<option value="' + row.fcode + '">' + row.faculty + '</option>');
+            //         });
+            //     }
+            // });
+
+
+            // $('#dropdown1').change(function() {
+            //     totalBudgetAmount = 0
+            //     totalAllocatedBudget = 0
+            //     totalActualSpendAmount = 0
+            //     let faculty = $(this).val();
+            //     let apiname = 'get_fac_budget_expenses';
+            //     console.log(faculty);
+            //     if (faculty === 'KKU Strategic Dept') {
+            //         apiname = 'get_kku_budget_expenses'
+
+            //     } else if (!faculty) {
+            //         const tableBody = document.querySelector('#reportTable tbody');
+            //         tableBody.innerHTML = '';
+            //         const tableFooter = document.querySelector('#reportTableFooter');
+            //         tableFooter.innerHTML = "";
+            //         return;
+            //     }
             $.ajax({
                 type: "POST",
                 url: "../server/api.php",
                 data: {
-                    'command': 'get_faculty_action_plan'
+                    'command': 'get_fac_budget_expenses',
                 },
                 dataType: "json",
                 success: function(response) {
-                    response.fac.forEach((row) => {
-                        //console.log(row.y);
-                        $('#dropdown1').append('<option value="' + row.fcode + '">' + row.faculty + '</option>');
+
+                    report_plan_status = response.plan;
+                    quarter = response.quarter;
+                    response.plan.forEach(data => {
+
+                        categories.add(data.fa_name);
+
+                    })
+                    const categorySelect = document.getElementById("selectcategory");
+
+                    // เพิ่มตัวเลือกทั้งหมด
+                    categorySelect.innerHTML = '<option value="">-- ทั้งหมด --</option>';
+
+                    // เพิ่มตัวเลือกสำหรับแต่ละ fa_name ที่ไม่ซ้ำ
+                    categories.forEach(category => {
+                        const option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
                     });
+                    writeBody(response.plan);
+
+
+
+                },
+                error: function(jqXHR, exception) {
+                    console.error("Error: " + exception);
+                    responseError(jqXHR, exception);
                 }
-            });
-
-
-            $('#dropdown1').change(function() {
-                totalBudgetAmount = 0
-                totalAllocatedBudget = 0
-                totalActualSpendAmount = 0
-                let faculty = $(this).val();
-                let apiname = 'get_fac_budget_expenses';
-                console.log(faculty);
-                if (faculty === 'KKU Strategic Dept') {
-                    apiname = 'get_kku_budget_expenses'
-
-                } else if (!faculty) {
-                    const tableBody = document.querySelector('#reportTable tbody');
-                    tableBody.innerHTML = '';
-                    const tableFooter = document.querySelector('#reportTableFooter');
-                    tableFooter.innerHTML = "";
-                    return;
-                }
-                $.ajax({
-                    type: "POST",
-                    url: "../server/api.php",
-                    data: {
-                        'command': apiname,
-                        'faculty': faculty
-                    },
-                    dataType: "json",
-                    success: function(response) {
-
-                        console.log(response);
-                        const tableBody = document.querySelector('#reportTable tbody');
-                        tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
-
-
-                        response.plan.forEach((row, index) => {
-                            if (row.parent == "F00T1-Strategic") {
-                                console.log(1);
-                                const ch = response.plan.filter(item => item.parent === row.pillar_id);
-                                console.log(ch);
-                                const parseValue = (value) => {
-                                    if (value === null || value === undefined) {
-                                        return 0;
-                                    }
-                                    if (typeof value === 'string') {
-                                        const number = parseFloat(value.replace(/,/g, ''));
-                                        return isNaN(number) ? 0 : number;
-                                    } else if (typeof value === 'number') {
-                                        // ถ้า value เป็นตัวเลขอยู่แล้ว ส่งคืนค่านั้น
-                                        return value;
-                                    }
-                                    // สำหรับกรณีอื่นๆ คืนค่า 0
-                                    return 0;
-                                };
-                                const sums = ch.reduce((acc, item) => {
-                                    return {
-                                        Budget_Amount: acc.Budget_Amount + parseValue(item.Budget_Amount ?? '0'),
-                                        Allocated_budget: acc.Allocated_budget + parseValue(item.Allocated_budget ?? '0'),
-                                        Actual_Spend_Amount: acc.Actual_Spend_Amount + parseValue(item.Actual_Spend_Amount ?? '0')
-                                    };
-                                }, {
-                                    Budget_Amount: 0,
-                                    Allocated_budget: 0,
-                                    Actual_Spend_Amount: 0
-
-                                });
-                                totalBudgetAmount += sums.Budget_Amount;
-                                totalAllocatedBudget += sums.Allocated_budget;
-                                totalActualSpendAmount += sums.Actual_Spend_Amount;
-                                if (index + 1 == 1) {
-                                    var str = '<tr><td nowrap style="text-align: left;">' + $('#dropdown1 option:selected').text() + '</td>' +
-                                        '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
-                                        '<td style="text-align: right;">' + (parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
-                                        '<td style="text-align: right;">' + (parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
-                                        '<td style="text-align: right;">' + (parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
-                                    tableBody.insertAdjacentHTML('beforeend', str);
-                                } else {
-                                    var str = '<tr><td >' +
-                                        '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
-                                        '<td style="text-align: right;">' + (parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
-                                        '<td style="text-align: right;">' + (parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
-                                        '<td style="text-align: right;">' + (parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
-                                    tableBody.insertAdjacentHTML('beforeend', str);
-                                }
-
-                            } else {
-                                var str = '<tr><td >' +
-                                    '<td nowrap style="text-align: left;">' + '&nbsp;'.repeat(8) + row.pillar_name + '</td>' +
-                                    '<td style="text-align: right;">' + (parseFloat(row.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
-                                    '<td style="text-align: right;">' + (parseFloat(row.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
-                                    '<td style="text-align: right;">' + (parseFloat(row.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
-                                tableBody.insertAdjacentHTML('beforeend', str);
-                            }
-
-                        });
-
-                        // เพิ่มแถวผลรวมไปยัง <tfoot>
-                        const tableFooter = document.querySelector('#reportTableFooter');
-                        tableFooter.innerHTML = "";
-                        // เพิ่มแถวใน footer สำหรับผลรวม
-                        const footerRow = document.createElement('tr');
-                        const createCell = (text, align = "left") => {
-                            const td = document.createElement("td");
-                            td.textContent = text;
-                            td.style.textAlign = align; // กำหนดการจัดตำแหน่งข้อความ
-                            return td;
-                        };
-
-                        const footerTd1 = document.createElement('td');
-                        footerTd1.textContent = 'รวม';
-                        footerTd1.colSpan = 2;
-                        footerRow.appendChild(footerTd1);
-
-
-                        const footerTd2 = createCell(Number(totalBudgetAmount).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }), "right");
-                        footerRow.appendChild(footerTd2);
-
-
-                        const footerTd3 = createCell(Number(totalAllocatedBudget).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }), "right");
-                        footerRow.appendChild(footerTd3);
-
-                        const footerTd4 = createCell(Number(totalActualSpendAmount).toLocaleString('en-US', {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2
-                        }), "right");
-                        footerRow.appendChild(footerTd4);
-
-
-
-                        tableFooter.appendChild(footerRow);
-
-
-                    },
-                    error: function(jqXHR, exception) {
-                        console.error("Error: " + exception);
-                        responseError(jqXHR, exception);
-                    }
-                });
             });
         });
+        // });
+
+        function selectFilter() {
+            const selectedCategory = document.getElementById('selectcategory').value;
+            if (selectedCategory === "") {
+                filterdata = report_plan_status;
+                writeBody(filterdata);
+            } else {
+                // filter ข้อมูลที่ fa_name ตรงกับค่าที่เลือก
+                filterdata = report_plan_status.filter(item => item.fa_name === selectedCategory);
+                writeBody(filterdata);
+            }
+            document.querySelector('.table-responsive').scrollTop = 0;
+        }
+
+        function writeBody(data) {
+            totalBudgetAmount = 0
+            totalAllocatedBudget = 0
+            totalActualSpendAmount = 0
+
+            const tableBody = document.querySelector('#reportTable tbody');
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+
+
+            let this_fa;
+            data.forEach((row, index) => {
+                if (row.parent.endsWith("T1-Strategic")) {
+                    console.log(1);
+                    const ch = data.filter(item => item.parent === row.pillar_id);
+                    console.log(ch);
+                    const parseValue = (value) => {
+                        if (value === null || value === undefined) {
+                            return 0;
+                        }
+                        if (typeof value === 'string') {
+                            const number = parseFloat(value.replace(/,/g, ''));
+                            return isNaN(number) ? 0 : number;
+                        } else if (typeof value === 'number') {
+                            // ถ้า value เป็นตัวเลขอยู่แล้ว ส่งคืนค่านั้น
+                            return value;
+                        }
+                        // สำหรับกรณีอื่นๆ คืนค่า 0
+                        return 0;
+                    };
+                    const sums = ch.reduce((acc, item) => {
+                        return {
+                            Budget_Amount: acc.Budget_Amount + parseValue(item.Budget_Amount ?? '0'),
+                            Allocated_budget: acc.Allocated_budget + parseValue(item.Allocated_budget ?? '0'),
+                            Actual_Spend_Amount: acc.Actual_Spend_Amount + parseValue(item.Actual_Spend_Amount ?? '0')
+                        };
+                    }, {
+                        Budget_Amount: 0,
+                        Allocated_budget: 0,
+                        Actual_Spend_Amount: 0
+
+                    });
+                    console.log('check fa',this_fa,'  ',row.fa_name);
+                    
+                    totalBudgetAmount += sums.Budget_Amount;
+                    totalAllocatedBudget += sums.Allocated_budget;
+                    totalActualSpendAmount += sums.Actual_Spend_Amount;
+                    if (index + 1 == 1 || this_fa !== row.fa_name) {
+                            var str = '<tr><td nowrap style="text-align: left;">' + row.fa_name + '</td>' +
+                                '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
+                                '<td style="text-align: right;">' + (parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                                '<td style="text-align: right;">' + (parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                                '<td style="text-align: right;">' + (parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
+                            tableBody.insertAdjacentHTML('beforeend', str);
+                    } else {
+                        var str = '<tr><td >' +
+                            '<td nowrap style="text-align: left;">' + row.pillar_name + '</td>' +
+                            '<td style="text-align: right;">' + (parseFloat(sums.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                            '<td style="text-align: right;">' + (parseFloat(sums.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                            '<td style="text-align: right;">' + (parseFloat(sums.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
+                        tableBody.insertAdjacentHTML('beforeend', str);
+                    }
+                    this_fa = row.fa_name
+
+                } else {
+                    var str = '<tr><td >' +
+                        '<td nowrap style="text-align: left;">' + '&nbsp;'.repeat(8) + row.pillar_name + '</td>' +
+                        '<td style="text-align: right;">' + (parseFloat(row.Budget_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                        '<td style="text-align: right;">' + (parseFloat(row.Allocated_budget || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td>' +
+                        '<td style="text-align: right;">' + (parseFloat(row.Actual_Spend_Amount || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '</td></tr>';
+                    tableBody.insertAdjacentHTML('beforeend', str);
+                }
+
+            });
+
+            // เพิ่มแถวผลรวมไปยัง <tfoot>
+            const tableFooter = document.querySelector('#reportTableFooter');
+            tableFooter.innerHTML = "";
+            // เพิ่มแถวใน footer สำหรับผลรวม
+            const footerRow = document.createElement('tr');
+            const createCell = (text, align = "left") => {
+                const td = document.createElement("td");
+                td.textContent = text;
+                td.style.textAlign = align; // กำหนดการจัดตำแหน่งข้อความ
+                return td;
+            };
+
+            const footerTd1 = document.createElement('td');
+            footerTd1.textContent = 'รวม';
+            footerTd1.colSpan = 2;
+            footerRow.appendChild(footerTd1);
+
+
+            const footerTd2 = createCell(Number(totalBudgetAmount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }), "right");
+            footerRow.appendChild(footerTd2);
+
+
+            const footerTd3 = createCell(Number(totalAllocatedBudget).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }), "right");
+            footerRow.appendChild(footerTd3);
+
+            const footerTd4 = createCell(Number(totalActualSpendAmount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }), "right");
+            footerRow.appendChild(footerTd4);
+
+
+
+            tableFooter.appendChild(footerRow);
+        }
 
 
 
@@ -315,7 +358,7 @@
                         .replace(/<br\s*\/?>/gi, ' ')
                         .replace(/<\/?[^>]+>/g, '').trim() : '';
 
-                    const text4 = row.cells[2] ? row.cells[3].innerHTML
+                    const text4 = row.cells[2] ? row.cells[2].innerHTML
                         .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length))
                         .replace(/<br\s*\/?>/gi, ' ')
                         .replace(/<\/?[^>]+>/g, '').trim() : '';

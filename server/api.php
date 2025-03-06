@@ -393,33 +393,35 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $faculty = $_POST["faculty"];
 
                 $sqlPlan = "WITH t1 AS (
-                                SELECT *
-                                FROM pilars2
-                                WHERE pillar_id LIKE 'F00SI%' OR pillar_id LIKE 'F00P%'
-                                ORDER BY id
+                            SELECT p2.pillar_id,p2.parent,p2.pillar_name_en,p2.pillar_name
+                            FROM pilars2 p2
+                            JOIN planning_kku_action_plan pkap 
+                            ON p2.pillar_id LIKE CONCAT(LEFT(pkap.Strategic_Object, 3), 'SI%')
+                            OR p2.pillar_id LIKE CONCAT(LEFT(pkap.Strategic_Object, 3), 'P%')
+                            GROUP BY p2.pillar_id ,p2.parent,p2.pillar_name_en,p2.pillar_name
                             ),
                             t2 AS (
                             SELECT 
-                                REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS KKU_Strategic_Plan_LOV,
-                                    SUM(Budget_Amount) AS Budget_Amount
-                                FROM planning_kku_action_plan pkap
-                                GROUP BY KKU_Strategic_Plan_LOV
+                            REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS Pillar_type,
+                            SUM(Budget_Amount) AS Budget_Amount
+                            FROM planning_kku_action_plan pkap
+                            GROUP BY Pillar_type
                             ),
                             t3 AS (
-                                SELECT 
-                                    REPLACE(
-                                        SUBSTRING_INDEX(REPLACE(pkpp.Strategic_Object, '_', ''), '-', 1), 
-                                        'SO', 'SI'
-                                    ) AS Plan_LOV, 
-                                    SUM(pkpp.Allocated_budget) AS Allocated_budget, 
-                                    SUM(pkpp.Actual_Spend_Amount) AS Actual_Spend_Amount
-                                FROM planning_kku_project_progress AS pkpp
-                                GROUP BY Plan_LOV
+                            SELECT 
+                            REPLACE(
+                            SUBSTRING_INDEX(REPLACE(pkpp.Strategic_Object, '_', ''), '-', 1), 
+                            'SO', 'SI'
+                            ) AS Pillar_type, 
+                            SUM(pkpp.Allocated_budget) AS Allocated_budget, 
+                            SUM(pkpp.Actual_Spend_Amount) AS Actual_Spend_Amount
+                            FROM planning_kku_project_progress AS pkpp
+                            GROUP BY Pillar_type
                             )
                             SELECT t1.*, t2.Budget_Amount, t3.Allocated_budget, t3.Actual_Spend_Amount
                             FROM t1
-                            LEFT JOIN t2 ON t1.pillar_id = t2.KKU_Strategic_Plan_LOV
-                            LEFT JOIN t3 ON t1.pillar_id = t3.Plan_LOV;
+                            LEFT JOIN t2 ON t1.pillar_id = t2.Pillar_type
+                            LEFT JOIN t3 ON t1.pillar_id = t3.Pillar_type;
                             ";
                 $stmtPlan = $conn->prepare($sqlPlan);
                 // $stmtPlan->bindParam(':faculty', $faculty, PDO::PARAM_STR);
@@ -443,43 +445,106 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             try {
                 $db = new Database();
                 $conn = $db->connect();
-                $faculty = $_POST["faculty"];
                 // เชื่อมต่อฐานข้อมูล
-              
-                $sqlPlan = "WITH t1 AS(
-                            SELECT *
-                            FROM pilars2
-                            WHERE pillar_id LIKE 'F00SI%' or pillar_id LIKE 'F00P%'
-                            ORDER BY id)
-                            ,t2 AS (
-                            SELECT KKU_Strategic_Plan_LOV
-                            ,SUM(Budget_Amount) AS Budget_Amount
-                            FROM planning_faculty_action_plan
-                            where faculty=:faculty
-                            GROUP BY KKU_Strategic_Plan_LOV)
-                            ,t3 AS (
-                            SELECT t.*,tt.Budget_Amount
-                            FROM t1 t
-                            LEFT JOIN t2 tt
-                            ON t.pillar_id=replace(tt.KKU_Strategic_Plan_LOV,'_',''))
-                            ,t4 AS (
-                            SELECT p1.KKU_Strategic_Plan_LOV
-                            ,SUM(p2.Allocated_budget) AS Allocated_budget
-                            ,SUM(p2.Actual_Spend_Amount) AS Actual_Spend_Amount
-                            FROM planning_faculty_action_plan p1
-                            LEFT JOIN planning_faculty_project_progress p2
-                            ON p1.faculty=p2.Faculty AND p1.Strategic_Project=p2.Strategic_Project
-                            where p1.faculty=:faculty
-                            GROUP BY p1.KKU_Strategic_Plan_LOV)
-                            ,t5 AS (
-                            SELECT t.*,tt.*
-                            FROM t3 t
-                            LEFT JOIN t4 tt
-                            ON t.pillar_id=replace(tt.KKU_Strategic_Plan_LOV,'_',''))
-                
-                            SELECT * FROM t5";
+
+                $sqlPlan = "WITH t1 AS (
+                                SELECT p2.pillar_id, p2.parent, p2.pillar_name_en, p2.pillar_name,
+                                f.Alias_Default AS fa_name
+                                FROM pilars2 p2
+                                JOIN planning_faculty_action_plan pfap 
+                                ON p2.pillar_id LIKE CONCAT(LEFT(pfap.Strategic_Object, 3), 'SI%')
+                                OR p2.pillar_id LIKE CONCAT(LEFT(pfap.Strategic_Object, 3), 'P%')
+                                LEFT JOIN Faculty f ON f.Faculty = pfap.Faculty
+                                GROUP BY p2.pillar_id, p2.parent, p2.pillar_name_en, p2.pillar_name, fa_name
+                            ),
+                            t2 AS (
+                                SELECT 
+                                REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS Pillar_type,
+                                SUM(Budget_Amount) AS Budget_Amount
+                                FROM planning_faculty_action_plan pfap
+                                GROUP BY Pillar_type
+                            ),
+                            t3 AS (
+                                SELECT 
+                                REPLACE(
+                                SUBSTRING_INDEX(REPLACE(pfpp.Strategic_Object, '_', ''), '-', 1), 
+                                'SO', 'SI'
+                                ) AS Pillar_type, 
+                                SUM(pfpp.Allocated_budget) AS Allocated_budget, 
+                                SUM(pfpp.Actual_Spend_Amount) AS Actual_Spend_Amount
+                                FROM planning_faculty_project_progress AS pfpp
+                                GROUP BY Pillar_type
+                            ),
+                            t4 AS (
+                                SELECT p2.pillar_id, p2.parent, p2.pillar_name_en, p2.pillar_name,
+                                f.Alias_Default AS fa_name
+                                FROM pilars2 p2
+                                JOIN planning_kku_action_plan pkap 
+                                ON p2.pillar_id LIKE CONCAT(LEFT(pkap.Strategic_Object, 3), 'SI%')
+                                OR p2.pillar_id LIKE CONCAT(LEFT(pkap.Strategic_Object, 3), 'P%')
+                                LEFT JOIN Faculty f ON f.Faculty = pkap.Faculty
+                                GROUP BY p2.pillar_id, p2.parent, p2.pillar_name_en, p2.pillar_name, fa_name
+                            ),
+                            t5 AS (
+                                SELECT 
+                                REPLACE(SUBSTRING_INDEX(pkap.Strategic_Object, '-', 1), 'SO', 'SI') AS Pillar_type,
+                                SUM(Budget_Amount) AS Budget_Amount
+                                FROM planning_kku_action_plan pkap
+                                
+                                GROUP BY Pillar_type
+                            ),
+                            t6 AS (
+                                SELECT 
+                                REPLACE(
+                                SUBSTRING_INDEX(REPLACE(pkpp.Strategic_Object, '_', ''), '-', 1), 
+                                'SO', 'SI'
+                                ) AS Pillar_type, 
+                                SUM(pkpp.Allocated_budget) AS Allocated_budget, 
+                                SUM(pkpp.Actual_Spend_Amount) AS Actual_Spend_Amount
+                                FROM planning_kku_project_progress AS pkpp
+                                GROUP BY Pillar_type
+                            )
+                            SELECT t1.*, t2.Budget_Amount, t3.Allocated_budget, t3.Actual_Spend_Amount, t1.fa_name
+                            FROM t1
+                            LEFT JOIN t2 ON t1.pillar_id = t2.Pillar_type
+                            LEFT JOIN t3 ON t1.pillar_id = t3.Pillar_type
+                            UNION ALL
+                            SELECT t4.*, t5.Budget_Amount, t6.Allocated_budget, t6.Actual_Spend_Amount, t4.fa_name
+                            FROM t4
+                            LEFT JOIN t5 ON t4.pillar_id = t5.Pillar_type
+                            LEFT JOIN t6 ON t4.pillar_id = t6.Pillar_type
+                            ";
+                // $sqlPlan = "WITH t1 AS (
+                //             SELECT p2.pillar_id,p2.parent,p2.pillar_name_en,p2.pillar_name
+                //             FROM pilars2 p2
+                //             JOIN planning_faculty_action_plan pfap 
+                //             ON p2.pillar_id LIKE CONCAT(LEFT(pfap.Strategic_Object, 3), 'SI%')
+                //             OR p2.pillar_id LIKE CONCAT(LEFT(pfap.Strategic_Object, 3), 'P%')
+                //             GROUP BY p2.pillar_id ,p2.parent,p2.pillar_name_en,p2.pillar_name
+                //             ),
+                //             t2 AS (
+                //             SELECT 
+                //             REPLACE(SUBSTRING_INDEX(pfap.Strategic_Object, '-', 1), 'SO', 'SI') AS Pillar_type,
+                //             SUM(Budget_Amount) AS Budget_Amount
+                //             FROM planning_faculty_action_plan pfap
+                //             GROUP BY Pillar_type
+                //             ),
+                //             t3 AS (
+                //             SELECT 
+                //             REPLACE(
+                //             SUBSTRING_INDEX(REPLACE(pfpp.Strategic_Object, '_', ''), '-', 1), 
+                //             'SO', 'SI'
+                //             ) AS Pillar_type, 
+                //             SUM(pfpp.Allocated_budget) AS Allocated_budget, 
+                //             SUM(pfpp.Actual_Spend_Amount) AS Actual_Spend_Amount
+                //             FROM planning_faculty_project_progress AS pfpp
+                //             GROUP BY Pillar_type
+                //             )
+                //             SELECT t1.*, t2.Budget_Amount, t3.Allocated_budget, t3.Actual_Spend_Amount
+                //             FROM t1
+                //             LEFT JOIN t2 ON t1.pillar_id = t2.Pillar_type
+                //             LEFT JOIN t3 ON t1.pillar_id = t3.Pillar_type";
                 $stmtPlan = $conn->prepare($sqlPlan);
-                $stmtPlan->bindParam(':faculty', $faculty, PDO::PARAM_STR);
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
                 $conn = null;
@@ -607,7 +672,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $stmtPlan->execute();
                 $plan = $stmtPlan->fetchAll(PDO::FETCH_ASSOC);
 
-                
+
                 $sqlQuarter = "SELECT p.OKR,p.Version,p.Quarter_Progress_Value FROM planning_faculty_okr_progress as p";
                 $stmtQuarter = $conn->prepare($sqlQuarter);
                 $stmtQuarter->execute();
