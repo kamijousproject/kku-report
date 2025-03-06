@@ -300,7 +300,7 @@ thead tr:nth-child(3) th {
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'ตารางข้อมูลแผนงานและโครงการ.csv';
+            link.download = 'รายงานโครงการ/กิจกรรม.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -322,7 +322,7 @@ thead tr:nth-child(3) th {
             doc.setFont("THSarabun");
             const filterValues = getFilterValues();
             doc.setFontSize(12);
-            doc.text("ตารางข้อมูลแผนงานและโครงการ", 150, 10,{ align: 'center' });
+            doc.text("รายงานโครงการ/กิจกรรม", 150, 10,{ align: 'center' });
             doc.setFontSize(10);
             doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 20);
             doc.autoTable({
@@ -356,7 +356,7 @@ thead tr:nth-child(3) th {
                 margin: { top: 15, right: 5, bottom: 10, left: 5 },
                 tableWidth: 'auto'
             });
-            doc.save('ตารางข้อมูลแผนงานและโครงการ.pdf');
+            doc.save('รายงานโครงการ/กิจกรรม.pdf');
         }
 
         function exportXLS() {
@@ -367,7 +367,7 @@ thead tr:nth-child(3) th {
 
             // สร้างข้อมูลสำหรับหัวรายงาน (4 แถวแรก)
             const headerRows = [
-                [{ v: "ตารางข้อมูลแผนงานและโครงการ", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
+                [{ v: "รายงานโครงการ/กิจกรรม", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
                 [
                     { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },
                     { v: filterValues.department }
@@ -466,7 +466,7 @@ thead tr:nth-child(3) th {
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
             // เขียนไฟล์ Excel
-            XLSX.writeFile(wb, `ตารางข้อมูลแผนงานและโครงการ.xlsx`);
+            XLSX.writeFile(wb, `รายงานโครงการ/กิจกรรม.xlsx`);
         }
     </script>
     <!-- Common JS -->
