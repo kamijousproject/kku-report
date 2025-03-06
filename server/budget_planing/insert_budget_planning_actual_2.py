@@ -78,8 +78,14 @@ conn.commit()
 
 # ลบ Record ที่ไม่ต้องการ
 delete_query = """
-DELETE FROM budget_planning_actual_2
-WHERE account IN ('0', '', 'Account Segment', 'Account', 'Total for Account Segment', 'End of Report');
+DELETE FROM
+	budget_planning_actual_2
+WHERE
+	account IN (
+		'0', '', 'Account Segment', 'Account',
+		'Total for Account Segment', 'End of Report',
+		'บัญชี', 'เซกเมนต์บัญชี', 'ยอดรวมของเซกเมนต์บัญชี'
+	);
 """
 cursor.execute(delete_query)
 conn.commit()
