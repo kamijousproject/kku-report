@@ -94,7 +94,7 @@ thead tr:nth-child(3) th {
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>ตารางข้อมูลแผนงานและโครงการ</h4>
+                                    <h4>รายงานโครงการ/กิจกรรม</h4>
                                 </div>
                                 <label for="category">เลือกส่วนงาน:</label>
                                 <select name="category" id="category" onchange="fetchData()">
