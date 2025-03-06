@@ -77,13 +77,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when type='2.เงินและทรัพย์สินซึ่งมีผู้อุทิศให้แก่มหาวิทยาลัย' then Total_Amount ELSE 0 END) AS a2
                         ,sum(case when type='3.เงินกองทุนที่รัฐบาลหรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้หรือผลประโยชน์จากกองทุน' then Total_Amount ELSE 0 END) AS a3
                         ,sum(case when type='4.ค่าธรรมเนียม ค่าบำรุง ค่าตอบแทน เบี้ยปรับ และค่าบริการต่างๆของมหาวิทยาลัย' then Total_Amount ELSE 0 END) AS a4
-                        ,sum(case when type='5. รายได้หรือผลประโยชน์ที่ได้มาจากการลงทุนหรือการร่วมลงทุนจากทรัพย์สินของมหาวิทย' then Total_Amount ELSE 0 END) AS a5
-                        ,sum(case when type='6. รายได้หรือผลประโยชน์ที่ได้มาจากการใช้ที่ราชพัสดุหรือจัดหาประโยชน์ในที่ราชพัสด' then Total_Amount ELSE 0 END) AS a6
+                        ,sum(case when type='5. รายได้หรือผลประโยชน์ที่ได้มาจากการลงทุนหรือการร่วมลงทุนจากทรัพย์สินของมหาวิทยาลัย' then Total_Amount ELSE 0 END) AS a5
+                        ,sum(case when type='6. รายได้หรือผลประโยชน์ที่ได้มาจากการใช้ที่ราชพัสดุหรือจัดหาประโยชน์ในที่ราชพัสดุที่มหาวิทยาลัยปกครอง ดูแล ใช้ หรือจัดหาประโยชน์' then Total_Amount ELSE 0 END) AS a6
                         ,sum(case when type='7.เงินอุดหนุนจากหน่วยงานภายนอก' then Total_Amount ELSE 0 END) AS a7
-                        ,sum(case when type='8.เงินและผลประโยชน์ที่ได้รับจากการบริการวิชาการ การวิจัย และนำทรัพย์สินทางปัญญาไ' then Total_Amount ELSE 0 END) AS a8
+                        ,sum(case when type='8.เงินและผลประโยชน์ที่ได้รับจากการบริการวิชาการ การวิจัย และนำทรัพย์สินทางปัญญาไปหาประโยชน์' then Total_Amount ELSE 0 END) AS a8
                         ,sum(case when type='9.รายได้ผลประโยชน์อย่างอื่น' then Total_Amount ELSE 0 END) AS a9
                         FROM t2
                         GROUP BY Faculty)
+
                         SELECT t.*,f.Alias_Default,f2.Alias_Default AS pname
 								FROM t3 t
                         LEFT JOIN (
