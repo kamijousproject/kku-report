@@ -474,7 +474,6 @@
                                         // echo "<pre>";
                                         // print_r($resultsFN);
                                         // echo "</pre>";
-                                        file_put_contents('resultsFN.json', json_encode($resultsFN, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
                                         $groupedData = [];
 
