@@ -583,6 +583,7 @@ function fetchFacultyData($conn)
                                                     $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
                                                         'name' => $ItemName_a2,
                                                         'a2' => $row['a2'],
+                                                        'test' => $row['Name_a2'],
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
                                                         'Total_Amount_2567_FN02' => 0,
@@ -603,6 +604,7 @@ function fetchFacultyData($conn)
                                                     $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
                                                         'name' => $ItemName_a3,
                                                         'a3' => $row['a3'],
+                                                        'test' => $row['Name_a3'],
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
                                                         'Total_Amount_2567_FN02' => 0,
@@ -818,6 +820,9 @@ function fetchFacultyData($conn)
                                                                 if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
                                                                     if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
                                                                         foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
+                                                                            if ($dataName_a3['test'] == null || $dataName_a3['test'] == '') {
+                                                                                continue;
+                                                                            }
                                                                             echo "<tr>";
                                                                             echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a3['name'] . "<br></td>";
                                                                             echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN06']) . "</td>";
