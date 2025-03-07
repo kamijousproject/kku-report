@@ -823,7 +823,7 @@ function fetchFacultyData($conn)
                                                                 echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
                                                                 echo "</tr>";
-                                                                if ($Name_a3 != null) {
+                                                                if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
                                                                     if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
                                                                         foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
                                                                             echo "<tr>";
