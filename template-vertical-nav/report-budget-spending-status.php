@@ -682,7 +682,12 @@ thead tr:nth-child(3) th {
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const csvRows = [];
-
+            const filters = getFilterValues();
+            const reportHeader = [
+                `"รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน"`,
+                `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
+            ];
+            
             // วนลูปทีละ <tr>
             for (const row of table.rows) {
                 // เก็บบรรทัดย่อยของแต่ละเซลล์
@@ -735,7 +740,11 @@ thead tr:nth-child(3) th {
             }
 
             // รวมเป็น CSV + BOM
-            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const csvContent = "\uFEFF" + 
+                reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
+                '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
+                csvRows.join('\n'); // ตรงนี้คือส่วนที่แก้ไข
+
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
@@ -746,104 +755,435 @@ thead tr:nth-child(3) th {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+        function getFilterValues() {
+            return {
 
+                department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
+            };
+        }
         function exportPDF() {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
-
-            // Add Thai font
+            
+            // ตั้งค่ามาร์จินและขนาดกระดาษ
+            const marginLeft = 5;
+            const marginRight = 5;
+            const marginTop = 25;
+            const marginBottom = 10;
+            const pageWidth = doc.internal.pageSize.width;
+            const usableWidth = pageWidth - marginLeft - marginRight;
+            
+            // ตั้งค่าฟอนต์
             doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
             doc.setFont("THSarabun");
-            doc.setFontSize(10);
-            doc.text('รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน', 14, 10);
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                theme: 'grid',
-                styles: {
-                    font: "THSarabun",
-                    fontSize: 7,
-                    cellPadding: 1,
-                    lineWidth: 0.1,
-                    lineColor: [0, 0, 0],
-                    minCellHeight: 5
-                },
-                headStyles: {
-                    fillColor: [220, 230, 241],
-                    textColor: [0, 0, 0],
-                    fontSize: 7,
-                    fontStyle: 'bold',
-                    halign: 'center',
-                    valign: 'middle'
-                },
-                columnStyles: {
-                    0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
-                },
-                didParseCell: function(data) {
-                    if (data.section === 'body' && data.column.index === 0) {
-                        data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
-                    }
-                },
-                margin: { top: 15, right: 5, bottom: 10, left: 5 },
-                tableWidth: 'auto'
+            const filterValues = getFilterValues();
+                    doc.setFontSize(12);
+                    doc.text("รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน", 150, 10,{ align: 'center' });
+                    doc.setFontSize(10);
+                    doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 20);
+            
+            // ฟังก์ชันตรวจสอบว่าเป็นตัวเลขหรือไม่
+            function isNumeric(str) {
+                if (typeof str != "string") return false;
+                return !isNaN(str) && !isNaN(parseFloat(str));
+            }
+            
+            // นับจำนวนคอลัมน์ในตาราง
+            const table = document.getElementById('reportTable');
+            if (!table) {
+                console.error('ไม่พบตาราง reportTable');
+                return;
+            }
+            
+            // ตรวจสอบจำนวนคอลัมน์จากส่วนหัวตาราง
+            const headerRows = table.querySelectorAll('thead tr');
+            let maxColumns = 0;
+            headerRows.forEach(row => {
+                let colCount = 0;
+                const cells = row.querySelectorAll('th');
+                cells.forEach(cell => {
+                    const colspan = parseInt(cell.getAttribute('colspan') || 1);
+                    colCount += colspan;
+                });
+                maxColumns = Math.max(maxColumns, colCount);
             });
+            
+            console.log(`จำนวนคอลัมน์ที่พบในตาราง: ${maxColumns}`);
+            
+            // ลดขนาดตัวอักษรตามจำนวนคอลัมน์
+            let fontSize = 8;
+            if (maxColumns > 10) fontSize = 6;
+            if (maxColumns > 15) fontSize = 5;
+            
+            // สร้างตารางใหม่สำหรับจัดการ <br/> ในข้อมูล
+            const tempTable = document.createElement('table');
+            tempTable.style.display = 'none';
+            document.body.appendChild(tempTable);
+            
+            try {
+                // คัดลอกส่วนหัวตารางอย่างถูกต้อง
+                const thead = document.createElement('thead');
+                tempTable.appendChild(thead);
+                
+                // คัดลอกแถวหัวตารางทั้งหมด
+                headerRows.forEach(originalHeaderRow => {
+                    const newHeaderRow = document.createElement('tr');
+                    const cells = originalHeaderRow.querySelectorAll('th');
+                    
+                    cells.forEach(cell => {
+                        const newCell = document.createElement('th');
+                        
+                        // คัดลอก attributes สำคัญ (rowspan, colspan)
+                        const rowspan = cell.getAttribute('rowspan');
+                        if (rowspan) newCell.setAttribute('rowspan', rowspan);
+                        
+                        const colspan = cell.getAttribute('colspan');
+                        if (colspan) newCell.setAttribute('colspan', colspan);
+                        
+                        const style = cell.getAttribute('style');
+                        if (style) newCell.setAttribute('style', style);
+                        
+                        newCell.textContent = cell.textContent.trim();
+                        newHeaderRow.appendChild(newCell);
+                    });
+                    
+                    thead.appendChild(newHeaderRow);
+                });
+                
+                // สร้าง tbody
+                const tbody = document.createElement('tbody');
+                tempTable.appendChild(tbody);
+                
+                // ประมวลผลข้อมูลแต่ละแถว
+                const dataRows = table.querySelectorAll('tbody tr');
+                
+                dataRows.forEach(originalRow => {
+                    const cells = originalRow.querySelectorAll('td');
+                    
+                    // เก็บข้อมูลจากทุกเซลล์ในแถว
+                    const rowData = [];
+                    cells.forEach(cell => {
+                        rowData.push({
+                            html: cell.innerHTML,
+                            text: cell.textContent
+                        });
+                    });
+                    
+                    // ตรวจสอบว่าเซลล์แรกมี <br/> หรือไม่
+                    if (rowData.length > 0 && rowData[0].html.includes('<br')) {
+                        // แยกข้อความในเซลล์แรกด้วย <br>
+                        const parts = rowData[0].html.split(/<br\s*\/?>/i);
+                        
+                        // ตรวจสอบว่าเซลล์อื่นๆ มีข้อมูลแยกด้วย <br> ตรงกันหรือไม่
+                        const otherCellsParts = [];
+                        for (let i = 1; i < rowData.length; i++) {
+                            if (rowData[i].html.includes('<br')) {
+                                otherCellsParts[i] = rowData[i].html.split(/<br\s*\/?>/i);
+                            } else {
+                                // ถ้าเซลล์นี้ไม่มี <br> ต้องเติมอาร์เรย์ว่างให้ครบจำนวน parts
+                                otherCellsParts[i] = Array(parts.length).fill('');
+                            }
+                        }
+                        
+                        // สร้างแถวใหม่สำหรับแต่ละส่วนที่แยกได้
+                        for (let partIndex = 0; partIndex < parts.length; partIndex++) {
+                            const part = parts[partIndex].trim();
+                            if (!part) continue; // ข้ามข้อมูลที่ว่างเปล่า
+                            
+                            const newRow = document.createElement('tr');
+                            
+                            // สร้างเซลล์แรก
+                            const firstCell = document.createElement('td');
+                            
+                            // คัดลอกข้อมูลต้นฉบับ
+                            const htmlPart = part;
+                            
+                            // นับจำนวน &nbsp; เพื่อคำนวณการเยื้อง
+                            const nbspCount = (htmlPart.match(/&nbsp;/g) || []).length;
+                            const indentLevel = Math.floor(nbspCount / 8); // ทุก 8 &nbsp; = 1 ระดับ
+                            
+                            // แทนที่จะแทนที่ &nbsp; ด้วยช่องว่างธรรมดา
+                            // ใช้วิธีการจัดการเยื้องโดยใช้ padding ใน PDF แทน
+                            
+                            // แปลง HTML entities เป็นข้อความ (แต่ยังคงรักษาโครงสร้างเดิม)
+                            const div = document.createElement('div');
+                            div.innerHTML = htmlPart;
+                            let textContent = div.textContent;
+                            
+                            // แทนที่การใช้ textContent ที่จะลบ &nbsp; ให้ใช้การจัดการช่องว่างด้วย CSS
+                            firstCell.style.whiteSpace = 'pre';
+                            firstCell.textContent = textContent.trim();
+                            
+                            // ใช้ padding เพื่อจัดการการเยื้อง
+                            if (indentLevel > 0) {
+                                firstCell.style.paddingLeft = (indentLevel * 10) + 'mm'; // เพิ่มค่าเยื้องให้ชัดเจนขึ้น
+                            }
+                            
+                            newRow.appendChild(firstCell);
+                            
+                            // สร้างเซลล์อื่นๆ
+                            for (let i = 1; i < rowData.length; i++) {
+                                const cell = document.createElement('td');
+                                
+                                // ถ้าเซลล์นี้มีข้อมูลที่แยกด้วย <br> และมีข้อมูลในส่วนที่ตรงกับเซลล์แรก
+                                if (otherCellsParts[i] && partIndex < otherCellsParts[i].length) {
+                                    const cellContent = otherCellsParts[i][partIndex];
+                                    // แปลง HTML entities
+                                    const tempDiv = document.createElement('div');
+                                    tempDiv.innerHTML = cellContent;
+                                    cell.textContent = tempDiv.textContent.trim();
+                                    
+                                    // จัดให้ตัวเลขอยู่ตรงกลาง
+                                    if (isNumeric(cell.textContent)) {
+                                        cell.style.textAlign = 'center';
+                                    }
+                                } else {
+                                    cell.textContent = '';
+                                }
+                                
+                                newRow.appendChild(cell);
+                            }
+                            
+                            tbody.appendChild(newRow);
+                        }
+                    } else {
+                        // ถ้าไม่มี <br/> ก็คัดลอกแถวปกติ
+                        const newRow = document.createElement('tr');
+                        
+                        rowData.forEach((cellData, index) => {
+                            const cell = document.createElement('td');
+                            
+                            // สำหรับคอลัมน์แรก ตรวจสอบ &nbsp;
+                            if (index === 0 && cellData.html.includes('&nbsp;')) {
+                                // นับจำนวน &nbsp;
+                                const nbspCount = (cellData.html.match(/&nbsp;/g) || []).length;
+                                const indentLevel = Math.floor(nbspCount / 8);
+                                
+                                // ใช้ padding แทนการแทนที่ &nbsp;
+                                if (indentLevel > 0) {
+                                    cell.style.paddingLeft = (indentLevel * 10) + 'mm';
+                                }
+                            }
+                            
+                            cell.textContent = cellData.text.trim();
+                            newRow.appendChild(cell);
+                        });
+                        
+                        tbody.appendChild(newRow);
+                    }
+                });
+                
+                // กำหนดความกว้างคอลัมน์
+                const columnStyles = {};
+                
+                // คอลัมน์แรก (รายการ) ให้กว้างกว่า
+                columnStyles[0] = {
+                    cellWidth: usableWidth * 0.30,
+                    halign: 'left'
+                };
+                
+                // คอลัมน์ที่เหลือแบ่งพื้นที่ที่เหลือ
+                const otherColWidth = (usableWidth * 0.70) / (maxColumns - 1);
+                for (let i = 1; i < maxColumns; i++) {
+                    columnStyles[i] = {
+                        cellWidth: otherColWidth,
+                        halign: 'center'
+                    };
+                }
+                
+                // สร้าง PDF
+                doc.autoTable({
+                    html: tempTable,
+                    startY: marginTop,
+                    theme: 'plain', // เปลี่ยนจาก 'grid' เป็น 'plain' เพื่อลบเส้นขอบ
+                    styles: {
+                        font: "THSarabun",
+                        fontSize: fontSize,
+                        cellPadding: 1,
+                        lineWidth: 0, // กำหนดเป็น 0 เพื่อลบเส้นขอบ
+                        minCellHeight: 4,
+                        overflow: 'linebreak',
+                        textColor: [0, 0, 0]
+                    },
+                    headStyles: {
+                        fillColor: [220, 230, 241],
+                        textColor: [0, 0, 0],
+                        fontSize: fontSize,
+                        fontStyle: 'bold',
+                        halign: 'center',
+                        valign: 'middle',
+                        lineWidth: 0 // ลบเส้นขอบส่วนหัวตาราง
+                    },
+                    columnStyles: columnStyles,
+                    margin: { top: marginTop, right: marginRight, bottom: marginBottom, left: marginLeft },
+                    tableWidth: usableWidth,
+                    showHead: 'everyPage',
+                    tableLineWidth: 0, // กำหนดเป็น 0 เพื่อลบเส้นขอบตาราง
+                    // ลบการกำหนดสีเส้นขอบเนื่องจากไม่จำเป็น
+                    didDrawCell: function(data) {
+                        // ปรับความสูงของเซลล์หัวตาราง
+                        if (data.section === 'head') {
+                            const cell = data.cell;
+                            if (cell.raw.getAttribute('rowspan') || cell.raw.getAttribute('colspan')) {
+                                // เพิ่มความสูงสำหรับเซลล์ที่มี rowspan หรือ colspan
+                                cell.styles.minCellHeight = 8;
+                            }
+                        }
+                    },
+                    didParseCell: function(data) {
+                        // จัดการกับการตั้งค่า align ของเซลล์
+                        if (data.section === 'head') {
+                            const style = data.cell.raw.getAttribute('style');
+                            if (style && style.includes('text-align: left')) {
+                                data.cell.styles.halign = 'left';
+                            }
+                        }
+                        
+                        // สำหรับเซลล์ข้อมูล คอลัมน์แรกใช้ text-align: left
+                        if (data.section === 'body' && data.column.index === 0) {
+                            data.cell.styles.halign = 'left';
+                            
+                            // ตรวจสอบหาการเยื้อง
+                            const paddingLeft = data.cell.raw.style.paddingLeft;
+                            if (paddingLeft) {
+                                // แปลง paddingLeft จาก mm เป็นจำนวนช่องว่าง
+                                // และใส่ช่องว่างเพิ่มที่ข้อความ
+                                const mmValue = parseFloat(paddingLeft);
+                                if (!isNaN(mmValue)) {
+                                    // แปลงค่า mm เป็นจำนวนช่องว่าง (ประมาณการ)
+                                    const spacesPerMm = 0.5; // ประมาณการจำนวนช่องว่างต่อ 1 mm
+                                    const spaces = ' '.repeat(Math.round(mmValue * spacesPerMm));
+                                    
+                                    // เพิ่มช่องว่างนำหน้าข้อความที่มีอยู่
+                                    const originalText = data.cell.text || '';
+                                    data.cell.text = spaces + originalText;
+                                }
+                            }
+                        }
+                    }
+                });
+            } finally {
+                // ลบตารางชั่วคราว
+                if (tempTable.parentNode) {
+                    tempTable.parentNode.removeChild(tempTable);
+                }
+            }
+            
             doc.save('รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.pdf');
         }
 
 
 
-function exportXLS() {
-    const table = document.getElementById('reportTable');
+        function exportXLS() {
+            const table = document.getElementById('reportTable');
+            const filterValues = getFilterValues();
 
-    // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
-    const { theadRows, theadMerges } = parseThead(table.tHead);
+            // สร้าง Workbook
+            const wb = XLSX.utils.book_new();
 
-    // ============ ส่วนที่ 2: ประมวลผล TBODY ============
-    const tbodyRows = parseTbody(table.tBodies[0]);
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+            const { theadRows, theadMerges } = parseThead(table.tHead);
 
-    const allRows = [...theadRows, ...tbodyRows];
+            // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
+            const tbodyRows = parseTbody(table.tBodies[0]);
 
-    // สร้าง Workbook + Worksheet
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(allRows);
+            // รวม tbody + thead (ยังไม่รวมส่วนหัว)
+            const tableRows = [...theadRows, ...tbodyRows];
 
-    // ใส่ merges ของ thead ลงใน sheet
-    ws['!merges'] = theadMerges;
+            // สร้าง worksheet จาก table data
+            const ws = XLSX.utils.aoa_to_sheet(tableRows);
 
-    // กำหนดให้ Header (thead) อยู่กึ่งกลาง
-    theadRows.forEach((row, rowIndex) => {
-        row.forEach((_, colIndex) => {
-            const cellAddress = XLSX.utils.encode_cell({ r: rowIndex, c: colIndex });
-            if (!ws[cellAddress]) return;
-            ws[cellAddress].s = {
-                alignment: { horizontal: "center", vertical: "center" }, // จัดให้อยู่กึ่งกลาง
-                font: { bold: true } // ทำให้ header ตัวหนา
+            // สร้างส่วนหัวรายงานแบบแยกเป็น cell แทนการใช้ object style
+            // SheetJS จะสร้าง cell address A1, A2, B2 เป็นต้น
+            ws['A1'] = { v: "รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน", t: 's' };
+            ws['A1'].s = { font: { bold: true, sz: 15 }, alignment: { horizontal: "center" } };
+            
+            ws['A2'] = { v: "ส่วนงาน/หน่วยงาน:", t: 's' };
+            ws['A2'].s = { font: { bold: true } };
+            
+            ws['B2'] = { v: filterValues.department, t: 's' };
+            
+            // แถวที่ 3 เป็นแถวว่าง (A3 ว่าง)
+            ws['A3'] = { v: "", t: 's' };
+
+            // ต้องกำหนด range ใหม่ให้รวมส่วนหัว (A1:?) + ข้อมูลตาราง
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            const newRange = {
+                s: { r: 0, c: 0 },           // เริ่มจาก A1
+                e: { r: range.e.r + 3, c: range.e.c } // ต่อท้ายจากข้อมูลเดิม + offset 3 แถว
             };
-        });
-    });
+            ws['!ref'] = XLSX.utils.encode_range(newRange);
 
-    // ตั้งค่าความกว้างของคอลัมน์ให้พอดีกับเนื้อหา
-    ws['!cols'] = new Array(theadRows[0].length).fill({ wch: 15 });
+            // ต้อง shift ข้อมูลตาราง (ทุก row) ลงไป 3 แถว
+            const newCells = {};
+            Object.keys(ws).forEach(key => {
+                if (key[0] !== '!') { // ไม่ใช่ metadata
+                    const cellAddress = XLSX.utils.decode_cell(key);
+                    // ถ้าไม่ใช่ A1, A2, B2, A3 (header cells) ให้ shift ลง
+                    if (!(
+                        (cellAddress.r === 0 && cellAddress.c === 0) || // A1
+                        (cellAddress.r === 1 && cellAddress.c === 0) || // A2
+                        (cellAddress.r === 1 && cellAddress.c === 1) || // B2
+                        (cellAddress.r === 2 && cellAddress.c === 0)    // A3
+                    )) {
+                        const newAddress = XLSX.utils.encode_cell({
+                            r: cellAddress.r + 3, // shift ลง 3 แถว
+                            c: cellAddress.c
+                        });
+                        newCells[newAddress] = ws[key];
+                    }
+                }
+            });
 
-    // เพิ่ม worksheet ลงใน workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+            // อัพเดต cells (ลบเก่า, ใส่ใหม่ที่ shift แล้ว)
+            Object.keys(ws).forEach(key => {
+                if (key[0] !== '!' && 
+                    !(key === 'A1' || key === 'A2' || key === 'B2' || key === 'A3')) {
+                    delete ws[key];
+                }
+            });
+            Object.keys(newCells).forEach(key => {
+                ws[key] = newCells[key];
+            });
 
-    // เขียนไฟล์เป็น .xls
-    const excelBuffer = XLSX.write(wb, { bookType: 'xls', type: 'array' });
+            // อัพเดต merges (shift ลง 3 แถว)
+            const updatedMerges = theadMerges.map(merge => ({
+                s: { r: merge.s.r + 3, c: merge.s.c },
+                e: { r: merge.e.r + 3, c: merge.e.c }
+            }));
 
-    // สร้าง Blob + ดาวน์โหลดไฟล์
-    const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.xls';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-}
+            // เพิ่ม merge สำหรับหัวแถวแรก
+            const maxCols = Math.max(...theadRows.map(row => row.length));
+            if (maxCols > 1) {
+                updatedMerges.push({
+                    s: { r: 0, c: 0 },
+                    e: { r: 0, c: maxCols - 1 }
+                });
+            }
 
+            ws['!merges'] = updatedMerges;
+
+            // เพิ่ม worksheet ลงใน workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์เป็น .xls (BIFF8)
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xls',
+                type: 'array'
+            });
+
+            // สร้าง Blob + ดาวน์โหลด
+            const blob = new Blob([excelBuffer], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.xls';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
 
         /**
          * -----------------------
@@ -855,114 +1195,114 @@ function exportXLS() {
          * - return: { theadRows: [][] , theadMerges: [] }
          */
         function parseThead(thead) {
-        const theadRows = [];
-        const theadMerges = [];
+            const theadRows = [];
+            const theadMerges = [];
 
-        if (!thead) {
+            if (!thead) {
+                return { theadRows, theadMerges };
+            }
+
+            // Map กันการเขียนทับ merge
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+                const tr = thead.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    // ข้ามเซลล์ที่ถูก merge ครอบไว้
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    // ไม่แยก <br/> → แค่แทน &nbsp; เป็น space
+                    let text = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // &nbsp; => spaces
+                        .replace(/<br\s*\/?>/gi, ' ') // ถ้ามี <br/> ใน thead ก็เปลี่ยนเป็นช่องว่าง (ไม่แตกแถว)
+                        .replace(/<\/?[^>]+>/g, '')   // ลบ tag อื่น ถ้าเหลือ
+                        .trim();
+
+                    rowData[colIndex] = text;
+
+                    // ดู rowSpan/colSpan
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        // Push merges object
+                        theadMerges.push({
+                            s: { r: rowIndex, c: colIndex },
+                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                        });
+
+                        // Mark skipMap
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r === 0 && c === 0) continue;
+                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                    colIndex++;
+                }
+                theadRows.push(rowData);
+            }
+
             return { theadRows, theadMerges };
         }
 
-        // Map กันการเขียนทับ merge
-        const skipMap = {};
+        /**
+         * -----------------------
+         * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+         * -----------------------
+         * - ไม่ทำ merge (ตัวอย่าง) เพื่อความง่าย
+         * - ถ้าใน tbody มี colSpan/rowSpan ต้องประยุกต์ skipMap ต่อเอง
+         */
+        function parseTbody(tbody) {
+            const rows = [];
 
-        for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
-            const tr = thead.rows[rowIndex];
-            const rowData = [];
-            let colIndex = 0;
+            if (!tbody) return rows;
 
-            for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
-            // ข้ามเซลล์ที่ถูก merge ครอบไว้
-            while (skipMap[`${rowIndex},${colIndex}`]) {
-                rowData[colIndex] = "";
-                colIndex++;
-            }
+            for (const tr of tbody.rows) {
+                // เก็บ sub-lines ของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
 
-            const cell = tr.cells[cellIndex];
-            // ไม่แยก <br/> → แค่แทน &nbsp; เป็น space
-            let text = cell.innerHTML
-                .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // &nbsp; => spaces
-                .replace(/<br\s*\/?>/gi, ' ') // ถ้ามี <br/> ใน thead ก็เปลี่ยนเป็นช่องว่าง (ไม่แตกแถว)
-                .replace(/<\/?[^>]+>/g, '')   // ลบ tag อื่น ถ้าเหลือ
-                .trim();
+                for (const cell of tr.cells) {
+                    // (a) แปลง &nbsp; → space ตามจำนวน
+                    // (b) แปลง <br/> → \n เพื่อนำไป split เป็นหลายบรรทัด
+                    let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return ' '.repeat(count);
+                    });
+                    html = html.replace(/<br\s*\/?>/gi, '\n');
 
-            rowData[colIndex] = text;
+                    // (c) ลบแท็กอื่น ๆ (ถ้าต้องการ)
+                    html = html.replace(/<\/?[^>]+>/g, '');
 
-            // ดู rowSpan/colSpan
-            const rowspan = cell.rowSpan || 1;
-            const colspan = cell.colSpan || 1;
-
-            if (rowspan > 1 || colspan > 1) {
-                // Push merges object
-                theadMerges.push({
-                s: { r: rowIndex, c: colIndex },
-                e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
-                });
-
-                // Mark skipMap
-                for (let r = 0; r < rowspan; r++) {
-                for (let c = 0; c < colspan; c++) {
-                    if (r === 0 && c === 0) continue;
-                    skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                    // (d) split ด้วย \n → ได้หลาย sub-lines
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+                    cellLines.push(lines);
                 }
+
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+                    for (const lines of cellLines) {
+                        rowData.push(lines[i] || ''); // ถ้าไม่มีบรรทัด => ใส่ว่าง
+                    }
+                    rows.push(rowData);
                 }
             }
-            colIndex++;
-            }
-            theadRows.push(rowData);
+
+            return rows;
         }
-
-        return { theadRows, theadMerges };
-    }
-
-    /**
-     * -----------------------
-     * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
-     * -----------------------
-     * - ไม่ทำ merge (ตัวอย่าง) เพื่อความง่าย
-     * - ถ้าใน tbody มี colSpan/rowSpan ต้องประยุกต์ skipMap ต่อเอง
-     */
-    function parseTbody(tbody) {
-        const rows = [];
-
-        if (!tbody) return rows;
-
-        for (const tr of tbody.rows) {
-            // เก็บ sub-lines ของแต่ละเซลล์
-            const cellLines = [];
-            let maxSubLine = 1;
-
-            for (const cell of tr.cells) {
-            // (a) แปลง &nbsp; → space ตามจำนวน
-            // (b) แปลง <br/> → \n เพื่อนำไป split เป็นหลายบรรทัด
-            let html = cell.innerHTML.replace(/(&nbsp;)+/g, match => {
-                const count = match.match(/&nbsp;/g).length;
-                return ' '.repeat(count);
-            });
-            html = html.replace(/<br\s*\/?>/gi, '\n');
-
-            // (c) ลบแท็กอื่น ๆ (ถ้าต้องการ)
-            html = html.replace(/<\/?[^>]+>/g, '');
-
-            // (d) split ด้วย \n → ได้หลาย sub-lines
-            const lines = html.split('\n').map(x => x.trimEnd());
-            if (lines.length > maxSubLine) {
-                maxSubLine = lines.length;
-            }
-            cellLines.push(lines);
-            }
-
-            // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-            for (let i = 0; i < maxSubLine; i++) {
-            const rowData = [];
-            for (const lines of cellLines) {
-                rowData.push(lines[i] || ''); // ถ้าไม่มีบรรทัด => ใส่ว่าง
-            }
-            rows.push(rowData);
-            }
-        }
-
-        return rows;
-    }
     </script>
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
