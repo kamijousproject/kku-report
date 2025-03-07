@@ -462,7 +462,7 @@ shifted_hierarchy AS (
                         ,b.KKU_Item_Name
                         ,b.Budget_Management_Year
                         ,b2.KKU_Strategic_Plan_LOV
-                        ,p.pillar_name
+                        ,REGEXP_REPLACE(p.pillar_name, '(SI[0-9]+) ', '$1 : ') as pillar_name
                         ,a.`type` AS TYPE2
                         ,a.sub_type AS sub_type2
                         ,a.id AS p_id
@@ -485,7 +485,7 @@ shifted_hierarchy AS (
                         ,b.KKU_Item_Name
                         ,b.Budget_Management_Year
                         ,b2.KKU_Strategic_Plan_LOV
-                        ,p.pillar_name
+                        ,REGEXP_REPLACE(p.pillar_name, '(SI[0-9]+) ', '$1 : ')
                         ,a.`type`
                         ,a.sub_type
                         ,a.id
@@ -518,7 +518,8 @@ shifted_hierarchy AS (
 								ON t.account2=h.current_acc)
 								
 								
-								SELECT * FROM t4";
+								SELECT * FROM t4
+                                ORDER BY Faculty,KKU_Strategic_Plan_LOV,p_id";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);

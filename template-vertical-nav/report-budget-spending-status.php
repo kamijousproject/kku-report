@@ -216,30 +216,7 @@ thead tr:nth-child(3) th {
             const accname = [...new Set(data.map(item => item.level3))];
             const lv2 = [...new Set(data.map(item => item.level2))];
             const lv1 = [...new Set(data.map(item => item.level1))];
-            
-            /* var str1=''; 
-            var str2='';
-            var str3='';
-            var str4=''; 
-            var str5='';
-            var str6='';
-            var str7='';
-            var str8='';
-            var str9='';
-            var str10='';
-            var str11='';
-            var str12='';
-            var str13='';
-            var str14='';
-            var str15='';
-            var str16='';
-            var str17=''; 
-            var str18='';
-            var str19='';
-            var str20=''; 
-            var str21='';
-            var str22='';
-            var str23=''; */
+
             var html='';
             f1.forEach((row1) => { 
                 str1='<tr><td style="text-align:left;" nowrap>'+row1;
