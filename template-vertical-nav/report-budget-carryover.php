@@ -167,7 +167,7 @@ SELECT
         bap.Faculty AS Faculty_Id,
         ft.Faculty, 
         ft.Alias_Default, 
-       
+        bpa.BUDGET_PERIOD,
        
         ac.`type`,
 CASE 
@@ -182,18 +182,26 @@ CASE
     WHEN m.TotalLevels = 3 THEN m.CurrentAccount
 END AS a2,
 
-CASE 
-    WHEN m.TotalLevels = 5 THEN m.ParentAccount
-    WHEN m.TotalLevels = 4 THEN m.CurrentAccount
-    WHEN m.TotalLevels = 3 THEN NULL
-END AS a3,
+COALESCE(
+    CASE  
+        WHEN m.TotalLevels = 5 THEN m.ParentAccount
+        WHEN m.TotalLevels = 4 THEN m.CurrentAccount
+        WHEN m.TotalLevels = 3 THEN NULL
+    END,
+    bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
+) AS a3
+,
 
-CASE 
-    WHEN m.TotalLevels = 5 THEN m.CurrentAccount
-    WHEN m.TotalLevels = 4 THEN NULL
-    WHEN m.TotalLevels = 3 THEN NULL
-END AS a4,
-  CASE   
+COALESCE(
+    CASE  
+        WHEN m.TotalLevels = 5 THEN m.CurrentAccount
+        WHEN m.TotalLevels = 4 THEN NULL
+        WHEN m.TotalLevels = 3 THEN NULL
+    END,
+    bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
+) AS a4
+,
+        CASE  
     WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, bap.KKU_Item_Name)
     WHEN m.TotalLevels = 4 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
     WHEN m.TotalLevels = 3 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
@@ -247,6 +255,8 @@ CASE
         bap.KKU_Item_Name
     )
 END AS Name_a4
+
+
 ,
         ac.sub_type,
         ac.alias_default AS Account_Name_default,
@@ -256,37 +266,21 @@ END AS Name_a4
         SUM(CASE WHEN bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN06,
         SUM(CASE WHEN bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN08,
         SUM(bap.Allocated_Total_Amount_Quantity) AS Total_Amount,
-        SUM(CASE WHEN bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN02,
-        SUM(CASE WHEN bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN06,
-        SUM(CASE WHEN bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN08,
-        SUM(CASE WHEN bap.Fund = 'FN02'  THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) +
-SUM(CASE WHEN bap.Fund = 'FN06'  THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) +
-SUM(CASE WHEN bap.Fund = 'FN08'  THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) 
-AS Total_Amount_2568_SUM,
-
-        SUM(CASE WHEN bpa.Budget_Management_Year = 2567 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN02,
-        SUM(CASE WHEN bpa.Budget_Management_Year = 2567 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN06,
-        SUM(CASE WHEN bpa.Budget_Management_Year = 2567 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN08,
-        SUM(CASE WHEN bpa.Budget_Management_Year = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_SUM,
-                SUM(CASE WHEN bap.Fund = 'FN02'  THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) +
-SUM(CASE WHEN bap.Fund = 'FN06'  THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) +
-SUM(CASE WHEN bap.Fund = 'FN08'  THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)  - 
-        SUM(CASE WHEN bpa.Budget_Management_Year = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Difference_2568_2567,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN02,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN06,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN08,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_SUM,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN02,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN06,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN08,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_SUM,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) - 
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Difference_2568_2567,
         CASE
-    WHEN SUM(CASE WHEN bpa.Budget_Management_Year = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 
-        THEN 100
-    ELSE 
-        (
-            (SUM(CASE WHEN bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) +
-             SUM(CASE WHEN bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) +
-             SUM(CASE WHEN bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) 
-            - 
-            SUM(CASE WHEN bpa.Budget_Management_Year = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)
-        ) 
-        / NULLIF(SUM(CASE WHEN bpa.Budget_Management_Year = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END), 0) 
-        * 100
-END AS Percentage_2568_to_2567,
-
+            WHEN SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 THEN 100
+            ELSE (SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) / 
+                  SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) * 100
+        END AS Percentage_2568_to_2567,
             m.CurrentAccount,
     m.Current,
     m.ParentAccount,
@@ -306,12 +300,12 @@ END AS Percentage_2568_to_2567,
         INNER JOIN account ac ON bap.`Account` = ac.`account`
         LEFT JOIN main m
 ON bap.`Account`=m.CurrentAccount
-        LEFT JOIN budget_planning_annual_budget_plan bpa ON bpa.Project = bap.Project
-            AND bpa.`Account` = bap.`Account`
-            AND bpa.Plan = bap.Plan
-            AND bpa.Fund = bap.Fund
-            AND bpa.Sub_Plan = bap.Sub_Plan
-            AND bpa.Service = bap.Service";
+        INNER JOIN budget_planning_actual bpa ON bpa.PROJECT = bap.Project
+            AND bpa.`ACCOUNT` = bap.`Account`
+            AND bpa.PLAN = bap.Plan
+            AND bpa.FUND = bap.Fund
+            AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
+            AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)";
 
         if ($faculty) {
             $query .= " AND bap.Faculty = :faculty";
@@ -321,7 +315,7 @@ ON bap.`Account`=m.CurrentAccount
             bap.Faculty, 
             ft.Faculty, 
             ft.Alias_Default, 
-     
+            bpa.BUDGET_PERIOD, 
             bap.`Account`,ac.alias_default, 
             ac.`type`, 
             ac.sub_type, 
@@ -540,7 +534,7 @@ function fetchFacultyData($conn)
                                             // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
                                             $summary = [];
                                             foreach ($results as $row) {
-                                                $Faculty = $row['Faculty'];
+                                                $Faculty = $row['Alias_Default'];
                                                 $Name_a1 = $row['Name_a1'];
                                                 $Name_a2 = $row['Name_a2'];
                                                 $Name_a3 = $row['Name_a3'];
@@ -661,6 +655,7 @@ function fetchFacultyData($conn)
                                                     : "" . htmlspecialchars($row['Account']) . "";
                                                 $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][] = [
                                                     'name' => $ItemName_a4,
+                                                    'test' => $row['Name_a4'],
                                                     'Total_Amount_2567_FN06' => $row['Total_Amount_2567_FN06'],
                                                     'Total_Amount_2567_FN08' => $row['Total_Amount_2567_FN08'],
                                                     'Total_Amount_2567_FN02' => $row['Total_Amount_2567_FN02'],
@@ -739,7 +734,7 @@ function fetchFacultyData($conn)
                                                 }
                                             }
                                             // แสดงผลลัพธ์
-                                            foreach ($summary as $Faculty => $data) {
+                                            foreach ($summary as $Alias_Default => $data) {
                                                 // แสดงผลรวมของ Plan
                                                 echo "<tr>";
 
@@ -857,6 +852,9 @@ function fetchFacultyData($conn)
 
                                                                             if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
                                                                                 foreach ($dataName_a3['Name_a4'] as $dataName_a4) {
+                                                                                    if ($dataName_a4['test'] == null || $dataName_a4['test'] == '') {
+                                                                                        continue;
+                                                                                    }
                                                                                     echo "<tr>";
                                                                                     // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a4
                                                                                     echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 30) . $dataName_a4['name'] . "<br></td>";
