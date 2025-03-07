@@ -778,11 +778,7 @@ function fetchFacultyData($conn)
                                                 if (isset($data['Name_a1']) && is_array($data['Name_a1'])) {
                                                     foreach ($data['Name_a1'] as $Name_a1 => $dataName_a1) {
                                                         echo "<tr>";
-                                                        $cleanedName_a1 = preg_replace('/^[\d.]+\s*/', '', $Name_a1);
-
-                                                        // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a1
-                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . htmlspecialchars($dataName_a1['a1']) . " : " . htmlspecialchars($cleanedName_a1) . "<br></td>";
-
+                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . $dataName_a1['name'] . "<br></td>";
                                                         echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN06']) . "</td>";
                                                         echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN08']) . "</td>";
                                                         echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN02']) . "</td>";
@@ -802,11 +798,7 @@ function fetchFacultyData($conn)
                                                         if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
                                                             foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
                                                                 echo "<tr>";
-                                                                $cleanedName_a2 = preg_replace('/^[\d.]+\s*/', '', $Name_a2);
-
-                                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a2
-                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . htmlspecialchars($dataName_a2['a2']) . " : " . htmlspecialchars($cleanedName_a2) . "<br></td>";
-
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $dataName_a2['name'] . "<br></td>";
                                                                 echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN06']) . "</td>";
                                                                 echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN08']) . "</td>";
                                                                 echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN02']) . "</td>";
@@ -827,11 +819,7 @@ function fetchFacultyData($conn)
                                                                     if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
                                                                         foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
                                                                             echo "<tr>";
-                                                                            $cleanedName_a3 = preg_replace('/^[\d.]+\s*/', '', $Name_a3);
-
-                                                                            // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a3
-                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . htmlspecialchars($dataName_a3['a3']) . " : " . htmlspecialchars($cleanedName_a3) . "<br></td>";
-
+                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a3['name'] . "<br></td>";
                                                                             echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN06']) . "</td>";
                                                                             echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN08']) . "</td>";
                                                                             echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN02']) . "</td>";
@@ -857,7 +845,7 @@ function fetchFacultyData($conn)
                                                                                     }
                                                                                     echo "<tr>";
                                                                                     // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a4
-                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 30) . $dataName_a4['name'] . "<br></td>";
+                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a4['name'] . "<br></td>";
                                                                                     echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN06']) . "</td>";
                                                                                     echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN08']) . "</td>";
                                                                                     echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN02']) . "</td>";
