@@ -1082,95 +1082,68 @@ thead tr:nth-child(3) th {
             // สร้าง Workbook
             const wb = XLSX.utils.book_new();
 
+            // สร้างส่วนหัวรายงาน
+            const headerRows = [
+                ["รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน"],
+                ["ส่วนงาน/หน่วยงาน:", filterValues.department],
+                [""] // แถวว่าง
+            ];
+
             // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
             const { theadRows, theadMerges } = parseThead(table.tHead);
 
             // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
             const tbodyRows = parseTbody(table.tBodies[0]);
 
-            // รวม tbody + thead (ยังไม่รวมส่วนหัว)
-            const tableRows = [...theadRows, ...tbodyRows];
+            // รวมทุกแถวเข้าด้วยกัน: headerRows + theadRows + tbodyRows
+            const allRows = [...headerRows, ...theadRows, ...tbodyRows];
 
-            // สร้าง worksheet จาก table data
-            const ws = XLSX.utils.aoa_to_sheet(tableRows);
+            // สร้าง worksheet จากข้อมูลทั้งหมด
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
 
-            // สร้างส่วนหัวรายงานแบบแยกเป็น cell แทนการใช้ object style
-            // SheetJS จะสร้าง cell address A1, A2, B2 เป็นต้น
-            ws['A1'] = { v: "รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน", t: 's' };
-            ws['A1'].s = { font: { bold: true, sz: 15 }, alignment: { horizontal: "center" } };
+            // จัดการ styles สำหรับส่วนหัว
+            // ถ้า A1 ไม่มี s ให้สร้างใหม่
+            if (!ws['A1'].s) ws['A1'].s = {};
+            ws['A1'].s.font = { bold: true, sz: 15 };
+            ws['A1'].s.alignment = { horizontal: "center" };
             
-            ws['A2'] = { v: "ส่วนงาน/หน่วยงาน:", t: 's' };
-            ws['A2'].s = { font: { bold: true } };
+            // ถ้า A2 ไม่มี s ให้สร้างใหม่
+            if (!ws['A2'].s) ws['A2'].s = {};
+            ws['A2'].s.font = { bold: true };
+
+            // ปรับ merges สำหรับหัวข้อแรก
+            const headerMerges = [];
             
-            ws['B2'] = { v: filterValues.department, t: 's' };
-            
-            // แถวที่ 3 เป็นแถวว่าง (A3 ว่าง)
-            ws['A3'] = { v: "", t: 's' };
-
-            // ต้องกำหนด range ใหม่ให้รวมส่วนหัว (A1:?) + ข้อมูลตาราง
-            const range = XLSX.utils.decode_range(ws['!ref']);
-            const newRange = {
-                s: { r: 0, c: 0 },           // เริ่มจาก A1
-                e: { r: range.e.r + 3, c: range.e.c } // ต่อท้ายจากข้อมูลเดิม + offset 3 แถว
-            };
-            ws['!ref'] = XLSX.utils.encode_range(newRange);
-
-            // ต้อง shift ข้อมูลตาราง (ทุก row) ลงไป 3 แถว
-            const newCells = {};
-            Object.keys(ws).forEach(key => {
-                if (key[0] !== '!') { // ไม่ใช่ metadata
-                    const cellAddress = XLSX.utils.decode_cell(key);
-                    // ถ้าไม่ใช่ A1, A2, B2, A3 (header cells) ให้ shift ลง
-                    if (!(
-                        (cellAddress.r === 0 && cellAddress.c === 0) || // A1
-                        (cellAddress.r === 1 && cellAddress.c === 0) || // A2
-                        (cellAddress.r === 1 && cellAddress.c === 1) || // B2
-                        (cellAddress.r === 2 && cellAddress.c === 0)    // A3
-                    )) {
-                        const newAddress = XLSX.utils.encode_cell({
-                            r: cellAddress.r + 3, // shift ลง 3 แถว
-                            c: cellAddress.c
-                        });
-                        newCells[newAddress] = ws[key];
-                    }
-                }
-            });
-
-            // อัพเดต cells (ลบเก่า, ใส่ใหม่ที่ shift แล้ว)
-            Object.keys(ws).forEach(key => {
-                if (key[0] !== '!' && 
-                    !(key === 'A1' || key === 'A2' || key === 'B2' || key === 'A3')) {
-                    delete ws[key];
-                }
-            });
-            Object.keys(newCells).forEach(key => {
-                ws[key] = newCells[key];
-            });
-
-            // อัพเดต merges (shift ลง 3 แถว)
-            const updatedMerges = theadMerges.map(merge => ({
-                s: { r: merge.s.r + 3, c: merge.s.c },
-                e: { r: merge.e.r + 3, c: merge.e.c }
-            }));
-
-            // เพิ่ม merge สำหรับหัวแถวแรก
-            const maxCols = Math.max(...theadRows.map(row => row.length));
+            // merge หัวข้อแรกให้กินพื้นที่ทั้งแถว
+            const maxCols = Math.max(...allRows.map(row => row.length));
             if (maxCols > 1) {
-                updatedMerges.push({
+                headerMerges.push({
                     s: { r: 0, c: 0 },
                     e: { r: 0, c: maxCols - 1 }
                 });
             }
 
-            ws['!merges'] = updatedMerges;
+            // ปรับ theadMerges (บวก offset จาก headerRows)
+            const headerRowCount = headerRows.length;
+            const updatedTheadMerges = theadMerges.map(merge => ({
+                s: { r: merge.s.r + headerRowCount, c: merge.s.c },
+                e: { r: merge.e.r + headerRowCount, c: merge.e.c }
+            }));
+
+            // รวม merges ทั้งหมด
+            ws['!merges'] = [...headerMerges, ...updatedTheadMerges];
 
             // เพิ่ม worksheet ลงใน workbook
             XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
+            // ปรับความกว้างคอลัมน์ (ถ้าต้องการ)
+            // ws['!cols'] = [{ wch: 20 }, { wch: 20 }, ...]; // ตั้งค่าความกว้างคอลัมน์
+
             // เขียนไฟล์เป็น .xls (BIFF8)
             const excelBuffer = XLSX.write(wb, {
                 bookType: 'xls',
-                type: 'array'
+                type: 'array',
+                cellStyles: true
             });
 
             // สร้าง Blob + ดาวน์โหลด
