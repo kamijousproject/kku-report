@@ -1082,16 +1082,124 @@ shifted_hierarchy AS (
                 $project = $_POST["project"];
                 $bgyear = $_POST["bgyear"];
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "WITH t1 AS (
-                SELECT distinct sub_type,'revenue' as ftype FROM account
-                WHERE id < (SELECT id FROM account WHERE parent='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%'
-                UNION ALL 
-                SELECT distinct sub_type,'expense' AS ftype FROM account
-                WHERE id > (SELECT id FROM account WHERE parent='Expenses') AND sub_type IS NOT NULL AND sub_type NOT LIKE '%.%.%')
+                $sql = "WITH RECURSIVE account_hierarchy AS (
+    -- Anchor member: Start with all accounts that have a parent
+    SELECT 
+        a1.account,
+        a1.account AS acc_id,
+        a1.alias_default AS alias,
+        a1.parent,
+        1 AS level
+    FROM account a1
+    WHERE a1.parent IS NOT NULL
+    
+    UNION ALL
+    
+    -- Recursive member: Find parent accounts
+    SELECT 
+        ah.account,
+        a2.account AS acc_id,
+        a2.alias_default AS alias,
+        a2.parent,
+        ah.level + 1 AS level
+    FROM account_hierarchy ah
+    JOIN account a2 
+        ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
+    WHERE a2.parent IS NOT NULL
+    AND ah.level < 6 -- Maximum 6 levels (increased from 5)
+),
+
+-- Get the maximum level for each account to determine total depth
+max_levels AS (
+    SELECT account, MAX(level) AS max_level
+    FROM account_hierarchy
+    GROUP BY account
+),
+
+-- Create a pivot table with all levels for each account
+hierarchy_pivot AS (
+    SELECT 
+        h.account,
+        m.max_level,
+        MAX(CASE WHEN h.level = 1 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level1_value,
+        MAX(CASE WHEN h.level = 2 THEN CONCAT(h.acc_id, ' : ',REGEXP_REPLACE( h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level2_value,
+        MAX(CASE WHEN h.level = 3 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level3_value,
+        MAX(CASE WHEN h.level = 4 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level4_value,
+        MAX(CASE WHEN h.level = 5 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level5_value,
+        MAX(CASE WHEN h.level = 6 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level6_value
+    FROM account_hierarchy h
+    JOIN max_levels m ON h.account = m.account
+    GROUP BY h.account, m.max_level
+),
+
+-- Shift the hierarchy to the left (compact it)
+shifted_hierarchy AS (
+    SELECT
+        account AS current_acc,
+        max_level AS TotalLevels,
+        CASE 
+            WHEN max_level = 1 THEN level1_value
+            WHEN max_level = 2 THEN level2_value
+            WHEN max_level = 3 THEN level3_value
+            WHEN max_level = 4 THEN level4_value
+            WHEN max_level = 5 THEN level5_value
+            WHEN max_level = 6 THEN level6_value
+        END AS level6,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN level1_value
+            WHEN max_level = 3 THEN level2_value
+            WHEN max_level = 4 THEN level3_value
+            WHEN max_level = 5 THEN level4_value
+            WHEN max_level = 6 THEN level5_value
+        END AS level5,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN NULL
+            WHEN max_level = 3 THEN level1_value
+            WHEN max_level = 4 THEN level2_value
+            WHEN max_level = 5 THEN level3_value
+            WHEN max_level = 6 THEN level4_value
+        END AS level4,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN NULL
+            WHEN max_level = 3 THEN NULL
+            WHEN max_level = 4 THEN level1_value
+            WHEN max_level = 5 THEN level2_value
+            WHEN max_level = 6 THEN level3_value
+        END AS level3,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN NULL
+            WHEN max_level = 3 THEN NULL
+            WHEN max_level = 4 THEN NULL
+            WHEN max_level = 5 THEN level1_value
+            WHEN max_level = 6 THEN level2_value
+        END AS level2,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN NULL
+            WHEN max_level = 3 THEN NULL
+            WHEN max_level = 4 THEN NULL
+            WHEN max_level = 5 THEN NULL
+            WHEN max_level = 6 THEN level1_value
+        END AS level1
+    FROM hierarchy_pivot
+)
+
                 ,t2 AS (
-                SELECT Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario 
+                SELECT Faculty,plan,sub_plan,project,fund,service,CASE 
+							        WHEN KKU_Item_Name IS NOT NULL AND KKU_Item_Name != '' 
+							        THEN CONCAT(account, ' : ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', ''))
+							        ELSE NULL 
+							    END AS kku_item_name,account,scenario 
                 FROM budget_planning_allocated_annual_budget_plan b
-                GROUP BY Faculty,plan,sub_plan,project,fund,service,kku_item_name,account,scenario )
+                GROUP BY Faculty,plan,sub_plan,project,fund,service,CASE 
+							        WHEN KKU_Item_Name IS NOT NULL AND KKU_Item_Name != '' 
+							        THEN CONCAT(account, ' : ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', ''))
+							        ELSE NULL 
+							    END,account,scenario )
                 ,t3 AS (
                 SELECT Faculty,plan,subplan,project,fund,service,account,fiscal_year,BUDGET_PERIOD,scenario 
                 ,SUM(COMMITMENTS) AS COMMITMENTS
@@ -1113,7 +1221,7 @@ shifted_hierarchy AS (
                 AND t.Account=tt.ACCOUNT)
                 ,t5 AS (
                 SELECT t.*,a.account AS aname,a.sub_type,a.parent
-                ,case when a.sub_type LIKE '%.%.%' then aa.alias_default ELSE a.sub_type END  AS pname
+                ,aa.alias_default AS pname
                 FROM t4 t
                 LEFT JOIN account a
                 ON t.account=a.account
@@ -1129,13 +1237,13 @@ shifted_hierarchy AS (
                 ,sum(INITIAL_BUDGET) AS INITIAL_BUDGET
                 ,SUM(FUNDS_AVAILABLE_AMOUNT) AS FUNDS_AVAILABLE_AMOUNT
                 FROM t5
-                where fiscal_year=:fyear and fund=:fund and Faculty=:faculty and plan=:plan and subplan=:subplan and project=:project and scenario=:scenario
                 GROUP BY Faculty,plan,subplan,project,fund,service,fiscal_year,kku_item_name,pname)
                 ,t7 AS (
-                SELECT t.sub_type AS smain,t.ftype ,tt.*
-                FROM t1 t
-                LEFT JOIN t5 tt
-                ON t.sub_type=tt.pname COLLATE UTF8MB4_GENERAL_CI)
+                SELECT tt.*,a.id
+                FROM  t5 tt
+                LEFT JOIN account a
+                ON tt.account=a.account COLLATE UTF8MB4_GENERAL_CI
+					 WHERE a.id>(SELECT id FROM account WHERE parent='Expenses'))
                 ,t8 AS (
                 SELECT t.*,f.Alias_Default AS fname,p.plan_name,sp.sub_plan_name,pro.project_name
                 FROM t7 t
@@ -1147,24 +1255,23 @@ shifted_hierarchy AS (
                 ON t.subplan=replace(sp.sub_plan_id,'SP_','')
                 LEFT JOIN project pro
                 ON t.project=pro.project_id)
-                ,t9 AS (
-                SELECT t.*,a.id
-                FROM t8 t
-                LEFT JOIN account a
-                ON t.smain=a.alias_default COLLATE UTF8MB4_GENERAL_CI)
-                SELECT* FROM t9
-                where BUDGET_PERIOD=:bgyear
+                
+                
+                SELECT * FROM t8 t
+					 LEFT JOIN shifted_hierarchy h
+					 ON t.account=h.current_acc
+                
                 ORDER BY id";
 
                 $cmd = $conn->prepare($sql);
-                $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
+               /*  $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);
                 $cmd->bindParam(':faculty', $faculty, PDO::PARAM_STR);
                 $cmd->bindParam(':scenario', $scenario, PDO::PARAM_STR);
                 $cmd->bindParam(':fund', $fund, PDO::PARAM_STR);
                 $cmd->bindParam(':plan', $plan, PDO::PARAM_STR);
                 $cmd->bindParam(':subplan', $subplan, PDO::PARAM_STR);
                 $cmd->bindParam(':project', $project, PDO::PARAM_STR);
-                $cmd->bindParam(':bgyear', $bgyear, PDO::PARAM_STR);
+                $cmd->bindParam(':bgyear', $bgyear, PDO::PARAM_STR); */
                 
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
