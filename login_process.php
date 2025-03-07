@@ -8,7 +8,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $username = $_POST["username"];
     $password = $_POST["password"];
 
-    $stmt = $conn->prepare("SELECT id, username, password, name, faculty_id, faculty_name, role FROM user WHERE username = ?");
+    $stmt = $conn->prepare("SELECT id, username, password, name, faculty_id, role FROM user WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -27,7 +27,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $_SESSION["username"] = $user["username"];
             $_SESSION["name"] = $user["name"];
             $_SESSION["faculty_id"] = $user["faculty_id"];
-            $_SESSION["faculty_name"] = $user["faculty_name"];
             $_SESSION["role"] = $user["role"];
 
             echo json_encode(["status" => "success"]);
