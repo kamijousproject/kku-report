@@ -211,14 +211,11 @@ thead tr:nth-child(3) th {
             }
             const f1 = [...new Set(data.map(item => item.Alias_Default))];
             const f2 = [...new Set(data.map(item => item.pillar_name))];
-            const account = [...new Set(data.map(item => item.TYPE))];
-            const sub_account = [...new Set(data.map(item => item.sub_type))];
-            const accname = [...new Set(data.map(item => item.accname))];
-
-            console.log(f1);
-            console.log(f2);
-            console.log(account);
-            console.log(sub_account); 
+            const account = [...new Set(data.map(item => item.level5))];
+            const sub_account = [...new Set(data.map(item => item.level4))];
+            const accname = [...new Set(data.map(item => item.level3))];
+            const lv2 = [...new Set(data.map(item => item.level2))];
+            const lv1 = [...new Set(data.map(item => item.level1))];
             
             /* var str1=''; 
             var str2='';
@@ -245,7 +242,6 @@ thead tr:nth-child(3) th {
             var str23=''; */
             var html='';
             f1.forEach((row1) => { 
-                console.log("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
                 str1='<tr><td style="text-align:left;" nowrap>'+row1;
                 str2='<td>';
                 str3='<td>';
@@ -297,8 +293,7 @@ thead tr:nth-child(3) th {
                         str23+='<br/>';
                     }
                     account.forEach((row6) => {
-                        const ac = pi.filter(item =>item.TYPE === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
-                        console.log(ac);
+                        const ac = pi.filter(item =>item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
                         const parseValue = (value) => {
                                 const number = parseFloat(value.replace(/,/g, ''));
                                 return isNaN(number) ? 0 : number;
@@ -339,7 +334,7 @@ thead tr:nth-child(3) th {
                             str23+='<br/>';
                         }   
                         sub_account.forEach((row7) => {
-                            const sa = ac.filter(item =>item.sub_type === row7 &&item.TYPE === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
+                            const sa = ac.filter(item =>item.level4 === row7 &&item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
                             //console.log(sa);
                             const parseValue = (value) => {
                                 const number = parseFloat(value.replace(/,/g, ''));
@@ -381,9 +376,7 @@ thead tr:nth-child(3) th {
                                 str23+='<br/>';
                             }
                             accname.forEach((row8) => {
-                                const sa2 = sa.filter(item =>row7 != row8 && item.accname === row8 &&item.sub_type === row7 &&item.TYPE === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
-                                console.log("aaaaaa");
-                                console.log(sa2);
+                                const sa2 = sa.filter(item => item.level3 === row8 &&item.level4 === row7 &&item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
                                 const parseValue = (value) => {
                                 const number = parseFloat(value.replace(/,/g, ''));
                                     return isNaN(number) ? 0 : number;
@@ -397,7 +390,7 @@ thead tr:nth-child(3) th {
                                 }, {
                                     t06: 0, t02: 0, t08: 0
                                 });
-                                if(sa2.length>0){
+                                if(sa2.length>0 && row8!=null){
                                     var sum=sums.t06+sums.t08+sums.t02;
                                     str1+='<br/>'+'&nbsp;'.repeat(32)+row8;
                                     str2+='<br/>0';
@@ -423,30 +416,16 @@ thead tr:nth-child(3) th {
                                     str22+='<br/>'+(sum).toLocaleString();
                                     str23+='<br/>';
                                 }
-                                sa2.forEach((row9) => {
-                                    const parseValue = (value) => {
+                                if(sa2.length>0 && row8==null){
+                                    sa2.forEach((row8_null) => {
+                                        const parseValue = (value) => {
                                         const number = parseFloat(value.replace(/,/g, ''));
                                         return isNaN(number) ? 0 : number;
                                     };
-                                    //console.log(row8);
-                                    /* const sums = row8.reduce((acc, item) => {
-                                            return {
-                                                a2: acc.a2 + parseValue(item.a2),
-                                                c2: acc.c2 + parseValue(item.c2),
-                                                o2: acc.o2 + parseValue(item.o2),
-                                                e2: acc.e2 + parseValue(item.e2),
-                                                a6: acc.a6 + parseValue(item.a6),
-                                                c6: acc.c6 + parseValue(item.c6),
-                                                o6: acc.o6 + parseValue(item.o6),
-                                                e6: acc.e6 + parseValue(item.e6)
-                                            };
-                                        }, {
-                                            a2: 0, c2: 0, o2: 0, e2: 0,
-                                            a6: 0, c6: 0, o6: 0, e6: 0
-                                        }); */
-                                    if(row9.KKU_Item_Name!=""){
-                                        var sum=parseInt(row9.t06)+parseInt(row9.t08)+parseInt(row9.t02);
-                                        str1+='<br/>'+'&nbsp;'.repeat(40)+row9.KKU_Item_Name2;
+                                    
+                                    if(row8_null.KKU_Item_Name!=""){
+                                        var sum=parseInt(row8_null.t06)+parseInt(row8_null.t08)+parseInt(row8_null.t02);
+                                        str1+='<br/>'+'&nbsp;'.repeat(32)+row8_null.KKU_Item_Name2;
                                         str2+='<br/>0';
                                         str3+='<br/>0';
                                         str4+='<br/>0';
@@ -463,13 +442,204 @@ thead tr:nth-child(3) th {
                                         str15+='<br/>0';
                                         str16+='<br/>0';
                                         str17+='<br/>0'; 
-                                        str18+='<br/>'+parseInt(row9.t06).toLocaleString();
-                                        str19+='<br/>'+parseInt(row9.t02).toLocaleString();
-                                        str20+='<br/>'+parseInt(row9.t08).toLocaleString(); 
+                                        str18+='<br/>'+parseInt(row8_null.t06).toLocaleString();
+                                        str19+='<br/>'+parseInt(row8_null.t02).toLocaleString();
+                                        str20+='<br/>'+parseInt(row8_null.t08).toLocaleString(); 
+                                        str21+='<br/>'+sum.toLocaleString();
+                                        str22+='<br/>'+(sum).toLocaleString();
+                                        str23+='<br/>';
+                                        }
+                                    });
+                                }
+                                lv2.forEach((row9) => {
+                                    const l2 = sa2.filter(item => item.level2 === row9 &&item.level3 === row8 &&item.level4 === row7 &&item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
+                                    const parseValue = (value) => {
+                                    const number = parseFloat(value.replace(/,/g, ''));
+                                        return isNaN(number) ? 0 : number;
+                                    };
+                                    const sums = l2.reduce((acc, item) => {
+                                        return {
+                                            t06: acc.t06 + parseValue(item.t06),
+                                            t02: acc.t02 + parseValue(item.t02),
+                                            t08: acc.t08 + parseValue(item.t08),
+                                        };
+                                    }, {
+                                        t06: 0, t02: 0, t08: 0
+                                    });
+                                    if(l2.length>0 && row9!=null){
+                                        var sum=sums.t06+sums.t08+sums.t02;
+                                        str1+='<br/>'+'&nbsp;'.repeat(40)+row9;
+                                        str2+='<br/>0';
+                                        str3+='<br/>0';
+                                        str4+='<br/>0';
+                                        str5+='<br/>0';
+                                        str6+='<br/>0';
+                                        str7+='<br/>0';
+                                        str8+='<br/>0';
+                                        str9+='<br/>0';
+                                        str10+='<br/>0';
+                                        str11+='<br/>0';
+                                        str12+='<br/>0';
+                                        str13+='<br/>0';
+                                        str14+='<br/>0';
+                                        str15+='<br/>0';
+                                        str16+='<br/>0';
+                                        str17+='<br/>0'; 
+                                        str18+='<br/>'+sums.t06.toLocaleString();
+                                        str19+='<br/>'+sums.t02.toLocaleString();
+                                        str20+='<br/>'+sums.t08.toLocaleString(); 
                                         str21+='<br/>'+sum.toLocaleString();
                                         str22+='<br/>'+(sum).toLocaleString();
                                         str23+='<br/>';
                                     }
+                                    if(l2.length>0 && row9==null&& row8!=null){
+                                        l2.forEach((row9_null) => {
+                                            const parseValue = (value) => {
+                                            const number = parseFloat(value.replace(/,/g, ''));
+                                            return isNaN(number) ? 0 : number;
+                                        };
+                                        
+                                        if(row9_null.KKU_Item_Name!=""){
+                                            var sum=parseInt(row9_null.t06)+parseInt(row9_null.t08)+parseInt(row9_null.t02);
+                                            str1+='<br/>'+'&nbsp;'.repeat(40)+row9_null.KKU_Item_Name2;
+                                            str2+='<br/>0';
+                                            str3+='<br/>0';
+                                            str4+='<br/>0';
+                                            str5+='<br/>0';
+                                            str6+='<br/>0';
+                                            str7+='<br/>0';
+                                            str8+='<br/>0';
+                                            str9+='<br/>0';
+                                            str10+='<br/>0';
+                                            str11+='<br/>0';
+                                            str12+='<br/>0';
+                                            str13+='<br/>0';
+                                            str14+='<br/>0';
+                                            str15+='<br/>0';
+                                            str16+='<br/>0';
+                                            str17+='<br/>0'; 
+                                            str18+='<br/>'+parseInt(row9_null.t06).toLocaleString();
+                                            str19+='<br/>'+parseInt(row9_null.t02).toLocaleString();
+                                            str20+='<br/>'+parseInt(row9_null.t08).toLocaleString(); 
+                                            str21+='<br/>'+sum.toLocaleString();
+                                            str22+='<br/>'+(sum).toLocaleString();
+                                            str23+='<br/>';
+                                            }
+                                        });
+                                    }
+                                    lv1.forEach((row10) => {
+                                        const l1 = l2.filter(item => item.level1 === row10 &&item.level2 === row9 &&item.level3 === row8 &&item.level4 === row7 &&item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
+                                        const parseValue = (value) => {
+                                        const number = parseFloat(value.replace(/,/g, ''));
+                                            return isNaN(number) ? 0 : number;
+                                        };
+                                        const sums = l1.reduce((acc, item) => {
+                                            return {
+                                                t06: acc.t06 + parseValue(item.t06),
+                                                t02: acc.t02 + parseValue(item.t02),
+                                                t08: acc.t08 + parseValue(item.t08),
+                                            };
+                                        }, {
+                                            t06: 0, t02: 0, t08: 0
+                                        });
+                                        if(l1.length>0 && row10!=null){
+                                            var sum=sums.t06+sums.t08+sums.t02;
+                                            str1+='<br/>'+'&nbsp;'.repeat(48)+row10;
+                                            str2+='<br/>0';
+                                            str3+='<br/>0';
+                                            str4+='<br/>0';
+                                            str5+='<br/>0';
+                                            str6+='<br/>0';
+                                            str7+='<br/>0';
+                                            str8+='<br/>0';
+                                            str9+='<br/>0';
+                                            str10+='<br/>0';
+                                            str11+='<br/>0';
+                                            str12+='<br/>0';
+                                            str13+='<br/>0';
+                                            str14+='<br/>0';
+                                            str15+='<br/>0';
+                                            str16+='<br/>0';
+                                            str17+='<br/>0'; 
+                                            str18+='<br/>'+sums.t06.toLocaleString();
+                                            str19+='<br/>'+sums.t02.toLocaleString();
+                                            str20+='<br/>'+sums.t08.toLocaleString(); 
+                                            str21+='<br/>'+sum.toLocaleString();
+                                            str22+='<br/>'+(sum).toLocaleString();
+                                            str23+='<br/>';
+                                            l1.forEach((row10_item) => {
+                                                const parseValue = (value) => {
+                                                    const number = parseFloat(value.replace(/,/g, ''));
+                                                    return isNaN(number) ? 0 : number;
+                                                };
+                                                
+                                                if(row10_item.KKU_Item_Name!=""){
+                                                    var sum=parseInt(row10_item.t06)+parseInt(row10_item.t08)+parseInt(row10_item.t02);
+                                                    str1+='<br/>'+'&nbsp;'.repeat(48)+row10_item.KKU_Item_Name2;
+                                                    str2+='<br/>0';
+                                                    str3+='<br/>0';
+                                                    str4+='<br/>0';
+                                                    str5+='<br/>0';
+                                                    str6+='<br/>0';
+                                                    str7+='<br/>0';
+                                                    str8+='<br/>0';
+                                                    str9+='<br/>0';
+                                                    str10+='<br/>0';
+                                                    str11+='<br/>0';
+                                                    str12+='<br/>0';
+                                                    str13+='<br/>0';
+                                                    str14+='<br/>0';
+                                                    str15+='<br/>0';
+                                                    str16+='<br/>0';
+                                                    str17+='<br/>0'; 
+                                                    str18+='<br/>'+parseInt(row10_item.t06).toLocaleString();
+                                                    str19+='<br/>'+parseInt(row10_item.t02).toLocaleString();
+                                                    str20+='<br/>'+parseInt(row10_item.t08).toLocaleString(); 
+                                                    str21+='<br/>'+sum.toLocaleString();
+                                                    str22+='<br/>'+(sum).toLocaleString();
+                                                    str23+='<br/>';
+                                                }
+                                            });
+                                        }
+                                        if(l1.length>0 &&row9!=null&& row10==null){
+                                            l1.forEach((row10_null) => {
+                                                const parseValue = (value) => {
+                                                const number = parseFloat(value.replace(/,/g, ''));
+                                                return isNaN(number) ? 0 : number;
+                                            };
+                                            
+                                                if(row10_null.KKU_Item_Name!=""){
+                                                    var sum=parseInt(row10_null.t06)+parseInt(row10_null.t08)+parseInt(row10_null.t02);
+                                                    str1+='<br/>'+'&nbsp;'.repeat(48)+row10_null.KKU_Item_Name2;
+                                                    str2+='<br/>0';
+                                                    str3+='<br/>0';
+                                                    str4+='<br/>0';
+                                                    str5+='<br/>0';
+                                                    str6+='<br/>0';
+                                                    str7+='<br/>0';
+                                                    str8+='<br/>0';
+                                                    str9+='<br/>0';
+                                                    str10+='<br/>0';
+                                                    str11+='<br/>0';
+                                                    str12+='<br/>0';
+                                                    str13+='<br/>0';
+                                                    str14+='<br/>0';
+                                                    str15+='<br/>0';
+                                                    str16+='<br/>0';
+                                                    str17+='<br/>0'; 
+                                                    str18+='<br/>'+parseInt(row10_null.t06).toLocaleString();
+                                                    str19+='<br/>'+parseInt(row10_null.t02).toLocaleString();
+                                                    str20+='<br/>'+parseInt(row10_null.t08).toLocaleString(); 
+                                                    str21+='<br/>'+sum.toLocaleString();
+                                                    str22+='<br/>'+(sum).toLocaleString();
+                                                    str23+='<br/>';
+                                                }
+                                            });
+                                        }
+                                        
+                                    
+                                    });
+                                
                                 });
                             
                             });

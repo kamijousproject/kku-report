@@ -825,8 +825,8 @@
                                                             }
                                                         });
                                                     }
-                                                    if(l1.length>0 && row9==null&& row8!=null&& row10!=null){
-                                                        l1.forEach((row9_null) => {
+                                                    if(l1.length>0 && row9!=null&& row10==null){
+                                                        l1.forEach((row10_null) => {
                                                             const parseValue = (value) => {
                                                                 const number = parseFloat(value.replace(/,/g, ''));
                                                                 return isNaN(number) ? 0 : number;
@@ -1027,6 +1027,12 @@
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+        function getFilterValues() {
+            return {
+
+                department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
+            };
+        }
         function exportPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('l', 'mm', 'a4');
@@ -1034,7 +1040,7 @@
     // ตั้งค่ามาร์จินและขนาดกระดาษ
     const marginLeft = 5;
     const marginRight = 5;
-    const marginTop = 15;
+    const marginTop = 25;
     const marginBottom = 10;
     const pageWidth = doc.internal.pageSize.width;
     const usableWidth = pageWidth - marginLeft - marginRight;
@@ -1043,8 +1049,11 @@
     doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
     doc.addFont("THSarabun.ttf", "THSarabun", "normal");
     doc.setFont("THSarabun");
-    doc.setFontSize(10);
-    doc.text('รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร', marginLeft, marginTop - 5);
+    const filterValues = getFilterValues();
+            doc.setFontSize(12);
+            doc.text("รรายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร", 150, 10,{ align: 'center' });
+            doc.setFontSize(10);
+            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 20);
     
     // ฟังก์ชันตรวจสอบว่าเป็นตัวเลขหรือไม่
     function isNumeric(str) {
@@ -1163,52 +1172,26 @@
                     const htmlPart = part;
                     
                     // นับจำนวน &nbsp; เพื่อคำนวณการเยื้อง
-                    const matches = htmlPart.match(/&nbsp;/g);
-                    const spaces = matches ? matches.length : 0;
+                    const nbspCount = (htmlPart.match(/&nbsp;/g) || []).length;
+                    const indentLevel = Math.floor(nbspCount / 5); // ทุก 8 &nbsp; = 1 ระดับ
                     
-                    // แปลง HTML entities เป็นข้อความ
+                    // แทนที่จะแทนที่ &nbsp; ด้วยช่องว่างธรรมดา
+                    // ใช้วิธีการจัดการเยื้องโดยใช้ padding ใน PDF แทน
+                    
+                    // แปลง HTML entities เป็นข้อความ (แต่ยังคงรักษาโครงสร้างเดิม)
                     const div = document.createElement('div');
                     div.innerHTML = htmlPart;
-                    const originalText = div.textContent;
+                    let textContent = div.textContent;
                     
-                    // สร้างข้อความใหม่ที่มีการเยื้องด้วยช่องว่าง
-                    const indent = Math.floor(spaces / 8); // ทุก 8 &nbsp; = 1 ระดับ
-                    
-                    // 1. ปรับข้อความให้ไม่มีช่องว่างนำ
-                    const trimmedText = originalText.trim();
-                    
-                    // 2. สร้างช่องว่างขึ้นใหม่ตามระดับการเยื้อง
-                    const spacesPerIndent = 4; // จำนวนช่องว่างต่อระดับการเยื้อง 1 ระดับ
-                    const leadingSpaces = ' '.repeat(indent * spacesPerIndent);
-                    
-                    // 3. เพิ่มช่องว่างนำหน้าข้อความ
-                    const indentedText = leadingSpaces + trimmedText;
-                    
-                    // ตั้งค่าเซลล์ให้รักษาช่องว่าง
+                    // แทนที่การใช้ textContent ที่จะลบ &nbsp; ให้ใช้การจัดการช่องว่างด้วย CSS
                     firstCell.style.whiteSpace = 'pre';
-                    firstCell.textContent = indentedText;
+                    firstCell.textContent = textContent.trim();
                     
-                    // จัดการกับ &nbsp; ในข้อความ
-                    // ในต้นฉบับจริง &nbsp; จะถูกใช้ 8 ตัวต่อระดับการเยื้อง
-                    
-                    // ตรวจนับจำนวน &nbsp; โดยตรงจาก HTML
-                    let indentLevel = 0;
-                    const nbspCount = (part.match(/&nbsp;/g) || []).length;
-                    indentLevel = Math.floor(nbspCount / 8); // ทุก 8 &nbsp; = 1 ระดับ
-                    
-                    // สร้างช่องว่างแทน &nbsp; ในข้อความจริง
-                    let cleanText = part.replace(/&nbsp;/g, ' ');
-                    // แปลง HTML entities กลับเป็นข้อความปกติ
-                    const tempDiv2 = document.createElement('div');
-                    tempDiv2.innerHTML = cleanText;
-                    let textContent = tempDiv2.textContent;
-                    
-                    // เพิ่มการเยื้องด้วย CSS สำหรับ PDF
+                    // ใช้ padding เพื่อจัดการการเยื้อง
                     if (indentLevel > 0) {
-                        firstCell.style.paddingLeft = (indentLevel * 8) + 'mm';
+                        firstCell.style.paddingLeft = (indentLevel * 10) + 'mm'; // เพิ่มค่าเยื้องให้ชัดเจนขึ้น
                     }
                     
-                    firstCell.textContent = textContent.trim();
                     newRow.appendChild(firstCell);
                     
                     // สร้างเซลล์อื่นๆ
@@ -1240,8 +1223,21 @@
                 // ถ้าไม่มี <br/> ก็คัดลอกแถวปกติ
                 const newRow = document.createElement('tr');
                 
-                rowData.forEach(cellData => {
+                rowData.forEach((cellData, index) => {
                     const cell = document.createElement('td');
+                    
+                    // สำหรับคอลัมน์แรก ตรวจสอบ &nbsp;
+                    if (index === 0 && cellData.html.includes('&nbsp;')) {
+                        // นับจำนวน &nbsp;
+                        const nbspCount = (cellData.html.match(/&nbsp;/g) || []).length;
+                        const indentLevel = Math.floor(nbspCount / 8);
+                        
+                        // ใช้ padding แทนการแทนที่ &nbsp;
+                        if (indentLevel > 0) {
+                            cell.style.paddingLeft = (indentLevel * 10) + 'mm';
+                        }
+                    }
+                    
                     cell.textContent = cellData.text.trim();
                     newRow.appendChild(cell);
                 });
@@ -1272,13 +1268,12 @@
         doc.autoTable({
             html: tempTable,
             startY: marginTop,
-            theme: 'grid',
+            theme: 'plain', // เปลี่ยนจาก 'grid' เป็น 'plain' เพื่อลบเส้นขอบ
             styles: {
                 font: "THSarabun",
                 fontSize: fontSize,
                 cellPadding: 1,
-                lineWidth: 0.1,
-                lineColor: [0, 0, 0],
+                lineWidth: 0, // กำหนดเป็น 0 เพื่อลบเส้นขอบ
                 minCellHeight: 4,
                 overflow: 'linebreak',
                 textColor: [0, 0, 0]
@@ -1289,14 +1284,15 @@
                 fontSize: fontSize,
                 fontStyle: 'bold',
                 halign: 'center',
-                valign: 'middle'
+                valign: 'middle',
+                lineWidth: 0 // ลบเส้นขอบส่วนหัวตาราง
             },
             columnStyles: columnStyles,
             margin: { top: marginTop, right: marginRight, bottom: marginBottom, left: marginLeft },
             tableWidth: usableWidth,
             showHead: 'everyPage',
-            tableLineWidth: 0.1,
-            tableLineColor: [0, 0, 0],
+            tableLineWidth: 0, // กำหนดเป็น 0 เพื่อลบเส้นขอบตาราง
+            // ลบการกำหนดสีเส้นขอบเนื่องจากไม่จำเป็น
             didDrawCell: function(data) {
                 // ปรับความสูงของเซลล์หัวตาราง
                 if (data.section === 'head') {
@@ -1319,6 +1315,23 @@
                 // สำหรับเซลล์ข้อมูล คอลัมน์แรกใช้ text-align: left
                 if (data.section === 'body' && data.column.index === 0) {
                     data.cell.styles.halign = 'left';
+                    
+                    // ตรวจสอบหาการเยื้อง
+                    const paddingLeft = data.cell.raw.style.paddingLeft;
+                    if (paddingLeft) {
+                        // แปลง paddingLeft จาก mm เป็นจำนวนช่องว่าง
+                        // และใส่ช่องว่างเพิ่มที่ข้อความ
+                        const mmValue = parseFloat(paddingLeft);
+                        if (!isNaN(mmValue)) {
+                            // แปลงค่า mm เป็นจำนวนช่องว่าง (ประมาณการ)
+                            const spacesPerMm = 0.5; // ประมาณการจำนวนช่องว่างต่อ 1 mm
+                            const spaces = ' '.repeat(Math.round(mmValue * spacesPerMm));
+                            
+                            // เพิ่มช่องว่างนำหน้าข้อความที่มีอยู่
+                            const originalText = data.cell.text || '';
+                            data.cell.text = spaces + originalText;
+                        }
+                    }
                 }
             }
         });
@@ -1329,7 +1342,7 @@
         }
     }
     
-    doc.save('รายงานเปรียบเทียบงบประมาณ.pdf');
+    doc.save('รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร.pdf');
 }
 
         function exportXLS() {
