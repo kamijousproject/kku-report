@@ -225,22 +225,29 @@
             else {
                 data = all_data.filter(item => item.f1 === category);
             }
+            //console.log(all_data);
             const f1 = [...new Set(data.map(item => item.f1))];
             const f2 = [...new Set(data.map(item => item.f2))];
             const plan_name = [...new Set(data.map(item => item.plan_name))];
             const sub_plan_name = [...new Set(data.map(item => item.sub_plan_name))];
             const project_name = [...new Set(data.map(item => item.project_name))];
-            const account = [...new Set(data.map(item => item.TYPE))];
-            const sub_account = [...new Set(data.map(item => item.sub_type))];
-            const accname = [...new Set(data.map(item => item.accname))];
-
+            const account = [...new Set(data.map(item => item.level5))];
+            const sub_account = [...new Set(data.map(item => item.level4))];
+            const accname = [...new Set(data.map(item => item.level3))];
+            const lv2 = [...new Set(data.map(item => item.level2))];
+            const lv1 = [...new Set(data.map(item => item.level1))];
+            console.log(account);
+            console.log(sub_account);
+            console.log(accname);
+            console.log(lv2);
+            console.log(lv1);
             /* console.log(f1);
             console.log(f2);
             console.log(plan_name);
             console.log(sub_plan_name);
             console.log(project_name);
-            console.log(account);
-            console.log(sub_account);  */
+            console.log(account);  */
+            //console.log(all_data);
             
             /* var str1=''; 
             var str2='';
@@ -332,7 +339,7 @@
                     var s10 = Math.round(((sums.e2 * 100) / (sums.a2)) * 100) / 100 || 0;
                     var s3 = (sums.c6 + sums.o6);
                     var s8 = (sums.c2 + sums.o2);
-                    str1 += '<br/>' + '&nbsp;'.repeat(8) + row2;
+                    str1 += '<br/>' + '&nbsp;'.repeat(5) + row2;
                     str2 += '<br/>' + sums.a6.toLocaleString();
                     str3 += '<br/>' + s3.toLocaleString();
                     str4 += '<br/>' + s4.toLocaleString();
@@ -377,7 +384,7 @@
                             var s10 = Math.round(((sums.e2 * 100) / (sums.a2)) * 100) / 100 || 0;
                             var s3 = (sums.c6 + sums.o6);
                             var s8 = (sums.c2 + sums.o2);
-                            str1 += '<br/>' + '&nbsp;'.repeat(16) + row3;
+                            str1 += '<br/>' + '&nbsp;'.repeat(10) + row3;
                             str2 += '<br/>' + sums.a6.toLocaleString();
                             str3 += '<br/>' + s3.toLocaleString();
                             str4 += '<br/>' + s4.toLocaleString();
@@ -423,7 +430,7 @@
                                 var s10 = Math.round(((sums.e2 * 100) / (sums.a2)) * 100) / 100 || 0;
                                 var s3 = (sums.c6 + sums.o6);
                                 var s8 = (sums.c2 + sums.o2);
-                                str1 += '<br/>' + '&nbsp;'.repeat(24) + row4;
+                                str1 += '<br/>' + '&nbsp;'.repeat(15) + row4;
                                 str2 += '<br/>' + sums.a6.toLocaleString();
                                 str3 += '<br/>' + s3.toLocaleString();
                                 str4 += '<br/>' + s4.toLocaleString();
@@ -470,7 +477,7 @@
                                     var s10 = Math.round(((sums.e2 * 100) / (sums.a2)) * 100) / 100 || 0;
                                     var s3 = (sums.c6 + sums.o6);
                                     var s8 = (sums.c2 + sums.o2);
-                                    str1 += '<br/>' + '&nbsp;'.repeat(32) + row5;
+                                    str1 += '<br/>' + '&nbsp;'.repeat(20) + row5;
                                     str2 += '<br/>' + sums.a6.toLocaleString();
                                     str3 += '<br/>' + s3.toLocaleString();
                                     str4 += '<br/>' + s4.toLocaleString();
@@ -488,7 +495,7 @@
                                     str16 += '<br/>' + (Math.round((s6 + s10) * 100) / 100).toLocaleString();
                                 }
                                 account.forEach((row6) => {
-                                    const ac = pro.filter(item => item.TYPE === row6 && item.project_name === row5 && item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                                    const ac = pro.filter(item => item.level5 === row6 && item.project_name === row5 && item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
                                     const parseValue = (value) => {
                                         const number = parseFloat(value.replace(/,/g, ''));
                                         return isNaN(number) ? 0 : number;
@@ -515,7 +522,7 @@
                                         var s10 = Math.round(((sums.e2 * 100) / (sums.a2)) * 100) / 100 || 0;
                                         var s3 = (sums.c6 + sums.o6);
                                         var s8 = (sums.c2 + sums.o2);
-                                        str1 += '<br/>' + '&nbsp;'.repeat(40) + row6;
+                                        str1 += '<br/>' + '&nbsp;'.repeat(25) + row6;
                                         str2 += '<br/>' + sums.a6.toLocaleString();
                                         str3 += '<br/>' + s3.toLocaleString();
                                         str4 += '<br/>' + s4.toLocaleString();
@@ -533,7 +540,7 @@
                                         str16 += '<br/>' + (Math.round((s6 + s10) * 100) / 100).toLocaleString();
                                     }
                                     sub_account.forEach((row7) => {
-                                        const sa = pro.filter(item =>item.sub_type === row7 &&item.TYPE === row6 &&item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                                        const sa = pro.filter(item =>item.level4 === row7 &&item.level5 === row6 &&item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
                                         //console.log("sa");
                                         //console.log(sa);
                                         const parseValue = (value) => {
@@ -562,7 +569,7 @@
                                             var s10 = Math.round(((sums.e2 * 100) / (sums.a2)) * 100) / 100 || 0;
                                             var s3 = (sums.c6 + sums.o6);
                                             var s8 = (sums.c2 + sums.o2);
-                                            str1 += '<br/>' + '&nbsp;'.repeat(48) + row7;
+                                            str1 += '<br/>' + '&nbsp;'.repeat(30) + row7;
                                             str2 += '<br/>' + sums.a6.toLocaleString();
                                             str3 += '<br/>' + s3.toLocaleString();
                                             str4 += '<br/>' + s4.toLocaleString();
@@ -580,9 +587,9 @@
                                             str16 += '<br/>' + (Math.round((s6 + s10) * 100) / 100).toLocaleString();
                                         }
                                         accname.forEach((row8) => {
-                                            const sa2 = sa.filter(item =>row7 != row8 && item.accname === row8 &&item.sub_type === row7 &&item.TYPE === row6 &&item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
-                                            console.log("aaaaaa");
-                                            console.log(sa2);
+                                            const sa2 = sa.filter(item =>item.level3 === row8 &&item.level4 === row7 &&item.level5 === row6 &&item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                                            //console.log("aaaaaa");
+                                            //console.log(sa2);
                                             const parseValue = (value) => {
                                                     const number = parseFloat(value.replace(/,/g, ''));
                                                     return isNaN(number) ? 0 : number;
@@ -602,14 +609,14 @@
                                                     a2: 0, c2: 0, o2: 0, e2: 0,
                                                     a6: 0, c6: 0, o6: 0, e6: 0
                                                 });
-                                            if(sa2.length>0){
+                                            if(sa2.length>0 && row8!=null){
                                                 var s4=Math.round((((sums.c6+sums.o6)*100)/(sums.a6))* 100) / 100 || 0;
                                                 var s9=Math.round((((sums.c2+sums.o2)*100)/(sums.a2))* 100) / 100 || 0;
                                                 var s6=Math.round(((sums.e6*100)/(sums.a6))* 100) / 100 || 0;
                                                 var s10=Math.round(((sums.e2*100)/(sums.a2))* 100) / 100 || 0;
                                                 var s3=(sums.c6+sums.o6);
                                                 var s8=(sums.c2+sums.o2);
-                                                str1+='<br/>'+'&nbsp;'.repeat(56)+row8;
+                                                str1+='<br/>'+'&nbsp;'.repeat(35)+row8;
                                                 str2+='<br/>'+sums.a6.toLocaleString();
                                                 str3+='<br/>'+s3.toLocaleString();
                                                 str4+='<br/>'+s4.toLocaleString();
@@ -626,13 +633,48 @@
                                                 str15+='<br/>'+(sums.e6+sums.e2).toLocaleString();
                                                 str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
                                             }
-                                            sa2.forEach((row9) => {
+                                            if(sa2.length>0 && row8==null){
+                                                sa2.forEach((row8_null) => {
+                                                    const parseValue = (value) => {
+                                                        const number = parseFloat(value.replace(/,/g, ''));
+                                                        return isNaN(number) ? 0 : number;
+                                                    };
+                                                    
+                                                    if(row8_null.KKU_Item_Name!=""){
+                                                        var s4=Math.round((((parseInt(row8_null.c6)+parseInt(row8_null.o6))*100)/(parseInt(row8_null.a6)))* 100) / 100 || 0;
+                                                        var s9=Math.round((((parseInt(row8_null.c2)+parseInt(row8_null.o2))*100)/(parseInt(row8_null.a2)))* 100) / 100 || 0;
+                                                        var s6=Math.round(((parseInt(row8_null.e6)*100)/(parseInt(row8_null.a6)))* 100) / 100 || 0;
+                                                        var s10=Math.round(((parseInt(row8_null.e2)*100)/(parseInt(row8_null.a2)))* 100) / 100 || 0;
+                                                        var s3=(parseInt(row8_null.c6)+parseInt(row8_null.o6));
+                                                        var s8=(parseInt(row8_null.c2)+parseInt(row8_null.o2));
+                                                        str1+='<br/>'+'&nbsp;'.repeat(35)+row8_null.KKU_Item_Name2;
+                                                        str2+='<br/>'+parseInt(row8_null.a6).toLocaleString();
+                                                        str3+='<br/>'+s3.toLocaleString();
+                                                        str4+='<br/>'+s4.toLocaleString();
+                                                        str5+='<br/>'+parseInt(row8_null.e6).toLocaleString();
+                                                        str6+='<br/>'+s6.toLocaleString();
+                                                        str7+='<br/>'+parseInt(row8_null.a2).toLocaleString();
+                                                        str8+='<br/>'+s8.toLocaleString();
+                                                        str9+='<br/>'+s9.toLocaleString();
+                                                        str10+='<br/>'+parseInt(row8_null.e2).toLocaleString();
+                                                        str11+='<br/>'+s10.toLocaleString();
+                                                        str12+='<br/>'+(parseInt(row8_null.a6)+parseInt(row8_null.a2)).toLocaleString();
+                                                        str13+='<br/>'+(s3+s8).toLocaleString();
+                                                        str14+='<br/>'+(s4+s9).toLocaleString();
+                                                        str15+='<br/>'+(parseInt(row8_null.e6)+parseInt(row8_null.e2)).toLocaleString();
+                                                        str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
+                                                    }
+                                                });
+                                            }
+                                            lv2.forEach((row9) => {
+                                                const l2 = sa2.filter(item =>item.level2 === row9 &&item.level3 === row8 &&item.level4 === row7 &&item.level5 === row6 &&item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                                                //console.log("aaaaaa");
+                                                //console.log(l2);
                                                 const parseValue = (value) => {
-                                                    const number = parseFloat(value.replace(/,/g, ''));
-                                                    return isNaN(number) ? 0 : number;
-                                                };
-                                                //console.log(row8);
-                                                /* const sums = row8.reduce((acc, item) => {
+                                                        const number = parseFloat(value.replace(/,/g, ''));
+                                                        return isNaN(number) ? 0 : number;
+                                                    };
+                                                const sums = l2.reduce((acc, item) => {
                                                         return {
                                                             a2: acc.a2 + parseValue(item.a2),
                                                             c2: acc.c2 + parseValue(item.c2),
@@ -646,32 +688,246 @@
                                                     }, {
                                                         a2: 0, c2: 0, o2: 0, e2: 0,
                                                         a6: 0, c6: 0, o6: 0, e6: 0
-                                                    }); */
-                                                if(row9.KKU_Item_Name!=""){
-                                                    var s4=Math.round((((parseInt(row9.c6)+parseInt(row9.o6))*100)/(parseInt(row9.a6)))* 100) / 100 || 0;
-                                                    var s9=Math.round((((parseInt(row9.c2)+parseInt(row9.o2))*100)/(parseInt(row9.a2)))* 100) / 100 || 0;
-                                                    var s6=Math.round(((parseInt(row9.e6)*100)/(parseInt(row9.a6)))* 100) / 100 || 0;
-                                                    var s10=Math.round(((parseInt(row9.e2)*100)/(parseInt(row9.a2)))* 100) / 100 || 0;
-                                                    var s3=(parseInt(row9.c6)+parseInt(row9.o6));
-                                                    var s8=(parseInt(row9.c2)+parseInt(row9.o2));
-                                                    str1+='<br/>'+'&nbsp;'.repeat(64)+row9.KKU_Item_Name2;
-                                                    str2+='<br/>'+parseInt(row9.a6).toLocaleString();
+                                                    });
+                                                if(l2.length>0 && row9!=null){
+                                                    //console.log(l2)
+                                                    var s4=Math.round((((sums.c6+sums.o6)*100)/(sums.a6))* 100) / 100 || 0;
+                                                    var s9=Math.round((((sums.c2+sums.o2)*100)/(sums.a2))* 100) / 100 || 0;
+                                                    var s6=Math.round(((sums.e6*100)/(sums.a6))* 100) / 100 || 0;
+                                                    var s10=Math.round(((sums.e2*100)/(sums.a2))* 100) / 100 || 0;
+                                                    var s3=(sums.c6+sums.o6);
+                                                    var s8=(sums.c2+sums.o2);
+                                                    str1+='<br/>'+'&nbsp;'.repeat(40)+row9;
+                                                    str2+='<br/>'+sums.a6.toLocaleString();
                                                     str3+='<br/>'+s3.toLocaleString();
                                                     str4+='<br/>'+s4.toLocaleString();
-                                                    str5+='<br/>'+parseInt(row9.e6).toLocaleString();
+                                                    str5+='<br/>'+sums.e6.toLocaleString();
                                                     str6+='<br/>'+s6.toLocaleString();
-                                                    str7+='<br/>'+parseInt(row9.a2).toLocaleString();
+                                                    str7+='<br/>'+sums.a2.toLocaleString();
                                                     str8+='<br/>'+s8.toLocaleString();
                                                     str9+='<br/>'+s9.toLocaleString();
-                                                    str10+='<br/>'+parseInt(row9.e2).toLocaleString();
+                                                    str10+='<br/>'+sums.e2.toLocaleString();
                                                     str11+='<br/>'+s10.toLocaleString();
-                                                    str12+='<br/>'+(parseInt(row9.a6)+parseInt(row9.a2)).toLocaleString();
+                                                    str12+='<br/>'+(sums.a6+sums.a2).toLocaleString();
                                                     str13+='<br/>'+(s3+s8).toLocaleString();
                                                     str14+='<br/>'+(s4+s9).toLocaleString();
-                                                    str15+='<br/>'+(parseInt(row9.e6)+parseInt(row9.e2)).toLocaleString();
+                                                    str15+='<br/>'+(sums.e6+sums.e2).toLocaleString();
                                                     str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
                                                 }
+                                                if(l2.length>0 && row9==null&& row8!=null){
+                                                    l2.forEach((row9_null) => {
+                                                        const parseValue = (value) => {
+                                                            const number = parseFloat(value.replace(/,/g, ''));
+                                                            return isNaN(number) ? 0 : number;
+                                                        };
+                                                        
+                                                        if(row9_null.KKU_Item_Name!=""){
+                                                            var s4=Math.round((((parseInt(row9_null.c6)+parseInt(row9_null.o6))*100)/(parseInt(row9_null.a6)))* 100) / 100 || 0;
+                                                            var s9=Math.round((((parseInt(row9_null.c2)+parseInt(row9_null.o2))*100)/(parseInt(row9_null.a2)))* 100) / 100 || 0;
+                                                            var s6=Math.round(((parseInt(row9_null.e6)*100)/(parseInt(row9_null.a6)))* 100) / 100 || 0;
+                                                            var s10=Math.round(((parseInt(row9_null.e2)*100)/(parseInt(row9_null.a2)))* 100) / 100 || 0;
+                                                            var s3=(parseInt(row9_null.c6)+parseInt(row9_null.o6));
+                                                            var s8=(parseInt(row9_null.c2)+parseInt(row9_null.o2));
+                                                            str1+='<br/>'+'&nbsp;'.repeat(40)+row9_null.KKU_Item_Name2;
+                                                            str2+='<br/>'+parseInt(row9_null.a6).toLocaleString();
+                                                            str3+='<br/>'+s3.toLocaleString();
+                                                            str4+='<br/>'+s4.toLocaleString();
+                                                            str5+='<br/>'+parseInt(row9_null.e6).toLocaleString();
+                                                            str6+='<br/>'+s6.toLocaleString();
+                                                            str7+='<br/>'+parseInt(row9_null.a2).toLocaleString();
+                                                            str8+='<br/>'+s8.toLocaleString();
+                                                            str9+='<br/>'+s9.toLocaleString();
+                                                            str10+='<br/>'+parseInt(row9_null.e2).toLocaleString();
+                                                            str11+='<br/>'+s10.toLocaleString();
+                                                            str12+='<br/>'+(parseInt(row9_null.a6)+parseInt(row9_null.a2)).toLocaleString();
+                                                            str13+='<br/>'+(s3+s8).toLocaleString();
+                                                            str14+='<br/>'+(s4+s9).toLocaleString();
+                                                            str15+='<br/>'+(parseInt(row9_null.e6)+parseInt(row9_null.e2)).toLocaleString();
+                                                            str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
+                                                        }
+                                                    });
+                                                }
+                                                lv1.forEach((row10) => {
+                                                    const l1 = l2.filter(item =>item.level1 === row10 &&item.level2 === row9 &&item.level3 === row8 &&item.level4 === row7 &&item.level5 === row6 &&item.project_name === row5 &&item.sub_plan_name === row4 && item.plan_name === row3 && item.f2 === row2 && item.f1 === row1);
+                                                    //console.log("aaaaaa");
+                                                    //console.log(sa2);
+                                                    const parseValue = (value) => {
+                                                            const number = parseFloat(value.replace(/,/g, ''));
+                                                            return isNaN(number) ? 0 : number;
+                                                        };
+                                                    const sums = l1.reduce((acc, item) => {
+                                                            return {
+                                                                a2: acc.a2 + parseValue(item.a2),
+                                                                c2: acc.c2 + parseValue(item.c2),
+                                                                o2: acc.o2 + parseValue(item.o2),
+                                                                e2: acc.e2 + parseValue(item.e2),
+                                                                a6: acc.a6 + parseValue(item.a6),
+                                                                c6: acc.c6 + parseValue(item.c6),
+                                                                o6: acc.o6 + parseValue(item.o6),
+                                                                e6: acc.e6 + parseValue(item.e6)
+                                                            };
+                                                        }, {
+                                                            a2: 0, c2: 0, o2: 0, e2: 0,
+                                                            a6: 0, c6: 0, o6: 0, e6: 0
+                                                        });
+                                                    if(l1.length>0 && row10!=null){
+                                                        var s4=Math.round((((sums.c6+sums.o6)*100)/(sums.a6))* 100) / 100 || 0;
+                                                        var s9=Math.round((((sums.c2+sums.o2)*100)/(sums.a2))* 100) / 100 || 0;
+                                                        var s6=Math.round(((sums.e6*100)/(sums.a6))* 100) / 100 || 0;
+                                                        var s10=Math.round(((sums.e2*100)/(sums.a2))* 100) / 100 || 0;
+                                                        var s3=(sums.c6+sums.o6);
+                                                        var s8=(sums.c2+sums.o2);
+                                                        str1+='<br/>'+'&nbsp;'.repeat(45)+row10;
+                                                        str2+='<br/>'+sums.a6.toLocaleString();
+                                                        str3+='<br/>'+s3.toLocaleString();
+                                                        str4+='<br/>'+s4.toLocaleString();
+                                                        str5+='<br/>'+sums.e6.toLocaleString();
+                                                        str6+='<br/>'+s6.toLocaleString();
+                                                        str7+='<br/>'+sums.a2.toLocaleString();
+                                                        str8+='<br/>'+s8.toLocaleString();
+                                                        str9+='<br/>'+s9.toLocaleString();
+                                                        str10+='<br/>'+sums.e2.toLocaleString();
+                                                        str11+='<br/>'+s10.toLocaleString();
+                                                        str12+='<br/>'+(sums.a6+sums.a2).toLocaleString();
+                                                        str13+='<br/>'+(s3+s8).toLocaleString();
+                                                        str14+='<br/>'+(s4+s9).toLocaleString();
+                                                        str15+='<br/>'+(sums.e6+sums.e2).toLocaleString();
+                                                        str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
+                                                        l1.forEach((row10_item) => {
+                                                            const parseValue = (value) => {
+                                                                const number = parseFloat(value.replace(/,/g, ''));
+                                                                return isNaN(number) ? 0 : number;
+                                                            };
+                                                            
+                                                            if(row10_item.KKU_Item_Name!=""){
+                                                                var s4=Math.round((((parseInt(row10_item.c6)+parseInt(row10_item.o6))*100)/(parseInt(row10_item.a6)))* 100) / 100 || 0;
+                                                                var s9=Math.round((((parseInt(row10_item.c2)+parseInt(row10_item.o2))*100)/(parseInt(row10_item.a2)))* 100) / 100 || 0;
+                                                                var s6=Math.round(((parseInt(row10_item.e6)*100)/(parseInt(row10_item.a6)))* 100) / 100 || 0;
+                                                                var s10=Math.round(((parseInt(row10_item.e2)*100)/(parseInt(row10_item.a2)))* 100) / 100 || 0;
+                                                                var s3=(parseInt(row10_item.c6)+parseInt(row10_item.o6));
+                                                                var s8=(parseInt(row10_item.c2)+parseInt(row10_item.o2));
+                                                                str1+='<br/>'+'&nbsp;'.repeat(45)+row10_item.KKU_Item_Name2;
+                                                                str2+='<br/>'+parseInt(row10_item.a6).toLocaleString();
+                                                                str3+='<br/>'+s3.toLocaleString();
+                                                                str4+='<br/>'+s4.toLocaleString();
+                                                                str5+='<br/>'+parseInt(row10_item.e6).toLocaleString();
+                                                                str6+='<br/>'+s6.toLocaleString();
+                                                                str7+='<br/>'+parseInt(row10_item.a2).toLocaleString();
+                                                                str8+='<br/>'+s8.toLocaleString();
+                                                                str9+='<br/>'+s9.toLocaleString();
+                                                                str10+='<br/>'+parseInt(row10_item.e2).toLocaleString();
+                                                                str11+='<br/>'+s10.toLocaleString();
+                                                                str12+='<br/>'+(parseInt(row10_item.a6)+parseInt(row10_item.a2)).toLocaleString();
+                                                                str13+='<br/>'+(s3+s8).toLocaleString();
+                                                                str14+='<br/>'+(s4+s9).toLocaleString();
+                                                                str15+='<br/>'+(parseInt(row10_item.e6)+parseInt(row10_item.e2)).toLocaleString();
+                                                                str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
+                                                            }
+                                                        });
+                                                    }
+                                                    if(l1.length>0 && row9==null&& row8!=null&& row10!=null){
+                                                        l1.forEach((row9_null) => {
+                                                            const parseValue = (value) => {
+                                                                const number = parseFloat(value.replace(/,/g, ''));
+                                                                return isNaN(number) ? 0 : number;
+                                                            };
+                                                            
+                                                            if(row10_null.KKU_Item_Name!=""){
+                                                                var s4=Math.round((((parseInt(row10_null.c6)+parseInt(row10_null.o6))*100)/(parseInt(row10_null.a6)))* 100) / 100 || 0;
+                                                                var s9=Math.round((((parseInt(row10_null.c2)+parseInt(row10_null.o2))*100)/(parseInt(row10_null.a2)))* 100) / 100 || 0;
+                                                                var s6=Math.round(((parseInt(row10_null.e6)*100)/(parseInt(row10_null.a6)))* 100) / 100 || 0;
+                                                                var s10=Math.round(((parseInt(row10_null.e2)*100)/(parseInt(row10_null.a2)))* 100) / 100 || 0;
+                                                                var s3=(parseInt(row10_null.c6)+parseInt(row10_null.o6));
+                                                                var s8=(parseInt(row10_null.c2)+parseInt(row10_null.o2));
+                                                                str1+='<br/>'+'&nbsp;'.repeat(45)+row10_null.KKU_Item_Name2;
+                                                                str2+='<br/>'+parseInt(row10_null.a6).toLocaleString();
+                                                                str3+='<br/>'+s3.toLocaleString();
+                                                                str4+='<br/>'+s4.toLocaleString();
+                                                                str5+='<br/>'+parseInt(row10_null.e6).toLocaleString();
+                                                                str6+='<br/>'+s6.toLocaleString();
+                                                                str7+='<br/>'+parseInt(row10_null.a2).toLocaleString();
+                                                                str8+='<br/>'+s8.toLocaleString();
+                                                                str9+='<br/>'+s9.toLocaleString();
+                                                                str10+='<br/>'+parseInt(row10_null.e2).toLocaleString();
+                                                                str11+='<br/>'+s10.toLocaleString();
+                                                                str12+='<br/>'+(parseInt(row10_null.a6)+parseInt(row10_null.a2)).toLocaleString();
+                                                                str13+='<br/>'+(s3+s8).toLocaleString();
+                                                                str14+='<br/>'+(s4+s9).toLocaleString();
+                                                                str15+='<br/>'+(parseInt(row10_null.e6)+parseInt(row10_null.e2)).toLocaleString();
+                                                                str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
+                                                            }
+                                                        });
+                                                    }
+                                                    /* sa2.forEach((row9) => {
+                                                        const parseValue = (value) => {
+                                                            const number = parseFloat(value.replace(/,/g, ''));
+                                                            return isNaN(number) ? 0 : number;
+                                                        };
+                                                        
+                                                        if(row9.KKU_Item_Name!=""){
+                                                            var s4=Math.round((((parseInt(row9.c6)+parseInt(row9.o6))*100)/(parseInt(row9.a6)))* 100) / 100 || 0;
+                                                            var s9=Math.round((((parseInt(row9.c2)+parseInt(row9.o2))*100)/(parseInt(row9.a2)))* 100) / 100 || 0;
+                                                            var s6=Math.round(((parseInt(row9.e6)*100)/(parseInt(row9.a6)))* 100) / 100 || 0;
+                                                            var s10=Math.round(((parseInt(row9.e2)*100)/(parseInt(row9.a2)))* 100) / 100 || 0;
+                                                            var s3=(parseInt(row9.c6)+parseInt(row9.o6));
+                                                            var s8=(parseInt(row9.c2)+parseInt(row9.o2));
+                                                            str1+='<br/>'+'&nbsp;'.repeat(64)+row9.KKU_Item_Name2;
+                                                            str2+='<br/>'+parseInt(row9.a6).toLocaleString();
+                                                            str3+='<br/>'+s3.toLocaleString();
+                                                            str4+='<br/>'+s4.toLocaleString();
+                                                            str5+='<br/>'+parseInt(row9.e6).toLocaleString();
+                                                            str6+='<br/>'+s6.toLocaleString();
+                                                            str7+='<br/>'+parseInt(row9.a2).toLocaleString();
+                                                            str8+='<br/>'+s8.toLocaleString();
+                                                            str9+='<br/>'+s9.toLocaleString();
+                                                            str10+='<br/>'+parseInt(row9.e2).toLocaleString();
+                                                            str11+='<br/>'+s10.toLocaleString();
+                                                            str12+='<br/>'+(parseInt(row9.a6)+parseInt(row9.a2)).toLocaleString();
+                                                            str13+='<br/>'+(s3+s8).toLocaleString();
+                                                            str14+='<br/>'+(s4+s9).toLocaleString();
+                                                            str15+='<br/>'+(parseInt(row9.e6)+parseInt(row9.e2)).toLocaleString();
+                                                            str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
+                                                        }
+                                                    }); */
+                                                
+                                                });
+                                                
+                                                /* sa2.forEach((row9) => {
+                                                        const parseValue = (value) => {
+                                                            const number = parseFloat(value.replace(/,/g, ''));
+                                                            return isNaN(number) ? 0 : number;
+                                                        };
+                                                        
+                                                        if(row9.KKU_Item_Name!=""){
+                                                            var s4=Math.round((((parseInt(row9.c6)+parseInt(row9.o6))*100)/(parseInt(row9.a6)))* 100) / 100 || 0;
+                                                            var s9=Math.round((((parseInt(row9.c2)+parseInt(row9.o2))*100)/(parseInt(row9.a2)))* 100) / 100 || 0;
+                                                            var s6=Math.round(((parseInt(row9.e6)*100)/(parseInt(row9.a6)))* 100) / 100 || 0;
+                                                            var s10=Math.round(((parseInt(row9.e2)*100)/(parseInt(row9.a2)))* 100) / 100 || 0;
+                                                            var s3=(parseInt(row9.c6)+parseInt(row9.o6));
+                                                            var s8=(parseInt(row9.c2)+parseInt(row9.o2));
+                                                            str1+='<br/>'+'&nbsp;'.repeat(64)+row9.KKU_Item_Name2;
+                                                            str2+='<br/>'+parseInt(row9.a6).toLocaleString();
+                                                            str3+='<br/>'+s3.toLocaleString();
+                                                            str4+='<br/>'+s4.toLocaleString();
+                                                            str5+='<br/>'+parseInt(row9.e6).toLocaleString();
+                                                            str6+='<br/>'+s6.toLocaleString();
+                                                            str7+='<br/>'+parseInt(row9.a2).toLocaleString();
+                                                            str8+='<br/>'+s8.toLocaleString();
+                                                            str9+='<br/>'+s9.toLocaleString();
+                                                            str10+='<br/>'+parseInt(row9.e2).toLocaleString();
+                                                            str11+='<br/>'+s10.toLocaleString();
+                                                            str12+='<br/>'+(parseInt(row9.a6)+parseInt(row9.a2)).toLocaleString();
+                                                            str13+='<br/>'+(s3+s8).toLocaleString();
+                                                            str14+='<br/>'+(s4+s9).toLocaleString();
+                                                            str15+='<br/>'+(parseInt(row9.e6)+parseInt(row9.e2)).toLocaleString();
+                                                            str16+='<br/>'+(Math.round((s6+s10)* 100) / 100).toLocaleString();
+                                                        }
+                                                    }); */
+                                                
+                                                
+                                                
                                             });
+                                            
                                         
                                         });
 

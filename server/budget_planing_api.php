@@ -119,7 +119,112 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $conn = $db->connect();
 
                 // เชื่อมต่อฐานข้อมูล
-                $sql = "WITH t1 AS (
+                $sql = "WITH RECURSIVE account_hierarchy AS (
+    -- Anchor member: Start with all accounts that have a parent
+    SELECT 
+        a1.account,
+        a1.account AS acc_id,
+        a1.alias_default AS alias,
+        a1.parent,
+        1 AS level
+    FROM account a1
+    WHERE a1.parent IS NOT NULL
+    
+    UNION ALL
+    
+    -- Recursive member: Find parent accounts
+    SELECT 
+        ah.account,
+        a2.account AS acc_id,
+        a2.alias_default AS alias,
+        a2.parent,
+        ah.level + 1 AS level
+    FROM account_hierarchy ah
+    JOIN account a2 
+        ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
+    WHERE a2.parent IS NOT NULL
+    AND ah.level < 6 -- Maximum 6 levels (increased from 5)
+),
+
+-- Get the maximum level for each account to determine total depth
+max_levels AS (
+    SELECT account, MAX(level) AS max_level
+    FROM account_hierarchy
+    GROUP BY account
+),
+
+-- Create a pivot table with all levels for each account
+hierarchy_pivot AS (
+    SELECT 
+        h.account,
+        m.max_level,
+        MAX(CASE WHEN h.level = 1 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level1_value,
+        MAX(CASE WHEN h.level = 2 THEN CONCAT(h.acc_id, ' : ',REGEXP_REPLACE( h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level2_value,
+        MAX(CASE WHEN h.level = 3 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level3_value,
+        MAX(CASE WHEN h.level = 4 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level4_value,
+        MAX(CASE WHEN h.level = 5 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level5_value,
+        MAX(CASE WHEN h.level = 6 THEN CONCAT(h.acc_id, ' : ', REGEXP_REPLACE(h.alias, '^[0-9]+(.[0-9]+)*[. ]+', '')) END) AS level6_value
+    FROM account_hierarchy h
+    JOIN max_levels m ON h.account = m.account
+    GROUP BY h.account, m.max_level
+),
+
+-- Shift the hierarchy to the left (compact it)
+shifted_hierarchy AS (
+    SELECT
+        account AS current_acc,
+        max_level AS TotalLevels,
+        CASE 
+            WHEN max_level = 1 THEN level1_value
+            WHEN max_level = 2 THEN level2_value
+            WHEN max_level = 3 THEN level3_value
+            WHEN max_level = 4 THEN level4_value
+            WHEN max_level = 5 THEN level5_value
+            WHEN max_level = 6 THEN level6_value
+        END AS level6,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN level1_value
+            WHEN max_level = 3 THEN level2_value
+            WHEN max_level = 4 THEN level3_value
+            WHEN max_level = 5 THEN level4_value
+            WHEN max_level = 6 THEN level5_value
+        END AS level5,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN NULL
+            WHEN max_level = 3 THEN level1_value
+            WHEN max_level = 4 THEN level2_value
+            WHEN max_level = 5 THEN level3_value
+            WHEN max_level = 6 THEN level4_value
+        END AS level4,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN NULL
+            WHEN max_level = 3 THEN NULL
+            WHEN max_level = 4 THEN level1_value
+            WHEN max_level = 5 THEN level2_value
+            WHEN max_level = 6 THEN level3_value
+        END AS level3,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN NULL
+            WHEN max_level = 3 THEN NULL
+            WHEN max_level = 4 THEN NULL
+            WHEN max_level = 5 THEN level1_value
+            WHEN max_level = 6 THEN level2_value
+        END AS level2,
+        CASE 
+            WHEN max_level = 1 THEN NULL
+            WHEN max_level = 2 THEN NULL
+            WHEN max_level = 3 THEN NULL
+            WHEN max_level = 4 THEN NULL
+            WHEN max_level = 5 THEN NULL
+            WHEN max_level = 6 THEN level1_value
+        END AS level1
+    FROM hierarchy_pivot
+)
+,t1 AS (
                         SELECT faculty,Alias_Default FROM Faculty 
                         WHERE parent='Total KKU' AND Faculty !='Faculty-00')
                         ,t1_1 AS (
@@ -201,16 +306,25 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 								ON t.sub_type2 =a2.alias_default COLLATE UTF8MB4_GENERAL_CI
 								LEFT JOIN account a3
 								ON t.account2 =a3.account COLLATE UTF8MB4_GENERAL_CI)
-                        SELECT *,CONCAT(atype,' : ',REGEXP_REPLACE(TYPE2, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS TYPE
-								,CONCAT(asubtype,' : ',REGEXP_REPLACE(sub_type2, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS sub_type
-								,CONCAT(account2,' : ',REGEXP_REPLACE(aname, '^[0-9]+(\\.[0-9]+)*\\.\\s*', '')) AS accname 
+								,t9 AS(
+                        SELECT *,CONCAT(atype,' : ',REGEXP_REPLACE(TYPE2, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', '')) AS TYPE
+								,CONCAT(asubtype,' : ',REGEXP_REPLACE(sub_type2, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', '')) AS sub_type
+								,CONCAT(account2,' : ',REGEXP_REPLACE(aname, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', '')) AS accname 
 								,CASE 
 							        WHEN KKU_Item_Name IS NOT NULL AND KKU_Item_Name != '' 
-							        THEN CONCAT(account2, ' : ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*\\.\\s*', ''))
+							        THEN CONCAT(account2, ' : ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', ''))
 							        ELSE NULL 
 							    END AS KKU_Item_Name2 
 								FROM t8
-                        ORDER BY Faculty,plan,sub_plan,project,account,sub_account";
+                        ORDER BY Faculty,plan,sub_plan,project,account,sub_account)
+                     	,t10 AS (
+								SELECT t.*,h.*
+								FROM t9 t
+								LEFT JOIN shifted_hierarchy h
+								ON t.account2=h.current_acc)
+								
+								
+								SELECT * FROM t10";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
