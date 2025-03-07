@@ -1,6 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    #reportTable th:nth-child(1),
+    #reportTable td:nth-child(1) {
+        width: 300px;
+    }
+
+    #reportTable th {
+        text-align: center;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: middle;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
+
+    #reportTable td {
+        text-align: left;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: top;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
+
+    .wide-column {
+        min-width: 250px;
+        /* ปรับขนาด column ให้กว้างขึ้น */
+        word-break: break-word;
+        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
+        white-space: pre-line;
+        /* รักษารูปแบบการขึ้นบรรทัด */
+        vertical-align: top;
+        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
+        padding: 10px;
+        /* เพิ่มช่องว่างด้านใน */
+    }
+
+    .wide-column div {
+        margin-bottom: 5px;
+        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+    }
+
+    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        /* ลบช่องว่างระหว่างเซลล์ */
+    }
+
+    /* ทำให้หัวตารางติดอยู่กับด้านบน */
+    th {
+        position: sticky;
+        /* ทำให้ header ติดอยู่กับด้านบน */
+        top: 0;
+        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
+        background-color: #fff;
+        /* กำหนดพื้นหลังให้กับหัวตาราง */
+        z-index: 2;
+        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* เพิ่มเงาให้หัวตาราง */
+        padding: 8px;
+    }
+
+    /* เพิ่มเงาให้กับแถวหัวตาราง */
+    th,
+    td {
+        border: 1px solid #ddd;
+        /* เพิ่มขอบให้เซลล์ */
+    }
+
+    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
+    .table-responsive {
+        max-height: 60vh;
+        /* กำหนดความสูงของตาราง */
+        overflow-y: auto;
+        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
+    }
+</style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -54,7 +133,7 @@
                                 $totalRows = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
                                 $totalPages = ceil($totalRows / $limit);
 
-                                // Query ดึงข้อมูลตามหน้าปัจจุบัน
+                                // Query ดึงข้อมูลจาก budget_planning_actual_2
                                 $query = "SELECT 
                                             account, 
                                             account_description, 
@@ -72,6 +151,7 @@
                                 $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
                                 $stmt->execute();
                                 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
                                 ?>
 
                                 <div class="table-responsive">
@@ -103,23 +183,31 @@
                                             <?php foreach ($data as $row): ?>
                                                 <tr>
                                                     <?php
+                                                    // ดึงค่าจาก account และ format ใหม่
                                                     $accountParts = explode('-', $row['account']);
                                                     $formattedAccount = isset($accountParts[3], $accountParts[1]) ? "{$accountParts[3]}-{$accountParts[1]}" : $row['account'];
-                                                    ?>
-                                                    <td><?= $formattedAccount ?></td>
-                                                    <td>
-                                                        <?php
-                                                        // ลบเครื่องหมาย \ และช่องว่างพิเศษออกจากข้อความก่อน
-                                                        $cleanedDescription = preg_replace('/\\\\/', '', $row['account_description']);
 
-                                                        // ใช้ regex ดึงเฉพาะส่วนที่ต้องการ
-                                                        if (preg_match('/(บัญชี[^-]+)-([^\\-]+)-([^\\-]+)/u', $cleanedDescription, $matches)) {
-                                                            echo trim("{$matches[1]}-{$matches[2]}-{$matches[3]}");
-                                                        } else {
-                                                            echo trim($cleanedDescription); // ถ้าไม่ตรงเงื่อนไขให้แสดงค่าเดิม
-                                                        }
-                                                        ?>
-                                                    </td>
+                                                    // ดึงค่า account number (ตัวเลขเท่านั้น) เช่น 5401080000
+                                                    $accountNumber = $accountParts[3] ?? $row['account'];
+
+                                                    // Query หาชื่อบัญชีจาก budget_account
+                                                    $descQuery = "SELECT description FROM budget_account WHERE account = :account_number LIMIT 1";
+                                                    $descStmt = $conn->prepare($descQuery);
+                                                    $descStmt->bindParam(':account_number', $accountNumber, PDO::PARAM_STR);
+                                                    $descStmt->execute();
+                                                    $accountDescription = $descStmt->fetch(PDO::FETCH_ASSOC)['description'] ?? $row['account_description'];
+
+                                                    $facultyDes = explode("-", $row['account_description']);
+                                                    if (count($facultyDes) >= 2) {
+                                                        $facultyDes = $facultyDes[1]; // ดึงค่าหลัง "-" ตัวแรก
+                                                        $facultyDes = str_replace("\\", "", $facultyDes); // ลบเครื่องหมาย backslash
+                                                    } else {
+                                                        echo "ไม่พบข้อมูลที่ต้องการ";
+                                                    }
+                                                    ?>
+
+                                                    <td><?= $formattedAccount ?></td>
+                                                    <td><?= $accountDescription . '-' . $facultyDes ?></td>
                                                     <td>-</td>
                                                     <td>-</td>
                                                     <td><?= $row['prior_periods_debit'] ?></td>

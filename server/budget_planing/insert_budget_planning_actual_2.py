@@ -84,7 +84,7 @@ WHERE
 	account IN (
 		'0', '', 'Account Segment', 'Account',
 		'Total for Account Segment', 'End of Report',
-		'บัญชี', 'เซกเมนต์บัญชี', 'ยอดรวมของเซกเมนต์บัญชี'
+		'บัญชี', 'เซกเมนต์บัญชี', 'ยอดรวมของเซกเมนต์บัญชี', 'ยอดรวมสำหรับเซกเมนต์ยอดดุล', 'สิ้นสุดรายงาน'
 	);
 """
 cursor.execute(delete_query)
