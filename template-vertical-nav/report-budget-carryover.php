@@ -540,7 +540,7 @@ function fetchFacultyData($conn)
                                             // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
                                             $summary = [];
                                             foreach ($results as $row) {
-                                                $Faculty = $row['Alias_Default'];
+                                                $Faculty = $row['Faculty'];
                                                 $Name_a1 = $row['Name_a1'];
                                                 $Name_a2 = $row['Name_a2'];
                                                 $Name_a3 = $row['Name_a3'];
@@ -739,7 +739,7 @@ function fetchFacultyData($conn)
                                                 }
                                             }
                                             // แสดงผลลัพธ์
-                                            foreach ($summary as $Alias_Default => $data) {
+                                            foreach ($summary as $Faculty => $data) {
                                                 // แสดงผลรวมของ Plan
                                                 echo "<tr>";
 
@@ -923,29 +923,42 @@ function fetchFacultyData($conn)
             const table = document.getElementById('reportTable');
             const csvRows = [];
 
-            // วนลูปทีละ <tr>
-            for (const row of table.rows) {
-                // เก็บบรรทัดย่อยของแต่ละเซลล์
+            // ฟังก์ชันช่วยเติมค่าซ้ำ
+            const repeatValue = (value, count) => Array(count).fill(value).join(',');
+
+            // เพิ่มชื่อรายงาน
+            csvRows.push(`"รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้",,,,,,,`);
+
+            // ดึงค่าคณะ/หน่วยงานจาก PHP
+            const selectedFacultyName = <?php echo json_encode($selectedFacultyName); ?>;
+            const facultyData = selectedFacultyName.replace(/-/g, ':');
+            csvRows.push(`"ส่วนงาน / หน่วยงาน: ${facultyData}",,,,,,,`);
+
+            // เพิ่มส่วนหัวของตาราง
+            csvRows.push(`"รายการ","ปี 2567 (ปีปัจจุบัน)","","","","ปี 2568(ปีที่ขอ)","","","","เพิ่ม/ลด "`);
+            csvRows.push(`"","เงินอุดหนุนจากรัฐ","เงินนอกงบประมาณ","เงินรายได้ ","รวม","เงินอุดหนุนจากรัฐ","เงินนอกงบประมาณ","เงินรายได้ ","รวม","จำนวน","ร้อยละ"`);
+
+            // วนลูปเฉพาะ <tbody>
+            const tbody = table.querySelector("tbody");
+            for (const row of tbody.rows) {
                 const cellLines = [];
                 let maxSubLine = 1;
 
-                // วนลูปทีละเซลล์ <td>/<th>
+                // วนลูปแต่ละเซลล์
                 for (const cell of row.cells) {
                     let html = cell.innerHTML;
 
-                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    // แปลง &nbsp; เป็น non-breaking space (\u00A0)
                     html = html.replace(/(&nbsp;)+/g, (match) => {
                         const count = match.match(/&nbsp;/g).length;
-                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                        return '\u00A0'.repeat(count);
                     });
 
-
-                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // ลบแท็ก HTML ออก
                     html = html.replace(/<\/?[^>]+>/g, '');
 
-                    // 4) แยกเป็น array บรรทัดย่อย
+                    // แยกข้อความเป็นบรรทัด
                     const lines = html.split('\n').map(x => x.trimEnd());
-                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
                     if (lines.length > maxSubLine) {
                         maxSubLine = lines.length;
@@ -954,16 +967,13 @@ function fetchFacultyData($conn)
                     cellLines.push(lines);
                 }
 
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                // เพิ่ม sub-row ตามจำนวนบรรทัดย่อยที่มากที่สุด
                 for (let i = 0; i < maxSubLine; i++) {
                     const rowData = [];
 
-                    // วนลูปแต่ละเซลล์
                     for (const lines of cellLines) {
-                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                        // Escape double quotes
-                        text = text.replace(/"/g, '""');
-                        // ครอบด้วย ""
+                        let text = lines[i] || '';
+                        text = text.replace(/"/g, '""'); // Escape double quotes
                         text = `"${text}"`;
                         rowData.push(text);
                     }
