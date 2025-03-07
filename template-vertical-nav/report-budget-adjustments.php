@@ -578,8 +578,8 @@ function fetchYearsData($conn)
                                                 <th rowspan="2">คำชี้แจง</th>
                                             </tr>
                                             <tr>
-                                                <th>ประมาณการ</th>
-                                                <th>จ่ายจริง</th>
+                                                <th>ประมาณการรายรับ</th>
+                                                <th>รายรับจริง</th>
                                                 <th>จำนวน</th>
                                                 <th>ร้อยละ</th>
                                             </tr>
