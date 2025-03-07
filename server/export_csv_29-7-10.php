@@ -47,7 +47,13 @@ $output = fopen('php://output', 'w');
 // **เพิ่ม BOM เพื่อให้ Excel รองรับ UTF-8**
 fputs($output, "\xEF\xBB\xBF");
 
-// เขียนหัวตาราง
+// **เพิ่มชื่อรายงานในแถวแรก**
+fputcsv($output, ['รายงานสรุปบัญชีทุนสำรองสะสม']);
+
+// **เพิ่มบรรทัดว่างให้แยกหัวรายงานกับตาราง**
+fputcsv($output, []);
+
+// **เพิ่มหัวตาราง**
 fputcsv($output, [
     'รหัสบัญชี',
     'ชื่อบัญชี',
@@ -61,7 +67,7 @@ fputcsv($output, [
     'ยอดยกไป (เครดิต)'
 ]);
 
-// เขียนข้อมูล
+// **เพิ่มข้อมูลลงใน CSV**
 foreach ($data as $row) {
     list($formattedAccount, $formattedDescription) = formatAccountData($conn, $row['account'], $row['account_description']);
 

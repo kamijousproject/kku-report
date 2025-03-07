@@ -44,8 +44,14 @@ header("Content-Disposition: attachment; filename=รายงานสรุป
 // **เพิ่ม BOM เพื่อให้ Excel รองรับ UTF-8**
 echo "\xEF\xBB\xBF";
 
-// สร้างไฟล์ Excel
+// **เพิ่มชื่อรายงาน**
 echo "<table border='1'>";
+echo "<tr><th colspan='10' style='text-align:center;'>รายงานสรุปบัญชีทุนสำรองสะสม</th></tr>";
+
+// **เพิ่มบรรทัดว่างให้แยกหัวรายงานกับตาราง**
+echo "<tr><td colspan='10'></td></tr>";
+
+// **เพิ่มหัวตาราง**
 echo "<tr>
         <th>รหัสบัญชี</th>
         <th>ชื่อบัญชี</th>

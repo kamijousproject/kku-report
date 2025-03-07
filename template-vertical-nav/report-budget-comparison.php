@@ -537,12 +537,13 @@
 
                                                 if (!in_array($subPlanData['sub_plan_name'], $shownSubPlans)) {
                                                     echo "<tr>
-                                                            <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $cleanSubPlanItem . " : " . $subPlanData['sub_plan_name'] . "</td>
+                                                            <td>" . str_repeat("&nbsp;", 15) . $cleanSubPlanItem . " : " . $subPlanData['sub_plan_name'] . "</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                         </tr>";
+
                                                     $shownSubPlans[] = $subPlanData['sub_plan_name'];
                                                 }
 
@@ -551,7 +552,7 @@
                                                     foreach ($resultsFN as $row) {
                                                         if ($row['kpi_name'] === $subPlanItem && $row['Sub_Plan'] === $subPlanKey) {
                                                             echo "<tr>
-                                                                    <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $subPlanItem . "</td>
+                                                                    <td>" . str_repeat("&nbsp;", 30) . $subPlanItem . "</td>
                                                                     <td>" . $row['uom_kpi'] . "</td>
                                                                     <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                                     <td>" . $row['kpi_target'] . "</td>
@@ -574,19 +575,20 @@
                                                 foreach ($subPlanData['projects'] as $projectKey => $projectData) {
                                                     if (!in_array($projectData['project_name'], $shownProjects)) {
                                                         echo "<tr>
-                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $projectData['project_name'] . "</td>
+                                                                <td>" . str_repeat("&nbsp;", 15) . $projectData['project_name'] . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                             </tr>";
+
                                                         $shownProjects[] = $projectData['project_name'];
                                                     }
 
                                                     $uniqueProjectItems = array_unique($projectData['project_items']);
                                                     foreach ($uniqueProjectItems as $projectItem) {
                                                         echo "<tr>
-                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $projectItem . "</td>
+                                                                <td>" . str_repeat("&nbsp;", 30) . $projectItem . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
@@ -608,30 +610,32 @@
 
                                                     if (!in_array($expenseData['expense_type'], $shownExpenseTypes)) {
                                                         echo "<tr>
-                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;" . $expenseData['expense_type'] . "</td>
+                                                                <td>" . str_repeat("&nbsp;", 20) . $expenseData['expense_type'] . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                             </tr>";
+
                                                         $shownExpenseTypes[] = $expenseData['expense_type'];
                                                     }
 
                                                     if (!in_array($expenseKey, $shownExpenses)) {
                                                         echo "<tr>
-                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $expenseAccount . $expenseKey . "</td>
+                                                                <td>" . str_repeat("&nbsp;", 25) . $expenseAccount . $expenseKey . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                             </tr>";
+
                                                         $shownExpenses[] = $expenseKey;
                                                     }
 
                                                     $uniqueKkuItems = array_unique($expenseData['kku_items']);
                                                     foreach ($uniqueKkuItems as $kkuItem) {
                                                         echo "<tr>
-                                                                <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $row['Account'] . " : " . $kkuItem . "</td>
+                                                                <td>" . str_repeat("&nbsp;", 35) . $row['Account'] . " : " . $kkuItem . "</td>
                                                                 <td>" . $row['uom_kpi'] . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>" . $row['kpi_target'] . "</td>
