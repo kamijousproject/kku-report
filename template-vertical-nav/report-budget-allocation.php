@@ -543,7 +543,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
 
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
-                                                <th rowspan="2">รวมทั้งสิ้น</th>
+                                                <th rowspan="2">งบประมาณรายจ่ายทั้งสิ้น</th>
                                                 <th colspan="3">เงินงวด</th>
                                                 <th rowspan="2">งบประมาณรายจ่ายคงเหลือ</th>
                                                 <th rowspan="2">หมายเหตุ</th>
