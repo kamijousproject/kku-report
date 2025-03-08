@@ -700,10 +700,14 @@ function fetchYearsData($conn)
                                                             'Name_a3' => [],
                                                         ];
                                                     }
-                                                    // เก็บข้อมูลของ superSubType
-                                                    $ItemName_a3 = (!empty($row['Name_a3']))
-                                                        ? "" . htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']))
-                                                        : "" . htmlspecialchars($row['a3']) . "";
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a4
+                                                    if (!empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                        $ItemName_a3 = htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                    } elseif (empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                        $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                    } else {
+                                                        $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
                                                     // เก็บข้อมูลของ superSubType
                                                     if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
                                                         $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [

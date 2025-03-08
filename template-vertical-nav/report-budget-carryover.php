@@ -576,9 +576,15 @@ function fetchFacultyData($conn)
                                                         'Name_a2' => [], // เก็บข้อมูลของ Sub_Plan
                                                     ];
                                                 }
-                                                $ItemName_a2 = (!empty($row['Name_a2']))
-                                                    ? "" . htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']))
-                                                    : "" . htmlspecialchars($row['a2']) . "";
+                                                // ตรวจสอบและกำหนดค่าของ $ItemName_a4
+                                                if (!empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                    $ItemName_a2 = htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                } elseif (empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                    $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                } else {
+                                                    $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                }
+
                                                 if (!isset($summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
                                                     $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
                                                         'name' => $ItemName_a2,
@@ -597,9 +603,15 @@ function fetchFacultyData($conn)
                                                         'Name_a3' => [], // เก็บข้อมูลของ Sub_Plan
                                                     ];
                                                 }
-                                                $ItemName_a3 = (!empty($row['Name_a3']))
-                                                    ? "" . htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']))
-                                                    : "" . htmlspecialchars($row['a3']) . "";
+
+                                                // ตรวจสอบและกำหนดค่าของ $ItemName_a4
+                                                if (!empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                    $ItemName_a3 = htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                } elseif (empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                    $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                } else {
+                                                    $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                }
                                                 if (!isset($summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
                                                     $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
                                                         'name' => $ItemName_a3,
