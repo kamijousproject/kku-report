@@ -821,7 +821,6 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'plans' => [], // เก็บข้อมูลของ Plan
                                                         ];
                                                     }
@@ -847,7 +846,6 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'sub_plans' => [], // เก็บข้อมูลของ Sub_Plan
                                                         ];
                                                     }
@@ -874,7 +872,6 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'projects' => [], // เก็บข้อมูลของ Project
                                                         ];
                                                     }
@@ -900,7 +897,6 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'Name_a1' => [], // เก็บข้อมูลของ Sub_Type
                                                         ];
                                                     }
@@ -927,7 +923,6 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'Name_a2' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
@@ -954,7 +949,6 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'Name_a3' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
@@ -981,7 +975,6 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
