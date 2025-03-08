@@ -684,9 +684,14 @@ function fetchYearsData($conn)
                                                         ];
                                                     }
 
-                                                    $ItemName_a2 = (!empty($row['Name_a2']))
-                                                        ? "" . htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']))
-                                                        : "" . htmlspecialchars($row['a2']) . "";
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a4
+                                                    if (!empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                        $ItemName_a2 = htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                    } elseif (empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                        $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                    } else {
+                                                        $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
                                                     if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
                                                         $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
                                                             'name' => $ItemName_a2,
@@ -712,7 +717,7 @@ function fetchYearsData($conn)
                                                     if (!isset($summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
                                                         $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
                                                             'name' => $ItemName_a3,
-                                                            'testname' => $row['Name_a3'],
+                                                            'test' => $row['Name_a3'],
                                                             'Total_Amount_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
@@ -766,6 +771,7 @@ function fetchYearsData($conn)
                                                         : "" . htmlspecialchars($row['Account']) . "";
                                                     $summary[$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][] = [
                                                         'name' => $ItemName_a4,
+                                                        'test' => $row['Name_a4'],
                                                         'Total_Amount_2566' => $row['Total_Amount_2566'],
                                                         'Total_Amount_2567' => $row['Total_Amount_2567'],
                                                         'TOTAL_BUDGET_2567' => $row['TOTAL_BUDGET_2567'],
@@ -860,70 +866,76 @@ function fetchYearsData($conn)
 
 
                                                                 // แสดงผลรวมของแต่ละ Sub_Type
-                                                                foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
-                                                                    echo "<tr>";
-
-                                                                    // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a2['name'] . "<br></td>";
-                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2566']) . "</td>";
-                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567']) . "</td>";
-                                                                    echo "<td>" . formatNumber($dataName_a2['TOTAL_BUDGET_2567']) . "</td>";
-                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568']) . "</td>";
-
-                                                                    // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
-                                                                    $subTypeDifference = $dataName_a2['Total_Amount_2568'] - $dataName_a2['TOTAL_BUDGET_2567'];
-                                                                    $subTypePercentage_Difference = ($dataName_a2['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $dataName_a2['TOTAL_BUDGET_2567']) * 100 : 100;
-
-                                                                    echo "<td>" . formatNumber($subTypeDifference) . "</td>";
-                                                                    echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
-                                                                    echo "<td>" . "</td>";
-                                                                    echo "</tr>";
-
-                                                                    // แสดงข้อมูล KKU_Item_Name
-                                                                    foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
+                                                                if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
+                                                                    foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
                                                                         echo "<tr>";
 
-                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a3['name'] . "<br></td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2566']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['TOTAL_BUDGET_2567']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568']) . "</td>";
+                                                                        // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a2['name'] . "<br></td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2566']) . "</td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567']) . "</td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['TOTAL_BUDGET_2567']) . "</td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568']) . "</td>";
 
                                                                         // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
-                                                                        $subTypeDifference = $dataName_a3['Total_Amount_2568'] - $dataName_a3['TOTAL_BUDGET_2567'];
-                                                                        $subTypePercentage_Difference = ($dataName_a3['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $dataName_a3['TOTAL_BUDGET_2567']) * 100 : 100;
+                                                                        $subTypeDifference = $dataName_a2['Total_Amount_2568'] - $dataName_a2['TOTAL_BUDGET_2567'];
+                                                                        $subTypePercentage_Difference = ($dataName_a2['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $dataName_a2['TOTAL_BUDGET_2567']) * 100 : 100;
 
                                                                         echo "<td>" . formatNumber($subTypeDifference) . "</td>";
                                                                         echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
-                                                                        if ($dataName_a3['testname'] == null) {
-                                                                            echo "<td>" . (isset($dataName_a3['Reason']) && !empty($dataName_a3['Reason']) ? htmlspecialchars($dataName_a3['Reason']) : "") . "</td>";
-                                                                        } else {
-                                                                            echo "<td>" . "</td>";
-                                                                        }
-
+                                                                        echo "<td>" . "</td>";
                                                                         echo "</tr>";
-                                                                        if ($Name_a3 != null) {
-                                                                            // แสดงข้อมูล KKU_Item_Name
-                                                                            foreach ($dataName_a3['Name_a4'] as $Name_a4) {
+
+                                                                        if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
+                                                                            foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
+                                                                                if ($dataName_a3['test'] == null || $dataName_a3['test'] == '') {
+                                                                                    continue;
+                                                                                }
                                                                                 echo "<tr>";
-                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $Name_a4['name'] . "<br></td>";
-                                                                                echo "<td>" . formatNumber($Name_a4['Total_Amount_2566']) . "</td>";
-                                                                                echo "<td>" . formatNumber($Name_a4['Total_Amount_2567']) . "</td>";
-                                                                                echo "<td>" . formatNumber($Name_a4['TOTAL_BUDGET_2567']) . "</td>";
-                                                                                echo "<td>" . formatNumber($Name_a4['Total_Amount_2568']) . "</td>";
-                                                                                echo "<td>" . formatNumber($Name_a4['Difference_2568_2567']) . "</td>";
-                                                                                echo "<td>" . formatNumber($Name_a4['Percentage_Difference_2568_2567']) . "</td>";
-                                                                                echo "<td>" . (isset($Name_a4['Reason']) && !empty($Name_a4['Reason']) ? htmlspecialchars($Name_a4['Reason']) : "") . "</td>";
+
+                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a3['name'] . "<br></td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2566']) . "</td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567']) . "</td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['TOTAL_BUDGET_2567']) . "</td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568']) . "</td>";
+
+                                                                                // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
+                                                                                $subTypeDifference = $dataName_a3['Total_Amount_2568'] - $dataName_a3['TOTAL_BUDGET_2567'];
+                                                                                $subTypePercentage_Difference = ($dataName_a3['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $dataName_a3['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                                                echo "<td>" . formatNumber($subTypeDifference) . "</td>";
+                                                                                echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
+                                                                                if ($dataName_a3['test'] == null || $dataName_a3['test'] == '') {
+                                                                                    echo "<td>" . (isset($dataName_a3['Reason']) && !empty($dataName_a3['Reason']) ? htmlspecialchars($dataName_a3['Reason']) : "") . "</td>";
+                                                                                } else {
+                                                                                    echo "<td>" . "</td>";
+                                                                                }
+
                                                                                 echo "</tr>";
+                                                                                if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
+                                                                                    foreach ($dataName_a3['Name_a4'] as $dataName_a4) {
+                                                                                        if ($dataName_a4['test'] == null || $dataName_a4['test'] == '') {
+                                                                                            continue;
+                                                                                        }
+                                                                                        echo "<tr>";
+                                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $dataName_a4['name'] . "<br></td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2566']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['TOTAL_BUDGET_2567']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Difference_2568_2567']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Percentage_Difference_2568_2567']) . "</td>";
+                                                                                        echo "<td>" . (isset($dataName_a4['Reason']) && !empty($dataName_a4['Reason']) ? htmlspecialchars($dataName_a4['Reason']) : "") . "</td>";
+                                                                                        echo "</tr>";
+                                                                                    }
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
-
                                                                 }
                                                             }
                                                         }
                                                     }
-
                                                 }
                                             } else {
                                                 echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
