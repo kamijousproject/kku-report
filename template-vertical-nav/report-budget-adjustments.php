@@ -976,12 +976,12 @@ function fetchYearsData($conn)
 
                                                                     echo "<td>" . formatNumber($subTypeDifference) . "</td>";
                                                                     echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
-
+                                                                    echo "<td>" . "</td>";
 
                                                                     echo "</tr>";
 
 
-                                                                    // แสดงผลรวมของแต่ละ Sub_Type
+                                                                    // แสดงผลรวมของแต่ละ Name_a2
                                                                     if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
                                                                         foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
                                                                             if ($dataName_a2['test'] == null || $dataName_a2['test'] == '') {
@@ -1008,7 +1008,7 @@ function fetchYearsData($conn)
 
                                                                             if ($dataName_a2['test2'] == null || $dataName_a2['test2'] == '') {
                                                                                 echo "<td>" . (isset($dataName_a2['Reason']) && !empty($dataName_a2['Reason']) ? htmlspecialchars($dataName_a2['Reason']) : "") . "</td>";
-                                                                            } {
+                                                                            } else {
                                                                                 echo "<td>" . "</td>";
                                                                             }
                                                                             echo "</tr>";
@@ -1038,7 +1038,7 @@ function fetchYearsData($conn)
                                                                                     echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
                                                                                     if ($dataName_a3['test2'] == null || $dataName_a3['test2'] == '') {
                                                                                         echo "<td>" . (isset($dataName_a3['Reason']) && !empty($dataName_a3['Reason']) ? htmlspecialchars($dataName_a3['Reason']) : "") . "</td>";
-                                                                                    } {
+                                                                                    } else {
                                                                                         echo "<td>" . "</td>";
                                                                                     }
 

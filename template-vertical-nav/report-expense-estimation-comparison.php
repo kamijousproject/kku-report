@@ -931,6 +931,7 @@ function fetchYearsData($conn)
                                                     if (!isset($summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
                                                         $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
                                                             'a2' => $row['a2'],
+                                                            'test' => $row['Name_a2'],
                                                             'Total_Amount_1' => 0,
                                                             'Q1_BUDGET1' => 0,
                                                             'Q2_BUDGET1' => 0,
@@ -1401,6 +1402,9 @@ function fetchYearsData($conn)
 
                                                                     // แสดงผลรวมของแต่ละ Sub_Type
                                                                     foreach ($Name_a1Data['Name_a2'] as $Name_a2 => $Name_a2Data) {
+                                                                        if ($Name_a2Data['test'] == null || $Name_a2Data['test'] == '') {
+                                                                            continue;
+                                                                        }
                                                                         echo "<tr>";
                                                                         // ใช้ Regex ลบตัวเลขและจุดข้างหน้า
                                                                         $cleanedName_a2 = preg_replace('/^[\d.]+\s*/', '', $Name_a2);
