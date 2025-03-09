@@ -944,7 +944,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     echo "</tr>";
 
                                                     foreach ($FacultyData['plan'] as $plan => $planData) {
-                                                        $cleanedSubPlan = preg_replace('/^SP_/', '', $plan);
+
 
                                                         $preReleaseAmount = $planData['Pre_Release_Amount'] ?? 0;
 
@@ -970,7 +970,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         }
                                                         echo "<tr>";
                                                         // แสดงผลข้อมูล
-                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($cleanedSubPlan) . htmlspecialchars($planData['PlanName'] ?? '') . "</td>";
+                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($planData['PlanName'] ?? '') . "</td>";
                                                         // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                         echo "<td>" . formatNumber($planData['Allocated_Total_Amount_Quantity']) . "</td>";
                                                         echo "<td>" . formatNumber($planData['Pre_Release_Amount']) . "</td>";
