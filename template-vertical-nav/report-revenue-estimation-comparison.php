@@ -1215,7 +1215,7 @@ function fetchYearsData($conn)
                                                     // ตรวจสอบว่ามีข้อมูลใน $summary หรือไม่
                                                     if (isset($summary) && is_array($summary)) {
                                                         echo "<tr>";
-                                                        echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                        echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "</td>";
 
                                                         echo "<td>" . formatNumber($total_summary['Total_Amount_3']) . "</td>";
                                                         echo "<td>" . formatNumber($total_summary['Q1_BUDGET3']) . "</td>";
@@ -1246,10 +1246,10 @@ function fetchYearsData($conn)
                                                     echo "<tr>";
                                                     if ($selectedFaculty == null) {
                                                         $facultyData = str_replace('-', ':', $data['Faculty']);
-                                                        echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "<br></td>";
+                                                        echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "</td>";
                                                     }
                                                     if ($selectedFaculty != null) {
-                                                        echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                        echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "</td>";
                                                     }
 
                                                     echo "<td>" . formatNumber($data['Total_Amount_3']) . "</td>";
@@ -1312,10 +1312,10 @@ function fetchYearsData($conn)
                                                             $cleanedSubPlan = preg_replace('/^SP_/', '', $subPlan);
 
                                                             if ($selectedFaculty == null) {
-                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . ": " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
+                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . ": " . htmlspecialchars($subData['sub_plan_name']) . "</td>";
                                                             }
                                                             if ($selectedFaculty != null) {
-                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . ": " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
+                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . ": " . htmlspecialchars($subData['sub_plan_name']) . "</td>";
                                                             }
 
                                                             echo "<td>" . formatNumber($subData['Total_Amount_3']) . "</td>";
@@ -1343,10 +1343,10 @@ function fetchYearsData($conn)
                                                                 echo "<tr>";
 
                                                                 if ($selectedFaculty == null) {
-                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($project) . "</strong><br></td>";
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($project) . "</strong></td>";
                                                                 }
                                                                 if ($selectedFaculty != null) {
-                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($project) . "</strong><br></td>";
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($project) . "</strong></td>";
                                                                 }
 
                                                                 echo "<td>" . formatNumber($projectData['Total_Amount_3']) . "</td>";
@@ -1378,10 +1378,10 @@ function fetchYearsData($conn)
 
 
                                                                     if ($selectedFaculty == null) {
-                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($Name_a1Data['a1']) . " : " . htmlspecialchars($cleanedName_a1) . "<br></td>";
+                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($Name_a1Data['a1']) . " : " . htmlspecialchars($cleanedName_a1) . "</td>";
                                                                     }
                                                                     if ($selectedFaculty != null) {
-                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($Name_a1Data['a1']) . " : " . htmlspecialchars($cleanedName_a1) . "<br></td>";
+                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($Name_a1Data['a1']) . " : " . htmlspecialchars($cleanedName_a1) . "</td>";
                                                                     }
 
                                                                     echo "<td>" . formatNumber($Name_a1Data['Total_Amount_3']) . "</td>";
@@ -1407,20 +1407,19 @@ function fetchYearsData($conn)
 
                                                                     echo "</tr>";
 
-                                                                    // แสดงผลรวมของแต่ละ Sub_Type
+                                                                    // แสดงผลรวมของแต่ละ Name_a2
                                                                     foreach ($Name_a1Data['Name_a2'] as $Name_a2 => $Name_a2Data) {
-                                                                        if ($Name_a2Data['test'] == null || $Name_a2Data['test'] == '') {
+                                                                        if (empty($Name_a2Data['test'])) {
                                                                             continue;
                                                                         }
+
                                                                         echo "<tr>";
-                                                                        // ใช้ Regex ลบตัวเลขและจุดข้างหน้า
                                                                         $cleanedName_a2 = preg_replace('/^[\d.]+\s*/', '', $Name_a2);
 
                                                                         if ($selectedFaculty == null) {
-                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($Name_a2Data['a2']) . " : " . htmlspecialchars($cleanedName_a2) . "<br></td>";
-                                                                        }
-                                                                        if ($selectedFaculty != null) {
-                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($Name_a2Data['a2']) . " : " . htmlspecialchars($cleanedName_a2) . "<br></td>";
+                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($Name_a2Data['a2']) . " : " . htmlspecialchars($cleanedName_a2) . "</td>";
+                                                                        } else {
+                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($Name_a2Data['a2']) . " : " . htmlspecialchars($cleanedName_a2) . "</td>";
                                                                         }
 
                                                                         echo "<td>" . formatNumber($Name_a2Data['Total_Amount_3']) . "</td>";
@@ -1442,23 +1441,21 @@ function fetchYearsData($conn)
                                                                         echo "<td>" . formatNumber($Name_a2Data['Q4_BUDGET1']) . "</td>";
                                                                         echo "<td>" . formatNumber($Name_a2Data['TOTAL_BUDGET_YEAR_1']) . "</td>";
 
-
-
                                                                         echo "</tr>";
-                                                                        // แสดงผลรวมของแต่ละ Sub_Type
+
+                                                                        // วนลูป Name_a3
                                                                         foreach ($Name_a2Data['Name_a3'] as $Name_a3 => $Name_a3Data) {
-                                                                            echo "<tr>";
-                                                                            if ($Name_a3Data['test'] == null || $Name_a3Data['test'] == '') {
+                                                                            if (empty($Name_a3Data['test'])) {
                                                                                 continue;
                                                                             }
-                                                                            // ใช้ Regex ลบตัวเลขและจุดข้างหน้า
+
+                                                                            echo "<tr>";
                                                                             $cleanedName_a3 = preg_replace('/^[\d.]+\s*/', '', $Name_a3);
 
                                                                             if ($selectedFaculty == null) {
-                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($Name_a3Data['a3']) . " : " . htmlspecialchars($cleanedName_a3) . "<br></td>";
-                                                                            }
-                                                                            if ($selectedFaculty != null) {
-                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($Name_a3Data['a3']) . " : " . htmlspecialchars($cleanedName_a3) . "<br></td>";
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($Name_a3Data['a3']) . " : " . htmlspecialchars($cleanedName_a3) . "</td>";
+                                                                            } else {
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($Name_a3Data['a3']) . " : " . htmlspecialchars($cleanedName_a3) . "</td>";
                                                                             }
                                                                             echo "<td>" . formatNumber($Name_a3Data['Total_Amount_3']) . "</td>";
                                                                             echo "<td>" . formatNumber($Name_a3Data['Q1_BUDGET3']) . "</td>";
@@ -1478,21 +1475,19 @@ function fetchYearsData($conn)
                                                                             echo "<td>" . formatNumber($Name_a3Data['Q3_BUDGET1']) . "</td>";
                                                                             echo "<td>" . formatNumber($Name_a3Data['Q4_BUDGET1']) . "</td>";
                                                                             echo "<td>" . formatNumber($Name_a3Data['TOTAL_BUDGET_YEAR_1']) . "</td>";
-
-
-
                                                                             echo "</tr>";
-                                                                            // แสดงข้อมูล KKU_Item_Name
+
+                                                                            // วนลูป kku_items
                                                                             foreach ($Name_a3Data['kku_items'] as $kkuItem) {
-                                                                                if ($kkuItem['test'] == null || $kkuItem['test'] == '') {
+                                                                                if (empty($kkuItem['test'])) {
                                                                                     continue;
                                                                                 }
+
                                                                                 echo "<tr>";
                                                                                 if ($selectedFaculty == null) {
-                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 56) . $kkuItem['name'] . "</td>";
-                                                                                }
-                                                                                if ($selectedFaculty != null) {
-                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "</td>";
+                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 56) . htmlspecialchars($kkuItem['name']) . "</td>";
+                                                                                } else {
+                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($kkuItem['name']) . "</td>";
                                                                                 }
                                                                                 echo "<td>" . formatNumber($kkuItem['Total_Amount_3']) . "</td>";
                                                                                 echo "<td>" . formatNumber($kkuItem['Q1_BUDGET3']) . "</td>";
@@ -1516,6 +1511,7 @@ function fetchYearsData($conn)
                                                                             }
                                                                         }
                                                                     }
+
                                                                 }
                                                             }
                                                         }

@@ -1046,7 +1046,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                             }
                                                             echo "<tr>";
                                                             // แสดงผลข้อมูล
-                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . " : " . htmlspecialchars($subPlanData['SubPlanName'] ?? '') . "<br></td>";
+                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($cleanedSubPlan) . " : " . htmlspecialchars($subPlanData['SubPlanName'] ?? '') . "</td>";
                                                             // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                             echo "<td>" . formatNumber($subPlanData['Allocated_Total_Amount_Quantity']) . "</td>";
                                                             echo "<td>" . formatNumber($subPlanData['Pre_Release_Amount']) . "</td>";
