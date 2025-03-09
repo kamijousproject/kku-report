@@ -1208,9 +1208,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 								ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI 
 								LEFT JOIN Faculty f2
 								ON f.parent=f2.Faculty
-								WHERE t.Faculty LIKE '22%'
-                        ORDER BY f2.Alias_Default,t.faculty
-                        ";
+                        ORDER BY f2.Alias_Default,t.faculty";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -1281,7 +1279,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 								,w1.Performance_Evaluation_Percentage,w1.Performance_Evaluation,w1.type
 								,a1.rate_status,a1.salary_rate,a1.fund_ft,a1.govt_fund,a1.division_revenue,a1.oop_central_revenue
 								,a1.Vacant_From_Which_Date,a1.Hiring_Start_End_Date,a1.Position_Status
-								,a1.Location_Code,NULL AS Requested_HC_unit
+								,a1.Location_Code,'1' AS Requested_HC_unit
 								,a1.WORKING_STATUS
 								,a1.RETIREMENT_DATE
                         FROM w1

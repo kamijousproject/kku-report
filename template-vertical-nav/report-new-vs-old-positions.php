@@ -8,12 +8,7 @@
     height: 100vh;
 }
 
-.content-body {
-    flex-grow: 1;
-    overflow: hidden; /* Prevent body scrolling */
-    display: flex;
-    flex-direction: column;
-}
+
 
 .container {
     flex-grow: 1;
@@ -95,9 +90,18 @@ thead tr:nth-child(3) th {
                                     <h4>รายงานการสรุป คำขออัตราใหม่และอัตราเดิม</h4>
                                 </div>
                                 <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()">
+                                <select name="category" id="category">
                                     <option value="">-- Loading Categories --</option>
                                 </select>
+                                <br/>
+                                <label for="req_type">ประเภทคำขอ:</label>
+                                <select name="req_type" id="req_type" disabled>
+                                    <option value="">-- Loading Categories --</option>
+                                </select>
+                                <br/>
+                                <!-- Submit Button -->
+                                <button id="submitBtn" disabled>Submit</button>
+                                <br/><br/>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                     <thead>
@@ -196,20 +200,56 @@ thead tr:nth-child(3) th {
             });
             
         });
-
-        function fetchData() {
-            
+        $('#category').change(function () {
+            let fac = $('#category').val();
+            $('#req_type').html('<option value="">เลือกประเภทคำขอ</option>').prop('disabled', true);
+            let req;
+            if(fac!="all")
+            {
+                req=all_data.filter(item=>item.pname===fac);
+            }
+            else{
+                req=all_data;
+            }
+            const reqtype = [...new Set(req.map(item => item.TYPE))];
+            let dropdown = document.getElementById("req_type");
+            dropdown.innerHTML = '<option value="">-- เลือกประเภทคำขอ --</option><option value="all">เลือกทั้งหมด</option>';
+            reqtype.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                dropdown.appendChild(option);
+            });
+            $('#req_type').prop('disabled', false);
+        });
+        $('#req_type').change(function() {
+                if ($(this).val()) {
+                    $('#submitBtn').prop('disabled', false);
+                } else {
+                    $('#submitBtn').prop('disabled', true);
+                }
+            });
+        $('#submitBtn').click(function() {
             let category = document.getElementById("category").value;
+            let req = document.getElementById("req_type").value;
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
             let data;
+            let data2;
             if(category=="all"){
                 data=all_data;
             }
             else{
                 data= all_data.filter(item=>item.pname===category);
             }
-            data.forEach((row, index) => {                   
+            if(req=="all"){
+                data2=data;
+            }
+            else{
+                data2=data.filter(item=>item.TYPE===req);
+            }
+
+            data2.forEach((row, index) => {                   
                 const tr = document.createElement('tr');
 
                 const columns = [
@@ -251,9 +291,8 @@ thead tr:nth-child(3) th {
                 });
                 tableBody.appendChild(tr);     
             });
-
+        });
         
-        }
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
