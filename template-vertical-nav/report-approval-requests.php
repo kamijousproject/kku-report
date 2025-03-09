@@ -287,7 +287,7 @@
 
                 // Create the column headers
                 const columnHeaders = [
-                    'ลำดับ', 'ชื่อ - นามสกุล', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                    'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
                     'อัตราเงินเดือน', 'แหล่งงบประมาณ', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
                 ];
                 const headerRow3 = document.createElement('tr');
@@ -308,7 +308,7 @@
                     // Define the columns to display
                     const columns = [
                         { value: index+1 },
-                        { value: row.WORKERS_NAME_SURNAME },
+                        { value: row.All_Position_Types },
                         { value: row.POSITION },
                         { value: row.POSITION_QUALIFIFCATIONS },
                         { value: row.POSITION_NUMBER },
@@ -344,7 +344,7 @@
                     // Create the header row with colspan
                     const headerRow1 = document.createElement('tr');
                     const headerCell1 = document.createElement('th');
-                    headerCell1.setAttribute('colspan', '10');
+                    headerCell1.setAttribute('colspan', '9');
                     headerCell1.textContent = 'อัตราเดิม';
                     headerRow1.appendChild(headerCell1);
                     table.appendChild(headerRow1);
@@ -355,7 +355,7 @@
                 // Create the second header row with colspan and left-aligned text
                 const headerRow2 = document.createElement('tr');
                 const headerCell2 = document.createElement('th');
-                headerCell2.setAttribute('colspan', '10');
+                headerCell2.setAttribute('colspan', '9');
                 headerCell2.setAttribute('style', 'text-align:left');
                 headerCell2.textContent = 'ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ผู้เกษียณอายุราชการ';
                 headerRow2.appendChild(headerCell2);
@@ -420,7 +420,7 @@
                     // Create the header row with colspan
                     const headerRow1 = document.createElement('tr');
                     const headerCell1 = document.createElement('th');
-                    headerCell1.setAttribute('colspan', '10');
+                    headerCell1.setAttribute('colspan', '9');
                     headerCell1.textContent = 'อัตราเดิม';
                     headerRow1.appendChild(headerCell1);
                     table.appendChild(headerRow1);
@@ -431,7 +431,7 @@
                 // Create the second header row with colspan and left-aligned text
                 const headerRow2 = document.createElement('tr');
                 const headerCell2 = document.createElement('th');
-                headerCell2.setAttribute('colspan', '10');
+                headerCell2.setAttribute('colspan', '9');
                 headerCell2.setAttribute('style', 'text-align:left');
                 headerCell2.textContent = 'ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ชาวต่างประเทศ';
                 headerRow2.appendChild(headerCell2);
@@ -496,7 +496,7 @@
                     // Create the header row with colspan
                     const headerRow1 = document.createElement('tr');
                     const headerCell1 = document.createElement('th');
-                    headerCell1.setAttribute('colspan', '10');
+                    headerCell1.setAttribute('colspan', '9');
                     headerCell1.textContent = 'อัตราเดิม';
                     headerRow1.appendChild(headerCell1);
                     table.appendChild(headerRow1);
@@ -507,7 +507,7 @@
                 // Create the second header row with colspan and left-aligned text
                 const headerRow2 = document.createElement('tr');
                 const headerCell2 = document.createElement('th');
-                headerCell2.setAttribute('colspan', '10');
+                headerCell2.setAttribute('colspan', '9');
                 headerCell2.setAttribute('style', 'text-align:left');
                 headerCell2.textContent = 'ประเภทบุคลากร : พนักงานมหาวิทยาลัย ประเภทการจ้าง : ผู้ปฏิบัติงานในมหาวิทยาลัย';
                 headerRow2.appendChild(headerCell2);

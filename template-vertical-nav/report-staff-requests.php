@@ -370,48 +370,7 @@ th, td {
             d_new.forEach((row, index) => {
                 if(row.Personnel_Type.includes("เงินรายได้"))
                 {
-                    
-                    if(row.All_PositionTypes=="วิชาการ")
-                    {
-                        academic+=parseInt(row.Requested_HC_unit);
-                        Sumacademic+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
-                    }
-                    if(row.All_PositionTypes=="วิจัย")
-                    {
-                        research+=parseInt(row.Requested_HC_unit);
-                        Sumresearch+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
-                    }
-                    if(row.All_PositionTypes=="สนับสนุน")
-                    {
-                        support+=parseInt(row.Requested_HC_unit);
-                        Sumsupport+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
-                    }
-                    if(row.Contract_Type=="สัญญาระยะสั้น")
-                    {
-                        //shortTerm+=1;
-                        //SumshortTerm+=1;
-                    }
-                    if(row.Employment_Type=="ชาวต่างประเทศ")
-                    {
-                        emp1+=parseInt(row.Requested_HC_unit);
-                        Sumemp1+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
-                    }
-                    if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
-                    {
-                        emp2+=parseInt(row.Requested_HC_unit);
-                        Sumemp2+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
-                    }
-                    if(row.Employment_Type=="จ้างที่ปรึกษา")
+                    if(row.Employment_Type=="ผู้ปฏิบัติงานในมหาวิทยาลัย")
                     {
                         emp3+=parseInt(row.Requested_HC_unit);
                         Sumemp3+=parseInt(row.Requested_HC_unit);
@@ -419,6 +378,50 @@ th, td {
                         Sumtype1+=parseInt(row.Requested_HC_unit);
                         console.log(type1);
                     }
+                    else if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
+                    {
+                        emp2+=parseInt(row.Requested_HC_unit);
+                        Sumemp2+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                    }
+                    else if(row.Employment_Type=="ชาวต่างประเทศ")
+                    {
+                        emp1+=parseInt(row.Requested_HC_unit);
+                        Sumemp1+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                    }
+                    /* if(row.Contract_Type=="สัญญาระยะสั้น")
+                    {
+                        //shortTerm+=1;
+                        //SumshortTerm+=1;
+                    } */
+                    else if(row.All_PositionTypes=="วิชาการ")
+                    {
+                        academic+=parseInt(row.Requested_HC_unit);
+                        Sumacademic+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                    }
+                    else if(row.All_PositionTypes=="วิจัย")
+                    {
+                        research+=parseInt(row.Requested_HC_unit);
+                        Sumresearch+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                    }
+                    else if(row.All_PositionTypes=="สนับสนุน")
+                    {
+                        support+=parseInt(row.Requested_HC_unit);
+                        Sumsupport+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                    }
+                    else{}
+                    
+                    
+                    
                 }
                 else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
                 {
