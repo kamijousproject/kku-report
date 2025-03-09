@@ -284,48 +284,105 @@
         </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="thsarabunnew-normal.js"></script> <!-- โหลดไฟล์ฟอนต์ที่แปลงเป็นตัวแปรแล้ว -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- ✅ เพิ่ม SweetAlert2 -->
     <script>
-        function exportPDF() {
+        async function exportPDF() {
             const {
                 jsPDF
             } = window.jspdf;
             const doc = new jsPDF('landscape');
 
-            // เพิ่มฟอนต์ภาษาไทย
-            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal); // ใช้ตัวแปรที่ได้จากไฟล์
-            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-            doc.setFont("THSarabun");
-
-            // ตั้งค่าฟอนต์และข้อความ
-            doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
-
-            // ใช้ autoTable สำหรับสร้างตาราง
-            doc.autoTable({
-                html: '#reportTable',
-                startY: 20,
-                styles: {
-                    font: "THSarabun", // ใช้ฟอนต์ที่รองรับภาษาไทย
-                    fontSize: 10,
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                bodyStyles: {
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
-                headStyles: {
-                    fillColor: [102, 153, 225], // สีพื้นหลังของหัวตาราง
-                    textColor: [0, 0, 0], // สีข้อความในหัวตาราง
-                    lineColor: [0, 0, 0], // สีของเส้นขอบ (ดำ)
-                    lineWidth: 0.5, // ความหนาของเส้นขอบ
-                },
+            // ✅ แสดง SweetAlert2 ขณะโหลดข้อมูล
+            Swal.fire({
+                title: "กำลังสร้างรายงาน...",
+                text: "โปรดรอสักครู่ ระบบกำลังประมวลผล",
+                allowOutsideClick: false,
+                didOpen: () => {
+                    Swal.showLoading(); // แสดงไอคอนโหลด
+                }
             });
 
-            // บันทึกไฟล์ PDF
-            doc.save('รายงานสรุปบัญชีทุนสำรองสะสม.pdf');
+            try {
+                // ✅ ใช้ฟอนต์ภาษาไทย
+                doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+                doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+                doc.setFont("THSarabun");
+                doc.setFontSize(14);
+
+                // ✅ เพิ่มชื่อรายงาน
+                doc.text("รายงานสรุปบัญชีทุนสำรองสะสม", 140, 15, null, null, "center");
+
+                // ✅ ดึงข้อมูลที่ตัดคำแล้วจาก `export_pdf_data.php`
+                const response = await fetch('../server/export_pdf_data.php');
+                const jsonData = await response.json();
+
+                // ✅ หัวตาราง
+                const tableColumn = [
+                    "รหัสบัญชี", "ชื่อบัญชี", "รหัส GF", "ชื่อบัญชี GF",
+                    "ยอดยกมา (เดบิต)", "ยอดยกมา (เครดิต)",
+                    "ประจำงวด (เดบิต)", "ประจำงวด (เครดิต)",
+                    "ยอดยกไป (เดบิต)", "ยอดยกไป (เครดิต)"
+                ];
+
+                // ✅ แปลงข้อมูลเป็นตาราง
+                const tableRows = jsonData.map(row => [
+                    row.account,
+                    row.account_description,
+                    "-", "-",
+                    row.prior_periods_debit,
+                    row.prior_periods_credit,
+                    row.period_activity_debit,
+                    row.period_activity_credit,
+                    row.ending_balances_debit,
+                    row.ending_balances_credit
+                ]);
+
+                // ✅ สร้างตาราง PDF
+                doc.autoTable({
+                    head: [tableColumn],
+                    body: tableRows,
+                    startY: 30,
+                    styles: {
+                        font: "THSarabun",
+                        fontSize: 12,
+                        cellPadding: 2,
+                        lineColor: [0, 0, 0],
+                        lineWidth: 0.5
+                    },
+                    headStyles: {
+                        fillColor: [102, 153, 225],
+                        textColor: [0, 0, 0],
+                        fontSize: 12
+                    },
+                    bodyStyles: {
+                        textColor: [0, 0, 0],
+                        fontSize: 12
+                    }
+                });
+
+                // ✅ ซ่อน SweetAlert2 เมื่อโหลดเสร็จ
+                Swal.close();
+
+                // ✅ บันทึกไฟล์ PDF
+                doc.save('รายงานสรุปบัญชีทุนสำรองสะสม.pdf');
+
+            } catch (error) {
+                console.error("Error loading data:", error);
+
+                // ✅ แสดงข้อความแจ้งเตือนเมื่อเกิดข้อผิดพลาด
+                Swal.fire({
+                    icon: "error",
+                    title: "เกิดข้อผิดพลาด!",
+                    text: "ไม่สามารถโหลดข้อมูลได้ โปรดลองอีกครั้ง",
+                    confirmButtonText: "ตกลง"
+                });
+            }
         }
     </script>
+
     <!-- Common JS -->
     <script src="../assets/plugins/common/common.min.js"></script>
     <!-- Custom script -->
