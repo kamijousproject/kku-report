@@ -178,30 +178,21 @@ thead tr:nth-child(3) th {
                                         <thead>
                                             <tr>
                                                 <th rowspan="2">ค่าใช้จ่าย</th>
-                                                <th colspan="4">ยอดรวมงบประมาณ</th>
-                                                <th colspan="8">เงินประจำงวด</th>
-                                                <th colspan="2">ผูกพัน</th>
-                                                <th colspan="2" nowrap>ผูกพันงบประมาณ<br/>ตามข้อตกลง/สัญญา</th>
-                                                <th rowspan="2" nowrap>จำนวนงบประมาณเบิกจ่าย</th>
-                                                <th rowspan="2" nowrap>เบิกงบประมาณเกินส่งคืน</th>
+                                                <th colspan="5">แผนงบประมาณ</th>
+                                                <th colspan="3">ผูกพันงบประมาณ</th>
+                                                <th colspan="2">จำนวนงบประมาณเบิกจ่าย</th>                                               
                                             </tr>
                                             <tr>
-                                                <th>จำนวนงบประมาณ</th>
-                                                <th nowrap>จำนวนงบประมาณ<br/>โอนเข้า</th>
-                                                <th nowrap>จำนวนงบประมาณ<br/>โอนออก</th>
-                                                <th nowrap>คงเหลือไม่อนุมัติ<br/>งวดเงิน</th>
-                                                <th nowrap>ผูกพันงบประมาณ</th>
-                                                <th>ร้อยละ</th>
-                                                <th nowrap>คงเหลือหลังผูกพัน<br/>งบประมาณ</th>
-                                                <th>ร้อยละ</th>
-                                                <th nowrap>เบิกจ่ายงบประมาณ</th>
-                                                <th>ร้อยละ</th>
-                                                <th nowrap>คงเหลือหลังเบิกจ่าย<br/>งบประมาณ</th>
-                                                <th>ร้อยละ</th>
+                                                <th nowrap>งบประมาณที่ได้รับ<br/>อนุมัติจัดสรร</th>
+                                                <th nowrap>เงินงวดงบประมาณ</th>
+                                                <th nowrap>งบประมาณโอนเข้า</th>
+                                                <th nowrap>งบประมาณโอนออก</th>
+                                                <th nowrap>งบประมาณสุทธิ</th>
+                                                <th nowrap>จำนวนงบประมาณ PR</th>
+                                                <th nowrap>จำนวนงบประมาณ PO</th>
+                                                <th nowrap>คงเหลือหลังผูกพัน</th>
                                                 <th nowrap>จำนวนงบประมาณ</th>
-                                                <th nowrap>คงเหลือหลังเบิกจ่าย<br/>งบประมาณ</th>
-                                                <th nowrap>จำนวนงบประมาณ</th>
-                                                <th nowrap>คงเหลือหลังเบิกจ่าย<br/>งบประมาณ</th>
+                                                <th nowrap>คงเหลือหลังเบิกจ่าย</th>
                                             </tr>
                                         </thead>
                                         <tbody>

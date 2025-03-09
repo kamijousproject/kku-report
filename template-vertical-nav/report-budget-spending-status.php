@@ -216,58 +216,129 @@ thead tr:nth-child(3) th {
             const accname = [...new Set(data.map(item => item.level3))];
             const lv2 = [...new Set(data.map(item => item.level2))];
             const lv1 = [...new Set(data.map(item => item.level1))];
-
+            console.log(f1.length);
             var html='';
+            if(f1.length>0)
+            {        
+                const parseValue = (value) => {
+                    const number = parseFloat(value.replace(/,/g, ''));
+                    return isNaN(number) ? 0 : number;
+                };
+                const sums = data.reduce((acc, item) => {
+                    return {
+                        t06: acc.t06 + parseValue(item.t06),
+                        t02: acc.t02 + parseValue(item.t02),
+                        t08: acc.t08 + parseValue(item.t08),
+                    };
+                }, {
+                    t06: 0, t02: 0, t08: 0
+                });
+                var sum=sums.t06+sums.t08+sums.t02;
+                str1='<tr><td style="text-align:center;" nowrap>รวมทั้งสิ้น</td>';
+                str2='<td>0</td>';
+                str3='<td>0</td>';
+                str4='<td>0</td>';
+                str5='<td>0</td>';
+                str6='<td>0</td>';
+                str7='<td>0</td>';
+                str8='<td>0</td>';
+                str9='<td>0</td>';
+                str10='<td>0</td>';
+                str11='<td>0</td>';
+                str12='<td>0</td>';
+                str13='<td>0</td>';
+                str14='<td>0</td>';
+                str15='<td>0</td>';
+                str16='<td>0</td>';
+                str17='<td>0</td>'; 
+                str18='<td>'+sums.t06.toLocaleString()+'</td>';
+                str19='<td>'+sums.t02.toLocaleString()+'</td>';
+                str20='<td>'+sums.t08.toLocaleString()+'</td>'; 
+                str21='<td>'+sum.toLocaleString()+'</td>';
+                str22='<td>'+(sum).toLocaleString()+'</td>';
+                str23='<td>100.00%</td></tr>';
+                html+=str1+str2+str3+str4+str5+str6+str7+str8+str9+str10+str11+str12+str13+str14+str15
+                +str16+str17+str18+str19+str20+str21+str22+str23;
+            }
+            
             f1.forEach((row1) => { 
+                const f= data.filter(item =>item.Alias_Default === row1);
+                const parseValue = (value) => {
+                    const number = parseFloat(value.replace(/,/g, ''));
+                    return isNaN(number) ? 0 : number;
+                };
+                const sums = f.reduce((acc, item) => {
+                    return {
+                        t06: acc.t06 + parseValue(item.t06),
+                        t02: acc.t02 + parseValue(item.t02),
+                        t08: acc.t08 + parseValue(item.t08),
+                    };
+                }, {
+                    t06: 0, t02: 0, t08: 0
+                });
+                var sum=sums.t06+sums.t08+sums.t02;
                 str1='<tr><td style="text-align:left;" nowrap>'+row1;
-                str2='<td>';
-                str3='<td>';
-                str4='<td>';
-                str5='<td>';
-                str6='<td>';
-                str7='<td>';
-                str8='<td>';
-                str9='<td>';
-                str10='<td>';
-                str11='<td>';
-                str12='<td>';
-                str13='<td>';
-                str14='<td>';
-                str15='<td>';
-                str16='<td>';
-                str17='<td>'; 
-                str18='<td>';
-                str19='<td>';
-                str20='<td>'; 
-                str21='<td>';
-                str22='<td>';
-                str23='<td>';
+                str2='<td>0';
+                str3='<td>0';
+                str4='<td>0';
+                str5='<td>0';
+                str6='<td>0';
+                str7='<td>0';
+                str8='<td>0';
+                str9='<td>0';
+                str10='<td>0';
+                str11='<td>0';
+                str12='<td>0';
+                str13='<td>0';
+                str15='<td>0';
+                str16='<td>0';
+                str17='<td>0'; 
+                str18='<td>'+sums.t06.toLocaleString();
+                str19='<td>'+sums.t02.toLocaleString();
+                str20='<td>'+sums.t08.toLocaleString(); 
+                str21='<td>'+sum.toLocaleString();
+                str22='<td>'+(sum).toLocaleString();
+                str23='<td>100.00%';
                 f2.forEach((row2) => {
                     const pi= data.filter(item =>item.pillar_name === row2 && item.Alias_Default === row1);
+                    const parseValue = (value) => {
+                        const number = parseFloat(value.replace(/,/g, ''));
+                        return isNaN(number) ? 0 : number;
+                    };
+                    const sums = pi.reduce((acc, item) => {
+                        return {
+                            t06: acc.t06 + parseValue(item.t06),
+                            t02: acc.t02 + parseValue(item.t02),
+                            t08: acc.t08 + parseValue(item.t08),
+                        };
+                    }, {
+                        t06: 0, t02: 0, t08: 0
+                    });
                     if(pi.length>0){
+                        var sum=sums.t06+sums.t08+sums.t02;
                         str1+='<br/>'+'&nbsp;'.repeat(8)+row2;
-                        str2+='<br/>';
-                        str3+='<br/>';
-                        str4+='<br/>';
-                        str5+='<br/>';
-                        str6+='<br/>';
-                        str7+='<br/>';
-                        str8+='<br/>';
-                        str9+='<br/>';
-                        str10+='<br/>';
-                        str11+='<br/>';
-                        str12+='<br/>';
-                        str13+='<br/>';
-                        str14+='<br/>';
-                        str15+='<br/>';
-                        str16+='<br/>';
-                        str17+='<br/>'; 
-                        str18+='<br/>';
-                        str19+='<br/>';
-                        str20+='<br/>'; 
-                        str21+='<br/>';
-                        str22+='<br/>';
-                        str23+='<br/>';
+                        str2+='<br/>0';
+                        str3+='<br/>0';
+                        str4+='<br/>0';
+                        str5+='<br/>0';
+                        str6+='<br/>0';
+                        str7+='<br/>0';
+                        str8+='<br/>0';
+                        str9+='<br/>0';
+                        str10+='<br/>0';
+                        str11+='<br/>0';
+                        str12+='<br/>0';
+                        str13+='<br/>0';
+                        str14+='<br/>0';
+                        str15+='<br/>0';
+                        str16+='<br/>0';
+                        str17+='<br/>0'; 
+                        str18+='<br/>'+sums.t06.toLocaleString();
+                        str19+='<br/>'+sums.t02.toLocaleString();
+                        str20+='<br/>'+sums.t08.toLocaleString(); 
+                        str21+='<br/>'+sum.toLocaleString();
+                        str22+='<br/>'+(sum).toLocaleString();
+                        str23+='<br/>100.00%';
                     }
                     account.forEach((row6) => {
                         const ac = pi.filter(item =>item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -308,7 +379,7 @@ thead tr:nth-child(3) th {
                             str20+='<br/>'+sums.t08.toLocaleString(); 
                             str21+='<br/>'+sum.toLocaleString();
                             str22+='<br/>'+(sum).toLocaleString();
-                            str23+='<br/>';
+                            str23+='<br/>100.00%';
                         }   
                         sub_account.forEach((row7) => {
                             const sa = ac.filter(item =>item.level4 === row7 &&item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -350,7 +421,7 @@ thead tr:nth-child(3) th {
                                 str20+='<br/>'+sums.t08.toLocaleString(); 
                                 str21+='<br/>'+sum.toLocaleString();
                                 str22+='<br/>'+(sum).toLocaleString();
-                                str23+='<br/>';
+                                str23+='<br/>100.00%';
                             }
                             accname.forEach((row8) => {
                                 const sa2 = sa.filter(item => item.level3 === row8 &&item.level4 === row7 &&item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -391,7 +462,7 @@ thead tr:nth-child(3) th {
                                     str20+='<br/>'+sums.t08.toLocaleString(); 
                                     str21+='<br/>'+sum.toLocaleString();
                                     str22+='<br/>'+(sum).toLocaleString();
-                                    str23+='<br/>';
+                                    str23+='<br/>100.00%';
                                 }
                                 if(sa2.length>0 && row8==null){
                                     sa2.forEach((row8_null) => {
@@ -424,7 +495,7 @@ thead tr:nth-child(3) th {
                                         str20+='<br/>'+parseInt(row8_null.t08).toLocaleString(); 
                                         str21+='<br/>'+sum.toLocaleString();
                                         str22+='<br/>'+(sum).toLocaleString();
-                                        str23+='<br/>';
+                                        str23+='<br/>100.00%';
                                         }
                                     });
                                 }
@@ -467,7 +538,7 @@ thead tr:nth-child(3) th {
                                         str20+='<br/>'+sums.t08.toLocaleString(); 
                                         str21+='<br/>'+sum.toLocaleString();
                                         str22+='<br/>'+(sum).toLocaleString();
-                                        str23+='<br/>';
+                                        str23+='<br/>100.00%';
                                     }
                                     if(l2.length>0 && row9==null&& row8!=null){
                                         l2.forEach((row9_null) => {
@@ -500,7 +571,7 @@ thead tr:nth-child(3) th {
                                             str20+='<br/>'+parseInt(row9_null.t08).toLocaleString(); 
                                             str21+='<br/>'+sum.toLocaleString();
                                             str22+='<br/>'+(sum).toLocaleString();
-                                            str23+='<br/>';
+                                            str23+='<br/>100.00%';
                                             }
                                         });
                                     }
@@ -543,7 +614,7 @@ thead tr:nth-child(3) th {
                                             str20+='<br/>'+sums.t08.toLocaleString(); 
                                             str21+='<br/>'+sum.toLocaleString();
                                             str22+='<br/>'+(sum).toLocaleString();
-                                            str23+='<br/>';
+                                            str23+='<br/>100.00%';
                                             l1.forEach((row10_item) => {
                                                 const parseValue = (value) => {
                                                     const number = parseFloat(value.replace(/,/g, ''));
@@ -574,7 +645,7 @@ thead tr:nth-child(3) th {
                                                     str20+='<br/>'+parseInt(row10_item.t08).toLocaleString(); 
                                                     str21+='<br/>'+sum.toLocaleString();
                                                     str22+='<br/>'+(sum).toLocaleString();
-                                                    str23+='<br/>';
+                                                    str23+='<br/>100.00%';
                                                 }
                                             });
                                         }
@@ -609,7 +680,7 @@ thead tr:nth-child(3) th {
                                                     str20+='<br/>'+parseInt(row10_null.t08).toLocaleString(); 
                                                     str21+='<br/>'+sum.toLocaleString();
                                                     str22+='<br/>'+(sum).toLocaleString();
-                                                    str23+='<br/>';
+                                                    str23+='<br/>100.00%';
                                                 }
                                             });
                                         }
