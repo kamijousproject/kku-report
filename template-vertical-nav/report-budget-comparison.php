@@ -148,260 +148,385 @@
                                 function fetchBudgetData($conn, $where_clause, $selected_faculty)
                                 {
                                     $query = "WITH
-                                                t1 AS(
+                                                RECURSIVE account_hierarchy AS (
+                                                    -- Anchor member: Start with all accounts that have a parent
                                                     SELECT
-                                                        b.*,
-                                                        p.plan_name,
-                                                        sp.sub_plan_name
+                                                        a1.account,
+                                                        a1.account AS acc_id,
+                                                        a1.alias_default AS alias,
+                                                        a1.parent,
+                                                        1 AS LEVEL
                                                     FROM
-                                                        budget_planning_annual_budget_plan b
-                                                        LEFT JOIN plan p ON b.Plan = p.plan_id
-                                                        LEFT JOIN sub_plan sp ON b.Sub_Plan = sp.sub_plan_id
-                                                ),
-                                                t2 AS (
-                                                    SELECT
-                                                        t.*,
-                                                        skpi.UoM_for_Sub_plan_KPI,
-                                                        skpi.KPI,
-                                                        skpi.Sub_plan_KPI_Name,
-                                                        skpi.Sub_plan_KPI_Target
-                                                    FROM
-                                                        t1 t
-                                                        LEFT JOIN budget_planning_subplan_kpi skpi ON t.faculty = skpi.faculty COLLATE utf8mb4_general_ci
-                                                        AND t.plan = skpi.plan
-                                                        AND t.sub_plan = skpi.Sub_Plan
+                                                        account a1
                                                     WHERE
-                                                        skpi.KPI IS NOT NULL
-                                                ),
-                                                t3 AS (
+                                                        a1.parent IS NOT NULL
+                                                    UNION ALL
+                                                        -- Recursive member: Find parent accounts
                                                     SELECT
-                                                        Faculty,
-                                                        Budget_Management_Year,
-                                                        fund,
-                                                        plan,
-                                                        plan_name,
-                                                        sub_plan,
-                                                        sub_plan_name,
-                                                        project,
-                                                        service,
-                                                        reason,
-                                                        kpi,
-                                                        sub_plan_kpi_name AS kpi_name,
-                                                        Sub_plan_KPI_Target AS kpi_target,
-                                                        UoM_for_Sub_plan_KPI AS uom_kpi,
-                                                        account,
-                                                        NULL AS expense,
-                                                        NULL AS expense_type,
-                                                        kku_item_name,
-                                                        CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
-                                                        CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
-                                                        CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
-                                                        '1.sub_plan_kpi' AS TYPE
+                                                        ah.account,
+                                                        a2.account AS acc_id,
+                                                        a2.alias_default AS alias,
+                                                        a2.parent,
+                                                        ah.level + 1 AS LEVEL
                                                     FROM
-                                                        t2
-                                                ),
-                                                t4 AS (
-                                                    SELECT
-                                                        t.*,
-                                                        CASE WHEN t.fund = 'FN02' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total02,
-                                                        CASE WHEN t.fund = 'FN06' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total06,
-                                                        CASE WHEN t.fund = 'FN08' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total08
-                                                    FROM
-                                                        t3 t
-                                                        LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
-                                                        AND t.fund = b.Fund
-                                                        AND t.plan = b.Plan
-                                                        AND t.sub_plan = b.Sub_Plan
-                                                        AND t.project = b.Project
-                                                        AND t.service = b.Service
-                                                        AND t.account = b.Account
-                                                ),
-                                                t5 AS (
-                                                    SELECT
-                                                        t.*,
-                                                        b.UoM_for_Proj_KPI,
-                                                        b.KPI,
-                                                        b.Proj_KPI_Name,
-                                                        b.Proj_KPI_Target
-                                                    FROM
-                                                        t1 t
-                                                        LEFT JOIN budget_planning_project_kpi b ON t.faculty = b.Faculty COLLATE UTF8MB4_GENERAL_CI
-                                                        AND t.project = b.project
+                                                        account_hierarchy ah
+                                                        JOIN account a2 ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
                                                     WHERE
-                                                        b.KPI IS NOT NULL
-                                                ),
-                                                t6 AS (
+                                                        a2.parent IS NOT NULL
+                                                        AND ah.level < 6 -- Maximum 6 levels (increased from 5)
+                                                        ),
+                                                -- Get the maximum level for each account to determine total depth
+                                                max_levels AS (
                                                     SELECT
-                                                        Faculty,
-                                                        Budget_Management_Year,
-                                                        fund,
-                                                        plan,
-                                                        plan_name,
-                                                        sub_plan,
-                                                        sub_plan_name,
-                                                        project,
-                                                        service,
-                                                        reason,
-                                                        kpi,
-                                                        Proj_KPI_Name AS kpi_name,
-                                                        Proj_KPI_Target AS kpi_target,
-                                                        UoM_for_Proj_KPI AS uom_kpi,
                                                         account,
-                                                        NULL AS expense,
-                                                        NULL AS expense_type,
-                                                        kku_item_name,
-                                                        CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
-                                                        CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
-                                                        CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
-                                                        '2.project_kpi' AS TYPE
+                                                        MAX(LEVEL) AS max_level
                                                     FROM
-                                                        t5
+                                                        account_hierarchy
+                                                    GROUP BY
+                                                        account
                                                 ),
-                                                t7 AS (
+                                                -- Create a pivot table with all levels for each account
+                                                hierarchy_pivot AS (
                                                     SELECT
-                                                        t.*,
-                                                        CASE WHEN t.fund = 'FN02' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total02,
-                                                        CASE WHEN t.fund = 'FN06' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total06,
-                                                        CASE WHEN t.fund = 'FN08' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total08
-                                                    FROM
-                                                        t6 t
-                                                        LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
-                                                        AND t.fund = b.Fund
-                                                        AND t.plan = b.Plan
-                                                        AND t.sub_plan = b.Sub_Plan
-                                                        AND t.project = b.Project
-                                                        AND t.service = b.Service
-                                                        AND t.account = b.Account
-                                                ),
-                                                t8 AS (
-                                                    SELECT
-                                                        t.*,
-                                                        a.alias_default,
-                                                        a.type
-                                                    FROM
-                                                        t1 t
-                                                        LEFT JOIN (
-                                                            SELECT
-                                                                *
-                                                            FROM
-                                                                account
-                                                            WHERE
-                                                                id >(
-                                                                    SELECT
-                                                                        id
-                                                                    FROM
-                                                                        account
-                                                                    WHERE
-                                                                        parent = 'Expenses'
+                                                        h.account,
+                                                        m.max_level,
+                                                        MAX(
+                                                            CASE WHEN h.level = 1 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
                                                                 )
-                                                        ) a ON t.account = a.account
-                                                    WHERE
-                                                        a.type IS NOT NULL
+                                                            ) END
+                                                        ) AS level1_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 2 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level2_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 3 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level3_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 4 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level4_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 5 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level5_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 6 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level6_value
+                                                    FROM
+                                                        account_hierarchy h
+                                                        JOIN max_levels m ON h.account = m.account
+                                                    GROUP BY
+                                                        h.account,
+                                                        m.max_level
                                                 ),
-                                                t9 AS (
+                                                -- Shift the hierarchy to the left (compact it)
+                                                shifted_hierarchy AS (
                                                     SELECT
-                                                        Faculty,
-                                                        Budget_Management_Year,
-                                                        fund,
-                                                        plan,
-                                                        plan_name,
-                                                        sub_plan,
-                                                        sub_plan_name,
-                                                        project,
-                                                        service,
-                                                        reason,
-                                                        NULL AS kpi,
-                                                        NULL AS kpi_name,
-                                                        NULL AS kpi_target,
-                                                        NULL AS uom_kpi,
-                                                        account,
-                                                        alias_default AS expense,
-                                                        TYPE AS expense_type,
-                                                        kku_item_name,
-                                                        CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
-                                                        CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
-                                                        CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
-                                                        '3.expense' AS TYPE
+                                                        account AS current_acc,
+                                                        max_level AS TotalLevels,
+                                                        CASE WHEN max_level = 1 THEN level1_value WHEN max_level = 2 THEN level2_value WHEN max_level = 3 THEN level3_value WHEN max_level = 4 THEN level4_value WHEN max_level = 5 THEN level5_value WHEN max_level = 6 THEN level6_value END AS level6,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN level1_value WHEN max_level = 3 THEN level2_value WHEN max_level = 4 THEN level3_value WHEN max_level = 5 THEN level4_value WHEN max_level = 6 THEN level5_value END AS level5,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN level1_value WHEN max_level = 4 THEN level2_value WHEN max_level = 5 THEN level3_value WHEN max_level = 6 THEN level4_value END AS level4,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN level1_value WHEN max_level = 5 THEN level2_value WHEN max_level = 6 THEN level3_value END AS level3,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN NULL WHEN max_level = 5 THEN level1_value WHEN max_level = 6 THEN level2_value END AS level2,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN NULL WHEN max_level = 5 THEN NULL WHEN max_level = 6 THEN level1_value END AS level1
                                                     FROM
-                                                        t8
+                                                        hierarchy_pivot
                                                 ),
-                                                t10 AS (
-                                                    SELECT
-                                                        t.*,
-                                                        CASE WHEN t.fund = 'FN02' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total02,
-                                                        CASE WHEN t.fund = 'FN06' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total06,
-                                                        CASE WHEN t.fund = 'FN08' THEN COALESCE(
-                                                            Allocated_Total_Amount_Quantity,
-                                                            0
-                                                        ) ELSE 0 END AS allocated_total08
-                                                    FROM
-                                                        t9 t
-                                                        LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
-                                                        AND t.fund = b.Fund
-                                                        AND t.plan = b.Plan
-                                                        AND t.sub_plan = b.Sub_Plan
-                                                        AND t.project = b.Project
-                                                        AND t.service = b.Service
-                                                        AND t.account = b.Account
-                                                ),
-                                                t11 AS (
-                                                    SELECT
-                                                        *
-                                                    FROM
-                                                        t4
-                                                    UNION ALL
-                                                    SELECT
-                                                        *
-                                                    FROM
-                                                        t7
-                                                    UNION ALL
-                                                    SELECT
-                                                        *
-                                                    FROM
-                                                        t10
-                                                ),
-                                                t12 AS (
-                                                    SELECT
-                                                        t.*, p.project_name
-                                                    FROM
-                                                        t11 t
-                                                        left JOIN project p ON t.Project = p.project_id
-                                                )
-                                            SELECT
-                                                *
-                                            FROM
-                                                t12
-                                            $where_clause
-                                            ORDER BY
-                                                Faculty,
-                                                fund,
-                                                plan,
-                                                sub_plan,
-                                                project";
+                                                    t1 AS(
+                                                        SELECT
+                                                            b.*,
+                                                            p.plan_name,
+                                                            sp.sub_plan_name
+                                                        FROM
+                                                            budget_planning_annual_budget_plan b
+                                                            LEFT JOIN plan p ON b.Plan = p.plan_id
+                                                            LEFT JOIN sub_plan sp ON b.Sub_Plan = sp.sub_plan_id
+                                                    ),
+                                                    t2 AS (
+                                                        SELECT
+                                                            t.*,
+                                                            skpi.UoM_for_Sub_plan_KPI,
+                                                            skpi.KPI,
+                                                            skpi.Sub_plan_KPI_Name,
+                                                            skpi.Sub_plan_KPI_Target
+                                                        FROM
+                                                            t1 t
+                                                            LEFT JOIN budget_planning_subplan_kpi skpi ON t.faculty = skpi.faculty COLLATE utf8mb4_general_ci
+                                                            AND t.plan = skpi.plan
+                                                            AND t.sub_plan = skpi.Sub_Plan
+                                                        WHERE
+                                                            skpi.KPI IS NOT NULL
+                                                    ),
+                                                    t3 AS (
+                                                        SELECT
+                                                            Faculty,
+                                                            Budget_Management_Year,
+                                                            fund,
+                                                            plan,
+                                                            plan_name,
+                                                            sub_plan,
+                                                            sub_plan_name,
+                                                            project,
+                                                            service,
+                                                            reason,
+                                                            kpi,
+                                                            sub_plan_kpi_name AS kpi_name,
+                                                            Sub_plan_KPI_Target AS kpi_target,
+                                                            UoM_for_Sub_plan_KPI AS uom_kpi,
+                                                            account,
+                                                            NULL AS expense,
+                                                            NULL AS expense_type,
+                                                            kku_item_name,
+                                                            CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
+                                                            CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
+                                                            CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
+                                                            '1.sub_plan_kpi' AS TYPE
+                                                        FROM
+                                                            t2
+                                                    ),
+                                                    t4 AS (
+                                                        SELECT
+                                                            t.*,
+                                                            CASE WHEN t.fund = 'FN02' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total02,
+                                                            CASE WHEN t.fund = 'FN06' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total06,
+                                                            CASE WHEN t.fund = 'FN08' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total08
+                                                        FROM
+                                                            t3 t
+                                                            LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
+                                                            AND t.fund = b.Fund
+                                                            AND t.plan = b.Plan
+                                                            AND t.sub_plan = b.Sub_Plan
+                                                            AND t.project = b.Project
+                                                            AND t.service = b.Service
+                                                            AND t.account = b.Account
+                                                    ),
+                                                    t5 AS (
+                                                        SELECT
+                                                            t.*,
+                                                            b.UoM_for_Proj_KPI,
+                                                            b.KPI,
+                                                            b.Proj_KPI_Name,
+                                                            b.Proj_KPI_Target
+                                                        FROM
+                                                            t1 t
+                                                            LEFT JOIN budget_planning_project_kpi b ON t.faculty = b.Faculty COLLATE UTF8MB4_GENERAL_CI
+                                                            AND t.project = b.project
+                                                        WHERE
+                                                            b.KPI IS NOT NULL
+                                                    ),
+                                                    t6 AS (
+                                                        SELECT
+                                                            Faculty,
+                                                            Budget_Management_Year,
+                                                            fund,
+                                                            plan,
+                                                            plan_name,
+                                                            sub_plan,
+                                                            sub_plan_name,
+                                                            project,
+                                                            service,
+                                                            reason,
+                                                            kpi,
+                                                            Proj_KPI_Name AS kpi_name,
+                                                            Proj_KPI_Target AS kpi_target,
+                                                            UoM_for_Proj_KPI AS uom_kpi,
+                                                            account,
+                                                            NULL AS expense,
+                                                            NULL AS expense_type,
+                                                            kku_item_name,
+                                                            CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
+                                                            CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
+                                                            CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
+                                                            '2.project_kpi' AS TYPE
+                                                        FROM
+                                                            t5
+                                                    ),
+                                                    t7 AS (
+                                                        SELECT
+                                                            t.*,
+                                                            CASE WHEN t.fund = 'FN02' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total02,
+                                                            CASE WHEN t.fund = 'FN06' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total06,
+                                                            CASE WHEN t.fund = 'FN08' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total08
+                                                        FROM
+                                                            t6 t
+                                                            LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
+                                                            AND t.fund = b.Fund
+                                                            AND t.plan = b.Plan
+                                                            AND t.sub_plan = b.Sub_Plan
+                                                            AND t.project = b.Project
+                                                            AND t.service = b.Service
+                                                            AND t.account = b.Account
+                                                    ),
+                                                    t8 AS (
+                                                        SELECT
+                                                            t.*,
+                                                            a.alias_default,
+                                                            a.type
+                                                        FROM
+                                                            t1 t
+                                                            LEFT JOIN (
+                                                                SELECT
+                                                                    *
+                                                                FROM
+                                                                    account
+                                                                WHERE
+                                                                    id >(
+                                                                        SELECT
+                                                                            id
+                                                                        FROM
+                                                                            account
+                                                                        WHERE
+                                                                            parent = 'Expenses'
+                                                                    )
+                                                            ) a ON t.account = a.account
+                                                        WHERE
+                                                            a.type IS NOT NULL
+                                                    ),
+                                                    t9 AS (
+                                                        SELECT
+                                                            Faculty,
+                                                            Budget_Management_Year,
+                                                            fund,
+                                                            plan,
+                                                            plan_name,
+                                                            sub_plan,
+                                                            sub_plan_name,
+                                                            project,
+                                                            service,
+                                                            reason,
+                                                            NULL AS kpi,
+                                                            NULL AS kpi_name,
+                                                            NULL AS kpi_target,
+                                                            NULL AS uom_kpi,
+                                                            account,
+                                                            alias_default AS expense,
+                                                            TYPE AS expense_type,
+                                                            kku_item_name,
+                                                            CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
+                                                            CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
+                                                            CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
+                                                            '3.expense' AS TYPE
+                                                        FROM
+                                                            t8
+                                                    ),
+                                                    t10 AS (
+                                                        SELECT
+                                                            t.*,
+                                                            CASE WHEN t.fund = 'FN02' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total02,
+                                                            CASE WHEN t.fund = 'FN06' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total06,
+                                                            CASE WHEN t.fund = 'FN08' THEN COALESCE(
+                                                                Allocated_Total_Amount_Quantity,
+                                                                0
+                                                            ) ELSE 0 END AS allocated_total08
+                                                        FROM
+                                                            t9 t
+                                                            LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
+                                                            AND t.fund = b.Fund
+                                                            AND t.plan = b.Plan
+                                                            AND t.sub_plan = b.Sub_Plan
+                                                            AND t.project = b.Project
+                                                            AND t.service = b.Service
+                                                            AND t.account = b.Account
+                                                    ),
+                                                    t11 AS (
+                                                        SELECT
+                                                            *
+                                                        FROM
+                                                            t4
+                                                        UNION ALL
+                                                        SELECT
+                                                            *
+                                                        FROM
+                                                            t7
+                                                        UNION ALL
+                                                        SELECT
+                                                            *
+                                                        FROM
+                                                            t10
+                                                    ),
+                                                    t12 AS (
+                                                        SELECT
+                                                            t.*,
+                                                            p.project_name
+                                                        FROM
+                                                            t11 t
+                                                            LEFT JOIN project p ON t.Project = p.project_id
+                                                    )
+                                                SELECT
+                                                    *
+                                                FROM
+                                                    t12 t
+                                                    LEFT JOIN shifted_hierarchy h ON t.account = h.current_acc
+                                                    $where_clause
+                                                ORDER BY
+                                                    Faculty,
+                                                    fund,
+                                                    plan,
+                                                    sub_plan,
+                                                    project";
 
                                     try {
                                         $stmt = $conn->prepare($query);
@@ -476,8 +601,11 @@
                                         // echo "</pre>";
 
                                         $groupedData = [];
+                                        $shownLevels = [];
 
                                         // จัดกลุ่มข้อมูลตาม Plan, Sub_Plan, Project และ Expense
+                                        // file_put_contents('resultsFN.json', json_encode($resultsFN, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
+
                                         foreach ($resultsFN as $row) {
                                             $planKey = $row['Plan'];
                                             $subPlanKey = $row['Sub_Plan'];
@@ -601,6 +729,9 @@
                                             if (!empty($planData['expenses'])) {
                                                 foreach ($planData['expenses'] as $expenseKey => $expenseData) {
                                                     $expenseAccount = "";
+                                                    $expenseTypeAccount = "";
+
+                                                    // หา Account ของ expenses
                                                     foreach ($resultsFN as $row) {
                                                         if ($row['expense'] === $expenseKey) {
                                                             $expenseAccount = $row['Account'] . " : ";
@@ -608,9 +739,18 @@
                                                         }
                                                     }
 
+                                                    // หา Account ของ expense_type
+                                                    foreach ($resultsFN as $row) {
+                                                        if ($row['expense_type'] === $expenseData['expense_type']) {
+                                                            $expenseTypeAccount = $row['Account'] . " : ";
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    // แสดง expense_type พร้อม Account
                                                     if (!in_array($expenseData['expense_type'], $shownExpenseTypes)) {
                                                         echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 75) . $expenseData['expense_type'] . "</td>
+                                                                <td>" . str_repeat("&nbsp;", 75) . $expenseTypeAccount . $expenseData['expense_type'] . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
@@ -620,6 +760,7 @@
                                                         $shownExpenseTypes[] = $expenseData['expense_type'];
                                                     }
 
+                                                    // แสดง expenses พร้อม Account
                                                     if (!in_array($expenseKey, $shownExpenses)) {
                                                         echo "<tr>
                                                                 <td>" . str_repeat("&nbsp;", 90) . $expenseAccount . $expenseKey . "</td>
@@ -638,7 +779,7 @@
                                                                 <td>" . str_repeat("&nbsp;", 105) . $row['Account'] . " : " . $kkuItem . "</td>
                                                                 <td>" . $row['uom_kpi'] . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>" . $row['kpi_target'] . "</td>
+                                                                <td>" . $row['kpi_target'] . "</td> 
                                                                 <td>" . $row['total06'] . "</td>
                                                                 <td>" . $row['allocated_total06'] . "</td>
                                                                 <td>" . $row['total08'] . "</td>

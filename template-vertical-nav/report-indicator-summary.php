@@ -1,6 +1,85 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
+<style>
+    #reportTable th:nth-child(1),
+    #reportTable td:nth-child(1) {
+        width: 300px;
+    }
+
+    #reportTable th {
+        text-align: center;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: middle;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
+
+    #reportTable td {
+        text-align: left;
+        /* จัดข้อความให้อยู่ตรงกลาง */
+        vertical-align: top;
+        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
+        white-space: nowrap;
+        /* ป้องกันข้อความตัดบรรทัด */
+    }
+
+    .wide-column {
+        min-width: 250px;
+        /* ปรับขนาด column ให้กว้างขึ้น */
+        word-break: break-word;
+        /* ทำให้ข้อความขึ้นบรรทัดใหม่ได้ */
+        white-space: pre-line;
+        /* รักษารูปแบบการขึ้นบรรทัด */
+        vertical-align: top;
+        /* ทำให้ข้อความอยู่ด้านบนของเซลล์ */
+        padding: 10px;
+        /* เพิ่มช่องว่างด้านใน */
+    }
+
+    .wide-column div {
+        margin-bottom: 5px;
+        /* เพิ่มระยะห่างระหว่างแต่ละรายการ */
+    }
+
+    /* กำหนดให้ตารางขยายขนาดเต็มหน้าจอ */
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        /* ลบช่องว่างระหว่างเซลล์ */
+    }
+
+    /* ทำให้หัวตารางติดอยู่กับด้านบน */
+    th {
+        position: sticky;
+        /* ทำให้ header ติดอยู่กับด้านบน */
+        top: 0;
+        /* กำหนดให้หัวตารางอยู่ที่ตำแหน่งด้านบน */
+        background-color: #fff;
+        /* กำหนดพื้นหลังให้กับหัวตาราง */
+        z-index: 2;
+        /* กำหนด z-index ให้สูงกว่าแถวอื่น ๆ */
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        /* เพิ่มเงาให้หัวตาราง */
+        padding: 8px;
+    }
+
+    /* เพิ่มเงาให้กับแถวหัวตาราง */
+    th,
+    td {
+        border: 1px solid #ddd;
+        /* เพิ่มขอบให้เซลล์ */
+    }
+
+    /* ทำให้ข้อมูลในตารางเลื่อนได้ */
+    .table-responsive {
+        max-height: 60vh;
+        /* กำหนดความสูงของตาราง */
+        overflow-y: auto;
+        /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
+    }
+</style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -202,7 +281,7 @@
                                             ?>
                                                 <?php if (!in_array($row['plan_name'], $current_plan) && $row['plan_name'] != ''): ?>
                                                     <tr>
-                                                        <td><?= $row['Plan'] . ":" . $row['plan_name'] ?></td>
+                                                        <td><?= "plan_name :" . $row['Plan'] . ":" . $row['plan_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -224,7 +303,7 @@
                                                 ?>
                                                 <?php if (!in_array($row['Sub_Plan'], $current_sub_plan) && $row['Sub_Plan'] != ''): ?>
                                                     <tr>
-                                                        <td><?= str_repeat("&nbsp;", 10) . $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 15) . "Sub_Plan :" . $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -246,7 +325,7 @@
                                                 ?>
                                                 <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '1.sub_plan' && $row['Sub_plan_KPI_Name'] != ''): ?>
                                                     <tr>
-                                                        <td><?= str_repeat("&nbsp;", 20) . $row['Sub_plan_KPI_Name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 30) . "Sub_plan_KPI_Name :" . $row['Sub_plan_KPI_Name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -269,7 +348,7 @@
                                                 ?>
                                                 <?php if (!in_array($row['project_name'], $project_name) && $row['project_name'] != ''): ?>
                                                     <tr>
-                                                        <td><?= str_repeat("&nbsp;", 10) . $row['project_name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 45) . "project_name :" . $row['project_name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
@@ -291,7 +370,7 @@
                                                 ?>
                                                 <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name_2) && $row['type'] == '2.project' && $row['Sub_plan_KPI_Name'] != ''): ?>
                                                     <tr>
-                                                        <td><?= str_repeat("&nbsp;", 20) . $row['Sub_plan_KPI_Name'] ?></td>
+                                                        <td><?= str_repeat("&nbsp;", 60) . "project_KPI_Name :" . $row['Sub_plan_KPI_Name'] ?></td>
                                                         <td>-</td>
                                                         <td>-</td>
                                                         <td>-</td>
