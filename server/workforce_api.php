@@ -78,8 +78,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $all_fac = $cmd->fetchAll(PDO::FETCH_ASSOC);
 
 
-                $sql = "SELECT w.*  ,f2.Alias_Default AS pname
+                $sql = "SELECT w.*  ,f2.Alias_Default AS pname,w2.Position_Qualififcations,SUBSTRING(w.Approved_Personnel_Type
+                , LOCATE('-', Approved_Personnel_Type) + 1) as Approved_Personnel_Type2
+                ,w2.Field_of_Study
+                ,w2.Contract_Type
+                ,w2.Hiring_Start_End_Date
                         FROM workforce_new_positions_allocation w
+                        left join workforce_new_position_request w2
+                        on w.Job_Code=w2.Job_Code COLLATE UTF8MB4_GENERAL_CI
                         LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
@@ -104,7 +110,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT DISTINCT Faculty, Alias_Default
                         FROM Faculty) f2 
                         ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'";
+                        WHERE act1.Personnel_Type='ลูกจ้างของมหาวิทยาลัย'
+                        order by act1.POSITION_NUMBER";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c1 = $cmd->fetchAll(PDO::FETCH_ASSOC);

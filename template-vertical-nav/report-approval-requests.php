@@ -16,13 +16,13 @@
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</h4>
+                        <h4>รายงานผลการอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</li>
+                            <li class="breadcrumb-item active">รายงานผลการอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</li>
                         </ol>
                     </div>
                 </div>
@@ -31,7 +31,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</h4>
+                                    <h4>รายงานผลการอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน</h4>
                                 </div>
                                 <label for="category">เลือกส่วนงาน:</label>
                                 <select name="category" id="category" onchange="fetchData()">
@@ -120,6 +120,7 @@
             var new_header=true;
             if(data_f4.length>0)
             {
+                console.log("new");
                 const tableContainer = document.createElement('div');
                 const table = document.createElement('table');
                 table.setAttribute('id', 't1')
@@ -154,16 +155,16 @@
                     // Define the columns to display
                     const columns = [
                         { value: index+1 },
-                        { value: row.Personnel_Type },
+                        { value: row.Approved_Personnel_Type2 },
                         { value: row.All_PositionTypes },
                         { value: row.Position },
-                        { value: row.POSITION_QUALIFIFCATIONS },
-                        { value: row.New_Position_No_of_Uni_Staff_Gov },
-                        { value: row.LOCATION_CODE },
+                        { value: row.Position_Qualififcations },
+                        { value: row.New_Position_Number },
+                        { value: row.Field_of_Study },
                         { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                         { value: row.Fund_FT },
-                        { value: row.CONTRACT_TYPE},
-                        { value: row.HIRING_START_END_DATE },
+                        { value: row.Contract_Type},
+                        { value: row.Hiring_Start_End_Date },
                         { value: "" }
                     ];
 
@@ -232,7 +233,7 @@
                     // Define the columns to display
                     const columns = [
                         { value: index+1 },
-                        { value: row.all_position_types },
+                        { value: row.All_Position_Types },
                         { value: row.POSITION },
                         { value: row.POSITION_QUALIFIFCATIONS },
                         { value: row.POSITION_NUMBER },
@@ -286,7 +287,7 @@
 
                 // Create the column headers
                 const columnHeaders = [
-                    'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                    'ลำดับ', 'ชื่อ - นามสกุล', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
                     'อัตราเงินเดือน', 'แหล่งงบประมาณ', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
                 ];
                 const headerRow3 = document.createElement('tr');
@@ -307,7 +308,7 @@
                     // Define the columns to display
                     const columns = [
                         { value: index+1 },
-                        { value: row.all_position_types },
+                        { value: row.WORKERS_NAME_SURNAME },
                         { value: row.POSITION },
                         { value: row.POSITION_QUALIFIFCATIONS },
                         { value: row.POSITION_NUMBER },
@@ -362,8 +363,8 @@
 
                 // Create the column headers
                 const columnHeaders = [
-                    'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
-                    'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
+                    'ลำดับ', 'ชื่อ - นามสกุล', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                    'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา'
                 ];
                 const headerRow3 = document.createElement('tr');
                 columnHeaders.forEach(header => {
@@ -383,15 +384,14 @@
                     // Define the columns to display
                     const columns = [
                         { value: index+1 },
-                        { value: row.all_position_types },
+                        { value: row.WORKERS_NAME_SURNAME },
                         { value: row.POSITION },
                         { value: row.POSITION_QUALIFIFCATIONS },
                         { value: row.POSITION_NUMBER },
                         { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                         { value: row.Fund_FT },
-                        { value: row.CONTRACT_PERIOD_SHORT_TERM },
-                        { value: row.rate_status },
-                        { value: "" }
+                        { value: row.HIRING_START_END_DATE },
+                        { value: row.rate_status }
                     ];
 
                     // Create and append table cells
@@ -439,8 +439,8 @@
 
                 // Create the column headers
                 const columnHeaders = [
-                    'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
-                    'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
+                    'ลำดับ', 'ชื่อ - นามสกุล', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                    'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา'
                 ];
                 const headerRow3 = document.createElement('tr');
                 columnHeaders.forEach(header => {
@@ -460,15 +460,14 @@
                     // Define the columns to display
                     const columns = [
                         { value: index+1 },
-                        { value: row.all_position_types },
+                        { value: row.WORKERS_NAME_SURNAME },
                         { value: row.POSITION },
                         { value: row.POSITION_QUALIFIFCATIONS },
                         { value: row.POSITION_NUMBER },
                         { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                         { value: row.Fund_FT },
-                        { value: row.CONTRACT_PERIOD_SHORT_TERM },
-                        { value: row.rate_status },
-                        { value: "" }
+                        { value: row.HIRING_START_END_DATE },
+                        { value: row.rate_status }
                     ];
 
                     // Create and append table cells
@@ -516,8 +515,8 @@
 
                 // Create the column headers
                 const columnHeaders = [
-                    'ลำดับ', 'ประเภทตำแหน่ง', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
-                    'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา', 'หมายเหตุอื่นๆ'
+                    'ลำดับ', 'ชื่อ - นามสกุล', 'ชื่อตำแหน่ง', 'คุณวุฒิ', 'เลขประจำตำแหน่ง',
+                    'อัตราเงินเดือน', 'แหล่งงบประมาณ','ระยะเวลาการจ้าง', 'สถานะอัตรา'
                 ];
                 const headerRow3 = document.createElement('tr');
                 columnHeaders.forEach(header => {
@@ -537,15 +536,15 @@
                     // Define the columns to display
                     const columns = [
                         { value: index+1 },
-                        { value: row.all_position_types },
+                        { value: row.WORKERS_NAME_SURNAME },
                         { value: row.POSITION },
                         { value: row.POSITION_QUALIFIFCATIONS },
                         { value: row.POSITION_NUMBER },
                         { value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
                         { value: row.Fund_FT },
-                        { value: row.CONTRACT_PERIOD_SHORT_TERM },
-                        { value: row.rate_status },
-                        { value: "" }
+                        { value: row.HIRING_START_END_DATE },
+                        { value: row.rate_status }
+                        
                     ];
 
                     // Create and append table cells
@@ -585,7 +584,7 @@
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = 'รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.csv';
+    link.download = 'รายงานผลการอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.csv';
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -691,14 +690,14 @@ function exportPDF() {
                 },
             didDrawPage: function () {
                 doc.setFontSize(14);
-                doc.text('รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน', 20, 10);
+                doc.text('รายงานผลการอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน', 20, 10);
             }
         });
 
         yOffset = doc.lastAutoTable.finalY;
     });
 
-    doc.save('รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.pdf');
+    doc.save('รายงานผลการอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.pdf');
 }
 function exportXLS() {
     const tables = document.querySelectorAll('#content_table table'); // ดึงทุก Table
@@ -772,7 +771,7 @@ function exportXLS() {
 
     // ✅ เพิ่ม Sheet เดียว และ Export
     XLSX.utils.book_append_sheet(wb, ws, "รายงาน");
-    XLSX.writeFile(wb, 'รายงานผลการขอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.xlsx');
+    XLSX.writeFile(wb, 'รายงานผลการอนุมัติกรอบอัตรากำลัง รายส่วนงาน/หน่วยงาน.xlsx');
 }
 
     </script>
