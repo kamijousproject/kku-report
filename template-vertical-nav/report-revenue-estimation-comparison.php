@@ -1738,7 +1738,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.csv';
+            link.download = 'รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
