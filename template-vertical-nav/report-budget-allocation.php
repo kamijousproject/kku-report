@@ -931,9 +931,10 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                             break;
                                                     }
                                                     echo "<tr>";
-                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($FacultyData['FacultyName'] ?? '') . "</td>";
+
                                                     // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                    echo "<td>" . formatNumber($FacultyData['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                    $facultyData = str_replace('-', ':', $FacultyData['FacultyName']);
+                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "</td>";
                                                     echo "<td>" . formatNumber($FacultyData['Pre_Release_Amount']) . "</td>";
                                                     echo "<td>" . formatNumber($FacultyData[$selectedScenario] ?? 0) . "</td>";
                                                     echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
