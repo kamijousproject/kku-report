@@ -208,10 +208,10 @@ thead tr:nth-child(3) th {
             
         });
         $('#dropdown1').change(function() {
-            $('#dropdown2').html('<option value="">เลือกปีเริ่มต้น</option>').prop('disabled', true);
+            $('#dropdown2').html('<option value="">เลือกปีเริ่มต้น - ปีสิ้นสุด</option>').prop('disabled', true);
             $('#submitBtn').prop('disabled', true);
 
-            $('#dropdown2').append('<option value="all">2567 - 2571</option>').prop('disabled', false);
+            $('#dropdown2').append('<option value="all">2567 - 2570</option>').prop('disabled', false);
         });
         
         $('#dropdown2').change(function() {
@@ -242,29 +242,36 @@ thead tr:nth-child(3) th {
                         { key: 'Actual_type1', value: (row.Actual_type1||0).toLocaleString() },
                         { key: 'wf1', value: 0},
                         { key: 'wf_type1_y1', value: (row.wf_type1_y1||0).toLocaleString() },
-                        { key: 'wf_type2_y1', value: (row.wf_type2_y1||0).toLocaleString() },
-                        { key: 'wf_type3_y1', value: (row.wf_type3_y1||0).toLocaleString() },
-                        { key: 'wf_type4_y1', value: (row.wf_type4_y1||0).toLocaleString() },
+                        { key: 'wf_type1_y2', value: (row.wf_type1_y2||0).toLocaleString() },
+                        { key: 'wf_type1_y3', value: (row.wf_type1_y3||0).toLocaleString() },
+                        { key: 'wf_type1_y4', value: (row.wf_type1_y4||0).toLocaleString() },
+                        
+                        
+                        
                         
                         { key: 'Actual_type2', value: (row.Actual_type2||0).toLocaleString() },
                         { key: 'wf2', value:0},
-                        { key: 'wf_type1_y2', value: (row.wf_type1_y2||0).toLocaleString() },
+                        { key: 'wf_type2_y1', value: (row.wf_type2_y1||0).toLocaleString() },
                         { key: 'wf_type2_y2', value: (row.wf_type2_y2||0).toLocaleString() },
-                        { key: 'wf_type3_y2', value: (row.wf_type3_y2||0).toLocaleString() },
-                        { key: 'wf_type4_y2', value: (row.wf_type4_y2||0).toLocaleString() },
+                        { key: 'wf_type2_y3', value: (row.wf_type2_y3||0).toLocaleString() },
+                        { key: 'wf_type2_y4', value: (row.wf_type2_y4||0).toLocaleString() },
+                        
+                        
 
                         { key: 'Actual_type3', value: (row.Actual_type3||0).toLocaleString() },
                         { key: 'wf3', value: 0},
-                        { key: 'wf_type1_y3', value: (row.wf_type1_y3||0).toLocaleString() },
-                        { key: 'wf_type2_y3', value: (row.wf_type2_y3||0).toLocaleString() },
+                        
+                        { key: 'wf_type3_y1', value: (row.wf_type3_y1||0).toLocaleString() },
+                        { key: 'wf_type3_y2', value: (row.wf_type3_y2||0).toLocaleString() },
                         { key: 'wf_type3_y3', value: (row.wf_type3_y3||0).toLocaleString() },
-                        { key: 'wf_type4_y3', value: (row.wf_type4_y3||0).toLocaleString() },
+                        { key: 'wf_type3_y4', value: (row.wf_type3_y4||0).toLocaleString() },
+                        
 
                         { key: 'Actual_type4', value: (row.Actual_type4||0).toLocaleString() },
                         { key: 'wf4', value: 0},
-                        { key: 'wf_type1_y4', value: (row.wf_type1_y4||0).toLocaleString() },
-                        { key: 'wf_type2_y4', value: (row.wf_type2_y4||0).toLocaleString() },
-                        { key: 'wf_type3_y4', value: (row.wf_type3_y4||0).toLocaleString() },
+                        { key: 'wf_type4_y1', value: (row.wf_type4_y1||0).toLocaleString() },
+                        { key: 'wf_type4_y2', value: (row.wf_type4_y2||0).toLocaleString() },
+                        { key: 'wf_type4_y3', value: (row.wf_type4_y3||0).toLocaleString() },
                         { key: 'wf_type4_y4', value: (row.wf_type4_y4||0).toLocaleString() },
                     ];
 
