@@ -935,6 +935,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     // แสดงข้อมูลในคอลัมน์ที่เหลือ
                                                     $facultyData = str_replace('-', ':', $FacultyData['FacultyName']);
                                                     echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "</td>";
+                                                    echo "<td>" . formatNumber($FacultyData['Allocated_Total_Amount_Quantity']) . "</td>";
                                                     echo "<td>" . formatNumber($FacultyData['Pre_Release_Amount']) . "</td>";
                                                     echo "<td>" . formatNumber($FacultyData[$selectedScenario] ?? 0) . "</td>";
                                                     echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
@@ -1283,25 +1284,64 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
             const table = document.getElementById('reportTable');
             const csvRows = [];
 
-            // 1) ดึงข้อมูลจาก <thead>
-            const theadRows = table.tHead.rows;
-            for (const row of theadRows) {
+            // ฟังก์ชันช่วยเติมค่าซ้ำ
+            const repeatValue = (value, count) => Array(count).fill(value).join(',');
+
+            // เพิ่มชื่อรายงาน
+            csvRows.push(["รายงานการจัดสรรเงินรายงวด", "", "", "", "", "", ""]);
+
+            // เพิ่มส่วนของงวดที่เลือก
+            const selectedScenario = <?php echo json_encode($selectedScenario); ?>;
+            let scenarioText;
+            switch (selectedScenario) {
+                case 'Scenario1':
+                    scenarioText = 'จัดสรรงวดที่ 1';
+                    break;
+                case 'Scenario2':
+                    scenarioText = 'จัดสรรงวดที่ 2';
+                    break;
+                case 'Scenario3':
+                    scenarioText = 'จัดสรรงวดที่ 3';
+                    break;
+                case 'Scenario4':
+                    scenarioText = 'จัดสรรงวดที่ 4';
+                    break;
+                default:
+                    scenarioText = 'จัดสรรงวดที่ 1'; // ค่าเริ่มต้น
+            }
+            csvRows.push([scenarioText, "", "", "", "", "", ""]);
+
+            // เพิ่มส่วนหัวของตาราง
+            csvRows.push([
+                "รายการ",
+                "งบประมาณรายจ่ายทั้งสิ้น",
+                "เงินจัดสรรกำหนดให้แล้ว",
+                "<?php echo $headerText; ?>",
+                "รวมเงินจัดสรรทั้งสิ้น",
+                "งบประมาณรายจ่ายคงเหลือ",
+                "หมายเหตุ"
+            ]);
+
+            // วนลูปเฉพาะ <tbody>
+            const tbody = table.querySelector("tbody");
+            for (const row of tbody.rows) {
                 const cellLines = [];
                 let maxSubLine = 1;
 
+                // วนลูปแต่ละเซลล์
                 for (const cell of row.cells) {
                     let html = cell.innerHTML;
 
-                    // แปลง &nbsp; เป็นช่องว่าง
+                    // แปลง &nbsp; เป็น non-breaking space (\u00A0)
                     html = html.replace(/(&nbsp;)+/g, (match) => {
                         const count = match.match(/&nbsp;/g).length;
                         return '\u00A0'.repeat(count);
                     });
 
-                    // ลบ tag HTML อื่นออก
+                    // ลบแท็ก HTML ออก
                     html = html.replace(/<\/?[^>]+>/g, '');
 
-                    // แยกเป็น array บรรทัดย่อย
+                    // แยกข้อความเป็นบรรทัด
                     const lines = html.split('\n').map(x => x.trimEnd());
 
                     if (lines.length > maxSubLine) {
@@ -1311,13 +1351,13 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                     cellLines.push(lines);
                 }
 
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                // เพิ่ม sub-row ตามจำนวนบรรทัดย่อยที่มากที่สุด
                 for (let i = 0; i < maxSubLine; i++) {
                     const rowData = [];
 
                     for (const lines of cellLines) {
                         let text = lines[i] || '';
-                        text = text.replace(/"/g, '""');
+                        text = text.replace(/"/g, '""'); // Escape double quotes
                         text = `"${text}"`;
                         rowData.push(text);
                     }
@@ -1326,52 +1366,9 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                 }
             }
 
-            // 2) ดึงข้อมูลจาก <tbody>
-            const tbodyRows = table.tBodies[0].rows;
-            for (const row of tbodyRows) {
-                const cellLines = [];
-                let maxSubLine = 1;
-
-                for (const cell of row.cells) {
-                    let html = cell.innerHTML;
-
-                    // แปลง &nbsp; เป็นช่องว่าง
-                    html = html.replace(/(&nbsp;)+/g, (match) => {
-                        const count = match.match(/&nbsp;/g).length;
-                        return '\u00A0'.repeat(count);
-                    });
-
-                    // ลบ tag HTML อื่นออก
-                    html = html.replace(/<\/?[^>]+>/g, '');
-
-                    // แยกเป็น array บรรทัดย่อย
-                    const lines = html.split('\n').map(x => x.trimEnd());
-
-                    if (lines.length > maxSubLine) {
-                        maxSubLine = lines.length;
-                    }
-
-                    cellLines.push(lines);
-                }
-
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
-                for (let i = 0; i < maxSubLine; i++) {
-                    const rowData = [];
-
-                    for (const lines of cellLines) {
-                        let text = lines[i] || '';
-                        text = text.replace(/"/g, '""');
-                        text = `"${text}"`;
-                        rowData.push(text);
-                    }
-
-                    csvRows.push(rowData.join(','));
-                }
-            }
-
-            // 3) รวมเป็น CSV + BOM
+            // รวมเป็น CSV + BOM
             const csvContent = "\uFEFF" + csvRows.join("\n");
-            const blob = new Blob([csvContent], { Name_a1: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
