@@ -799,6 +799,7 @@ function fetchYearsData($conn)
                                                     $Name_a1 = $row['Name_a1'];
                                                     $Name_a2 = $row['Name_a2'];
                                                     $Name_a3 = $row['Name_a3'];
+                                                    $Name_a4 = $row['Name_a4'];
                                                     // เก็บข้อมูลของ faculty
                                                     if (!isset($summary[$faculty])) {
                                                         $summary[$faculty] = [
@@ -905,10 +906,15 @@ function fetchYearsData($conn)
                                                         ];
                                                     }
 
-                                                    // เก็บข้อมูลของ Sub_Type
+                                                    $ItemName_a1 = (!empty($row['Name_a1']))
+                                                        ? "" . htmlspecialchars($row['a1']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a1']))
+                                                        : "" . htmlspecialchars($row['a1']) . "";
+                                                    // เก็บข้อมูลของ Name_a1
                                                     if (!isset($summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1])) {
                                                         $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1] = [
                                                             'a1' => $row['a1'],
+                                                            'name' => $ItemName_a1,
+                                                            'test' => $row['Name_a1'],
                                                             'Total_Amount_1' => 0,
                                                             'Q1_BUDGET1' => 0,
                                                             'Q2_BUDGET1' => 0,
@@ -927,16 +933,23 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'Name_a2' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
 
-                                                    // เก็บข้อมูลของ Sub_Type
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a2
+                                                    if (!empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                        $ItemName_a2 = htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                    } elseif (empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                        $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                    } else {
+                                                        $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
                                                     if (!isset($summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
                                                         $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
-                                                            'a2' => $row['a2'],
+                                                            'name' => $ItemName_a2,
                                                             'test' => $row['Name_a2'],
+                                                            'test2' => $row['Name_a3'],
                                                             'Total_Amount_1' => 0,
                                                             'Q1_BUDGET1' => 0,
                                                             'Q2_BUDGET1' => 0,
@@ -955,15 +968,23 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
                                                             'Name_a3' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
-                                                    // เก็บข้อมูลของ Sub_Type
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a3
+                                                    if (!empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                        $ItemName_a3 = htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                    } elseif (empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                        $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                    } else {
+                                                        $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
+                                                    // เก็บข้อมูลของ superSubType
                                                     if (!isset($summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
                                                         $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
-                                                            'a3' => $row['a3'],
+                                                            'name' => $ItemName_a3,
                                                             'test' => $row['Name_a3'],
+                                                            'test2' => $row['Name_a4'],
                                                             'Total_Amount_1' => 0,
                                                             'Q1_BUDGET1' => 0,
                                                             'Q2_BUDGET1' => 0,
@@ -982,7 +1003,41 @@ function fetchYearsData($conn)
                                                             'Q3_BUDGET3' => 0,
                                                             'Q4_BUDGET3' => 0,
                                                             'TOTAL_BUDGET_YEAR_3' => 0,
-
+                                                            'Name_a4' => [], // เก็บข้อมูลของ KKU_Item_Name
+                                                        ];
+                                                    }
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a4
+                                                    if (!empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                        $ItemName_a4 = htmlspecialchars($row['a4']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                    } elseif (empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                    } else {
+                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
+                                                    // เก็บข้อมูลของ Name_a4
+                                                    if (!isset($summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
+                                                        $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4] = [
+                                                            'name' => $ItemName_a4,
+                                                            'test' => $row['Name_a4'],
+                                                            'test2' => $row['KKU_Item_Name'],
+                                                            'Total_Amount_1' => 0,
+                                                            'Q1_BUDGET1' => 0,
+                                                            'Q2_BUDGET1' => 0,
+                                                            'Q3_BUDGET1' => 0,
+                                                            'Q4_BUDGET1' => 0,
+                                                            'TOTAL_BUDGET_YEAR_1' => 0,
+                                                            'Total_Amount_2' => 0,
+                                                            'Q1_BUDGET2' => 0,
+                                                            'Q2_BUDGET2' => 0,
+                                                            'Q3_BUDGET2' => 0,
+                                                            'Q4_BUDGET2' => 0,
+                                                            'TOTAL_BUDGET_YEAR_2' => 0,
+                                                            'Total_Amount_3' => 0,
+                                                            'Q1_BUDGET3' => 0,
+                                                            'Q2_BUDGET3' => 0,
+                                                            'Q3_BUDGET3' => 0,
+                                                            'Q4_BUDGET3' => 0,
+                                                            'TOTAL_BUDGET_YEAR_3' => 0,
                                                             'kku_items' => [], // เก็บข้อมูลของ KKU_Item_Name
                                                         ];
                                                     }
@@ -1074,7 +1129,7 @@ function fetchYearsData($conn)
 
 
 
-                                                    // เก็บข้อมูลของ Sub_Type
+                                                    // เก็บข้อมูลของ Name_a1
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Total_Amount_1'] += $row['Total_Amount_1'];
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
@@ -1094,7 +1149,7 @@ function fetchYearsData($conn)
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Q4_BUDGET3'] += $row['Q4_BUDGET3'];
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['TOTAL_BUDGET_YEAR_3'] += $row['TOTAL_BUDGET_YEAR_3'];
 
-                                                    // เก็บข้อมูลของ Sub_Type
+                                                    // เก็บข้อมูลของ Name_a2
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_1'] += $row['Total_Amount_1'];
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
@@ -1115,7 +1170,7 @@ function fetchYearsData($conn)
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['TOTAL_BUDGET_YEAR_3'] += $row['TOTAL_BUDGET_YEAR_3'];
 
 
-                                                    // เก็บข้อมูลของ Sub_Type
+                                                    // เก็บข้อมูลของ Name_a3
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_1'] += $row['Total_Amount_1'];
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
@@ -1135,12 +1190,32 @@ function fetchYearsData($conn)
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Q4_BUDGET3'] += $row['Q4_BUDGET3'];
                                                     $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['TOTAL_BUDGET_YEAR_3'] += $row['TOTAL_BUDGET_YEAR_3'];
 
+                                                    // เก็บข้อมูลของ Name_a4
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_1'] += $row['Total_Amount_1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q1_BUDGET1'] += $row['Q1_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q2_BUDGET1'] += $row['Q2_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q3_BUDGET1'] += $row['Q3_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q4_BUDGET1'] += $row['Q4_BUDGET1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['TOTAL_BUDGET_YEAR_1'] += $row['TOTAL_BUDGET_YEAR_1'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2'] += $row['Total_Amount_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q1_BUDGET2'] += $row['Q1_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q2_BUDGET2'] += $row['Q2_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q3_BUDGET2'] += $row['Q3_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q4_BUDGET2'] += $row['Q4_BUDGET2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['TOTAL_BUDGET_YEAR_2'] += $row['TOTAL_BUDGET_YEAR_2'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_3'] += $row['Total_Amount_3'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q1_BUDGET3'] += $row['Q1_BUDGET3'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q2_BUDGET3'] += $row['Q2_BUDGET3'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q3_BUDGET3'] += $row['Q3_BUDGET3'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Q4_BUDGET3'] += $row['Q4_BUDGET3'];
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['TOTAL_BUDGET_YEAR_3'] += $row['TOTAL_BUDGET_YEAR_3'];
+
 
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
                                                         ? "" . htmlspecialchars($row['Account']) . ": " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
                                                         : "" . htmlspecialchars($row['Account']) . "</strong>";
-                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['kku_items'][] = [
+                                                    $summary[$faculty]['plans'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                         'name' => $kkuItemName,
                                                         'test' => $row['KKU_Item_Name'],
                                                         'Total_Amount_1' => $row['Total_Amount_1'],
@@ -1378,10 +1453,10 @@ function fetchYearsData($conn)
 
 
                                                                     if ($selectedFaculty == null) {
-                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($Name_a1Data['a1']) . " : " . htmlspecialchars($cleanedName_a1) . "</td>";
+                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($Name_a1Data['name']) . "</td>";
                                                                     }
                                                                     if ($selectedFaculty != null) {
-                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($Name_a1Data['a1']) . " : " . htmlspecialchars($cleanedName_a1) . "</td>";
+                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($Name_a1Data['name']) . "</td>";
                                                                     }
 
                                                                     echo "<td>" . formatNumber($Name_a1Data['Total_Amount_3']) . "</td>";
@@ -1409,7 +1484,7 @@ function fetchYearsData($conn)
 
                                                                     // แสดงผลรวมของแต่ละ Name_a2
                                                                     foreach ($Name_a1Data['Name_a2'] as $Name_a2 => $Name_a2Data) {
-                                                                        if (empty($Name_a2Data['test'])) {
+                                                                        if ($Name_a2Data['test'] == null || $Name_a2Data['test'] == '') {
                                                                             continue;
                                                                         }
 
@@ -1417,9 +1492,9 @@ function fetchYearsData($conn)
                                                                         $cleanedName_a2 = preg_replace('/^[\d.]+\s*/', '', $Name_a2);
 
                                                                         if ($selectedFaculty == null) {
-                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($Name_a2Data['a2']) . " : " . htmlspecialchars($cleanedName_a2) . "</td>";
+                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($Name_a2Data['name']) . "</td>";
                                                                         } else {
-                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($Name_a2Data['a2']) . " : " . htmlspecialchars($cleanedName_a2) . "</td>";
+                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($Name_a2Data['name']) . "</td>";
                                                                         }
 
                                                                         echo "<td>" . formatNumber($Name_a2Data['Total_Amount_3']) . "</td>";
@@ -1445,17 +1520,16 @@ function fetchYearsData($conn)
 
                                                                         // วนลูป Name_a3
                                                                         foreach ($Name_a2Data['Name_a3'] as $Name_a3 => $Name_a3Data) {
-                                                                            if (empty($Name_a3Data['test'])) {
+                                                                            if ($Name_a3Data['test'] == null || $Name_a3Data['test'] == '' || $Name_a2Data['name'] == $Name_a3Data['name']) {
                                                                                 continue;
                                                                             }
 
                                                                             echo "<tr>";
-                                                                            $cleanedName_a3 = preg_replace('/^[\d.]+\s*/', '', $Name_a3);
 
                                                                             if ($selectedFaculty == null) {
-                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($Name_a3Data['a3']) . " : " . htmlspecialchars($cleanedName_a3) . "</td>";
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($Name_a3Data['name']) . "</td>";
                                                                             } else {
-                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($Name_a3Data['a3']) . " : " . htmlspecialchars($cleanedName_a3) . "</td>";
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($Name_a3Data['name']) . "</td>";
                                                                             }
                                                                             echo "<td>" . formatNumber($Name_a3Data['Total_Amount_3']) . "</td>";
                                                                             echo "<td>" . formatNumber($Name_a3Data['Q1_BUDGET3']) . "</td>";
@@ -1476,42 +1550,73 @@ function fetchYearsData($conn)
                                                                             echo "<td>" . formatNumber($Name_a3Data['Q4_BUDGET1']) . "</td>";
                                                                             echo "<td>" . formatNumber($Name_a3Data['TOTAL_BUDGET_YEAR_1']) . "</td>";
                                                                             echo "</tr>";
-
-                                                                            // วนลูป kku_items
-                                                                            foreach ($Name_a3Data['kku_items'] as $kkuItem) {
-                                                                                if (empty($kkuItem['test'])) {
+                                                                            foreach ($Name_a3Data['Name_a4'] as $Name_a4 => $Name_a4Data) {
+                                                                                if ($Name_a4Data['test'] == null || $Name_a4Data['test'] == '' || $Name_a3Data['name'] == $Name_a4Data['name']) {
                                                                                     continue;
                                                                                 }
 
                                                                                 echo "<tr>";
+
+
                                                                                 if ($selectedFaculty == null) {
-                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 56) . htmlspecialchars($kkuItem['name']) . "</td>";
+                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 56) . htmlspecialchars($Name_a4Data['name']) . "</td>";
                                                                                 } else {
-                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($kkuItem['name']) . "</td>";
+                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($Name_a4Data['name']) . "</td>";
                                                                                 }
-                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_3']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q1_BUDGET3']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q2_BUDGET3']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q3_BUDGET3']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q4_BUDGET3']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_3']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q1_BUDGET2']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q2_BUDGET2']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q3_BUDGET2']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q4_BUDGET2']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_2']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_1']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q1_BUDGET1']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q2_BUDGET1']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q3_BUDGET1']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Q4_BUDGET1']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_1']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Total_Amount_3']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q1_BUDGET3']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q2_BUDGET3']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q3_BUDGET3']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q4_BUDGET3']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['TOTAL_BUDGET_YEAR_3']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Total_Amount_2']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q1_BUDGET2']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q2_BUDGET2']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q3_BUDGET2']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q4_BUDGET2']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['TOTAL_BUDGET_YEAR_2']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Total_Amount_1']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q1_BUDGET1']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q2_BUDGET1']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q3_BUDGET1']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Q4_BUDGET1']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['TOTAL_BUDGET_YEAR_1']) . "</td>";
                                                                                 echo "</tr>";
+                                                                                // วนลูป kku_items
+                                                                                foreach ($Name_a4Data['kku_items'] as $kkuItem) {
+                                                                                    if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $Name_a4Data['name'] == $kkuItem['name']) {
+                                                                                        continue;
+                                                                                    }
+
+                                                                                    echo "<tr>";
+                                                                                    if ($selectedFaculty == null) {
+                                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 64) . htmlspecialchars($kkuItem['name']) . "</td>";
+                                                                                    } else {
+                                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 56) . htmlspecialchars($kkuItem['name']) . "</td>";
+                                                                                    }
+                                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_3']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q1_BUDGET3']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q2_BUDGET3']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q3_BUDGET3']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q4_BUDGET3']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_3']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q1_BUDGET2']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q2_BUDGET2']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q3_BUDGET2']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q4_BUDGET2']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_2']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_1']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q1_BUDGET1']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q2_BUDGET1']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q3_BUDGET1']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Q4_BUDGET1']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_YEAR_1']) . "</td>";
+                                                                                    echo "</tr>";
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
-
                                                                 }
                                                             }
                                                         }
