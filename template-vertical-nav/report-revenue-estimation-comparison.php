@@ -1569,29 +1569,146 @@ function fetchYearsData($conn)
             const table = document.getElementById('reportTable');
             const csvRows = [];
 
-            // วนลูปทีละ <tr>
-            for (const row of table.rows) {
-                // เก็บบรรทัดย่อยของแต่ละเซลล์
+            // ฟังก์ชันช่วยเติมค่าซ้ำ
+            const repeatValue = (value, count) => Array(count).fill(value).join(',');
+
+
+            // เพิ่มชื่อรายงาน
+            csvRows.push(["รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]);
+
+            // ดึงค่าปีงบประมาณจาก PHP
+            const selectedYear = <?php echo json_encode($selectedYear); ?>;
+            const yearRange = selectedYear ? `ปีงบที่ต้องการเปรียบเทียบ ${selectedYear - 2} ถึง ${selectedYear}` : "ปีงบที่ต้องการเปรียบเทียบ: ไม่ได้เลือกปีงบประมาณ";
+            csvRows.push([yearRange, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]);
+
+            // ดึงค่าคณะ/หน่วยงานจาก PHP
+            const selectedFacultyName = <?php echo json_encode($selectedFacultyName); ?>;
+            const facultyData = selectedFacultyName.replace(/-/g, ':');
+            csvRows.push([`ส่วนงาน / หน่วยงาน: ${facultyData}`, "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]);
+
+            // เพิ่มส่วนหัวของตาราง
+            csvRows.push([
+                "รายการ",
+                `ปี ${selectedYear - 2}`,
+                "",
+                "",
+                "",
+                "",
+                "",
+                `ปี ${selectedYear - 1}`,
+                "",
+                "",
+                "",
+                "",
+                "",
+                `ปี ${selectedYear}`,
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]);
+
+            csvRows.push([
+                "",
+                "ประมาณการรายรับ",
+                "รายรับจริง",
+                "",
+                "",
+                "",
+                "รวมรายรับจริง",
+                "ประมาณการรายรับ",
+                "รายรับจริง",
+                "",
+                "",
+                "",
+                "รวมรายรับจริง",
+                "ประมาณการรายรับ",
+                "รายรับจริง",
+                "",
+                "",
+                "",
+                "รวมรายรับจริง",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]);
+
+            csvRows.push([
+                "",
+                "",
+                "ไตรมาสที่ 1",
+                "ไตรมาสที่ 2",
+                "ไตรมาสที่ 3",
+                "ไตรมาสที่ 4",
+                "",
+                "",
+                "ไตรมาสที่ 1",
+                "ไตรมาสที่ 2",
+                "ไตรมาสที่ 3",
+                "ไตรมาสที่ 4",
+                "",
+                "",
+                "ไตรมาสที่ 1",
+                "ไตรมาสที่ 2",
+                "ไตรมาสที่ 3",
+                "ไตรมาสที่ 4",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                ""
+            ]);
+            // วนลูปเฉพาะ <tbody>
+            const tbody = table.querySelector("tbody");
+            for (const row of tbody.rows) {
                 const cellLines = [];
                 let maxSubLine = 1;
 
-                // วนลูปทีละเซลล์ <td>/<th>
+                // วนลูปแต่ละเซลล์
                 for (const cell of row.cells) {
                     let html = cell.innerHTML;
 
-                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    // แปลง &nbsp; เป็น non-breaking space (\u00A0)
                     html = html.replace(/(&nbsp;)+/g, (match) => {
                         const count = match.match(/&nbsp;/g).length;
-                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                        return '\u00A0'.repeat(count);
                     });
 
-
-                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // ลบแท็ก HTML ออก
                     html = html.replace(/<\/?[^>]+>/g, '');
 
-                    // 4) แยกเป็น array บรรทัดย่อย
+                    // แยกข้อความเป็นบรรทัด
                     const lines = html.split('\n').map(x => x.trimEnd());
-                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
                     if (lines.length > maxSubLine) {
                         maxSubLine = lines.length;
@@ -1600,16 +1717,13 @@ function fetchYearsData($conn)
                     cellLines.push(lines);
                 }
 
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                // เพิ่ม sub-row ตามจำนวนบรรทัดย่อยที่มากที่สุด
                 for (let i = 0; i < maxSubLine; i++) {
                     const rowData = [];
 
-                    // วนลูปแต่ละเซลล์
                     for (const lines of cellLines) {
-                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                        // Escape double quotes
-                        text = text.replace(/"/g, '""');
-                        // ครอบด้วย ""
+                        let text = lines[i] || '';
+                        text = text.replace(/"/g, '""'); // Escape double quotes
                         text = `"${text}"`;
                         rowData.push(text);
                     }
@@ -1624,7 +1738,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง.csv';
+            link.download = 'รายงานการปรับเปลี่ยนงบประมาณของแผนงานต่างๆ.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
