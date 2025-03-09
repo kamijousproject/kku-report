@@ -1047,7 +1047,7 @@ function fetchYearsData($conn)
 
                                                                             if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
                                                                                 foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
-                                                                                    if ($dataName_a3['test'] == null || $dataName_a3['test'] == '') {
+                                                                                    if ($dataName_a3['test'] == null || $dataName_a3['test'] == '' || $dataName_a2['name'] == $dataName_a3['name']) {
                                                                                         continue;
                                                                                     }
                                                                                     echo "<tr>";
@@ -1077,7 +1077,7 @@ function fetchYearsData($conn)
                                                                                     echo "</tr>";
                                                                                     if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
                                                                                         foreach ($dataName_a3['Name_a4'] as $Name_a4 => $dataName_a4) {
-                                                                                            if ($dataName_a4['test'] == null || $dataName_a4['test'] == '') {
+                                                                                            if ($dataName_a4['test'] == null || $dataName_a4['test'] == '' || $dataName_a3['name'] == $dataName_a4['name']) {
                                                                                                 continue;
                                                                                             }
                                                                                             echo "<tr>";
@@ -1107,7 +1107,7 @@ function fetchYearsData($conn)
                                                                                             echo "</tr>";
                                                                                             if (isset($dataName_a4['Name_a4']) && is_array($dataName_a4['Name_a4'])) {
                                                                                                 foreach ($dataName_a4['kku_items'] as $kkuItem) {
-                                                                                                    if ($kkuItem['test'] == null || $kkuItem['test'] == '') {
+                                                                                                    if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $dataName_a4['name'] == $kkuItem['name']) {
                                                                                                         continue;
                                                                                                     }
                                                                                                     echo "<tr>";
