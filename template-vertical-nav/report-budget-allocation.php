@@ -1136,7 +1136,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
 
                                                                     foreach ($Name_a1Data['Name_a2'] as $Name_a2 => $Name_a2Data) {
 
-                                                                        if ($Name_a2Data['test'] == null || $Name_a2Data['test'] == '') {
+                                                                        if ($Name_a2Data['test'] == null || $Name_a2Data['test'] == '' || $Name_a1Data['name'] == $Name_a2Data['name']) {
                                                                             continue;
                                                                         }
 
@@ -1182,7 +1182,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                                         echo "</tr>";
 
                                                                         foreach ($Name_a2Data['Name_a3'] as $Name_a3 => $Name_a3Data) {
-                                                                            if ($Name_a3Data['test'] == null || $Name_a3Data['test'] == '') {
+                                                                            if ($Name_a3Data['test'] == null || $Name_a3Data['test'] == '' || $Name_a2Data['name'] == $Name_a3Data['name']) {
                                                                                 continue;
                                                                             }
 
@@ -1228,7 +1228,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                                             }
                                                                             echo "</tr>";
                                                                             foreach ($Name_a3Data['Name_a4'] as $Name_a4 => $Name_a4Data) {
-                                                                                if ($Name_a4Data['test'] == null || $Name_a4Data['test'] == '') {
+                                                                                if ($Name_a4Data['test'] == null || $Name_a4Data['test'] == '' || $Name_a3Data['name'] == $Name_a4Data['name']) {
                                                                                     continue;
                                                                                 }
 
@@ -1275,7 +1275,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                                                 echo "</tr>";
 
                                                                                 foreach ($Name_a4Data['kku_items'] as $kkuItem) {
-                                                                                    if ($kkuItem['test'] == null || $kkuItem['test'] == '') {
+                                                                                    if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $Name_a4Data['name'] == $kkuItem['name']) {
                                                                                         continue;
                                                                                     }
 
