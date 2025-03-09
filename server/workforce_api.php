@@ -123,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT DISTINCT Faculty, Alias_Default
                         FROM Faculty) f2 
                         ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='วิชาการระยะสั้น'";
+                        WHERE act1.position='อาจารย์' and act1.All_Position_Types='วิชาการ' AND act1.EMPLOYMENT_TYPE='ลูกจ้างชั่วคราว'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c2 = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -140,7 +140,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT DISTINCT Faculty, Alias_Default
                         FROM Faculty) f2 
                         ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย'and act1.Contract_Type='ผู้เกษียณอายุราชการ' ";
+                        WHERE act1.EMPLOYMENT_TYPE='ผู้เกษียณอายุราชการ'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c3 = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -157,7 +157,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT DISTINCT Faculty, Alias_Default
                         FROM Faculty) f2 
                         ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='ชาวต่างประเทศ' ";
+                        WHERE act1.EMPLOYMENT_TYPE='ลูกจ้างชาวต่างประเทศ'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c4 = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -174,7 +174,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT DISTINCT Faculty, Alias_Default
                         FROM Faculty) f2 
                         ON f.parent = f2.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        WHERE act1.Personnel_Type='พนักงานมหาวิทยาลัย' and act1.Contract_Type='ผู้ปฏิบัติงานในมหาวิทยาลัย'";
+                        WHERE act1.EMPLOYMENT_TYPE='จ้างที่ปรึกษา'";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $c5 = $cmd->fetchAll(PDO::FETCH_ASSOC);
@@ -1468,7 +1468,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON replace(t.Position_Number,'PN_','')=a.Position_Number)
                         , t3 AS (
                         SELECT faculty,Position_Number,All_PositionTypes,POSITION,Employment_Type,Contract_Type
-                        ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND fund_ft='เงินรายได้' then 'พนักงานมหาวิทยาลัยงบประมาณเงินรายได้'
+                        ,case when Personnel_Type='พนักงานมหาวิทยาลัย' 
+								-- AND fund_ft='เงินรายได้' 
+								then 'พนักงานมหาวิทยาลัยงบประมาณเงินรายได้'
                         ELSE Personnel_Type END AS Personnel_Type
                         FROM t2
                         )

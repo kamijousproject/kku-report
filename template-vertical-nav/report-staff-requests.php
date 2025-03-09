@@ -232,7 +232,7 @@ th, td {
             
         });
         $('#category').change(function() {
-            $('#dropdown2').html('<option value="">เลือกปีงบประมาณ</option>').prop('disabled', true);
+            $('#dropdown2').html('').prop('disabled', true);
             $('#submitBtn').prop('disabled', true);
 
             $('#dropdown2').append('<option value="">-- Select --</option><option value="all">2568</option>').prop('disabled', false);
@@ -255,182 +255,208 @@ th, td {
             var categoryText = fyear.options[fyear.selectedIndex].text;
             document.getElementById("fiscal_year").textContent=categoryText;
             var Sumresearch=0;
-            var Sumresearch2=0;
             var Sumacademic=0;
             var Sumsupport=0;
-            var Sumsupport2=0;
             var SumshortTerm=0;
             var Sumemp1=0;
-            var Sumemp2=0;
             var Sumemp3=0;
             var Sumtype1=0;
+            var research=0;  
+            var academic=0;
+            var support=0;
+            var shortTerm=0;
+            var emp1=0; 
+            var emp3=0;
+            var type1=0;
+            
+
+            var research2=0;
+            var support2=0;
+            var emp2=0;
+            var type2=0;
             var Sumtype2=0;
-            
-                    var research=0;
-                    var research2=0;
-                    var academic=0;
-                    var support=0;
-                    var support2=0;
-                    var shortTerm=0;
-                    var emp1=0;
-                    var emp2=0;
-                    var emp3=0;
-                    var type1=0;
-                    var type2=0;
-                    var cur=data_current.filter(item=>item.pname===category);
-                    cur.forEach((row, index) => {
-                        if(row.Personnel_Type=="พนักงานมหาวิทยาลัยงบประมาณเงินรายได้")
-                        {
-                            type1+=1;
-                            Sumtype1+=1;
-                            if(row.All_PositionTypes=="วิชาการ")
-                            {
-                                //academic+=1;
-                                //Sumacademic+=1;
-                            }
-                            if(row.All_PositionTypes=="วิจัย")
-                            {
-                                //research+=1;
-                                //Sumresearch+=1;
-                            }
-                            if(row.All_PositionTypes=="สนับสนุน")
-                            {
-                                //support+=1;
-                                //Sumsupport+=1;
-                            }
-                            if(row.Position=="อาจารย์" && row.All_PositionTypes=="วิชาการ" && row.Employment_Type=="ลูกจ้างชั่วคราว")
-                            {
-                                shortTerm+=1;
-                                SumshortTerm+=1;
-                            }
-                            if(row.Employment_Type=="ชาวต่างประเทศ")
-                            {
-                                emp1+=1;
-                                Sumemp1+=1;
-                            }
-                            if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
-                            {
-                                emp2+=1;
-                                Sumemp2+=1;
-                            }
-                            if(row.Employment_Type=="จ้างที่ปรึกษา")
-                            {
-                                emp3+=1;
-                                Sumemp3+=1;
-                            }
-                        }
-                        else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
-                        {
-                            type2+=1;
-                            Sumtype2+=1;
-                            if(row.All_PositionTypes=="วิจัย")
-                            {
-                                research2+=1;
-                                Sumresearch2+=1;
-                            }
-                            if(row.All_PositionTypes=="สนับสนุน")
-                            {
-                                support2+=1;
-                                Sumsupport2+=1;
-                            }
-                        }
-                        else{}
-                    });
-                    document.getElementById("research1").innerText="-";
-                    document.getElementById("research2").innerText=research2;
-                    document.getElementById("academic1").innerText="-";
-                    document.getElementById("support1").innerText="-";
-                    document.getElementById("support2").innerText=support2;
-                    document.getElementById("period").innerText=shortTerm;
-                    document.getElementById("emp1").innerText=emp1;
-                    document.getElementById("emp2").innerText=emp2;
-                    document.getElementById("emp3").innerText=emp3;
-                    document.getElementById("type1").innerText=type1;
-                    document.getElementById("type2").innerText=type2;
-                
-            
-            
-                    var research=0;
-                    var research2=0;
-                    var academic=0;
-                    var support=0;
-                    var support2=0;
-                    var shortTerm=0;
-                    var emp1=0;
-                    var emp2=0;
-                    var emp3=0;
-                    var type1=0;
-                    var type2=0;
-                    var d_new=data_new.filter(item=>item.pname===category);
-                    d_new.forEach((row, index) => {
-                        if(row.Personnel_Type=="พนักงานมหาวิทยาลัยงบประมาณเงินรายได้")
-                        {
-                            type1+=1;
-                            Sumtype1+=1;
-                            if(row.All_PositionTypes=="วิชาการ")
-                            {
-                                academic+=1;
-                                Sumacademic+=1;
-                            }
-                            if(row.All_PositionTypes=="วิจัย")
-                            {
-                                research+=1;
-                                Sumresearch+=1;
-                            }
-                            if(row.All_PositionTypes=="สนับสนุน")
-                            {
-                                support+=1;
-                                Sumsupport+=1;
-                            }
-                            if(row.Contract_Type=="สัญญาระยะสั้น")
-                            {
-                                //shortTerm+=1;
-                                //SumshortTerm+=1;
-                            }
-                            if(row.Employment_Type=="ชาวต่างประเทศ")
-                            {
-                                emp1+=1;
-                                Sumemp1+=1;
-                            }
-                            if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
-                            {
-                                emp2+=1;
-                                Sumemp2+=1;
-                            }
-                            if(row.Employment_Type=="ผู้ปฏิบัติงานในมหาวิทยาลัย")
-                            {
-                                emp3+=1;
-                                Sumemp3+=1;
-                            }
-                        }
-                        else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
-                        {
-                            type2+=1;
-                            Sumtype2+=1;
-                            if(row.All_PositionTypes=="วิจัย")
-                            {
-                                research2+=1;
-                                Sumresearch2+=1;
-                            }
-                            if(row.All_PositionTypes=="สนับสนุน")
-                            {
-                                support2+=1;
-                                Sumsupport2+=1;
-                            }
-                        }
-                        else{}
-                    });
-                    document.getElementById("research1_new").innerText=research;
-                    document.getElementById("research2_new").innerText=research2;
-                    document.getElementById("academic1_new").innerText=academic;
-                    document.getElementById("support1_new").innerText=support;
-                    document.getElementById("support2_new").innerText=support2;
-                    document.getElementById("period_new").innerText="-";
-                    document.getElementById("emp1_new").innerText=emp1;
-                    document.getElementById("emp2_new").innerText=emp2;
-                    document.getElementById("emp3_new").innerText=emp3;
-                    document.getElementById("type1_new").innerText=type1;
-                    document.getElementById("type2_new").innerText=type2;
+            var Sumemp2=0;
+            var Sumsupport2=0;
+            var Sumresearch2=0;
+            var cur=data_current.filter(item=>item.pname===category);
+            cur.forEach((row, index) => {
+                if(row.Personnel_Type=="พนักงานมหาวิทยาลัยงบประมาณเงินรายได้")
+                {
+                    
+                    if(row.All_PositionTypes=="วิชาการ")
+                    {
+                        //academic+=1;
+                        //Sumacademic+=1;
+                    }
+                    if(row.All_PositionTypes=="วิจัย")
+                    {
+                        //research+=1;
+                        //Sumresearch+=1;
+                    }
+                    if(row.All_PositionTypes=="สนับสนุน")
+                    {
+                        //support+=1;
+                        //Sumsupport+=1;
+                    }
+                    if(row.Position=="อาจารย์" && row.All_PositionTypes=="วิชาการ" && row.Employment_Type=="ลูกจ้างชั่วคราว")
+                    {
+                        shortTerm+=1;
+                        SumshortTerm+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                    if(row.Employment_Type=="ชาวต่างประเทศ")
+                    {
+                        emp1+=1;
+                        Sumemp1+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                    if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
+                    {
+                        emp2+=1;
+                        Sumemp2+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                    if(row.Employment_Type=="จ้างที่ปรึกษา")
+                    {
+                        emp3+=1;
+                        Sumemp3+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                }
+                else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
+                {
+                    
+                    if(row.All_PositionTypes=="วิจัย")
+                    {
+                        research2+=1;
+                        Sumresearch2+=1;
+                        type2+=1;
+                        Sumtype2+=1;
+                    }
+                    if(row.All_PositionTypes=="สนับสนุน")
+                    {
+                        support2+=1;
+                        Sumsupport2+=1;
+                        type2+=1;
+                        Sumtype2+=1;
+                    }
+                }
+                else{}
+            });
+            document.getElementById("research1").innerText="-";
+            document.getElementById("research2").innerText=research2;
+            document.getElementById("academic1").innerText="-";
+            document.getElementById("support1").innerText="-";
+            document.getElementById("support2").innerText=support2;
+            document.getElementById("period").innerText=shortTerm;
+            document.getElementById("emp1").innerText=emp1;
+            document.getElementById("emp2").innerText=emp2;
+            document.getElementById("emp3").innerText=emp3;
+            document.getElementById("type1").innerText=type1;
+            document.getElementById("type2").innerText=type2;
+        
+    
+    
+            var research=0;
+            var research2=0;
+            var academic=0;
+            var support=0;
+            var support2=0;
+            var shortTerm=0;
+            var emp1=0;
+            var emp2=0;
+            var emp3=0;
+            var type1=0;
+            var type2=0;
+            var d_new=data_new.filter(item=>item.pname===category);
+            d_new.forEach((row, index) => {
+                if(row.Personnel_Type.includes("เงินรายได้"))
+                {
+                    
+                    if(row.All_PositionTypes=="วิชาการ")
+                    {
+                        academic+=1;
+                        Sumacademic+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                    if(row.All_PositionTypes=="วิจัย")
+                    {
+                        research+=1;
+                        Sumresearch+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                    if(row.All_PositionTypes=="สนับสนุน")
+                    {
+                        support+=1;
+                        Sumsupport+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                    if(row.Contract_Type=="สัญญาระยะสั้น")
+                    {
+                        //shortTerm+=1;
+                        //SumshortTerm+=1;
+                    }
+                    if(row.Employment_Type=="ชาวต่างประเทศ")
+                    {
+                        emp1+=1;
+                        Sumemp1+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                    if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
+                    {
+                        emp2+=1;
+                        Sumemp2+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                    }
+                    if(row.Employment_Type=="จ้างที่ปรึกษา")
+                    {
+                        emp3+=1;
+                        Sumemp3+=1;
+                        type1+=1;
+                        Sumtype1+=1;
+                        console.log(type1);
+                    }
+                }
+                else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
+                {
+                    
+                    if(row.All_PositionTypes=="วิจัย")
+                    {
+                        research2+=1;
+                        Sumresearch2+=1;
+                        type2+=1;
+                        Sumtype2+=1;
+                    }
+                    if(row.All_PositionTypes=="สนับสนุน")
+                    {
+                        support2+=1;
+                        Sumsupport2+=1;
+                        type2+=1;
+                        Sumtype2+=1;
+                    }
+                }
+                else{}
+            });
+            document.getElementById("research1_new").innerText=research;
+            document.getElementById("research2_new").innerText=research2;
+            document.getElementById("academic1_new").innerText=academic;
+            document.getElementById("support1_new").innerText=support;
+            document.getElementById("support2_new").innerText=support2;
+            document.getElementById("period_new").innerText="-";
+            document.getElementById("emp1_new").innerText=emp1;
+            document.getElementById("emp2_new").innerText=emp2;
+            document.getElementById("emp3_new").innerText=emp3;
+            document.getElementById("type1_new").innerText=type1;
+            document.getElementById("type2_new").innerText=type2;
                 
             document.getElementById("research1_sum").innerText=Sumresearch;
             document.getElementById("research2_sum").innerText=Sumresearch2;
