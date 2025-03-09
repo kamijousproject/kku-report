@@ -748,17 +748,20 @@
                                                     }
 
                                                     // แสดง expense_type พร้อม Account
-                                                    if (!in_array($expenseData['expense_type'], $shownExpenseTypes)) {
+                                                    if (!in_array($expenseKey, $shownExpenses)) {
+                                                        $cleanExpenseKey = preg_replace('/^\d+(\.\d+)*\s*/', '', $expenseKey); // ลบตัวเลขและจุดนำหน้า
+
                                                         echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 75) . $expenseTypeAccount . $expenseData['expense_type'] . "</td>
+                                                                <td>" . str_repeat("&nbsp;", 90) . $expenseAccount . $cleanExpenseKey . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                             </tr>";
 
-                                                        $shownExpenseTypes[] = $expenseData['expense_type'];
+                                                        $shownExpenses[] = $expenseKey;
                                                     }
+
 
                                                     // แสดง expenses พร้อม Account
                                                     if (!in_array($expenseKey, $shownExpenses)) {
@@ -775,22 +778,23 @@
 
                                                     $uniqueKkuItems = array_unique($expenseData['kku_items']);
                                                     foreach ($uniqueKkuItems as $kkuItem) {
+                                                        $cleanKkuItem = preg_replace('/^\d+(\.\d+)*\s*/', '', $kkuItem); // ลบตัวเลขและจุดนำหน้า
                                                         echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 105) . $row['Account'] . " : " . $kkuItem . "</td>
-                                                                <td>" . $row['uom_kpi'] . "</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>" . $row['kpi_target'] . "</td> 
-                                                                <td>" . $row['total06'] . "</td>
-                                                                <td>" . $row['allocated_total06'] . "</td>
-                                                                <td>" . $row['total08'] . "</td>
-                                                                <td>" . $row['allocated_total08'] . "</td>
-                                                                <td>" . $row['total02'] . "</td>
-                                                                <td>" . $row['allocated_total02'] . "</td>
-                                                                <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
-                                                                <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
-                                                                <td>100%</td>
-                                                                <td>" . $row['Reason'] . "</td>
-                                                            </tr>";
+                                                            <td>" . str_repeat("&nbsp;", 105) . $row['Account'] . " : " . $cleanKkuItem . "</td>
+                                                            <td>" . $row['uom_kpi'] . "</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            <td>" . $row['kpi_target'] . "</td> 
+                                                            <td>" . $row['total06'] . "</td>
+                                                            <td>" . $row['allocated_total06'] . "</td>
+                                                            <td>" . $row['total08'] . "</td>
+                                                            <td>" . $row['allocated_total08'] . "</td>
+                                                            <td>" . $row['total02'] . "</td>
+                                                            <td>" . $row['allocated_total02'] . "</td>
+                                                            <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
+                                                            <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
+                                                            <td>100%</td>
+                                                            <td>" . $row['Reason'] . "</td>
+                                                        </tr>";
                                                     }
                                                 }
                                             }
