@@ -110,8 +110,6 @@ function fetchBudgetData($conn, $budget_year1 = null)
     bap.Project,
     pj.project_id,
     pj.project_name,
-    CONCAT(LEFT(bap.`Account`, 2), REPEAT('0', 8)) AS a1,
-    CONCAT(LEFT(bap.`Account`, 4), REPEAT('0', 8)) AS a2,
     ac.`type`,
     ac.sub_type,
     bap.`Account`,

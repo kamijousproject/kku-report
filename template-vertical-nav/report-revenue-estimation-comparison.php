@@ -686,7 +686,7 @@ function fetchYearsData($conn)
                                                     <span style="font-size: 16px;">
                                                         <?php
                                                         if ($selectedYear) {
-                                                            echo "ปีงบที่ต้องการเปรียบเทียบ " . ($selectedYear - 4) . " ถึง " . $selectedYear;
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ " . ($selectedYear - 2) . " ถึง " . $selectedYear;
                                                         } else {
                                                             echo "ปีงบที่ต้องการเปรียบเทียบ: ไม่ได้เลือกปีงบประมาณ";
                                                         }
