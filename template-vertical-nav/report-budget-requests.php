@@ -479,6 +479,7 @@ function fetchYearsData($conn)
                                                     $Name_a1 = $row['Name_a1'];
                                                     $Name_a2 = $row['Name_a2'];
                                                     $Name_a3 = $row['Name_a3'];
+                                                    $Name_a4 = $row['Name_a4'];
                                                     // เก็บข้อมูลของ DefaultFaculty
                                                     if (!isset($summary[$DefaultFaculty])) {
                                                         $summary[$DefaultFaculty] = [
@@ -586,6 +587,28 @@ function fetchYearsData($conn)
                                                             'Total_FN06' => 0,
                                                             'Total_FN02' => 0,
                                                             'Total_FN08' => 0,
+                                                            'Name_a4' => [], // เก็บข้อมูลของ kku
+                                                        ];
+                                                    }
+
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a3
+                                                    if (!empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                        $ItemName_a4 = htmlspecialchars($row['a4']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                    } elseif (empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                    } else {
+                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
+                                                    // เก็บข้อมูลของ Name_a4
+                                                    if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
+                                                        $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4] = [
+                                                            'a4' => $row['a4'],
+                                                            'name' => $ItemName_a4,
+                                                            'test' => $row['Name_a3'],
+                                                            'tes1' => $row['Name_a2'],
+                                                            'Total_FN06' => 0,
+                                                            'Total_FN02' => 0,
+                                                            'Total_FN08' => 0,
                                                             'kku_items' => [], // เก็บข้อมูลของ kku
                                                         ];
                                                     }
@@ -630,12 +653,17 @@ function fetchYearsData($conn)
                                                     $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_FN02'] += $row['Total_FN02'];
                                                     $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_FN08'] += $row['Total_FN08'];
 
+                                                    // เก็บข้อมูลของ Name_a4
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_FN06'] += $row['Total_FN06'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_FN02'] += $row['Total_FN02'];
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_FN08'] += $row['Total_FN08'];
+
 
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
                                                         ? "" . htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
                                                         : "" . htmlspecialchars($row['Account']) . "";
-                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['kku_items'][] = [
+                                                    $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                         'name' => $kkuItemName,
                                                         'test' => $row['KKU_Item_Name'],
                                                         'tes1' => $row['Name_a3'],
@@ -720,7 +748,7 @@ function fetchYearsData($conn)
                                                                             echo "<td>" . formatNumber($Name_a2Data['Total_FN02']) . "</td>";
                                                                             echo "</tr>";
                                                                             foreach ($Name_a2Data['Name_a3'] as $Name_a3 => $Name_a3Data) {
-                                                                                if ($Name_a3Data['test'] == null || $Name_a3Data['test'] == '') {
+                                                                                if ($Name_a3Data['test'] == null || $Name_a3Data['test'] == '' || $Name_a2Data['name'] == $Name_a3Data['name']) {
                                                                                     continue;
                                                                                 }
                                                                                 echo "<tr>";
@@ -729,16 +757,27 @@ function fetchYearsData($conn)
                                                                                 echo "<td>" . formatNumber($Name_a3Data['Total_FN08']) . "</td>";
                                                                                 echo "<td>" . formatNumber($Name_a3Data['Total_FN02']) . "</td>";
                                                                                 echo "</tr>";
-                                                                                foreach ($Name_a3Data['kku_items'] as $kkuItem) {
-                                                                                    if ($kkuItem['test'] == null || $kkuItem['test'] == '') {
+                                                                                foreach ($Name_a3Data['Name_a4'] as $Name_a4 => $Name_a4Data) {
+                                                                                    if ($Name_a4Data['test'] == null || $Name_a4Data['test'] == '' || $Name_a3Data['name'] == $Name_a4Data['name']) {
                                                                                         continue;
                                                                                     }
                                                                                     echo "<tr>";
-                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 64) . $kkuItem['name'] . "<br></td>";
-                                                                                    echo "<td>" . formatNumber($kkuItem['Total_FN06']) . "</td>";
-                                                                                    echo "<td>" . formatNumber($kkuItem['Total_FN08']) . "</td>";
-                                                                                    echo "<td>" . formatNumber($kkuItem['Total_FN02']) . "</td>";
+                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 64) . $Name_a4Data['name'] . "<br></td>";
+                                                                                    echo "<td>" . formatNumber($Name_a4Data['Total_FN06']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($Name_a4Data['Total_FN08']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($Name_a4Data['Total_FN02']) . "</td>";
                                                                                     echo "</tr>";
+                                                                                    foreach ($Name_a4Data['kku_items'] as $kkuItem) {
+                                                                                        if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $Name_a4Data['name'] == $kkuItem['name']) {
+                                                                                            continue;
+                                                                                        }
+                                                                                        echo "<tr>";
+                                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 72) . $kkuItem['name'] . "<br></td>";
+                                                                                        echo "<td>" . formatNumber($kkuItem['Total_FN06']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($kkuItem['Total_FN08']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($kkuItem['Total_FN02']) . "</td>";
+                                                                                        echo "</tr>";
+                                                                                    }
                                                                                 }
                                                                             }
                                                                         }
