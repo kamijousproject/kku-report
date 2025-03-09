@@ -45,7 +45,7 @@ thead tr:nth-child(1) th {
 
 thead tr:nth-child(2) th {
     position: sticky;
-    top: 65px; /* Adjust height based on previous row */
+    top: 45px; /* Adjust height based on previous row */
     background: #f4f4f4;
     z-index: 999;
 }

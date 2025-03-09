@@ -1513,12 +1513,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql = "SELECT w.faculty,NULL AS Position_Number,All_PositionTypes,position,Employment_Type,Contract_Type
                         ,Personnel_Type
                         ,f2.parent,f3.Alias_Default AS pname
+                        ,SUM(Requested_HC_unit) AS Requested_HC_unit
                         FROM workforce_new_position_request w
                         LEFT JOIN (SELECT * from Faculty
 								WHERE parent LIKE 'Faculty%') f2
                         ON f2.Faculty=w.faculty COLLATE utf8mb4_general_ci
                         LEFT JOIN Faculty f3
-                        ON f2.parent=f3.Faculty ";
+                        ON f2.parent=f3.Faculty 
+                        GROUP BY w.faculty,NULL,All_PositionTypes,position,Employment_Type,Contract_Type
+                        ,Personnel_Type
+                        ,f2.parent,f3.Alias_Default";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $wf = $cmd->fetchAll(PDO::FETCH_ASSOC);

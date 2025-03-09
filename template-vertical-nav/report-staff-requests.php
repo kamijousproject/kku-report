@@ -373,24 +373,24 @@ th, td {
                     
                     if(row.All_PositionTypes=="วิชาการ")
                     {
-                        academic+=1;
-                        Sumacademic+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                        academic+=parseInt(row.Requested_HC_unit);
+                        Sumacademic+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
                     }
                     if(row.All_PositionTypes=="วิจัย")
                     {
-                        research+=1;
-                        Sumresearch+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                        research+=parseInt(row.Requested_HC_unit);
+                        Sumresearch+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
                     }
                     if(row.All_PositionTypes=="สนับสนุน")
                     {
-                        support+=1;
-                        Sumsupport+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                        support+=parseInt(row.Requested_HC_unit);
+                        Sumsupport+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
                     }
                     if(row.Contract_Type=="สัญญาระยะสั้น")
                     {
@@ -399,24 +399,24 @@ th, td {
                     }
                     if(row.Employment_Type=="ชาวต่างประเทศ")
                     {
-                        emp1+=1;
-                        Sumemp1+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                        emp1+=parseInt(row.Requested_HC_unit);
+                        Sumemp1+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
                     }
                     if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
                     {
-                        emp2+=1;
-                        Sumemp2+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                        emp2+=parseInt(row.Requested_HC_unit);
+                        Sumemp2+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
                     }
                     if(row.Employment_Type=="จ้างที่ปรึกษา")
                     {
-                        emp3+=1;
-                        Sumemp3+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                        emp3+=parseInt(row.Requested_HC_unit);
+                        Sumemp3+=parseInt(row.Requested_HC_unit);
+                        type1+=parseInt(row.Requested_HC_unit);
+                        Sumtype1+=parseInt(row.Requested_HC_unit);
                         console.log(type1);
                     }
                 }
@@ -425,17 +425,17 @@ th, td {
                     
                     if(row.All_PositionTypes=="วิจัย")
                     {
-                        research2+=1;
-                        Sumresearch2+=1;
-                        type2+=1;
-                        Sumtype2+=1;
+                        research2+=parseInt(row.Requested_HC_unit);
+                        Sumresearch2+=parseInt(row.Requested_HC_unit);
+                        type2+=parseInt(row.Requested_HC_unit);
+                        Sumtype2+=parseInt(row.Requested_HC_unit);
                     }
                     if(row.All_PositionTypes=="สนับสนุน")
                     {
-                        support2+=1;
-                        Sumsupport2+=1;
-                        type2+=1;
-                        Sumtype2+=1;
+                        support2+=parseInt(row.Requested_HC_unit);
+                        Sumsupport2+=parseInt(row.Requested_HC_unit);
+                        type2+=parseInt(row.Requested_HC_unit);
+                        Sumtype2+=parseInt(row.Requested_HC_unit);
                     }
                 }
                 else{}
