@@ -72,13 +72,7 @@ th, td {
                                                 <th>ส่วนงาน / หน่วยงาน</th>
                                                 <th colspan="3" style="background-color: white;" id="faculty"></th>
                                             </tr>
-                                            <!-- แถวที่ 3 -->
-                                            <tr>
-                                                <th >ผ่านมติที่ประชุมส่วนงาน / หน่วยงาน ครั้งที่</th>
-                                                <th style="background-color: white;" ></th>
-                                                <th >ณ วันที่</th>
-                                                <th style="background-color: white;"></th>
-                                            </tr>
+                                            
                                             <!-- แถวที่ 4 -->
                                             <tr>
                                                 <th>ประเภทบุคลากร</th>
@@ -305,7 +299,7 @@ th, td {
                         type1+=1;
                         Sumtype1+=1;
                     }
-                    if(row.Employment_Type=="ชาวต่างประเทศ")
+                    if(row.Employment_Type=="ลูกจ้างชาวต่างประเทศ")
                     {
                         emp1+=1;
                         Sumemp1+=1;

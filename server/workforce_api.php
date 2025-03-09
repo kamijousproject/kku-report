@@ -1504,9 +1504,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 //$slt = $_POST["slt"];
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "SELECT w.faculty,NULL AS Position_Number,All_PositionTypes,position,Employment_Type,Contract_Type
-                        ,case when Personnel_Type='พนักงานมหาวิทยาลัย' AND Fund_FT='เงินงบประมาณ' then 'พนักงานมหาวิทยาลัยงบประมาณเงินงบประมาณ'
-                        when Personnel_Type='พนักงานมหาวิทยาลัย' AND Fund_FT='เงินรายได้' then 'พนักงานมหาวิทยาลัยงบประมาณเงินรายได้'
-                        ELSE Personnel_Type END AS Personnel_Type
+                        ,Personnel_Type
                         ,f2.parent,f3.Alias_Default AS pname
                         FROM workforce_new_position_request w
                         LEFT JOIN (SELECT * from Faculty
