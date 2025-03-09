@@ -548,44 +548,38 @@ thead tr:nth-child(3) th {
                                     INITIAL_BUDGET: acc.INITIAL_BUDGET + parseValue(item.INITIAL_BUDGET ?? '0'),
                                     adj_in: acc.adj_in + parseValue(item.adj_in ?? '0'),
                                     adj_out: acc.adj_out + parseValue(item.adj_out ?? '0'),
+                                    Release_Amount: acc.Release_Amount + parseValue(item.Release_Amount ?? '0'),
                                     COMMITMENTS: acc.COMMITMENTS + parseValue(item.COMMITMENTS ?? '0'),
                                     OBLIGATIONS: acc.OBLIGATIONS + parseValue(item.OBLIGATIONS ?? '0'),
                                     EXPENDITURES: acc.EXPENDITURES + parseValue(item.EXPENDITURES ?? '0'),
                                     FUNDS_AVAILABLE_AMOUNT: acc.FUNDS_AVAILABLE_AMOUNT + parseValue(item.FUNDS_AVAILABLE_AMOUNT ?? '0'),
                                 };
                             }, {
-                                INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0
+                                INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0, Release_Amount: 0
                             });
 
                             var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                            var diff = (sums.INITIAL_BUDGET - sums.adj_in);
-                            var diff2 = (sums.INITIAL_BUDGET - sum_co);
+                            var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                            var diff2 = (diff - sum_co);
                             var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                             var total_p1 = (p1 === 0) ? 0 : (100 - p1);
                             var p2 = Math.round((((sums.EXPENDITURES) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
-                            var diff3 = (sums.INITIAL_BUDGET - sums.EXPENDITURES);
+                            var diff3 = (diff - sums.EXPENDITURES);
                             var total_p2 = (p1 === 0) ? 0 : (100 - p2);
                             var c1 = "";
                             
                             var str = '<tr><td style="text-align:left;" nowrap>' + row1 + '</td>'
                                 + '<td>' + (sums.INITIAL_BUDGET).toLocaleString() + '</td>'
+                                + '<td>' + (sums.Release_Amount).toLocaleString() + '</td>'
                                 + '<td>' + (sums.adj_in).toLocaleString() + '</td>'
                                 + '<td>' + (sums.adj_out).toLocaleString() + '</td>'
                                 + '<td>' + diff.toLocaleString() + '</td>'
-                                + '<td>' + sum_co.toLocaleString() + '</td>'
-                                + '<td>' + p1.toLocaleString() + '</td>'
-                                + '<td>' + diff2.toLocaleString() + '</td>'
-                                + '<td>' + total_p1.toLocaleString() + '</td>'
-                                + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                + '<td>' + p2.toLocaleString() + '</td>'
-                                + '<td>' + diff3.toLocaleString() + '</td>'
-                                + '<td>' + total_p2.toLocaleString() + '</td>'
+
                                 + '<td>' + (sums.COMMITMENTS).toLocaleString() + '</td>'
-                                + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
                                 + '<td>' + (sums.OBLIGATIONS).toLocaleString() + '</td>'
-                                + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
+                                + '<td>' + (diff2).toLocaleString() + '</td>'
                                 + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td></tr>';
+                                + '<td>' + (diff3).toLocaleString() + '</td></tr>';
 
                             tableBody.insertAdjacentHTML('beforeend', str);
                             lv4.forEach((row2, index) => {
@@ -605,43 +599,37 @@ thead tr:nth-child(3) th {
                                         INITIAL_BUDGET: acc.INITIAL_BUDGET + parseValue(item.INITIAL_BUDGET ?? '0'),
                                         adj_in: acc.adj_in + parseValue(item.adj_in ?? '0'),
                                         adj_out: acc.adj_out + parseValue(item.adj_out ?? '0'),
+                                        Release_Amount: acc.Release_Amount + parseValue(item.Release_Amount ?? '0'),
                                         COMMITMENTS: acc.COMMITMENTS + parseValue(item.COMMITMENTS ?? '0'),
                                         OBLIGATIONS: acc.OBLIGATIONS + parseValue(item.OBLIGATIONS ?? '0'),
                                         EXPENDITURES: acc.EXPENDITURES + parseValue(item.EXPENDITURES ?? '0'),
                                         FUNDS_AVAILABLE_AMOUNT: acc.FUNDS_AVAILABLE_AMOUNT + parseValue(item.FUNDS_AVAILABLE_AMOUNT ?? '0'),
                                     };
                                 }, {
-                                    INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0
+                                    INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0, Release_Amount: 0
                                 });
 
                                 var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                                var diff = (sums.INITIAL_BUDGET - sums.adj_in);
-                                var diff2 = (sums.INITIAL_BUDGET - sum_co);
+                                var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                                var diff2 = (diff - sum_co);
                                 var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                 var total_p1 = (p1 === 0) ? 0 : (100 - p1);
                                 var p2 = Math.round((((sums.EXPENDITURES) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
-                                var diff3 = (sums.INITIAL_BUDGET - sums.EXPENDITURES);
+                                var diff3 = (diff - sums.EXPENDITURES);
                                 var total_p2 = (p1 === 0) ? 0 : (100 - p2);
 
                                 var str = '<tr><td style="text-align:left;" nowrap>'+ '&nbsp;'.repeat(8) + row2 +  '</td>'
                                     + '<td>' + (sums.INITIAL_BUDGET).toLocaleString() + '</td>'
+                                    + '<td>' + (sums.Release_Amount).toLocaleString() + '</td>'
                                     + '<td>' + (sums.adj_in).toLocaleString() + '</td>'
                                     + '<td>' + (sums.adj_out).toLocaleString() + '</td>'
                                     + '<td>' + diff.toLocaleString() + '</td>'
-                                    + '<td>' + sum_co.toLocaleString() + '</td>'
-                                    + '<td>' + p1.toLocaleString() + '</td>'
-                                    + '<td>' + diff2.toLocaleString() + '</td>'
-                                    + '<td>' + total_p1.toLocaleString() + '</td>'
-                                    + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                    + '<td>' + p2.toLocaleString() + '</td>'
-                                    + '<td>' + diff3.toLocaleString() + '</td>'
-                                    + '<td>' + total_p2.toLocaleString() + '</td>'
+                                   
                                     + '<td>' + (sums.COMMITMENTS).toLocaleString() + '</td>'
-                                    + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
                                     + '<td>' + (sums.OBLIGATIONS).toLocaleString() + '</td>'
-                                    + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
+                                    + '<td>' + (diff2).toLocaleString() + '</td>'
                                     + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                    + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td></tr>';
+                                    + '<td>' + (diff3).toLocaleString() + '</td></tr>';
 
                                 tableBody.insertAdjacentHTML('beforeend', str);
                                 console.log(lv3);
@@ -663,44 +651,38 @@ thead tr:nth-child(3) th {
                                             INITIAL_BUDGET: acc.INITIAL_BUDGET + parseValue(item.INITIAL_BUDGET ?? '0'),
                                             adj_in: acc.adj_in + parseValue(item.adj_in ?? '0'),
                                             adj_out: acc.adj_out + parseValue(item.adj_out ?? '0'),
+                                            Release_Amount: acc.Release_Amount + parseValue(item.Release_Amount ?? '0'),
                                             COMMITMENTS: acc.COMMITMENTS + parseValue(item.COMMITMENTS ?? '0'),
                                             OBLIGATIONS: acc.OBLIGATIONS + parseValue(item.OBLIGATIONS ?? '0'),
                                             EXPENDITURES: acc.EXPENDITURES + parseValue(item.EXPENDITURES ?? '0'),
                                             FUNDS_AVAILABLE_AMOUNT: acc.FUNDS_AVAILABLE_AMOUNT + parseValue(item.FUNDS_AVAILABLE_AMOUNT ?? '0'),
                                         };
                                     }, {
-                                        INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0
+                                        INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0, Release_Amount: 0
                                     });
 
                                     var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                                    var diff = (sums.INITIAL_BUDGET - sums.adj_in);
-                                    var diff2 = (sums.INITIAL_BUDGET - sum_co);
+                                    var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                                    var diff2 = (diff - sum_co);
                                     var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                     var total_p1 = (p1 === 0) ? 0 : (100 - p1);
                                     var p2 = Math.round((((sums.EXPENDITURES) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
-                                    var diff3 = (sums.INITIAL_BUDGET - sums.EXPENDITURES);
+                                    var diff3 = (diff - sums.EXPENDITURES);
                                     var total_p2 = (p1 === 0) ? 0 : (100 - p2);
                                     if(l3.length>0)
                                     {
                                         var str = '<tr><td style="text-align:left;" nowrap>'+ '&nbsp;'.repeat(16) + row3 +  '</td>'
                                             + '<td>' + (sums.INITIAL_BUDGET).toLocaleString() + '</td>'
+                                            + '<td>' + (sums.Release_Amount).toLocaleString() + '</td>'
                                             + '<td>' + (sums.adj_in).toLocaleString() + '</td>'
                                             + '<td>' + (sums.adj_out).toLocaleString() + '</td>'
                                             + '<td>' + diff.toLocaleString() + '</td>'
-                                            + '<td>' + sum_co.toLocaleString() + '</td>'
-                                            + '<td>' + p1.toLocaleString() + '</td>'
-                                            + '<td>' + diff2.toLocaleString() + '</td>'
-                                            + '<td>' + total_p1.toLocaleString() + '</td>'
-                                            + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                            + '<td>' + p2.toLocaleString() + '</td>'
-                                            + '<td>' + diff3.toLocaleString() + '</td>'
-                                            + '<td>' + total_p2.toLocaleString() + '</td>'
+                                            
                                             + '<td>' + (sums.COMMITMENTS).toLocaleString() + '</td>'
-                                            + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
                                             + '<td>' + (sums.OBLIGATIONS).toLocaleString() + '</td>'
-                                            + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
+                                            + '<td>' + (diff2).toLocaleString() + '</td>'
                                             + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                            + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td></tr>';
+                                            + '<td>' + (diff3).toLocaleString() + '</td></tr>';
 
                                         tableBody.insertAdjacentHTML('beforeend', str);
                                     }
@@ -722,76 +704,63 @@ thead tr:nth-child(3) th {
                                                 INITIAL_BUDGET: acc.INITIAL_BUDGET + parseValue(item.INITIAL_BUDGET ?? '0'),
                                                 adj_in: acc.adj_in + parseValue(item.adj_in ?? '0'),
                                                 adj_out: acc.adj_out + parseValue(item.adj_out ?? '0'),
+                                                Release_Amount: acc.Release_Amount + parseValue(item.Release_Amount ?? '0'),
                                                 COMMITMENTS: acc.COMMITMENTS + parseValue(item.COMMITMENTS ?? '0'),
                                                 OBLIGATIONS: acc.OBLIGATIONS + parseValue(item.OBLIGATIONS ?? '0'),
                                                 EXPENDITURES: acc.EXPENDITURES + parseValue(item.EXPENDITURES ?? '0'),
                                                 FUNDS_AVAILABLE_AMOUNT: acc.FUNDS_AVAILABLE_AMOUNT + parseValue(item.FUNDS_AVAILABLE_AMOUNT ?? '0'),
                                             };
                                         }, {
-                                            INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0
+                                            INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0, Release_Amount: 0
                                         });
 
                                         var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                                        var diff = (sums.INITIAL_BUDGET - sums.adj_in);
-                                        var diff2 = (sums.INITIAL_BUDGET - sum_co);
+                                        var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                                        var diff2 = (diff - sum_co);
                                         var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                         var total_p1 = (p1 === 0) ? 0 : (100 - p1);
                                         var p2 = Math.round((((sums.EXPENDITURES) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
-                                        var diff3 = (sums.INITIAL_BUDGET - sums.EXPENDITURES);
+                                        var diff3 = (diff - sums.EXPENDITURES);
                                         var total_p2 = (p1 === 0) ? 0 : (100 - p2);
                                         if(l2.length>0 && row4!=null)
                                         {
                                             var str = '<tr><td style="text-align:left;" nowrap>'+ '&nbsp;'.repeat(24) + row4 +  '</td>'
                                                 + '<td>' + (sums.INITIAL_BUDGET).toLocaleString() + '</td>'
+                                                + '<td>' + (sums.Release_Amount).toLocaleString() + '</td>'
                                                 + '<td>' + (sums.adj_in).toLocaleString() + '</td>'
                                                 + '<td>' + (sums.adj_out).toLocaleString() + '</td>'
                                                 + '<td>' + diff.toLocaleString() + '</td>'
-                                                + '<td>' + sum_co.toLocaleString() + '</td>'
-                                                + '<td>' + p1.toLocaleString() + '</td>'
-                                                + '<td>' + diff2.toLocaleString() + '</td>'
-                                                + '<td>' + total_p1.toLocaleString() + '</td>'
-                                                + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                                + '<td>' + p2.toLocaleString() + '</td>'
-                                                + '<td>' + diff3.toLocaleString() + '</td>'
-                                                + '<td>' + total_p2.toLocaleString() + '</td>'
+                                                
                                                 + '<td>' + (sums.COMMITMENTS).toLocaleString() + '</td>'
-                                                + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
                                                 + '<td>' + (sums.OBLIGATIONS).toLocaleString() + '</td>'
-                                                + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
+                                                + '<td>' + (diff2).toLocaleString() + '</td>'
                                                 + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                                + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td></tr>';
+                                                + '<td>' + (diff3).toLocaleString() + '</td></tr>';
 
                                             tableBody.insertAdjacentHTML('beforeend', str);
                                         }
                                         if(l2.length>0 && row4==null){
                                             l2.forEach((row4_null) => {
                                                 var sum_co = (parseInt(row4_null.COMMITMENTS) + parseInt(row4_null.OBLIGATIONS));
-                                                var diff = (parseInt(row4_null.INITIAL_BUDGET) - parseInt(row4_null.adj_in));
-                                                var diff2 = (parseInt(row4_null.INITIAL_BUDGET) - sum_co);
+                                                var diff = (parseInt(row4_null.Release_Amount) + parseInt(row4_null.adj_in)+row4_null.adj_out);
+                                                var diff2 = (parseInt(diff) - sum_co);
                                                 var p1 = Math.round((((sum_co) * 100) / (parseInt(row4_null.INITIAL_BUDGET))) * 100) / 100 || 0;
                                                 var total_p1 = (100 - p1);
                                                 var p2 = Math.round((((parseInt(row4_null.EXPENDITURES)) * 100) / (parseInt(row4_null.INITIAL_BUDGET))) * 100) / 100 || 0;
-                                                var diff3 = (parseInt(row4_null.INITIAL_BUDGET) - parseInt(row4_null.EXPENDITURES));
+                                                var diff3 = (parseInt(diff) - parseInt(row4_null.EXPENDITURES));
                                                 var total_p2 = (100 - p2);
                                                 var str = '<tr><td style="text-align:left;" nowrap>' + '&nbsp;'.repeat(24) + row4_null.kku_item_name + '</td>'
                                                     + '<td>' + (parseInt(row4_null.INITIAL_BUDGET)).toLocaleString() + '</td>'
+                                                    + '<td>' + (row4_null.Release_Amount).toLocaleString() + '</td>'
                                                     + '<td>' + (parseInt(row4_null.adj_in)).toLocaleString() + '</td>'
                                                     + '<td>' + (parseInt(row4_null.adj_out)).toLocaleString() + '</td>'
                                                     + '<td>' + diff.toLocaleString() + '</td>'
-                                                    + '<td>' + sum_co.toLocaleString() + '</td>'
-                                                    + '<td>' + p1.toLocaleString() + '</td>'
-                                                    + '<td>' + diff2.toLocaleString() + '</td>'
-                                                    + '<td>' + total_p1.toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.EXPENDITURES)).toLocaleString() + '</td>'
-                                                    + '<td>' + p2.toLocaleString() + '</td>'
-                                                    + '<td>' + diff3.toLocaleString() + '</td>'
-                                                    + '<td>' + total_p2.toLocaleString() + '</td>'
+                                                    
                                                     + '<td>' + (parseInt(row4_null.COMMITMENTS)).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.FUNDS_AVAILABLE_AMOUNT)).toLocaleString() + '</td>'
                                                     + '<td>' + (parseInt(row4_null.OBLIGATIONS)).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.FUNDS_AVAILABLE_AMOUNT)).toLocaleString() + '</td>'
+                                                    + '<td>' + (parseInt(diff2)).toLocaleString() + '</td>'
                                                     + '<td>' + (parseInt(row4_null.EXPENDITURES)).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.FUNDS_AVAILABLE_AMOUNT)).toLocaleString() + '</td></tr>';
+                                                    + '<td>' + (parseInt(diff3)).toLocaleString() + '</td></tr>';
 
                                                 tableBody.insertAdjacentHTML('beforeend', str);
                                             });
@@ -814,76 +783,63 @@ thead tr:nth-child(3) th {
                                                     INITIAL_BUDGET: acc.INITIAL_BUDGET + parseValue(item.INITIAL_BUDGET ?? '0'),
                                                     adj_in: acc.adj_in + parseValue(item.adj_in ?? '0'),
                                                     adj_out: acc.adj_out + parseValue(item.adj_out ?? '0'),
+                                                    Release_Amount: acc.Release_Amount + parseValue(item.Release_Amount ?? '0'),
                                                     COMMITMENTS: acc.COMMITMENTS + parseValue(item.COMMITMENTS ?? '0'),
                                                     OBLIGATIONS: acc.OBLIGATIONS + parseValue(item.OBLIGATIONS ?? '0'),
                                                     EXPENDITURES: acc.EXPENDITURES + parseValue(item.EXPENDITURES ?? '0'),
                                                     FUNDS_AVAILABLE_AMOUNT: acc.FUNDS_AVAILABLE_AMOUNT + parseValue(item.FUNDS_AVAILABLE_AMOUNT ?? '0'),
                                                 };
                                             }, {
-                                                INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0
+                                                INITIAL_BUDGET: 0, adj_in: 0, COMMITMENTS: 0, OBLIGATIONS: 0, EXPENDITURES: 0, FUNDS_AVAILABLE_AMOUNT: 0, adj_out: 0, Release_Amount: 0
                                             });
 
                                             var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                                            var diff = (sums.INITIAL_BUDGET - sums.adj_in);
-                                            var diff2 = (sums.INITIAL_BUDGET - sum_co);
+                                            var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                                            var diff2 = (diff - sum_co);
                                             var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                             var total_p1 = (p1 === 0) ? 0 : (100 - p1);
                                             var p2 = Math.round((((sums.EXPENDITURES) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
-                                            var diff3 = (sums.INITIAL_BUDGET - sums.EXPENDITURES);
+                                            var diff3 = (diff - sums.EXPENDITURES);
                                             var total_p2 = (p1 === 0) ? 0 : (100 - p2);
                                             if(l1.length>0 && row5!=null)
                                             {
                                                 var str = '<tr><td style="text-align:left;" nowrap>'+ '&nbsp;'.repeat(32) + row5 +  '</td>'
                                                     + '<td>' + (sums.INITIAL_BUDGET).toLocaleString() + '</td>'
+                                                    + '<td>' + (sums.Release_Amount).toLocaleString() + '</td>'
                                                     + '<td>' + (sums.adj_in).toLocaleString() + '</td>'
                                                     + '<td>' + (sums.adj_out).toLocaleString() + '</td>'
                                                     + '<td>' + diff.toLocaleString() + '</td>'
-                                                    + '<td>' + sum_co.toLocaleString() + '</td>'
-                                                    + '<td>' + p1.toLocaleString() + '</td>'
-                                                    + '<td>' + diff2.toLocaleString() + '</td>'
-                                                    + '<td>' + total_p1.toLocaleString() + '</td>'
-                                                    + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                                    + '<td>' + p2.toLocaleString() + '</td>'
-                                                    + '<td>' + diff3.toLocaleString() + '</td>'
-                                                    + '<td>' + total_p2.toLocaleString() + '</td>'
+                                                    
                                                     + '<td>' + (sums.COMMITMENTS).toLocaleString() + '</td>'
-                                                    + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
                                                     + '<td>' + (sums.OBLIGATIONS).toLocaleString() + '</td>'
-                                                    + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td>'
+                                                    + '<td>' + (diff2).toLocaleString() + '</td>'
                                                     + '<td>' + (sums.EXPENDITURES).toLocaleString() + '</td>'
-                                                    + '<td>' + (sums.FUNDS_AVAILABLE_AMOUNT).toLocaleString() + '</td></tr>';
+                                                    + '<td>' + (diff3).toLocaleString() + '</td></tr>';
 
                                                 tableBody.insertAdjacentHTML('beforeend', str);
                                             }
                                             if(l1.length>0 && row5==null && row4!=null ){
                                                 l1.forEach((row5_null) => {
                                                     var sum_co = (parseInt(row5_null.COMMITMENTS) + parseInt(row5_null.OBLIGATIONS));
-                                                    var diff = (parseInt(row5_null.INITIAL_BUDGET) - parseInt(row5_null.adj_in));
-                                                    var diff2 = (parseInt(row5_null.INITIAL_BUDGET) - sum_co);
+                                                    var diff = (parseInt(row5_null.Release_Amount) + parseInt(row5_null.adj_in)+row5_null.adj_out);
+                                                    var diff2 = (parseInt(diff) - sum_co);
                                                     var p1 = Math.round((((sum_co) * 100) / (parseInt(row5_null.INITIAL_BUDGET))) * 100) / 100 || 0;
                                                     var total_p1 = (100 - p1);
                                                     var p2 = Math.round((((parseInt(row5_null.EXPENDITURES)) * 100) / (parseInt(row5_null.INITIAL_BUDGET))) * 100) / 100 || 0;
-                                                    var diff3 = (parseInt(row5_null.INITIAL_BUDGET) - parseInt(row5_null.EXPENDITURES));
+                                                    var diff3 = (parseInt(diff) - parseInt(row5_null.EXPENDITURES));
                                                     var total_p2 = (100 - p2);
                                                     var str = '<tr><td style="text-align:left;" nowrap>' + '&nbsp;'.repeat(32) + row5_null.kku_item_name + '</td>'
                                                         + '<td>' + (parseInt(row5_null.INITIAL_BUDGET)).toLocaleString() + '</td>'
+                                                        + '<td>' + (row5_null.Release_Amount).toLocaleString() + '</td>'
                                                         + '<td>' + (parseInt(row5_null.adj_in)).toLocaleString() + '</td>'
                                                         + '<td>' + (parseInt(row5_null.adj_out)).toLocaleString() + '</td>'
                                                         + '<td>' + diff.toLocaleString() + '</td>'
-                                                        + '<td>' + sum_co.toLocaleString() + '</td>'
-                                                        + '<td>' + p1.toLocaleString() + '</td>'
-                                                        + '<td>' + diff2.toLocaleString() + '</td>'
-                                                        + '<td>' + total_p1.toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.EXPENDITURES)).toLocaleString() + '</td>'
-                                                        + '<td>' + p2.toLocaleString() + '</td>'
-                                                        + '<td>' + diff3.toLocaleString() + '</td>'
-                                                        + '<td>' + total_p2.toLocaleString() + '</td>'
+                                                        
                                                         + '<td>' + (parseInt(row5_null.COMMITMENTS)).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.FUNDS_AVAILABLE_AMOUNT)).toLocaleString() + '</td>'
                                                         + '<td>' + (parseInt(row5_null.OBLIGATIONS)).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.FUNDS_AVAILABLE_AMOUNT)).toLocaleString() + '</td>'
+                                                        + '<td>' + (parseInt(diff2)).toLocaleString() + '</td>'
                                                         + '<td>' + (parseInt(row5_null.EXPENDITURES)).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.FUNDS_AVAILABLE_AMOUNT)).toLocaleString() + '</td></tr>';
+                                                        + '<td>' + (parseInt(diff3)).toLocaleString() + '</td></tr>';
 
                                                     tableBody.insertAdjacentHTML('beforeend', str);
                                                 });

@@ -1255,9 +1255,15 @@ shifted_hierarchy AS (
                 ON t.subplan=replace(sp.sub_plan_id,'SP_','')
                 LEFT JOIN project pro
                 ON t.project=pro.project_id)
+                ,t9 AS(
+					 SELECT t.*,b.Release_Amount
+					 FROM t8 t
+					 LEFT JOIN budget_planning_disbursement_budget_plan_anl_release b
+					 ON t.faculty=b.Faculty AND t.plan=b.plan
+					 AND t.fund=b.fund AND t.subplan=replace(b.sub_plan,'SP_','') AND t.project=b.project
+					 AND t.account=b.account AND t.service=replace(b.service,'SR_',''))
                 
-                
-                SELECT * FROM t8 t
+                SELECT * FROM t9 t
 					 LEFT JOIN shifted_hierarchy h
 					 ON t.account=h.current_acc
                 
