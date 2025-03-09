@@ -604,7 +604,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     $Name_a1 = $row['Name_a1'];
                                                     $Name_a2 = $row['Name_a2'];
                                                     $Name_a3 = $row['Name_a3'];
-
+                                                    $Name_a4 = $row['Name_a4'];
 
 
                                                     // เก็บข้อมูลของ Faculty
@@ -731,8 +731,34 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
                                                             'name' => $ItemName_a3,
                                                             'test' => $row['Name_a3'],
-                                                            'test2' => $row['KKU_Item_Name'],
+                                                            'test2' => $row['Name_a4'],
 
+                                                            'Allocated_Total_Amount_Quantity' => 0,
+                                                            'Release_Amount' => 0,
+                                                            'Pre_Release_Amount' => 0,
+                                                            'Scenario1' => 0,
+                                                            'Scenario2' => 0,
+                                                            'Scenario3' => 0,
+                                                            'Scenario4' => 0,
+                                                            'Reason' => $row['Reason'],
+                                                            'Name_a4' => [], // เก็บข้อมูลของ KKU_Item_Name
+                                                        ];
+                                                    }
+
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a4
+                                                    if (!empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                        $ItemName_a4 = htmlspecialchars($row['a4']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                    } elseif (empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                    } else {
+                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
+                                                    // เก็บข้อมูลของ Name_a4
+                                                    if (!isset($summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
+                                                        $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4] = [
+                                                            'name' => $ItemName_a4,
+                                                            'test' => $row['Name_a4'],
+                                                            'test2' => $row['KKU_Item_Name'],
                                                             'Allocated_Total_Amount_Quantity' => 0,
                                                             'Release_Amount' => 0,
                                                             'Pre_Release_Amount' => 0,
@@ -811,6 +837,14 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                     $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Scenario4'] += $row['Scenario4'];
 
 
+                                                    // รวมข้อมูลของ Name_a3
+                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Allocated_Total_Amount_Quantity'] += $row['Allocated_Total_Amount_Quantity'];
+                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Release_Amount'] += $row['Release_Amount'];
+                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Pre_Release_Amount'] += $row['Pre_Release_Amount'];
+                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Scenario1'] += $row['Scenario1'];
+                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Scenario2'] += $row['Scenario2'];
+                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Scenario3'] += $row['Scenario3'];
+                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Scenario4'] += $row['Scenario4'];
 
 
 
@@ -819,7 +853,7 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                         ? "" . htmlspecialchars($row['Account'] ?? '') . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
                                                         : "" . htmlspecialchars($row['Account'] ?? '') . "";
 
-                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['kku_items'][] = [
+                                                    $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                         'name' => $kkuItemName,
                                                         'test' => $row['KKU_Item_Name'],
                                                         'Allocated_Total_Amount_Quantity' => $row['Allocated_Total_Amount_Quantity'],
@@ -1193,51 +1227,98 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                                                                 echo "<td>" . "</td>";
                                                                             }
                                                                             echo "</tr>";
-
-                                                                            foreach ($Name_a3Data['kku_items'] as $kkuItem) {
-                                                                                if ($kkuItem['test'] == null || $kkuItem['test'] == '') {
+                                                                            foreach ($Name_a3Data['Name_a4'] as $Name_a4 => $Name_a4Data) {
+                                                                                if ($Name_a4Data['test'] == null || $Name_a4Data['test'] == '') {
                                                                                     continue;
                                                                                 }
 
-                                                                                echo "<tr>";
-                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 52) . $kkuItem['name'] . 'asdfasdf' . "</td>";
 
-                                                                                $preReleaseAmount = $kkuItem['Pre_Release_Amount'];
-
+                                                                                // ดึงค่า Pre_Release_Amount และ Scenario ที่รวมไว้
+                                                                                $preReleaseAmount = $Name_a4Data['Pre_Release_Amount'] ?? 0;
                                                                                 $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
-
+                                                                                // คำนวณ finalPreReleaseAmount โดยบวกค่า Scenario ที่เลือก
                                                                                 $finalPreReleaseAmount = $preReleaseAmount;
-
-
                                                                                 switch ($selectedScenario) {
                                                                                     case 'Scenario1':
-                                                                                        $finalPreReleaseAmount += $kkuItem['Scenario1'];
+                                                                                        $finalPreReleaseAmount += $Name_a4Data['Scenario1'] ?? 0;
                                                                                         break;
                                                                                     case 'Scenario2':
-                                                                                        $finalPreReleaseAmount += $kkuItem['Scenario2'];
+                                                                                        $finalPreReleaseAmount += $Name_a4Data['Scenario2'] ?? 0;
                                                                                         break;
                                                                                     case 'Scenario3':
-                                                                                        $finalPreReleaseAmount += +$kkuItem['Scenario3'];
+                                                                                        $finalPreReleaseAmount += $Name_a4Data['Scenario3'] ?? 0;
                                                                                         break;
                                                                                     case 'Scenario4':
-                                                                                        $finalPreReleaseAmount += $kkuItem['Scenario4'];
+                                                                                        $finalPreReleaseAmount += $Name_a4Data['Scenario4'] ?? 0;
                                                                                         break;
                                                                                     default:
                                                                                         break;
                                                                                 }
 
+                                                                                // แสดงข้อมูลของ Name_a4
+                                                                                echo "<tr>";
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 56) . htmlspecialchars($Name_a4Data['name'] ?? '') . "</td>";
                                                                                 // แสดงข้อมูลในคอลัมน์ที่เหลือ
-                                                                                echo "<td>" . formatNumber($kkuItem['Allocated_Total_Amount_Quantity']) . "</td>";
-                                                                                echo "<td>" . formatNumber($kkuItem['Pre_Release_Amount']) . "</td>";
-                                                                                echo "<td>" . formatNumber(isset($kkuItem[$selectedScenario]) ? $kkuItem[$selectedScenario] : 0) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data['Pre_Release_Amount']) . "</td>";
+                                                                                echo "<td>" . formatNumber($Name_a4Data[$selectedScenario] ?? 0) . "</td>";
                                                                                 echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
-                                                                                $subtractedAmount = $kkuItem['Allocated_Total_Amount_Quantity'] - $finalPreReleaseAmount;
+                                                                                // คำนวณผลลัพธ์การลบระหว่าง 'Allocated_Total_Amount_Quantity' และ 'finalPreReleaseAmount'
+                                                                                $subtractedAmount = ($Name_a4Data['Allocated_Total_Amount_Quantity'] ?? 0) - $finalPreReleaseAmount;
                                                                                 echo "<td>" . formatNumber($subtractedAmount) . "</td>";
-                                                                                echo "<td >" .
-                                                                                    (!empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : '') .
-                                                                                    "</td>";
 
+                                                                                if ($Name_a4Data['test2'] == null || $Name_a4Data['test2'] == '') {
+                                                                                    echo "<td>" . (isset($Name_a4Data['Reason']) && !empty($Name_a4Data['Reason']) ? htmlspecialchars($Name_a4Data['Reason']) : "") . "</td>";
+                                                                                } else {
+                                                                                    echo "<td>" . "</td>";
+                                                                                }
                                                                                 echo "</tr>";
+
+                                                                                foreach ($Name_a4Data['kku_items'] as $kkuItem) {
+                                                                                    if ($kkuItem['test'] == null || $kkuItem['test'] == '') {
+                                                                                        continue;
+                                                                                    }
+
+                                                                                    echo "<tr>";
+                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 72) . $kkuItem['name'] . "</td>";
+
+                                                                                    $preReleaseAmount = $kkuItem['Pre_Release_Amount'];
+
+                                                                                    $selectedScenario = $_GET['scenario'] ?? 'Scenario1';
+
+                                                                                    $finalPreReleaseAmount = $preReleaseAmount;
+
+
+                                                                                    switch ($selectedScenario) {
+                                                                                        case 'Scenario1':
+                                                                                            $finalPreReleaseAmount += $kkuItem['Scenario1'];
+                                                                                            break;
+                                                                                        case 'Scenario2':
+                                                                                            $finalPreReleaseAmount += $kkuItem['Scenario2'];
+                                                                                            break;
+                                                                                        case 'Scenario3':
+                                                                                            $finalPreReleaseAmount += +$kkuItem['Scenario3'];
+                                                                                            break;
+                                                                                        case 'Scenario4':
+                                                                                            $finalPreReleaseAmount += $kkuItem['Scenario4'];
+                                                                                            break;
+                                                                                        default:
+                                                                                            break;
+                                                                                    }
+
+                                                                                    // แสดงข้อมูลในคอลัมน์ที่เหลือ
+                                                                                    echo "<td>" . formatNumber($kkuItem['Allocated_Total_Amount_Quantity']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($kkuItem['Pre_Release_Amount']) . "</td>";
+                                                                                    echo "<td>" . formatNumber(isset($kkuItem[$selectedScenario]) ? $kkuItem[$selectedScenario] : 0) . "</td>";
+                                                                                    echo "<td>" . formatNumber($finalPreReleaseAmount) . "</td>";
+                                                                                    $subtractedAmount = $kkuItem['Allocated_Total_Amount_Quantity'] - $finalPreReleaseAmount;
+                                                                                    echo "<td>" . formatNumber($subtractedAmount) . "</td>";
+                                                                                    echo "<td >" .
+                                                                                        (!empty($kkuItem['Reason']) ? htmlspecialchars($kkuItem['Reason']) : '') .
+                                                                                        "</td>";
+
+                                                                                    echo "</tr>";
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
