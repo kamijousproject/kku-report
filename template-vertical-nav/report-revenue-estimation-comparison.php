@@ -87,14 +87,14 @@ include '../server/connectdb.php';
 
 $db = new Database();
 $conn = $db->connect();
-
+$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
 $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
 $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
 $budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
 $budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
-
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $budget_year4 = null, $budget_year5 = null)
+$scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $budget_year4 = null, $budget_year5 = null, $scenario = null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
     if ($budget_year1 === null) {
@@ -480,7 +480,10 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
     if ($faculty) {
         $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
     }
-
+    // เพิ่มเงื่อนไขสำหรับ Scenario ถ้ามี
+    if ($scenario) {
+        $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
+    }
     // เพิ่มการจัดกลุ่มข้อมูล
     $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
     bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
@@ -501,24 +504,28 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 SELECT * FROM t1";
 
     // เตรียมคำสั่ง SQL
-
     $stmt = $conn->prepare($query);
 
-    // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
     if ($faculty) {
         $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
     }
+
+    if ($scenario) {
+        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+    }
+
+
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 
 
 
 
-$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5);
+
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
 function fetchFacultyData($conn)
 {
     // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
@@ -540,7 +547,13 @@ function fetchYearsData($conn)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
+function fetchScenariosData($conn)
+{
+    $query = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -560,13 +573,14 @@ function fetchYearsData($conn)
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</h4>
+                        <h4>รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง
+                            <li class="breadcrumb-item active">
+                                รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง
                             </li>
                         </ol>
                     </div>
@@ -576,12 +590,13 @@ function fetchYearsData($conn)
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</h4>
+                                    <h4>รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง</h4>
                                 </div>
 
                                 <?php
                                 $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
+                                $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
                                 ?>
 
                                 <form method="GET" action="" onsubmit="return validateForm()">
@@ -619,7 +634,22 @@ function fetchYearsData($conn)
                                             ?>
                                         </select>
                                     </div>
-
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
+                                            ประเภทงบประมาณ</label>
+                                        <select name="scenario" id="scenario" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุก ประเภทงบประมาณ</option>
+                                            <?php
+                                            foreach ($scenarios as $scenario) {
+                                                $scenarioName = htmlspecialchars($scenario['Scenario']);
+                                                $scenarioCode = htmlspecialchars($scenario['Scenario']);
+                                                $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
+                                                echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
                                     <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
                                     <div class="form-group" style="display: flex; justify-content: center;">
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
@@ -660,7 +690,7 @@ function fetchYearsData($conn)
 
                                             <tr>
                                                 <th colspan="31" style='text-align: left;'>
-                                                    รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง</th>
+                                                    รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง</th>
                                             </tr>
                                             <?php
                                             // ตรวจสอบและกำหนดค่า $selectedYear
@@ -784,8 +814,8 @@ function fetchYearsData($conn)
                                             $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
                                             $budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
                                             $budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
-
-                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5);
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
 
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
@@ -1675,7 +1705,7 @@ function fetchYearsData($conn)
 
 
             // เพิ่มชื่อรายงาน
-            csvRows.push(["รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]);
+            csvRows.push(["รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", "", ""]);
 
             // ดึงค่าปีงบประมาณจาก PHP
             const selectedYear = <?php echo json_encode($selectedYear); ?>;
@@ -1839,7 +1869,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง.csv';
+            link.download = 'รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1859,7 +1889,7 @@ function fetchYearsData($conn)
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง", 10, 500);
+            doc.text("รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -1884,7 +1914,7 @@ function fetchYearsData($conn)
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง.pdf');
+            doc.save('รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง.pdf');
         }
 
         function exportXLS() {
@@ -1923,7 +1953,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานแสดงการเปรียบเทียบการประมาณการรายได้กับรายได้จริง.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            link.download = 'รายงานแสดงการเปรียบเทียบการประมาณการรายรับกับรายรับจริง.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
