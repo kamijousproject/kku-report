@@ -572,11 +572,9 @@ function fetchScenariosData($conn)
                                             <tr>
                                                 <th colspan="11" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
-
-
                                                         <?php
-
-                                                        echo "ประเภทงบประมาณ" . $scenario; ?>
+                                                        echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
+                                                        ?>
                                                     </span>
                                                 </th>
                                             </tr>

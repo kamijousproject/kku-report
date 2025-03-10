@@ -584,17 +584,29 @@ function fetchScenariosData($conn)
                                                         ?> </span>
                                                 </th>
                                             </tr>
+
                                             <tr>
                                                 <th colspan="8" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
 
 
                                                         <?php
+                                                        $facultyData = str_replace('-', ':', $selectedFacultyName);
 
-                                                        echo "ประเภทงบประมาณ" . $scenario; ?>
+                                                        echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
                                                     </span>
                                                 </th>
                                             </tr>
+                                            <tr>
+                                                <th colspan="8" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+                                                        <?php
+                                                        echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
+                                                        ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+
 
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
