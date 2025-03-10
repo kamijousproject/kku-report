@@ -91,8 +91,8 @@ $conn = $db->connect();
 $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
 $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
 $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
+$scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $scenario = null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
     if ($budget_year1 === null) {
@@ -344,7 +344,10 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
     if ($faculty) {
         $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
     }
-
+    // เพิ่มเงื่อนไขสำหรับ Scenario ถ้ามี
+    if ($scenario) {
+        $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
+    }
     // เพิ่มการจัดกลุ่มข้อมูล
     $query .= " GROUP BY 
     bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
@@ -371,10 +374,15 @@ SELECT * FROM t1";
 
     $stmt = $conn->prepare($query);
 
-    // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
+
     if ($faculty) {
         $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
     }
+
+    if ($scenario) {
+        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+    }
+
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -384,7 +392,7 @@ $faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 
 
 
-$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3);
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $scenario);
 
 function fetchFacultyData($conn)
 {
@@ -407,7 +415,13 @@ function fetchYearsData($conn)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
+function fetchScenariosData($conn)
+{
+    $query = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 
 <!DOCTYPE html>
@@ -448,7 +462,11 @@ function fetchYearsData($conn)
 
                                 <?php
                                 $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
-                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
+                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล\
+                                $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
+                                ?>
+
+                                <?php
                                 ?>
 
                                 <form method="GET" action="" onsubmit="return validateForm()">
@@ -459,10 +477,9 @@ function fetchYearsData($conn)
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
                                             <option value="">เลือก ทุกส่วนงาน</option>
                                             <?php
-                                            // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
                                             foreach ($faculties as $faculty) {
-                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']); // ใช้ Faculty_Name แทน Faculty
-                                                $facultyCode = htmlspecialchars($faculty['Faculty']); // ใช้ Faculty รหัสเพื่อส่งไปใน GET
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
                                                 $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
                                                 echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
                                             }
@@ -477,9 +494,8 @@ function fetchYearsData($conn)
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
                                             <option value="">เลือก ปีงบประมาณ</option>
                                             <?php
-                                            // แสดงปีที่ดึงมาจากฟังก์ชัน fetchYearsData
                                             foreach ($years as $year) {
-                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']); // ใช้ Budget_Management_Year เพื่อแสดงปี
+                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']);
                                                 $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
                                                 echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
                                             }
@@ -487,7 +503,19 @@ function fetchYearsData($conn)
                                         </select>
                                     </div>
 
-                                    <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
+                                            Scenario</label>
+                                        <select name="scenario" id="scenario" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุก Scenario</option>
+                                            <option value="Annual Budget Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'Annual Budget Plan') ? 'selected' : ''; ?>>Annual
+                                                Budget Plan</option>
+                                            <option value="MidBudget Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'MidBudget Plan') ? 'selected' : ''; ?>>MidBudget
+                                                Plan</option>
+                                        </select>
+                                    </div>
+
                                     <div class="form-group" style="display: flex; justify-content: center;">
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
                                     </div>
@@ -607,7 +635,8 @@ function fetchYearsData($conn)
                                             $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
                                             $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
                                             $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3);
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $scenario);
 
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
