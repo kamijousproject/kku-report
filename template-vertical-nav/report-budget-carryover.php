@@ -491,10 +491,14 @@ function fetchScenariosData($conn)
                                         <select name="scenario" id="scenario" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
                                             <option value="">เลือก ทุก ประเภทงบประมาณ</option>
-                                            <option value="Allocated Annual Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'Allocated Annual Plan') ? 'selected' : ''; ?>>
-                                                Allocated Annual Plan</option>
-                                            <option value="Allocated Mid Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'Allocated Mid Plan') ? 'selected' : ''; ?>>Allocated
-                                                Mid Plan</option>
+                                            <?php
+                                            foreach ($scenarios as $scenario) {
+                                                $scenarioName = htmlspecialchars($scenario['Scenario']);
+                                                $scenarioCode = htmlspecialchars($scenario['Scenario']);
+                                                $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
+                                                echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
+                                            }
+                                            ?>
                                         </select>
                                     </div>
                                     <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
