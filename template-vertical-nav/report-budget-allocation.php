@@ -576,11 +576,35 @@ function fetchScenariosData($conn)
                                                 </th>
                                             </tr>
                                             <tr>
+                                                <!-- แสดงข้อมูลที่เลือกจากฟอร์ม -->
+                                                <th colspan="7" style='text-align: left;'>
+                                                    ส่วนงาน/หน่วยงาน:
+                                                    <?php echo htmlspecialchars($selectedFaculty ?: 'ทุกส่วนงาน'); ?>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <!-- แสดงข้อมูลที่เลือกจากฟอร์ม -->
+                                                <th colspan="7" style='text-align: left;'>
+
+                                                    ประเภทงบประมาณ:
+                                                    <?php echo htmlspecialchars($selectedScenario ?: 'ทุกประเภทงบประมาณ'); ?>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <!-- แสดงข้อมูลที่เลือกจากฟอร์ม -->
+                                                <th colspan="7" style='text-align: left;'>
+
+                                                    ปีงบประมาณ:
+                                                    <?php echo htmlspecialchars($selectedYear ?: 'ทุกปี'); ?>
+                                                </th>
+                                            </tr>
+
+                                            <tr>
                                                 <th colspan="7" style='text-align: left;'>
                                                     <span>
                                                         <?php
                                                         // เปลี่ยนชื่อแสดงตาม Scenario ที่เลือก
-                                                        switch ($selectedScenario) {
+                                                        switch ($selectedAllocation) {
                                                             case 'Scenario1':
                                                                 echo 'จัดสรรงวดที่ 1';
                                                                 break;
