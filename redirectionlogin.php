@@ -1,9 +1,3 @@
-<?php
-session_start();
-session_unset();
-session_destroy();
-?>
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -17,8 +11,8 @@ session_destroy();
 <body>
     <script>
         Swal.fire({
-            icon: "success",
-            title: "ออกจากระบบสำเร็จ!",
+            icon: "info",
+            title: "กรุณาเข้าสู่ระบบ!",
             text: "กำลังกลับไปยังหน้าเข้าสู่ระบบ...",
             timer: 2000,
             showConfirmButton: false
