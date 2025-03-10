@@ -95,7 +95,7 @@ include '../server/connectdb.php';
 
 $db = new Database();
 $conn = $db->connect();
-
+$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 // รับค่าจาก dropdown ถ้าไม่มีให้ใช้ค่าเริ่มต้นเป็น Scenario1
 $selectedScenario = isset($_GET['scenario']) ? $_GET['scenario'] : 'Scenario1';
 
@@ -115,7 +115,7 @@ $scenarioMap = array(
 $scenarioValue = isset($scenarioMap[$selectedScenario]) ? $scenarioMap[$selectedScenario] : 'ANL-RELEASE-1';
 
 // ฟังก์ชันในการดึงข้อมูลจากฐานข้อมูล
-function fetchScenarioData($conn, $scenarioColumnValue, $selectedScenario)
+function fetchScenarioData($conn, $faculty = null, $scenarioColumnValue, $selectedScenario)
 {
     $query = "WITH RECURSIVE account_hierarchy AS (
     -- Anchor member: เริ่มจาก account ทุกตัว
@@ -385,7 +385,9 @@ END AS Name_a4
     if ($scenarioColumnValue) {
         $query .= " WHERE bpd.Scenario = :scenarioColumnValue";
     }
-
+    if ($faculty) {
+        $query .= " AND bpd.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
+    }
     $query .= " AND ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
        
      ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
@@ -394,12 +396,20 @@ SELECT * FROM t1";
 
     $stmt = $conn->prepare($query);
 
+    // ตรวจสอบว่า $faculty มีค่าหรือไม่
+    if (!empty($faculty)) {
+        $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+    }
+
+    // ใช้ execute แบบ array ต้องแน่ใจว่าใส่ทุกค่าที่ใช้ใน $query
     $stmt->execute([
         ':selectedScenario' => $selectedScenario,
-        ':scenarioColumnValue' => $scenarioColumnValue
+        ':scenarioColumnValue' => $scenarioColumnValue,
+        ':faculty' => $faculty // เพิ่ม faculty เข้าไปด้วย
     ]);
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 }
 
 
@@ -408,7 +418,29 @@ SELECT * FROM t1";
 $selectedScenario = isset($_GET['scenario']) ? $_GET['scenario'] : 'Scenario1';
 
 // ดึงข้อมูลตาม Scenario ที่เลือก
-$results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selectedScenario: $selectedScenario);
+$results = fetchScenarioData($conn, $faculty, scenarioColumnValue: $scenarioValue, selectedScenario: $selectedScenario);
+
+function fetchFacultyData($conn)
+{
+    // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
+    $query = "SELECT DISTINCT bap.Faculty, ft.Alias_Default AS Faculty_Name
+              FROM budget_planning_annual_budget_plan bap
+              LEFT JOIN Faculty ft ON ft.Faculty = bap.Faculty";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function fetchYearsData($conn)
+{
+    $query = "SELECT DISTINCT Budget_Management_Year 
+              FROM budget_planning_annual_budget_plan 
+              ORDER BY Budget_Management_Year DESC"; // ดึงปีจากฐานข้อมูล และเรียงลำดับจากปีล่าสุด
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -450,20 +482,64 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                 <div class="card-title">
                                     <h4>รายงานการจัดสรรเงินรายงวด</h4>
                                 </div>
+
+                                <?php
+                                $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
+                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
+                                ?>
                                 <!-- Dropdown สำหรับเลือก Scenario -->
                                 <form method="GET" action="">
-                                    <label for="scenario">เลือก จัดสรรงวดที่:</label>
-                                    <select name="scenario" id="scenario">
-                                        <option value="Scenario1" <?php if ($selectedScenario == 'Scenario1')
-                                            echo 'selected'; ?>>จัดสรรงวดที่ 1</option>
-                                        <option value="Scenario2" <?php if ($selectedScenario == 'Scenario2')
-                                            echo 'selected'; ?>>จัดสรรงวดที่ 2</option>
-                                        <option value="Scenario3" <?php if ($selectedScenario == 'Scenario3')
-                                            echo 'selected'; ?>>จัดสรรงวดที่ 3</option>
-                                        <option value="Scenario4" <?php if ($selectedScenario == 'Scenario4')
-                                            echo 'selected'; ?>>จัดสรรงวดที่ 4</option>
-                                    </select>
-                                    <button Name_a1="submit">แสดงข้อมูล</button>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
+                                            ส่วนงาน/หน่วยงาน</label>
+                                        <select name="faculty" id="faculty" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุกส่วนงาน</option>
+                                            <?php
+                                            foreach ($faculties as $faculty) {
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
+                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="year" class="label-year"
+                                            style="margin-right: 10px;">เลือกปีงบประมาณ</label>
+                                        <select name="year" id="year" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ปีงบประมาณ</option>
+                                            <?php
+                                            foreach ($years as $year) {
+                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']);
+                                                $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
+                                                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
+                                            จัดสรรงวดที่:</label>
+                                        <select name="scenario" id="scenario" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="Scenario1" <?php if ($selectedScenario == 'Scenario1')
+                                                echo 'selected'; ?>>จัดสรรงวดที่ 1</option>
+                                            <option value="Scenario2" <?php if ($selectedScenario == 'Scenario2')
+                                                echo 'selected'; ?>>จัดสรรงวดที่ 2</option>
+                                            <option value="Scenario3" <?php if ($selectedScenario == 'Scenario3')
+                                                echo 'selected'; ?>>จัดสรรงวดที่ 3</option>
+                                            <option value="Scenario4" <?php if ($selectedScenario == 'Scenario4')
+                                                echo 'selected'; ?>>จัดสรรงวดที่ 4</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: center;">
+                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                    </div>
                                 </form>
                                 <script>
                                     document.addEventListener("DOMContentLoaded", function () {
@@ -587,9 +663,9 @@ $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selecte
                                             $previousProject = "";
                                             $previousName_a1 = "";
                                             $previousName_a2 = "";
-
+                                            $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
                                             // Fetch data from the database
-                                            $results = fetchScenarioData($conn, scenarioColumnValue: $scenarioValue, selectedScenario: $selectedScenario);
+                                            $results = fetchScenarioData($conn, $selectedFaculty, scenarioColumnValue: $scenarioValue, selectedScenario: $selectedScenario);
 
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
