@@ -129,27 +129,14 @@
                                 <div class="form-group">
                                     <label for="fiscal-year">เลือกปีงบประมาณ:</label>
                                     <select name="fiscal-year" id="fiscal-year">
+                                    <option value="">-- Select --</option>
                                         <option value="2568">2568</option>
                                     </select>
                                 </div>
-
-                                <div class="form-group">
-                                    <label for="department">เลือกส่วนงาน/หน่วยงาน:</label>
-                                    <select name="department" id="department" onchange="fetchData()">
-                                        <option value="">-- Loading Departments --</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="scenario">เลือกประเภทงบประมาณ:</label>
-                                    <select name="scenario" id="scenario" onchange="fetchData()">
-                                        <option value="">-- Loading Scenarios --</option>
-                                    </select>
-                                </div>
-
+                                <br/>
                                 <div class="form-group">
                                     <label for="category">เลือกส่วนงาน:</label>
-                                    <select name="category" id="category" onchange="fetchData()">
+                                    <select name="category" id="category" onchange="fetchData()" disabled>
                                         <option value="">-- Loading Categories --</option>
                                     </select>
                                 </div>
@@ -237,29 +224,7 @@
                         option.value = category;
                         option.textContent = category;
                         facDropdown.appendChild(option);
-                    });
-
-                    // เติมข้อมูลใน select หน่วยงาน
-                    const departments = [...new Set(all_data.map(item => item.f2))];
-                    let deptDropdown = document.getElementById("department");
-                    deptDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    departments.forEach(department => {
-                        let option = document.createElement("option");
-                        option.value = department;
-                        option.textContent = department;
-                        deptDropdown.appendChild(option);
-                    });
-
-                    // เติมข้อมูลใน select ประเภทงบประมาณ
-                    const scenarios = [...new Set(all_data.map(item => item.Scenario))];
-                    let scenarioDropdown = document.getElementById("scenario");
-                    scenarioDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    scenarios.forEach(scenario => {
-                        let option = document.createElement("option");
-                        option.value = scenario;
-                        option.textContent = scenario;
-                        scenarioDropdown.appendChild(option);
-                    });
+                    });   
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -267,7 +232,9 @@
                 }
             });
         });
-
+        $('#fiscal-year').change(function () {
+            $('#category').prop('disabled', false);
+        });
         function fetchData() {
             let category = document.getElementById("category").value;
 
@@ -1080,6 +1047,7 @@
             const filters = getFilterValues();
             const reportHeader = [
                 `"รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กร ตาม แหล่งเงิน ตามแผนงาน/โครงการ โดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ"`,
+                `"ปีงบประมาณ: ${filters.fyear}"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
             ];
 
@@ -1155,7 +1123,7 @@
 
         function getFilterValues() {
             return {
-
+                fyear: document.getElementById('fiscal-year').options[document.getElementById('fiscal-year').selectedIndex].text,
                 department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
             };
         }
@@ -1169,7 +1137,7 @@
             // ตั้งค่ามาร์จินและขนาดกระดาษ
             const marginLeft = 5;
             const marginRight = 5;
-            const marginTop = 25;
+            const marginTop = 30;
             const marginBottom = 10;
             const pageWidth = doc.internal.pageSize.width;
             const usableWidth = pageWidth - marginLeft - marginRight;
@@ -1184,7 +1152,8 @@
                 align: 'center'
             });
             doc.setFontSize(8);
-            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 20);
+            doc.text(`ปีงบประมาณ: ${filterValues.fyear}`, 15, 20);
+            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 25);
 
             // ฟังก์ชันตรวจสอบว่าเป็นตัวเลขหรือไม่
             function isNumeric(str) {
@@ -1491,6 +1460,7 @@
             // สร้างส่วนหัวรายงาน
             const headerRows = [
                 ["รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กร ตาม แหล่งเงิน ตามแผนงาน/โครงการ โดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ"],
+                ["ปีงบประมาณ:", filterValues.fyear],
                 ["ส่วนงาน/หน่วยงาน:", filterValues.department],
                 [""] // แถวว่าง
             ];
