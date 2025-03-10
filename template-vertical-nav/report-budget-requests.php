@@ -665,8 +665,8 @@ function fetchScenariosData($conn)
                                                         $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4] = [
                                                             'a4' => $row['a4'],
                                                             'name' => $ItemName_a4,
-                                                            'test' => $row['Name_a3'],
-                                                            'tes1' => $row['Name_a2'],
+                                                            'test' => $row['Name_a4'],
+                                                            'tes1' => $row['Name_a3'],
                                                             'Total_FN06' => 0,
                                                             'Total_FN02' => 0,
                                                             'Total_FN08' => 0,
