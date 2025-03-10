@@ -34,8 +34,13 @@ table {
     width: 100%;
     border-collapse: collapse;
 }
-
-th, td {
+th {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+    vertical-align: top;
+}
+ td {
     border: 1px solid #ddd;
     padding: 10px;
     text-align: left;
@@ -99,7 +104,7 @@ thead tr:nth-child(3) th {
                                 <label for="fyear">ปีงบประมาณ:</label>
                                 <select name="fyear" id="fyear" >
                                     <option value="">-- Select --</option>
-                                    <option value="">-- 2568 --</option>
+                                    <option value="">2568</option>
                                 </select>
                                 <br/>
                                 <label for="category">เลือกส่วนงาน:</label>
@@ -109,23 +114,20 @@ thead tr:nth-child(3) th {
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
+                                            
                                             <tr>
-                                                <th colspan="12" style='text-align: left;'>
-                                                    รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ</th>
-                                            </tr>
-                                            <tr>
-                                                <th>#</th>
-                                                <th>ส่วนงาน/หน่วยงาน</th>
-                                                <th nowrap>1.เงินอุดหนุนจากรัฐ</th>
-                                                <th nowrap>2.เงินและทรัพย์สิน<br/>ซึ่งมีผู้บริจาค<br/>ให้แก่มหาวิทยาลัย</th>
-                                                <th nowrap>3.เงินกองทุนที่รัฐบาล<br/>หรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้<br/>หรือผลประโยชน์จากกองทุน</th>
-                                                <th nowrap>4.ค่าธรรมเนียม ค่าบำรุง<br/>ค่าตอบแทน เบี้ยปรับ <br/>และค่าบริการต่างๆของมหาวิทยาลัย</th>
-                                                <th nowrap>5.รายได้หรือผลประโยชน์<br/>ที่ได้จากการลงทุนหรือการร่วมลงทุน<br/>จากทรัพย์สินของมหาวิทยาลัย</th>
-                                                <th nowrap>6.รายได้หรือผลประโยชน์<br/>ที่ได้จากการใช้ทรัพย์สินหรือจัดทำ<br/>เพื่อเป็นที่ราชพัสดุหรือทรัพย์สิน<br/>ของมหาวิทยาลัยปกครองดูแล<br/>ใช้หรือจัดทำประโยชน์</th>
-                                                <th nowrap>7.เงินอุดหนุนจากหน่วยงานภายนอก<br/>เงินทุนอุดหนุนการวิจัยหรือ<br/>การบริการวิชาการที่ได้รับจาก<br/>หน่วยงานของรัฐ</th>
-                                                <th nowrap>8.เงินและผลประโยชน์ที่ได้รับ<br/>จากการบริการวิชาการ การวิจัย<br/>และนำทรัพย์สินทางปัญญาไปทำประโยชน์</th>
-                                                <th nowrap>9.รายได้ผลประโยชน์อื่นๆ</th>
-                                                <th nowrap>รวมทั้งหมด</th>
+                                                <th style="vertical-align: top;">ที่</th>
+                                                <th style="vertical-align: top;">ส่วนงาน/หน่วยงาน</th>
+                                                <th style="vertical-align: top;"nowrap>1.เงินอุดหนุนจากรัฐ</th>
+                                                <th style="vertical-align: top;"nowrap>2.เงินและทรัพย์สิน<br/>ซึ่งมีผู้บริจาค<br/>ให้แก่มหาวิทยาลัย</th>
+                                                <th style="vertical-align: top;"nowrap>3.เงินกองทุนที่รัฐบาล<br/>หรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้<br/>หรือผลประโยชน์จากกองทุน</th>
+                                                <th style="vertical-align: top;"nowrap>4.ค่าธรรมเนียม ค่าบำรุง<br/>ค่าตอบแทน เบี้ยปรับ <br/>และค่าบริการต่างๆของมหาวิทยาลัย</th>
+                                                <th style="vertical-align: top;"nowrap>5.รายได้หรือผลประโยชน์<br/>ที่ได้จากการลงทุนหรือการร่วมลงทุน<br/>จากทรัพย์สินของมหาวิทยาลัย</th>
+                                                <th style="vertical-align: top;"nowrap>6.รายได้หรือผลประโยชน์<br/>ที่ได้จากการใช้ทรัพย์สินหรือจัดทำ<br/>เพื่อเป็นที่ราชพัสดุหรือทรัพย์สิน<br/>ของมหาวิทยาลัยปกครองดูแล<br/>ใช้หรือจัดทำประโยชน์</th>
+                                                <th style="vertical-align: top;"nowrap>7.เงินอุดหนุนจากหน่วยงานภายนอก<br/>เงินทุนอุดหนุนการวิจัยหรือ<br/>การบริการวิชาการที่ได้รับจาก<br/>หน่วยงานของรัฐ</th>
+                                                <th style="vertical-align: top;"nowrap>8.เงินและผลประโยชน์ที่ได้รับ<br/>จากการบริการวิชาการ การวิจัย<br/>และนำทรัพย์สินทางปัญญาไปทำประโยชน์</th>
+                                                <th style="vertical-align: top;"nowrap>9.รายได้ผลประโยชน์อื่นๆ</th>
+                                                <th style="vertical-align: top;"nowrap>รวมทั้งหมด</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -323,6 +325,7 @@ thead tr:nth-child(3) th {
             const filters = getFilterValues();
             const reportHeader = [
                 `"รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ"`,
+                `"ปีงบประมาณ: ${filters.fyear}"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
                 
             ];
@@ -394,7 +397,7 @@ thead tr:nth-child(3) th {
         }
         function getFilterValues() {
             return {
-
+                fyear: document.getElementById('fyear').options[document.getElementById('fyear').selectedIndex].text,
                 department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
             };
         }
@@ -410,10 +413,11 @@ thead tr:nth-child(3) th {
             doc.setFontSize(12);
             doc.text("รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", 150, 10,{ align: 'center' });
             doc.setFontSize(10);
-            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 20);
+            doc.text(`ปีงบประมาณ: ${filterValues.fyear}`, 15, 20);
+            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 25);
             doc.autoTable({
                 html: '#reportTable',
-                startY: 25,
+                startY: 30,
                 theme: 'grid',
                 styles: {
                     font: "THSarabun",
@@ -471,7 +475,10 @@ thead tr:nth-child(3) th {
             // สร้างข้อมูลสำหรับหัวรายงาน (4 แถวแรก)
             const headerRows = [
                 [{ v: "รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
-
+                [
+                    { v: "ปีงบประมาณ:", s: { font: { bold: true } } },
+                    { v: filterValues.fyear }
+                ],
                 [
                     { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },
                     { v: filterValues.department }

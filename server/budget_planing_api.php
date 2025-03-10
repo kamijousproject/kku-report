@@ -748,7 +748,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,p.Plan
                         ,p.Sub_Plan
                         ,p.Project
-                        ,p.Fund
+                        ,replace(p.Fund,'FN','') AS Fund
                         ,sum(p.Total_Amount_Quantity) AS Total_Amount_Quantity
                         ,b.Proj_KPI_Name
                         ,sum(b.Proj_KPI_Target) AS Proj_KPI_Target
@@ -768,7 +768,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,p.Plan
                         ,p.Sub_Plan
                         ,p.Project
-                        ,p.Fund
+                        ,replace(p.Fund,'FN','')
                         ,b.Proj_KPI_Name
                         ,b.UoM_for_Proj_KPI
                         ,b.Objective
@@ -792,7 +792,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         LEFT JOIN plan pl
                         ON tt.plan=pl.plan_id)
                         ,t4 AS (
-                        SELECT tt.*,s.sub_plan_name
+                        SELECT tt.*,concat(replace(tt.sub_plan,'SP_',''),' : ',s.sub_plan_name) AS sub_plan_name
                         FROM t3 tt
                         LEFT JOIN sub_plan s
                         ON tt.sub_plan=s.sub_plan_id)

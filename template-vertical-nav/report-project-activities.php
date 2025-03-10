@@ -96,8 +96,14 @@ thead tr:nth-child(3) th {
                                 <div class="card-title">
                                     <h4>รายงานโครงการ/กิจกรรม</h4>
                                 </div>
+                                <label for="fyear">เลือกปีงบประมาณ:</label>
+                                <select name="fyear" id="fyear">
+                                <option value="">-- Select --</option>
+                                    <option value="2568">2568</option>
+                                </select>
+                                <br/>
                                 <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()">
+                                <select name="category" id="category" onchange="fetchData()" disabled>
                                     <option value="">-- Loading Categories --</option>
                                 </select>
                                 <div class="table-responsive">
@@ -181,7 +187,9 @@ thead tr:nth-child(3) th {
             });
 
         });
-
+        $('#fyear').change(function () {
+            $('#category').prop('disabled', false);
+        });
         function fetchData() {
             let category = document.getElementById("category").value;
             const tableBody = document.querySelector('#reportTable tbody');
@@ -237,6 +245,7 @@ thead tr:nth-child(3) th {
             const filters = getFilterValues();
             const reportHeader = [
                 `"รายงานโครงการ/กิจกรรม"`,
+                `"ปีงบประมาณ: ${filters.fyear}"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
                 
             ];
@@ -308,7 +317,7 @@ thead tr:nth-child(3) th {
         }
         function getFilterValues() {
             return {
-                
+                fyear: document.getElementById('fyear').options[document.getElementById('fyear').selectedIndex].text,
                 department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
             };
         }
@@ -324,10 +333,11 @@ thead tr:nth-child(3) th {
             doc.setFontSize(12);
             doc.text("รายงานโครงการ/กิจกรรม", 150, 10,{ align: 'center' });
             doc.setFontSize(10);
-            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 20);
+            doc.text(`ปีงบประมาณ: ${filterValues.fyear}`, 15, 20);
+            doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 25);
             doc.autoTable({
                 html: '#reportTable',
-                startY: 25,
+                startY: 30,
                 theme: 'grid',
                 styles: {
                     font: "THSarabun",
@@ -368,6 +378,10 @@ thead tr:nth-child(3) th {
             // สร้างข้อมูลสำหรับหัวรายงาน (4 แถวแรก)
             const headerRows = [
                 [{ v: "รายงานโครงการ/กิจกรรม", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
+                [
+                    { v: "ปีงบประมาณ:", s: { font: { bold: true } } },
+                    { v: filterValues.fyear }
+                ],
                 [
                     { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },
                     { v: filterValues.department }
