@@ -87,14 +87,14 @@ include '../server/connectdb.php';
 
 $db = new Database();
 $conn = $db->connect();
-
+$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
 $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
 $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
 $budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
 $budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
-
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $budget_year4 = null, $budget_year5 = null)
+$scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $budget_year4 = null, $budget_year5 = null, $scenario = null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
     if ($budget_year1 === null) {
@@ -480,7 +480,10 @@ WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
     if ($faculty) {
         $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
     }
-
+    // เพิ่มเงื่อนไขสำหรับ Scenario ถ้ามี
+    if ($scenario) {
+        $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
+    }
     // เพิ่มการจัดกลุ่มข้อมูล
     $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
     bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
@@ -501,24 +504,28 @@ WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 SELECT * FROM t1";
 
     // เตรียมคำสั่ง SQL
-
     $stmt = $conn->prepare($query);
 
-    // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
     if ($faculty) {
         $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
     }
+
+    if ($scenario) {
+        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+    }
+
+
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 
 
 
 
-$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5);
+
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
 function fetchFacultyData($conn)
 {
     // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
@@ -540,7 +547,13 @@ function fetchYearsData($conn)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-
+function fetchScenariosData($conn)
+{
+    $query = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -583,6 +596,7 @@ function fetchYearsData($conn)
                                 <?php
                                 $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
+                                $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
                                 ?>
 
                                 <form method="GET" action="" onsubmit="return validateForm()">
@@ -620,7 +634,22 @@ function fetchYearsData($conn)
                                             ?>
                                         </select>
                                     </div>
-
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
+                                            ประเภทงบประมาณ</label>
+                                        <select name="scenario" id="scenario" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุก ประเภทงบประมาณ</option>
+                                            <?php
+                                            foreach ($scenarios as $scenario) {
+                                                $scenarioName = htmlspecialchars($scenario['Scenario']);
+                                                $scenarioCode = htmlspecialchars($scenario['Scenario']);
+                                                $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
+                                                echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
                                     <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
                                     <div class="form-group" style="display: flex; justify-content: center;">
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
@@ -785,8 +814,8 @@ function fetchYearsData($conn)
                                             $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
                                             $budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
                                             $budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
-
-                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5);
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
 
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
