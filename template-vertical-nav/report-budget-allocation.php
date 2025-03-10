@@ -440,75 +440,87 @@ function fetchScenariosData($conn)
                                 </div>
 
                                 <?php
+                                // ดึงข้อมูลจากฐานข้อมูล
                                 $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
-                                $scenarios = fetchScenariosData($conn);
+                                $scenarios = fetchScenariosData($conn);  // ดึงข้อมูล Scenario
+                                
+                                // ตรวจสอบค่าที่ส่งมาจากฟอร์ม
+                                $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : '';
+                                $selectedScenario = isset($_GET['scenario']) ? $_GET['scenario'] : '';
+                                $selectedYear = isset($_GET['year']) ? $_GET['year'] : '';
+                                $selectedAllocation = isset($_GET['allocation']) ? $_GET['allocation'] : '';
                                 ?>
-                                <!-- Dropdown สำหรับเลือก Scenario -->
+
+                                <!-- ฟอร์มค้นหา -->
                                 <form method="GET" action="">
+                                    <!-- Dropdown สำหรับเลือกส่วนงาน/หน่วยงาน -->
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
-                                            ส่วนงาน/หน่วยงาน</label>
+                                        <label for="faculty" class="label-faculty"
+                                            style="margin-right: 10px;">เลือกส่วนงาน/หน่วยงาน</label>
                                         <select name="faculty" id="faculty" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ทุกส่วนงาน</option>
+                                            <option value="">เลือกทุกส่วนงาน</option>
                                             <?php
                                             foreach ($faculties as $faculty) {
                                                 $facultyName = htmlspecialchars($faculty['Faculty_Name']);
                                                 $facultyCode = htmlspecialchars($faculty['Faculty']);
-                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                $selected = ($selectedFaculty == $facultyCode) ? 'selected' : '';
                                                 echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
                                             }
                                             ?>
                                         </select>
                                     </div>
+
+                                    <!-- Dropdown สำหรับเลือกประเภทงบประมาณ -->
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
-                                            ประเภทงบประมาณ</label>
+                                        <label for="scenario" class="label-scenario"
+                                            style="margin-right: 10px;">เลือกประเภทงบประมาณ</label>
                                         <select name="scenario" id="scenario" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ทุก ประเภทงบประมาณ</option>
+                                            <option value="">เลือกทุกประเภทงบประมาณ</option>
                                             <?php
                                             foreach ($scenarios as $scenario) {
                                                 $scenarioName = htmlspecialchars($scenario['Scenario']);
                                                 $scenarioCode = htmlspecialchars($scenario['Scenario']);
-                                                $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
+                                                $selected = ($selectedScenario == $scenarioCode) ? 'selected' : '';
                                                 echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
                                             }
                                             ?>
                                         </select>
                                     </div>
+
+                                    <!-- Dropdown สำหรับเลือกปีงบประมาณ -->
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="year" class="label-year"
                                             style="margin-right: 10px;">เลือกปีงบประมาณ</label>
                                         <select name="year" id="year" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ปีงบประมาณ</option>
+                                            <option value="">เลือกปีงบประมาณ</option>
                                             <?php
                                             foreach ($years as $year) {
                                                 $yearValue = htmlspecialchars($year['Budget_Management_Year']);
-                                                $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
+                                                $selected = ($selectedYear == $yearValue) ? 'selected' : '';
                                                 echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
                                             }
                                             ?>
                                         </select>
                                     </div>
 
+                                    <!-- Dropdown สำหรับเลือกจัดสรรงวดที่ -->
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
-                                            จัดสรรงวดที่:</label>
-                                        <select name="scenario" id="scenario" class="form-control"
+                                        <label for="allocation" class="label-allocation"
+                                            style="margin-right: 10px;">เลือกจัดสรรงวดที่:</label>
+                                        <select name="allocation" id="allocation" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="Scenario1" <?php if ($selectedScenario == 'Scenario1')
-                                                echo 'selected'; ?>>จัดสรรงวดที่ 1</option>
-                                            <option value="Scenario2" <?php if ($selectedScenario == 'Scenario2')
-                                                echo 'selected'; ?>>จัดสรรงวดที่ 2</option>
-                                            <option value="Scenario3" <?php if ($selectedScenario == 'Scenario3')
-                                                echo 'selected'; ?>>จัดสรรงวดที่ 3</option>
-                                            <option value="Scenario4" <?php if ($selectedScenario == 'Scenario4')
-                                                echo 'selected'; ?>>จัดสรรงวดที่ 4</option>
+                                            <option value="Scenario1" <?php echo ($selectedAllocation == 'Scenario1') ? 'selected' : ''; ?>>จัดสรรงวดที่ 1</option>
+                                            <option value="Scenario2" <?php echo ($selectedAllocation == 'Scenario2') ? 'selected' : ''; ?>>จัดสรรงวดที่ 2</option>
+                                            <option value="Scenario3" <?php echo ($selectedAllocation == 'Scenario3') ? 'selected' : ''; ?>>จัดสรรงวดที่ 3</option>
+                                            <option value="Scenario4" <?php echo ($selectedAllocation == 'Scenario4') ? 'selected' : ''; ?>>จัดสรรงวดที่ 4</option>
                                         </select>
                                     </div>
+
+                                    <!-- ปุ่มค้นหา -->
                                     <div class="form-group" style="display: flex; justify-content: center;">
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
                                     </div>
@@ -592,7 +604,8 @@ function fetchScenariosData($conn)
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
                                                 <th rowspan="2">งบประมาณรายจ่ายทั้งสิ้น</th>
-                                                <th colspan="3">เงินงวด</th>
+                                                <th colspan="3" style="text-align: center; vertical-align: middle;">
+                                                    เงินงวด</th>
                                                 <th rowspan="2">งบประมาณรายจ่ายคงเหลือ</th>
                                                 <th rowspan="2">หมายเหตุ</th>
                                             </tr>
