@@ -537,6 +537,7 @@ function fetchScenariosData($conn)
                                             // ตรวจสอบและกำหนดค่า $selectedFacultyName
                                             $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
                                             $selectedYear = isset($_GET['year']) && $_GET['year'] != '' ? (int) $_GET['year'] : '2568';
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
                                             $selectedFacultyName = 'แสดงทุกหน่วยงาน';
 
                                             if ($selectedFacultyCode) {
@@ -574,7 +575,7 @@ function fetchScenariosData($conn)
                                                 </th>
                                             </tr>
                                             <tr>
-                                                <th colspan="11" style='text-align: left;'>
+                                                <th colspan="8" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
                                                         <?php
                                                         echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
@@ -582,11 +583,10 @@ function fetchScenariosData($conn)
                                                     </span>
                                                 </th>
                                             </tr>
-                                            <tr>
-                                                <th rowspan="2">รายการ</th>
-                                                <th colspan="4">ปี <?php echo ($selectedYear - 1); ?></th>
-                                                <th colspan="4">ปี <?php echo ($selectedYear); ?></th>
-                                                <th colspan="2">เพิ่ม/ลด</th>
+                                            <th rowspan="2">รายการ</th>
+                                            <th colspan="4">ปี <?php echo ($selectedYear - 1); ?></th>
+                                            <th colspan="4">ปี <?php echo ($selectedYear); ?></th>
+                                            <th colspan="2">เพิ่ม/ลด</th>
                                             </tr>
                                             <tr>
                                                 <th>เงินอุดหนุนจากรัฐ</th>
