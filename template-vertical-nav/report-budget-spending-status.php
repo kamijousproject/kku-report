@@ -87,13 +87,13 @@
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
+                        <h4>รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
                             </li>
-                            <li class="breadcrumb-item active">รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</li>
+                            <li class="breadcrumb-item active">รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน</li>
                         </ol>
                     </div>
                 </div>
@@ -102,7 +102,7 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
+                                    <h4>รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน</h4>
                                 </div>
                                 <div class="form-group">
                                     <label for="fiscal-year">เลือกปีงบประมาณ:</label>
@@ -208,7 +208,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
         let all_data;
-        $(document).ready(function() {
+        $(document).ready(function () {
             $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
@@ -216,7 +216,7 @@
                     'command': 'kku_bgp_budget-spending-status'
                 },
                 dataType: "json",
-                success: function(response) {
+                success: function (response) {
                     all_data = response.bgp;
 
                     // เติมข้อมูลใน select ส่วนงาน
@@ -252,7 +252,7 @@
                         scenarioDropdown.appendChild(option);
                     });
                 },
-                error: function(jqXHR, exception) {
+                error: function (jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
@@ -807,7 +807,7 @@
             const csvRows = [];
             const filters = getFilterValues();
             const reportHeader = [
-                `"รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน"`,
+                `"รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
             ];
 
@@ -874,7 +874,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.csv';
+            link.download = 'รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -908,7 +908,7 @@
             doc.setFont("THSarabun");
             const filterValues = getFilterValues();
             doc.setFontSize(12);
-            doc.text("รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน", 150, 10, {
+            doc.text("รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน", 150, 10, {
                 align: 'center'
             });
             doc.setFontSize(10);
@@ -1157,7 +1157,7 @@
                     showHead: 'everyPage',
                     tableLineWidth: 0, // กำหนดเป็น 0 เพื่อลบเส้นขอบตาราง
                     // ลบการกำหนดสีเส้นขอบเนื่องจากไม่จำเป็น
-                    didDrawCell: function(data) {
+                    didDrawCell: function (data) {
                         // ปรับความสูงของเซลล์หัวตาราง
                         if (data.section === 'head') {
                             const cell = data.cell;
@@ -1167,7 +1167,7 @@
                             }
                         }
                     },
-                    didParseCell: function(data) {
+                    didParseCell: function (data) {
                         // จัดการกับการตั้งค่า align ของเซลล์
                         if (data.section === 'head') {
                             const style = data.cell.raw.getAttribute('style');
@@ -1206,7 +1206,7 @@
                 }
             }
 
-            doc.save('รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.pdf');
+            doc.save('รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน.pdf');
         }
 
 
@@ -1220,7 +1220,7 @@
 
             // สร้างส่วนหัวรายงาน
             const headerRows = [
-                ["รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน"],
+                ["รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน"],
                 ["ส่วนงาน/หน่วยงาน:", filterValues.department],
                 [""] // แถวว่าง
             ];
@@ -1311,7 +1311,7 @@
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานสถานการณ์ใช้จ่ายงบประมาณตามแหล่งเงิน.xls';
+            link.download = 'รายงานสถานะการใช้จ่ายงบประมาณตามแหล่งเงิน.xls';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
