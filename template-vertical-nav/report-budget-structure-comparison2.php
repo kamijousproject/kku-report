@@ -32,13 +32,7 @@
         height: 100vh;
     }
 
-    .content-body {
-        flex-grow: 1;
-        overflow: hidden;
-        /* Prevent body scrolling */
-        display: flex;
-        flex-direction: column;
-    }
+
 
     .container {
         flex-grow: 1;
@@ -135,6 +129,13 @@
                                 </div>
                                 <br/>
                                 <div class="form-group">
+                                    <label for="scenario">ประเภทงบประมาณ:</label>
+                                    <select name="scenario" id="scenario" disabled>
+                                    <option value="">-- Select --</option>
+                                    </select>
+                                </div>
+                                <br/>
+                                <div class="form-group">
                                     <label for="category">เลือกส่วนงาน:</label>
                                     <select name="category" id="category" onchange="fetchData()" disabled>
                                         <option value="">-- Loading Categories --</option>
@@ -216,7 +217,7 @@
                     all_data = response.bgp;
 
                     // เติมข้อมูลใน select ส่วนงาน
-                    const fac = [...new Set(all_data.map(item => item.f1))];
+                    /* const fac = [...new Set(all_data.map(item => item.f1))];
                     let facDropdown = document.getElementById("category");
                     facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
                     fac.forEach(category => {
@@ -224,7 +225,7 @@
                         option.value = category;
                         option.textContent = category;
                         facDropdown.appendChild(option);
-                    });   
+                    });    */
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -233,13 +234,45 @@
             });
         });
         $('#fiscal-year').change(function () {
+            
+            const scenario = [...new Set(all_data.map(item => item.Scenario))];
+            let facDropdown = document.getElementById("scenario");
+                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    scenario.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        facDropdown.appendChild(option);
+                    });   
+            $('#scenario').prop('disabled', false);
+            
+        });
+        $('#scenario').change(function () {
+            let scenario = document.getElementById("scenario").value;
+            let all_data2 = all_data.filter(item=>item.Scenario===scenario);
+            console.log(all_data2);
+            const fac = [...new Set(all_data2.map(item => item.f1))];
+                    let facDropdown = document.getElementById("category");
+                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        facDropdown.appendChild(option);
+                    });
             $('#category').prop('disabled', false);
         });
         function fetchData() {
             let category = document.getElementById("category").value;
-
+            let scenario = document.getElementById("scenario").value;
             const tableBody = document.querySelector('#reportTable tbody');
-            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า               
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า      
+            let data;
+            if (scenario == "all") {
+                data = all_data;
+            } else {
+                data = all_data.filter(item => item.Scenario === scenario);
+            }         
             if (category == "all") {
                 data = all_data;
             } else {
@@ -1048,6 +1081,7 @@
             const reportHeader = [
                 `"รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กร ตาม แหล่งเงิน ตามแผนงาน/โครงการ โดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ"`,
                 `"ปีงบประมาณ: ${filters.fyear}"`,
+                `"ประเภทงบประมาณ: ${filters.scenario}"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
             ];
 
@@ -1124,6 +1158,7 @@
         function getFilterValues() {
             return {
                 fyear: document.getElementById('fiscal-year').options[document.getElementById('fiscal-year').selectedIndex].text,
+                scenario: document.getElementById('scenario').options[document.getElementById('scenario').selectedIndex].text,
                 department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
             };
         }
@@ -1153,6 +1188,7 @@
             });
             doc.setFontSize(8);
             doc.text(`ปีงบประมาณ: ${filterValues.fyear}`, 15, 20);
+            doc.text(`ประเภทงบประมาณ: ${filterValues.scenario}`, 150, 20);
             doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 25);
 
             // ฟังก์ชันตรวจสอบว่าเป็นตัวเลขหรือไม่
@@ -1461,6 +1497,7 @@
             const headerRows = [
                 ["รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณจำแนกตามโครงสร้างองค์กร ตาม แหล่งเงิน ตามแผนงาน/โครงการ โดยสามารถแสดงได้ทุกระดับย่อยของหน่วยงบประมาณ"],
                 ["ปีงบประมาณ:", filterValues.fyear],
+                ["ประเภทงบประมาณ:", filterValues.scenario],
                 ["ส่วนงาน/หน่วยงาน:", filterValues.department],
                 [""] // แถวว่าง
             ];

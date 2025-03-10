@@ -96,8 +96,14 @@ thead tr:nth-child(3) th {
                                 <div class="card-title">
                                     <h4>รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ</h4>
                                 </div>
+                                <label for="fyear">ปีงบประมาณ:</label>
+                                <select name="fyear" id="fyear" >
+                                    <option value="">-- Select --</option>
+                                    <option value="">-- 2568 --</option>
+                                </select>
+                                <br/>
                                 <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()">
+                                <select name="category" id="category" onchange="fetchData()" disabled>
                                     <option value="">-- Loading Categories --</option>
                                 </select>
                                 <div class="table-responsive">
@@ -233,7 +239,9 @@ thead tr:nth-child(3) th {
                 }
             });
         });
-
+        $('#fyear').change(function () {
+            $('#category').prop('disabled', false);
+        });
         function fetchData() {
             let category = document.getElementById("category").value;
             const tableBody = document.querySelector('#reportTable tbody');
