@@ -8,12 +8,7 @@
     height: 100vh;
 }
 
-.content-body {
-    flex-grow: 1;
-    overflow: hidden; /* Prevent body scrolling */
-    display: flex;
-    flex-direction: column;
-}
+
 
 .container {
     flex-grow: 1;
@@ -107,6 +102,11 @@ thead tr:nth-child(3) th {
                                     <option value="">2568</option>
                                 </select>
                                 <br/>
+                                <label for="scenario">ประเภทงบประมาณ:</label>
+                                <select name="scenario" id="scenario" disabled>
+                                    <option value="">-- Select --</option>
+                                </select>
+                                <br/>
                                 <label for="category">เลือกส่วนงาน:</label>
                                 <select name="category" id="category" onchange="fetchData()" disabled>
                                     <option value="">-- Loading Categories --</option>
@@ -131,62 +131,7 @@ thead tr:nth-child(3) th {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <!-- <tr>
-                                                <th>1</th>
-                                                <td>คณะวิศวกรรมศาสตร์</td>
-                                                <td>5,000,000</td>
-                                                <td>1,200,000</td>
-                                                <td>2,000,000</td>
-                                                <td>3,000,000</td>
-                                                <td>1,500,000</td>
-                                                <td>500,000</td>
-                                                <td>4,000,000</td>
-                                                <td>2,500,000</td>
-                                                <td>300,000</td>
-                                                <td>20,000,000</td>
-                                            </tr>
-                                            <tr>
-                                                <th>2</th>
-                                                <td>คณะบริหารธุรกิจ</td>
-                                                <td>3,000,000</td>
-                                                <td>800,000</td>
-                                                <td>1,500,000</td>
-                                                <td>2,000,000</td>
-                                                <td>1,000,000</td>
-                                                <td>400,000</td>
-                                                <td>3,000,000</td>
-                                                <td>2,000,000</td>
-                                                <td>200,000</td>
-                                                <td>13,900,000</td>
-                                            </tr>
-                                            <tr>
-                                                <th>3</th>
-                                                <td>คณะวิทยาศาสตร์</td>
-                                                <td>4,000,000</td>
-                                                <td>1,000,000</td>
-                                                <td>2,200,000</td>
-                                                <td>2,500,000</td>
-                                                <td>1,200,000</td>
-                                                <td>600,000</td>
-                                                <td>3,500,000</td>
-                                                <td>2,300,000</td>
-                                                <td>400,000</td>
-                                                <td>17,700,000</td>
-                                            </tr>
-                                            <tr>
-                                                <th>รวมทั้งสิ้น</th>
-                                                <td></td>
-                                                <td>12,000,000</td>
-                                                <td>3,000,000</td>
-                                                <td>5,700,000</td>
-                                                <td>7,500,000</td>
-                                                <td>3,700,000</td>
-                                                <td>1,500,000</td>
-                                                <td>10,500,000</td>
-                                                <td>6,800,000</td>
-                                                <td>900,000</td>
-                                                <td>51,600,000</td>
-                                            </tr> -->
+                                            
                                         </tbody>
                                         <tfoot>
 
@@ -242,12 +187,43 @@ thead tr:nth-child(3) th {
             });
         });
         $('#fyear').change(function () {
+            const scenario = [...new Set(all_data.map(item => item.scenario))];
+            let facDropdown = document.getElementById("scenario");
+                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    scenario.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        facDropdown.appendChild(option);
+                    });   
+            $('#scenario').prop('disabled', false);
+        });
+        $('#scenario').change(function () {
+            let scenario = document.getElementById("scenario").value;
+            let all_data2 = all_data.filter(item=>item.scenario===scenario);
+            console.log(all_data2);
+            const fac = [...new Set(all_data2.map(item => item.pname))];
+                    let facDropdown = document.getElementById("category");
+                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    fac.forEach(category => {
+                        let option = document.createElement("option");
+                        option.value = category;
+                        option.textContent = category;
+                        facDropdown.appendChild(option);
+                    });
             $('#category').prop('disabled', false);
         });
         function fetchData() {
             let category = document.getElementById("category").value;
+            let scenario = document.getElementById("scenario").value;
             const tableBody = document.querySelector('#reportTable tbody');
-            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
+            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า      
+            let data;
+            if (scenario == "all") {
+                data = all_data;
+            } else {
+                data = all_data.filter(item => item.Scenario === scenario);
+            }         
             if(category=="all"){
                 data=all_data;
             }
@@ -326,6 +302,7 @@ thead tr:nth-child(3) th {
             const reportHeader = [
                 `"รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ"`,
                 `"ปีงบประมาณ: ${filters.fyear}"`,
+                `"ประเภทงบประมาณ: ${filters.scenario}"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
                 
             ];
@@ -398,6 +375,7 @@ thead tr:nth-child(3) th {
         function getFilterValues() {
             return {
                 fyear: document.getElementById('fyear').options[document.getElementById('fyear').selectedIndex].text,
+                scenario: document.getElementById('scenario').options[document.getElementById('scenario').selectedIndex].text,
                 department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
             };
         }
@@ -414,6 +392,7 @@ thead tr:nth-child(3) th {
             doc.text("รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", 150, 10,{ align: 'center' });
             doc.setFontSize(10);
             doc.text(`ปีงบประมาณ: ${filterValues.fyear}`, 15, 20);
+            doc.text(`ประเภทงบประมาณ: ${filterValues.scenario}`, 150, 20);
             doc.text(`ส่วนงาน/หน่วยงาน: ${filterValues.department}`, 15, 25);
             doc.autoTable({
                 html: '#reportTable',
@@ -478,6 +457,10 @@ thead tr:nth-child(3) th {
                 [
                     { v: "ปีงบประมาณ:", s: { font: { bold: true } } },
                     { v: filterValues.fyear }
+                ],
+                [
+                    { v: "ประเภทงบประมาณ:", s: { font: { bold: true } } },
+                    { v: filterValues.scenario }
                 ],
                 [
                     { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },

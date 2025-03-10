@@ -67,12 +67,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         , t2 AS(
                         SELECT Faculty
                         ,type
+                        ,scenario
                         ,SUM(Total_Amount_Quantity) AS Total_Amount
                         FROM t1
                         GROUP BY Faculty
-                        ,type)
+                        ,type,scenario)
                         ,t3 AS(
-                        SELECT Faculty
+                        SELECT Faculty,scenario
                         ,sum(case when type='1.เงินอุดหนุนจากรัฐ' then Total_Amount ELSE 0 END) AS a1
                         ,sum(case when type='2.เงินและทรัพย์สินซึ่งมีผู้อุทิศให้แก่มหาวิทยาลัย' then Total_Amount ELSE 0 END) AS a2
                         ,sum(case when type='3.เงินกองทุนที่รัฐบาลหรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้หรือผลประโยชน์จากกองทุน' then Total_Amount ELSE 0 END) AS a3
@@ -83,7 +84,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when type='8.เงินและผลประโยชน์ที่ได้รับจากการบริการวิชาการ การวิจัย และนำทรัพย์สินทางปัญญาไปหาประโยชน์' then Total_Amount ELSE 0 END) AS a8
                         ,sum(case when type='9.รายได้ผลประโยชน์อย่างอื่น' then Total_Amount ELSE 0 END) AS a9
                         FROM t2
-                        GROUP BY Faculty)
+                        GROUP BY Faculty,scenario)
 
                         SELECT t.*,f.Alias_Default,f2.Alias_Default AS pname
 								FROM t3 t
@@ -761,6 +762,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,b.OKRs_LOV
                         ,b.Principles_of_good_governance
                         ,b.SDGs
+                        ,p.Scenario
                         FROM budget_planning_annual_budget_plan p
                         LEFT JOIN budget_planning_project_kpi b
                         ON p.Faculty=b.Faculty AND p.Project=b.Project
@@ -778,7 +780,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,b.KKU_Strategic_Plan_LOV
                         ,b.OKRs_LOV
                         ,b.Principles_of_good_governance
-                        ,b.SDGs)
+                        ,b.SDGs
+								,p.Scenario)
                         ,t2 AS (
                         SELECT t.* ,f.Alias_Default,f2.Alias_Default AS pname
                         FROM t1 t
