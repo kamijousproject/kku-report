@@ -84,6 +84,16 @@
         background: #f4f4f4;
         z-index: 998;
     }
+
+    .form-group {
+        display: inline-block;
+        margin-right: 20px;
+        margin-bottom: 10px;
+    }
+
+    label {
+        margin-right: 5px;
+    }
 </style>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
@@ -115,13 +125,34 @@
                     <div class="col-lg-12">
                         <div class="card">
                             <div class="card-body">
-
                                 <h4>รายงานเปรียบเทียบงบประมาณ</h4>
+                                <div class="form-group">
+                                    <label for="fiscal-year">เลือกปีงบประมาณ:</label>
+                                    <select name="fiscal-year" id="fiscal-year">
+                                        <option value="2568">2568</option>
+                                    </select>
+                                </div>
 
-                                <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()">
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
+                                <div class="form-group">
+                                    <label for="department">เลือกส่วนงาน/หน่วยงาน:</label>
+                                    <select name="department" id="department" onchange="fetchData()">
+                                        <option value="">-- Loading Departments --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="scenario">เลือกประเภทงบประมาณ:</label>
+                                    <select name="scenario" id="scenario" onchange="fetchData()">
+                                        <option value="">-- Loading Scenarios --</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="category">เลือกส่วนงาน:</label>
+                                    <select name="category" id="category" onchange="fetchData()">
+                                        <option value="">-- Loading Categories --</option>
+                                    </select>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
                                         <thead>
@@ -196,14 +227,38 @@
                 dataType: "json",
                 success: function(response) {
                     all_data = response.bgp;
+
+                    // เติมข้อมูลใน select ส่วนงาน
                     const fac = [...new Set(all_data.map(item => item.f1))];
-                    let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    let facDropdown = document.getElementById("category");
+                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
                     fac.forEach(category => {
                         let option = document.createElement("option");
                         option.value = category;
                         option.textContent = category;
-                        dropdown.appendChild(option);
+                        facDropdown.appendChild(option);
+                    });
+
+                    // เติมข้อมูลใน select หน่วยงาน
+                    const departments = [...new Set(all_data.map(item => item.f2))];
+                    let deptDropdown = document.getElementById("department");
+                    deptDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    departments.forEach(department => {
+                        let option = document.createElement("option");
+                        option.value = department;
+                        option.textContent = department;
+                        deptDropdown.appendChild(option);
+                    });
+
+                    // เติมข้อมูลใน select ประเภทงบประมาณ
+                    const scenarios = [...new Set(all_data.map(item => item.Scenario))];
+                    let scenarioDropdown = document.getElementById("scenario");
+                    scenarioDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    scenarios.forEach(scenario => {
+                        let option = document.createElement("option");
+                        option.value = scenario;
+                        option.textContent = scenario;
+                        scenarioDropdown.appendChild(option);
                     });
                 },
                 error: function(jqXHR, exception) {
@@ -211,7 +266,6 @@
                     responseError(jqXHR, exception);
                 }
             });
-
         });
 
         function fetchData() {
