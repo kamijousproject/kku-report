@@ -1,92 +1,40 @@
 <style>
+    #reportTable {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: 'Arial', sans-serif;
+        font-size: 16px;
+
+    }
+
     #reportTable th:nth-child(1),
     #reportTable td:nth-child(1) {
         width: 300px;
         /* ปรับขนาดความกว้างของคอลัมน์ "รายการ" */
     }
 
-    #reportTable th {
-        text-align: center;
-        /* จัดข้อความให้อยู่ตรงกลาง */
-        vertical-align: top;
-        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
-        white-space: nowrap;
-        /* ป้องกันข้อความตัดบรรทัด */
-    }
-
+    #reportTable th,
     #reportTable td {
         text-align: left;
-        /* จัดข้อความให้อยู่ตรงกลาง */
         vertical-align: top;
-        /* จัดให้อยู่ตรงกลางในแนวตั้ง */
         white-space: nowrap;
-        /* ป้องกันข้อความตัดบรรทัด */
+        padding: 8px;
+
     }
 
-    #main-wrapper {
-        display: flex;
-        flex-direction: column;
-        height: 100vh;
-    }
-
-    .content-body {
-        flex-grow: 1;
-        overflow: hidden;
-        /* Prevent body scrolling */
-        display: flex;
-        flex-direction: column;
-    }
-
-    .container {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-
+    /* ป้องกัน Head Table หายไปเวลา Scroll */
     .table-responsive {
-        flex-grow: 1;
+        max-height: 70vh;
         overflow-y: auto;
-        /* Scrollable content only inside table */
-        max-height: 60vh;
-        /* Set a fixed height */
-        border: 1px solid #ccc;
-    }
-
-    table {
-        width: 100%;
-        border-collapse: collapse;
-        font-family: 'Arial', sans-serif;
-        /* เลือกฟอนต์ที่ต้องการ */
-        font-size: 16px;
-        /* กำหนดขนาดฟอนต์ให้เท่ากัน */
-        line-height: 1.5;
-        /* กำหนดระยะห่างระหว่างบรรทัด */
 
     }
 
-    thead tr:nth-child(1) th {
+    /* Sticky Header */
+    #reportTable thead th {
         position: sticky;
         top: 0;
         background: #f4f4f4;
-        z-index: 1000;
-    }
-
-    thead tr:nth-child(2) th {
-        position: sticky;
-        top: 45px;
-        /* Adjust height based on previous row */
-        background: #f4f4f4;
-        z-index: 999;
-    }
-
-    thead tr:nth-child(3) th {
-        position: sticky;
-        top: 90px;
-        /* Adjust height based on previous rows */
-        background: #f4f4f4;
-        z-index: 998;
+        z-index: 100;
     }
 </style>
 <?php
