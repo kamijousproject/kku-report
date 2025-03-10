@@ -634,7 +634,7 @@ function fetchScenariosData($conn)
                                                 <th rowspan="2">หมายเหตุ</th>
                                             </tr>
                                             <tr>
-                                                <th>เงินจัดสรรกำหนดให้แล้ว</th>
+                                                <th>เงินจัดสรรสะสม</th>
                                                 <?php
                                                 // กำหนดข้อความสำหรับแต่ละ Scenario
                                                 $scenarioHeaders = [

@@ -157,20 +157,26 @@ hierarchy_with_max AS (
     FROM account_hierarchy
 )
 -- เลือกเฉพาะแถวที่ depth = max_depth สำหรับแต่ละ account
-,main AS (SELECT 
-    CurrentAccount,
-    Current,
-    ParentAccount,
-    Parent,
-    GrandparentAccount,
-    Grandparent,
-    GreatGrandparentAccount,
-    GreatGrandparent,
-    GreatGreatGrandparentAccount,
-    GreatGreatGrandparent,
-    depth AS TotalLevels
-FROM hierarchy_with_max
-WHERE depth = max_depth
+,main AS (    SELECT 
+        CurrentAccount,
+        Current,
+        ParentAccount,
+        Parent,
+        GrandparentAccount,
+        Grandparent,
+        GreatGrandparentAccount,
+        GreatGrandparent,
+        GreatGreatGrandparentAccount,
+        GreatGreatGrandparent,
+        depth AS TotalLevels,
+        -- เพิ่มเงื่อนไขเพื่อกำหนด Main_Name
+        CASE 
+            WHEN LEFT(CurrentAccount, 2) = '12' THEN 'งบลงทุน'
+            WHEN LEFT(CurrentAccount, 1) = '5' OR LEFT(CurrentAccount, 2) = '11' THEN 'งบรายจ่ายประจำ'
+            ELSE 'อื่นๆ' -- หากไม่ตรงเงื่อนไขใด ๆ
+        END AS Main_Name
+    FROM hierarchy_with_max
+    WHERE depth = max_depth
 ORDER BY account)
 ,t1 AS(
 SELECT 
@@ -210,6 +216,7 @@ COALESCE(
     END,
     bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
 ) AS a4
+,m.Main_Name
 ,
         CASE  
     WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, bap.KKU_Item_Name)
@@ -342,7 +349,7 @@ ON bap.`Account`=m.CurrentAccount
     m.GreatGrandparent,
     m.GreatGreatGrandparentAccount,
     m.GreatGreatGrandparent,
-    m.TotalLevels
+    m.TotalLevels,m.Main_Name
         ORDER BY 
             bap.Faculty ASC, 
             ac.`type` ASC, 
@@ -427,13 +434,13 @@ function fetchScenariosData($conn)
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้</h4>
+                        <h4>รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a></li>
                             <li class="breadcrumb-item active">
-                                รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้</li>
+                                รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ</li>
                         </ol>
                     </div>
                 </div>
@@ -442,8 +449,7 @@ function fetchScenariosData($conn)
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว
-                                        ประเภทที่ยังไม่มีหนี้</h4>
+                                    <h4>รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ</h4>
                                 </div>
 
                                 <?php
@@ -506,10 +512,6 @@ function fetchScenariosData($conn)
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
                                     </div>
                                 </form>
-
-
-
-
 
                                 <script>
                                     function validateForm() {
@@ -628,6 +630,7 @@ function fetchScenariosData($conn)
                                             $summary = [];
                                             foreach ($results as $row) {
                                                 $Faculty = $row['Alias_Default'];
+                                                $Main_Name = $row['Main_Name'];
                                                 $Name_a1 = $row['Name_a1'];
                                                 $Name_a2 = $row['Name_a2'];
                                                 $Name_a3 = $row['Name_a3'];
@@ -646,14 +649,31 @@ function fetchScenariosData($conn)
                                                         'Total_Amount_2568_SUM' => 0,
                                                         'Difference_2568_2567' => 0,
                                                         'Percentage_2568_to_2567' => 0,
+                                                        'Main_Name' => [], // เก็บข้อมูลของ Sub_Plan
+                                                    ];
+                                                }
+                                                if (!isset($summary[$Faculty]['Main_Name'][$Main_Name])) {
+                                                    $summary[$Faculty]['Main_Name'][$Main_Name] = [
+                                                        'Main_Name' => $row['Main_Name'],
+                                                        'Total_Amount_2567_FN06' => 0,
+                                                        'Total_Amount_2567_FN08' => 0,
+                                                        'Total_Amount_2567_FN02' => 0,
+                                                        'Total_Amount_2567_SUM' => 0,
+                                                        'Total_Amount_2568_FN06' => 0,
+                                                        'Total_Amount_2568_FN08' => 0,
+                                                        'Total_Amount_2568_FN02' => 0,
+                                                        'Total_Amount_2568_SUM' => 0,
+                                                        'Difference_2568_2567' => 0,
+                                                        'Percentage_2568_to_2567' => 0,
                                                         'Name_a1' => [], // เก็บข้อมูลของ Sub_Plan
                                                     ];
                                                 }
+
                                                 $ItemName_a1 = (!empty($row['Name_a1']))
                                                     ? "" . htmlspecialchars($row['a1']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a1']))
                                                     : "" . htmlspecialchars($row['a1']) . "";
-                                                if (!isset($summary[$Faculty]['Name_a1'][$Name_a1])) {
-                                                    $summary[$Faculty]['Name_a1'][$Name_a1] = [
+                                                if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1])) {
+                                                    $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1] = [
                                                         'name' => $ItemName_a1,
                                                         'a1' => $row['a1'],
                                                         'Total_Amount_2567_FN06' => 0,
@@ -678,8 +698,8 @@ function fetchScenariosData($conn)
                                                     $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                 }
 
-                                                if (!isset($summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
-                                                    $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
+                                                if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
+                                                    $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
                                                         'name' => $ItemName_a2,
                                                         'a2' => $row['a2'],
                                                         'test' => $row['Name_a2'],
@@ -705,8 +725,8 @@ function fetchScenariosData($conn)
                                                 } else {
                                                     $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                 }
-                                                if (!isset($summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
-                                                    $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
+                                                if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
+                                                    $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
                                                         'name' => $ItemName_a3,
                                                         'a3' => $row['a3'],
                                                         'test' => $row['Name_a3'],
@@ -732,8 +752,8 @@ function fetchScenariosData($conn)
                                                 } else {
                                                     $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                 }
-                                                if (!isset($summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
-                                                    $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4] = [
+                                                if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
+                                                    $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4] = [
                                                         'name' => $ItemName_a4,
                                                         'a4' => $row['a4'],
                                                         'test' => $row['Name_a4'],
@@ -759,42 +779,50 @@ function fetchScenariosData($conn)
                                                 $summary[$Faculty]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
                                                 $summary[$Faculty]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
+                                                // รวมข้อมูลของ Main_Name
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+
                                                 // รวมข้อมูลของ Name_a1
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
                                                 // รวมข้อมูลของ Name_a2
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
                                                 // รวมข้อมูลของ Name_a3
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
                                                 // รวมข้อมูลของ Name_a4
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2567_FN06'] += $row['Total_Amount_2567_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2567_FN08'] += $row['Total_Amount_2567_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2567_FN02'] += $row['Total_Amount_2567_FN02'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2568_FN06'] += $row['Total_Amount_2568_FN06'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2568_FN08'] += $row['Total_Amount_2568_FN08'];
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2568_FN02'] += $row['Total_Amount_2568_FN02'];
 
                                                 // เก็บข้อมูลของ KKU_Item_Name
                                                 $kkuItemName = (!empty($row['KKU_Item_Name']))
                                                     ? "" . htmlspecialchars($row['Account'] ?? '') . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
                                                     : "" . htmlspecialchars($row['Account'] ?? '') . "";
-                                                $summary[$Faculty]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
+                                                $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                     'name' => $kkuItemName,
                                                     'test' => $row['KKU_Item_Name'],
                                                     'Total_Amount_2567_FN06' => $row['Total_Amount_2567_FN06'],
@@ -915,20 +943,20 @@ function fetchScenariosData($conn)
 
                                                 echo "</tr>";
 
-                                                // แสดงข้อมูลของ Name_a1
-                                                if (isset($data['Name_a1']) && is_array($data['Name_a1'])) {
-                                                    foreach ($data['Name_a1'] as $Name_a1 => $dataName_a1) {
+                                                // แสดงข้อมูลของ Main_Name
+                                                if (isset($data['Main_Name']) && is_array($data['Main_Name'])) {
+                                                    foreach ($data['Main_Name'] as $Main_Name => $dataMain_Name) {
                                                         echo "<tr>";
-                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . $dataName_a1['name'] . "<br></td>";
-                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN06']) . "</td>";
-                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN08']) . "</td>";
-                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN02']) . "</td>";
-                                                        $total1 = $dataName_a1['Total_Amount_2567_FN06'] + $dataName_a1['Total_Amount_2567_FN08'] + $dataName_a1['Total_Amount_2567_FN02'];
+                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . $Main_Name . "<br></td>";
+                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN06']) . "</td>";
+                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN08']) . "</td>";
+                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN02']) . "</td>";
+                                                        $total1 = $dataMain_Name['Total_Amount_2567_FN06'] + $dataMain_Name['Total_Amount_2567_FN08'] + $dataMain_Name['Total_Amount_2567_FN02'];
                                                         echo "<td>" . formatNumber($total1) . "</td>";
-                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN06']) . "</td>";
-                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN08']) . "</td>";
-                                                        echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN02']) . "</td>";
-                                                        $total2 = $dataName_a1['Total_Amount_2568_FN06'] + $dataName_a1['Total_Amount_2568_FN08'] + $dataName_a1['Total_Amount_2568_FN02'];
+                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN06']) . "</td>";
+                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN08']) . "</td>";
+                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN02']) . "</td>";
+                                                        $total2 = $dataMain_Name['Total_Amount_2568_FN06'] + $dataMain_Name['Total_Amount_2568_FN08'] + $dataMain_Name['Total_Amount_2568_FN02'];
                                                         echo "<td>" . formatNumber($total2) . "</td>";
                                                         $Difference = $total2 - $total1;
                                                         echo "<td>" . formatNumber($Difference) . "</td>";
@@ -936,22 +964,20 @@ function fetchScenariosData($conn)
                                                         echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
                                                         echo "</tr>";
-                                                        if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
-                                                            foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
-                                                                if ($dataName_a2['test'] == null || $dataName_a2['test'] == '' || $dataName_a1['name'] == $dataName_a2['name']) {
-                                                                    continue;
-                                                                }
+                                                        // แสดงข้อมูลของ Name_a1
+                                                        if (isset($dataMain_Name['Name_a1']) && is_array($dataMain_Name['Name_a1'])) {
+                                                            foreach ($dataMain_Name['Name_a1'] as $Name_a1 => $dataName_a1) {
                                                                 echo "<tr>";
-                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $dataName_a2['name'] . "<br></td>";
-                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN06']) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN08']) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN02']) . "</td>";
-                                                                $total1 = $dataName_a2['Total_Amount_2567_FN06'] + $dataName_a2['Total_Amount_2567_FN08'] + $dataName_a2['Total_Amount_2567_FN02'];
+                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $dataName_a1['name'] . "<br></td>";
+                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN06']) . "</td>";
+                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN08']) . "</td>";
+                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN02']) . "</td>";
+                                                                $total1 = $dataName_a1['Total_Amount_2567_FN06'] + $dataName_a1['Total_Amount_2567_FN08'] + $dataName_a1['Total_Amount_2567_FN02'];
                                                                 echo "<td>" . formatNumber($total1) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN06']) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN08']) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN02']) . "</td>";
-                                                                $total2 = $dataName_a2['Total_Amount_2568_FN06'] + $dataName_a2['Total_Amount_2568_FN08'] + $dataName_a2['Total_Amount_2568_FN02'];
+                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN06']) . "</td>";
+                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN08']) . "</td>";
+                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN02']) . "</td>";
+                                                                $total2 = $dataName_a1['Total_Amount_2568_FN06'] + $dataName_a1['Total_Amount_2568_FN08'] + $dataName_a1['Total_Amount_2568_FN02'];
                                                                 echo "<td>" . formatNumber($total2) . "</td>";
                                                                 $Difference = $total2 - $total1;
                                                                 echo "<td>" . formatNumber($Difference) . "</td>";
@@ -959,23 +985,22 @@ function fetchScenariosData($conn)
                                                                 echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
                                                                 echo "</tr>";
-
-                                                                if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
-                                                                    foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
-                                                                        if ($dataName_a3['test'] == null || $dataName_a3['test'] == '' || $dataName_a2['name'] == $dataName_a3['name']) {
+                                                                if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
+                                                                    foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
+                                                                        if ($dataName_a2['test'] == null || $dataName_a2['test'] == '' || $dataName_a1['name'] == $dataName_a2['name']) {
                                                                             continue;
                                                                         }
                                                                         echo "<tr>";
-                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a3['name'] . "<br></td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN06']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN08']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN02']) . "</td>";
-                                                                        $total1 = $dataName_a3['Total_Amount_2567_FN06'] + $dataName_a3['Total_Amount_2567_FN08'] + $dataName_a3['Total_Amount_2567_FN02'];
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a2['name'] . "<br></td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN06']) . "</td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN08']) . "</td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN02']) . "</td>";
+                                                                        $total1 = $dataName_a2['Total_Amount_2567_FN06'] + $dataName_a2['Total_Amount_2567_FN08'] + $dataName_a2['Total_Amount_2567_FN02'];
                                                                         echo "<td>" . formatNumber($total1) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN06']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN08']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN02']) . "</td>";
-                                                                        $total2 = $dataName_a3['Total_Amount_2568_FN06'] + $dataName_a3['Total_Amount_2568_FN08'] + $dataName_a3['Total_Amount_2568_FN02'];
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN06']) . "</td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN08']) . "</td>";
+                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN02']) . "</td>";
+                                                                        $total2 = $dataName_a2['Total_Amount_2568_FN06'] + $dataName_a2['Total_Amount_2568_FN08'] + $dataName_a2['Total_Amount_2568_FN02'];
                                                                         echo "<td>" . formatNumber($total2) . "</td>";
                                                                         $Difference = $total2 - $total1;
                                                                         echo "<td>" . formatNumber($Difference) . "</td>";
@@ -983,22 +1008,23 @@ function fetchScenariosData($conn)
                                                                         echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
                                                                         echo "</tr>";
-                                                                        if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
-                                                                            foreach ($dataName_a3['Name_a4'] as $Name_a4 => $dataName_a4) {
-                                                                                if ($dataName_a4['test'] == null || $dataName_a4['test'] == '' || $dataName_a3['name'] == $dataName_a4['name']) {
+
+                                                                        if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
+                                                                            foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
+                                                                                if ($dataName_a3['test'] == null || $dataName_a3['test'] == '' || $dataName_a2['name'] == $dataName_a3['name']) {
                                                                                     continue;
                                                                                 }
                                                                                 echo "<tr>";
-                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a4['name'] . "<br></td>";
-                                                                                echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN06']) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN08']) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN02']) . "</td>";
-                                                                                $total1 = $dataName_a4['Total_Amount_2567_FN06'] + $dataName_a4['Total_Amount_2567_FN08'] + $dataName_a4['Total_Amount_2567_FN02'];
+                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a3['name'] . "<br></td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN06']) . "</td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN08']) . "</td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN02']) . "</td>";
+                                                                                $total1 = $dataName_a3['Total_Amount_2567_FN06'] + $dataName_a3['Total_Amount_2567_FN08'] + $dataName_a3['Total_Amount_2567_FN02'];
                                                                                 echo "<td>" . formatNumber($total1) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN06']) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN08']) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN02']) . "</td>";
-                                                                                $total2 = $dataName_a4['Total_Amount_2568_FN06'] + $dataName_a4['Total_Amount_2568_FN08'] + $dataName_a4['Total_Amount_2568_FN02'];
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN06']) . "</td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN08']) . "</td>";
+                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN02']) . "</td>";
+                                                                                $total2 = $dataName_a3['Total_Amount_2568_FN06'] + $dataName_a3['Total_Amount_2568_FN08'] + $dataName_a3['Total_Amount_2568_FN02'];
                                                                                 echo "<td>" . formatNumber($total2) . "</td>";
                                                                                 $Difference = $total2 - $total1;
                                                                                 echo "<td>" . formatNumber($Difference) . "</td>";
@@ -1006,24 +1032,22 @@ function fetchScenariosData($conn)
                                                                                 echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
                                                                                 echo "</tr>";
-
-                                                                                if (isset($dataName_a4['Name_a4']) && is_array($dataName_a4['Name_a4'])) {
-                                                                                    foreach ($dataName_a4['kku_items'] as $kkuItem) {
-                                                                                        if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $dataName_a4['name'] == $kkuItem['name']) {
+                                                                                if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
+                                                                                    foreach ($dataName_a3['Name_a4'] as $Name_a4 => $dataName_a4) {
+                                                                                        if ($dataName_a4['test'] == null || $dataName_a4['test'] == '' || $dataName_a3['name'] == $dataName_a4['name']) {
                                                                                             continue;
                                                                                         }
                                                                                         echo "<tr>";
-                                                                                        // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a4
-                                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $kkuItem['name'] . "<br></td>";
-                                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
-                                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
-                                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
-                                                                                        $total1 = $kkuItem['Total_Amount_2567_FN06'] + $kkuItem['Total_Amount_2567_FN08'] + $kkuItem['Total_Amount_2567_FN02'];
+                                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a4['name'] . "<br></td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN06']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN08']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN02']) . "</td>";
+                                                                                        $total1 = $dataName_a4['Total_Amount_2567_FN06'] + $dataName_a4['Total_Amount_2567_FN08'] + $dataName_a4['Total_Amount_2567_FN02'];
                                                                                         echo "<td>" . formatNumber($total1) . "</td>";
-                                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN06']) . "</td>";
-                                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN08']) . "</td>";
-                                                                                        echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN02']) . "</td>";
-                                                                                        $total2 = $kkuItem['Total_Amount_2568_FN06'] + $kkuItem['Total_Amount_2568_FN08'] + $kkuItem['Total_Amount_2568_FN02'];
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN06']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN08']) . "</td>";
+                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN02']) . "</td>";
+                                                                                        $total2 = $dataName_a4['Total_Amount_2568_FN06'] + $dataName_a4['Total_Amount_2568_FN08'] + $dataName_a4['Total_Amount_2568_FN02'];
                                                                                         echo "<td>" . formatNumber($total2) . "</td>";
                                                                                         $Difference = $total2 - $total1;
                                                                                         echo "<td>" . formatNumber($Difference) . "</td>";
@@ -1032,6 +1056,33 @@ function fetchScenariosData($conn)
 
                                                                                         echo "</tr>";
 
+                                                                                        if (isset($dataName_a4['Name_a4']) && is_array($dataName_a4['Name_a4'])) {
+                                                                                            foreach ($dataName_a4['kku_items'] as $kkuItem) {
+                                                                                                if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $dataName_a4['name'] == $kkuItem['name']) {
+                                                                                                    continue;
+                                                                                                }
+                                                                                                echo "<tr>";
+                                                                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a4
+                                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "<br></td>";
+                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
+                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
+                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
+                                                                                                $total1 = $kkuItem['Total_Amount_2567_FN06'] + $kkuItem['Total_Amount_2567_FN08'] + $kkuItem['Total_Amount_2567_FN02'];
+                                                                                                echo "<td>" . formatNumber($total1) . "</td>";
+                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN06']) . "</td>";
+                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN08']) . "</td>";
+                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN02']) . "</td>";
+                                                                                                $total2 = $kkuItem['Total_Amount_2568_FN06'] + $kkuItem['Total_Amount_2568_FN08'] + $kkuItem['Total_Amount_2568_FN02'];
+                                                                                                echo "<td>" . formatNumber($total2) . "</td>";
+                                                                                                $Difference = $total2 - $total1;
+                                                                                                echo "<td>" . formatNumber($Difference) . "</td>";
+                                                                                                $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                                                                echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+
+                                                                                                echo "</tr>";
+
+                                                                                            }
+                                                                                        }
                                                                                     }
                                                                                 }
                                                                             }
@@ -1083,7 +1134,7 @@ function fetchScenariosData($conn)
             const repeatValue = (value, count) => Array(count).fill(value).join(',');
 
             // เพิ่มชื่อรายงาน
-            csvRows.push(`"รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้",,,,,,,`);
+            csvRows.push(`"รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ",,,,,,,`);
 
             // ดึงค่าคณะ/หน่วยงานจาก PHP
             const selectedFacultyName = <?php echo json_encode($selectedFacultyName); ?>;
@@ -1144,7 +1195,7 @@ function fetchScenariosData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้.csv';
+            link.download = 'รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -1164,7 +1215,7 @@ function fetchScenariosData($conn)
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้", 10, 500);
+            doc.text("รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -1189,7 +1240,7 @@ function fetchScenariosData($conn)
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้.pdf');
+            doc.save('รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ.pdf');
         }
 
         function exportXLSX() {
@@ -1228,7 +1279,7 @@ function fetchScenariosData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้ว ประเภทที่ยังไม่มีหนี้.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            link.download = 'รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
