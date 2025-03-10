@@ -505,13 +505,13 @@ function fetchScenariosData($conn)
 
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
-                                            Scenario</label>
+                                            ประเภทงบประมาณ</label>
                                         <select name="scenario" id="scenario" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ทุก Scenario</option>
+                                            <option value="">เลือก ทุก ประเภทงบประมาณ</option>
                                             <option value="Annual Budget Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'Annual Budget Plan') ? 'selected' : ''; ?>>Annual
                                                 Budget Plan</option>
-                                            <option value="MidBudget Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'MidBudget Plan') ? 'selected' : ''; ?>>MidBudget
+                                            <option value="Mid Budget Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'Mid Budget Plan') ? 'selected' : ''; ?>>Mid Budget
                                                 Plan</option>
                                         </select>
                                     </div>

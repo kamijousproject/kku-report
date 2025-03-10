@@ -84,11 +84,21 @@ include '../server/connectdb.php';
 
 $db = new Database();
 $conn = $db->connect();
-
-function fetchBudgetData($conn, $faculty = null)
+$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+$scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $scenario = null)
 {
-    try {
-        $query = "WITH RECURSIVE account_hierarchy AS (
+    // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
+    if ($budget_year1 === null) {
+        $budget_year1 = 2568;  // ค่าเริ่มต้นถ้าหากไม่ได้รับจาก URL
+    }
+    if ($budget_year2 === null) {
+        $budget_year2 = 2567;  // ค่าเริ่มต้น
+    }
+
+    $query = "WITH RECURSIVE account_hierarchy AS (
     -- Anchor member: เริ่มจาก account ทุกตัว
     SELECT 
         a1.account,
@@ -266,20 +276,20 @@ END AS Name_a4
         SUM(CASE WHEN bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN06,
         SUM(CASE WHEN bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN08,
         SUM(bap.Allocated_Total_Amount_Quantity) AS Total_Amount,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN02,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN06,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN08,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_SUM,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN02,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN06,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN08,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_SUM,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) - 
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Difference_2568_2567,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN02,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN06,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN08,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_SUM,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN02,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN06,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN08,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_SUM,
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) - 
+        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Difference_2568_2567,
         CASE
-            WHEN SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 THEN 100
-            ELSE (SUM(CASE WHEN bpa.BUDGET_PERIOD = 2568 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) / 
-                  SUM(CASE WHEN bpa.BUDGET_PERIOD = 2567 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) * 100
+            WHEN SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 THEN 100
+            ELSE (SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) / 
+                  SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) * 100
         END AS Percentage_2568_to_2567,
             m.CurrentAccount,
     m.Current,
@@ -307,11 +317,13 @@ ON bap.`Account`=m.CurrentAccount
             AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
             AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)";
 
-        if ($faculty) {
-            $query .= " AND bap.Faculty = :faculty";
-        }
-
-        $query .= " GROUP BY 
+    if ($faculty) {
+        $query .= " AND bap.Faculty = :faculty";
+    }
+    if ($scenario) {
+        $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
+    }
+    $query .= " GROUP BY 
             bap.Faculty, 
             ft.Faculty, 
             ft.Alias_Default, 
@@ -340,20 +352,26 @@ ON bap.`Account`=m.CurrentAccount
 )
 SELECT * FROM t1";
 
-        $stmt = $conn->prepare($query);
+    // เตรียมคำสั่ง SQL
 
-        if ($faculty) {
-            $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
-        }
+    $stmt = $conn->prepare($query);
 
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    } catch (PDOException $e) {
-        echo "Error: " . $e->getMessage();
-        return [];
+
+    if ($faculty) {
+        $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
     }
+
+    if ($scenario) {
+        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+    }
+
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 }
 
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $scenario);
 
 function fetchFacultyData($conn)
 {
@@ -368,6 +386,25 @@ function fetchFacultyData($conn)
         echo "Error: " . $e->getMessage();
         return [];
     }
+}
+
+
+function fetchYearsData($conn)
+{
+    $query = "SELECT DISTINCT Budget_Management_Year 
+              FROM budget_planning_annual_budget_plan 
+              ORDER BY Budget_Management_Year DESC"; // ดึงปีจากฐานข้อมูล และเรียงลำดับจากปีล่าสุด
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+function fetchScenariosData($conn)
+{
+    $query = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
 ?>
@@ -411,6 +448,8 @@ function fetchFacultyData($conn)
 
                                 <?php
                                 $faculties = fetchFacultyData($conn);
+                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล\
+                                $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
                                 ?>
                                 <form method="GET" action="" onsubmit="return validateForm()">
                                     <div class="form-group" style="display: flex; align-items: center;">
@@ -430,7 +469,34 @@ function fetchFacultyData($conn)
                                             ?>
                                         </select>
                                     </div>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="year" class="label-year"
+                                            style="margin-right: 10px;">เลือกปีงบประมาณ</label>
+                                        <select name="year" id="year" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ปีงบประมาณ</option>
+                                            <?php
+                                            foreach ($years as $year) {
+                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']);
+                                                $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
+                                                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
 
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
+                                            ประเภทงบประมาณ</label>
+                                        <select name="scenario" id="scenario" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุก ประเภทงบประมาณ</option>
+                                            <option value="Allocated Annual Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'Allocated Annual Plan') ? 'selected' : ''; ?>>
+                                                Allocated Annual Plan</option>
+                                            <option value="Allocated Mid Plan" <?php echo (isset($_GET['scenario']) && $_GET['scenario'] == 'Allocated Mid Plan') ? 'selected' : ''; ?>>Allocated
+                                                Mid Plan</option>
+                                        </select>
+                                    </div>
                                     <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
                                     <div class="form-group" style="display: flex; justify-content: center;">
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
@@ -526,9 +592,10 @@ function fetchFacultyData($conn)
                                         $previousType = "";
                                         $previousSubType = "";
                                         $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-
-                                        $results = fetchBudgetData($conn, $selectedFaculty);
-
+                                        $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+                                        $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+                                        $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+                                        $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $scenario);
                                         // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                         if (isset($results) && is_array($results) && count($results) > 0) {
                                             // สร้าง associative array เพื่อเก็บผลรวมของแต่ละ Plan, Sub_Plan, Project, และ Sub_Type
