@@ -318,6 +318,7 @@ END AS Name_a4
         LEFT JOIN main m
 ON bap.`Account`=m.CurrentAccount
         INNER JOIN budget_planning_actual bpa ON bpa.PROJECT = bap.Project
+            AND bap.Faculty = bpa.Faculty
             AND bpa.`ACCOUNT` = bap.`Account`
             AND bpa.PLAN = bap.Plan
             AND bpa.FUND = bap.Fund
@@ -553,7 +554,7 @@ function fetchScenariosData($conn)
                                             }
                                             ?>
                                             <tr>
-                                                <th colspan="8" style='text-align: left;'>
+                                                <th colspan="11" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
                                                         <?php
                                                         if ($selectedYear) {
@@ -577,7 +578,7 @@ function fetchScenariosData($conn)
                                                 </th>
                                             </tr>
                                             <tr>
-                                                <th colspan="8" style='text-align: left;'>
+                                                <th colspan="11" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
                                                         <?php
                                                         echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
@@ -1095,7 +1096,7 @@ function fetchScenariosData($conn)
                                                 }
                                             }
                                         } else {
-                                            echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                            echo "<tr><td colspan='11' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
                                         }
                                         ?>
                                     </table>
