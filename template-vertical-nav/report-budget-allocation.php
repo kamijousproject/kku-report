@@ -441,6 +441,14 @@ function fetchYearsData($conn)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+function fetchScenariosData($conn)
+{
+    $query = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -486,6 +494,7 @@ function fetchYearsData($conn)
                                 <?php
                                 $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
+                                $scenarios = fetchScenariosData($conn);
                                 ?>
                                 <!-- Dropdown สำหรับเลือก Scenario -->
                                 <form method="GET" action="">
@@ -505,7 +514,22 @@ function fetchYearsData($conn)
                                             ?>
                                         </select>
                                     </div>
-
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
+                                            ประเภทงบประมาณ</label>
+                                        <select name="scenario" id="scenario" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุก ประเภทงบประมาณ</option>
+                                            <?php
+                                            foreach ($scenarios as $scenario) {
+                                                $scenarioName = htmlspecialchars($scenario['Scenario']);
+                                                $scenarioCode = htmlspecialchars($scenario['Scenario']);
+                                                $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
+                                                echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="year" class="label-year"
                                             style="margin-right: 10px;">เลือกปีงบประมาณ</label>
