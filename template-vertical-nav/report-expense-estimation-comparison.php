@@ -695,7 +695,7 @@ function fetchScenariosData($conn)
                                             <?php
                                             // ตรวจสอบและกำหนดค่า $selectedYear
                                             $selectedYear = isset($_GET['year']) && $_GET['year'] != '' ? (int) $_GET['year'] : '2568';
-
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
                                             // ตรวจสอบและกำหนดค่า $selectedFacultyName
                                             $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
                                             $selectedFacultyName = 'แสดงทุกหน่วยงาน';
@@ -733,6 +733,17 @@ function fetchScenariosData($conn)
                                                         $facultyData = str_replace('-', ':', $selectedFacultyName);
 
                                                         echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="31" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+
+
+                                                        <?php
+                                                        echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
+                                                        ?>
                                                     </span>
                                                 </th>
                                             </tr>
