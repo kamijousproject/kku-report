@@ -532,6 +532,7 @@ function fetchScenariosData($conn)
 
                                             // ตรวจสอบและกำหนดค่า $selectedFacultyName
                                             $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                            $selectedYear = isset($_GET['year']) && $_GET['year'] != '' ? (int) $_GET['year'] : '2568';
                                             $selectedFacultyName = 'แสดงทุกหน่วยงาน';
 
                                             if ($selectedFacultyCode) {
@@ -545,6 +546,18 @@ function fetchScenariosData($conn)
                                             }
                                             ?>
                                             <tr>
+                                                <th colspan="8" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+                                                        <?php
+                                                        if ($selectedYear) {
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ " . ($selectedYear - 1) . " ถึง " . $selectedYear;
+                                                        } else {
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ: ไม่ได้เลือกปีงบประมาณ";
+                                                        }
+                                                        ?> </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
                                                 <th colspan="11" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
 
@@ -557,9 +570,20 @@ function fetchScenariosData($conn)
                                                 </th>
                                             </tr>
                                             <tr>
+                                                <th colspan="11" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+
+
+                                                        <?php
+
+                                                        echo "ประเภทงบประมาณ" . $scenario; ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
                                                 <th rowspan="2">รายการ</th>
-                                                <th colspan="4">ปี 2567 (ปีปัจจุบัน)</th>
-                                                <th colspan="4">ปี 2568 (ปีที่ขอตั้ง)</th>
+                                                <th colspan="4">ปี <?php echo ($selectedYear - 1); ?></th>
+                                                <th colspan="4">ปี <?php echo ($selectedYear); ?></th>
                                                 <th colspan="2">เพิ่ม/ลด</th>
                                             </tr>
                                             <tr>

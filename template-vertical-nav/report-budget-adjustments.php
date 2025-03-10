@@ -560,7 +560,7 @@ function fetchScenariosData($conn)
                                             // ตรวจสอบและกำหนดค่า $selectedFacultyName
                                             $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
                                             $selectedFacultyName = 'แสดงทุกหน่วยงาน';
-
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
                                             if ($selectedFacultyCode) {
                                                 // ค้นหาชื่อคณะจากรหัสคณะที่เลือก
                                                 foreach ($faculties as $faculty) {
@@ -590,18 +590,17 @@ function fetchScenariosData($conn)
 
 
                                                         <?php
-                                                        $facultyData = str_replace('-', ':', $selectedFacultyName);
 
-                                                        echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
+                                                        echo "ประเภทงบประมาณ" . $scenario; ?>
                                                     </span>
                                                 </th>
                                             </tr>
 
                                             <tr>
                                                 <th rowspan="2">รายการ</th>
-                                                <th rowspan="2">รายรับจริงปี 66</th>
-                                                <th colspan="2">ปี 2567</th>
-                                                <th rowspan="2">ปี 2568 (ปีที่ขอตั้งงบ)</th>
+                                                <th rowspan="2">รายรับจริงปี <?php echo ($selectedYear - 2); ?></th>
+                                                <th colspan="2">ปี <?php echo ($selectedYear - 1); ?></th>
+                                                <th rowspan="2">ปี <?php echo ($selectedYear); ?></th>
                                                 <th colspan="2">เพิ่ม/ลด</th>
                                                 <th rowspan="2">คำชี้แจง</th>
                                             </tr>
