@@ -203,21 +203,39 @@ SELECT
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
+SUM(
+    CASE 
+        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2)) 
+        THEN bpa.TOTAL_BUDGET 
+        ELSE 0 
+    END
+) AS TOTAL_BUDGET_2568,
+SUM(
+    CASE 
+        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2)) 
+        THEN bpa.TOTAL_BUDGET 
+        ELSE 0 
+    END
+) AS TOTAL_BUDGET_2567,
+SUM(
+    CASE 
+        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2)) 
+        THEN bpa.TOTAL_BUDGET 
+        ELSE 0 
+    END
+) AS TOTAL_BUDGET_2566,
     (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-     COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)) 
+     COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)) 
      AS Difference_2568_2567,
     CASE
-        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
+        WHEN COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
         THEN 100
         ELSE 
             (
                 SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+                COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
             ) / 
-            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
+            NULLIF(COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
     END AS Percentage_Difference_2568_2567,
     bap.Reason,
     m.CurrentAccount,
@@ -336,7 +354,7 @@ LEFT JOIN budget_planning_actual bpa
     AND bpa.PLAN = bap.Plan
     AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
     AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-    AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
+    AND bpa.FUND = bap.Fund
 WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
 ";
 
