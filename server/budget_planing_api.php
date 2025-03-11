@@ -657,9 +657,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM hierarchy_pivot
                     ),t1 AS (
                             SELECT b.Faculty
+									 ,case when b.scenario LIKE '%Annual%' then 'งบประมาณประจำปี'
+									 when b.scenario LIKE '%Midyear%' then 'งบประมาณกลางปี' 
+									 ELSE b.scenario END AS scenario
                             ,sum(case when b.Fund='FN06' then b.Total_Amount_Quantity ELSE 0 END) AS t06
                             ,sum(case when b.Fund='FN02' then b.Total_Amount_Quantity ELSE 0 END) AS t02
                             ,sum(case when b.Fund='FN08' then b.Total_Amount_Quantity ELSE 0 END) AS t08
+                            ,sum(case when ba.Fund='FN06' then ba.EXPENDITURES ELSE 0 END) AS e06
+                            ,sum(case when ba.Fund='FN02' then ba.EXPENDITURES ELSE 0 END) AS e02
+                            ,sum(case when ba.Fund='FN08' then ba.EXPENDITURES ELSE 0 END) AS e08
                             ,b.Account AS account2
                             ,b.KKU_Item_Name
                             ,b.Budget_Management_Year
@@ -681,8 +687,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ON b.faculty=f.faculty
                             LEFT JOIN Faculty f2
                             ON f.parent=f2.Faculty
+                            LEFT JOIN budget_planning_actual ba
+                            ON b.faculty=ba.FACULTY COLLATE UTF8MB4_GENERAL_CI AND b.fund=ba.FUND COLLATE UTF8MB4_GENERAL_CI
+									 AND b.Budget_Management_Year=CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(ba.FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR)) COLLATE UTF8MB4_GENERAL_CI
+									 AND b.plan=ba.PLAN COLLATE UTF8MB4_GENERAL_CI AND replace(b.sub_plan,'SP_','')=ba.SUBPLAN AND b.project=ba.PROJECT COLLATE UTF8MB4_GENERAL_CI
+									 AND replace(b.service,'SR_','')=ba.SERVICE AND b.account=ba.account COLLATE UTF8MB4_GENERAL_CI
                             WHERE a.id > (SELECT id FROM account WHERE parent = 'Expenses')
-                            GROUP BY b.Faculty
+                            GROUP BY b.Faculty,case when b.scenario LIKE '%Annual%' then 'งบประมาณประจำปี'
+									 when b.scenario LIKE '%Midyear%' then 'งบประมาณกลางปี' 
+									 ELSE b.scenario END
                             ,b.Account
                             ,b.KKU_Item_Name
                             ,b.Budget_Management_Year
@@ -693,6 +706,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             ,a.id
                             ,f.Alias_Default
                                     ,f2.Alias_Default)
+                                    
                             ,t2 AS (
                                     SELECT t.*,a.account AS atype,a2.account AS asubtype, a3.alias_default AS aname
                                     FROM t1 t
@@ -718,8 +732,61 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                     FROM t3 t
                                     LEFT JOIN shifted_hierarchy h
                                     ON t.account2=h.current_acc)
+                           
                                     SELECT * FROM t4
                                     ORDER BY Faculty,KKU_Strategic_Plan_LOV,p_id";
+                $cmd = $conn->prepare($sql);
+                $cmd->execute();
+                $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
+
+                $conn = null;
+
+                $response = array(
+                    'bgp' => $bgp,
+                );
+                echo json_encode($response);
+            } catch (PDOException $e) {
+                $response = array(
+                    'status' => 'error',
+                    'message' => 'Database error: ' . $e->getMessage()
+                );
+                echo json_encode($response);
+            }
+            break;
+        case "kku_bgp_budget-spending-status2":
+            try {
+                $db = new Database();
+                $conn = $db->connect();
+
+                // เชื่อมต่อฐานข้อมูล
+                $sql = "SELECT ba.Faculty
+
+                ,sum(case when ba.Fund='FN06' then ba.EXPENDITURES ELSE 0 END) AS n06
+                ,sum(case when ba.Fund='FN02' then ba.EXPENDITURES ELSE 0 END) AS n02
+                ,sum(case when ba.Fund='FN08' then ba.EXPENDITURES ELSE 0 END) AS n08
+                ,CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(ba.FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR)) AS FISCAL_YEAR
+
+                ,replace(f.Alias_Default,'-',':') as Alias_Default
+                ,f2.Alias_Default AS pname
+                FROM budget_planning_actual ba
+                LEFT JOIN budget_planning_project_kpi b2
+                ON ba.Faculty=b2.Faculty AND ba.Project=b2.Project
+                LEFT JOIN account a
+                ON ba.Account=a.account
+                LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
+                ON ba.faculty=f.faculty
+                LEFT JOIN Faculty f2
+                ON f.parent=f2.Faculty
+                left JOIN budget_planning_annual_budget_plan b
+                ON b.faculty=ba.FACULTY COLLATE UTF8MB4_GENERAL_CI AND b.fund=ba.FUND COLLATE UTF8MB4_GENERAL_CI
+                AND b.Budget_Management_Year=CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(ba.FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR)) COLLATE UTF8MB4_GENERAL_CI
+                AND b.plan=ba.PLAN COLLATE UTF8MB4_GENERAL_CI AND replace(b.sub_plan,'SP_','')=ba.SUBPLAN AND b.project=ba.PROJECT COLLATE UTF8MB4_GENERAL_CI
+                AND replace(b.service,'SR_','')=ba.SERVICE AND b.account=ba.account COLLATE UTF8MB4_GENERAL_CI
+                WHERE a.id > (SELECT id FROM account WHERE parent = 'Expenses')  AND b.Faculty IS NULL 
+                GROUP BY ba.Faculty
+                ,f.Alias_Default
+                        ,f2.Alias_Default,b.Faculty
+                        ,CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(ba.FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR))";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);
