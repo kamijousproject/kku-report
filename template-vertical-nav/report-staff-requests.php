@@ -370,7 +370,7 @@ th, td {
             d_new.forEach((row, index) => {
                 if(row.Personnel_Type.includes("เงินรายได้"))
                 {
-                    if(row.Employment_Type=="ผู้ปฏิบัติงานในมหาวิทยาลัย")
+                    if(row.Employment_Type=="ผู้ปฏิบัติงานในมหาวิทยาลัย" || row.Employment_Type=="จ้างที่ปรึกษา")
                     {
                         emp3+=parseInt(row.Requested_HC_unit);
                         Sumemp3+=parseInt(row.Requested_HC_unit);
@@ -385,7 +385,7 @@ th, td {
                         type1+=parseInt(row.Requested_HC_unit);
                         Sumtype1+=parseInt(row.Requested_HC_unit);
                     }
-                    else if(row.Employment_Type=="ชาวต่างประเทศ")
+                    else if(row.Employment_Type.includes("ชาวต่างประเทศ"))
                     {
                         emp1+=parseInt(row.Requested_HC_unit);
                         Sumemp1+=parseInt(row.Requested_HC_unit);
