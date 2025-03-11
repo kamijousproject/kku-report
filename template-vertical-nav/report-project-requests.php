@@ -333,7 +333,7 @@ thead tr:nth-child(3) th {
                         response.bgp.forEach((row, index) => {
                             const tr = document.createElement('tr');
                             var sumac=(parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4) + parseInt(row.a5));
-                            var sumq=(parseInt(row.q1) + parseInt(row.q2) + parseInt(row.q3) + parseInt(row.q4));
+                            var sumq=(parseInt(row.q1) + parseInt(row.q2) + parseInt(row.q3) + parseInt(row.q4 || 0));
                             const columns = [
                                 { key: 'No', value: index + 1 },
                                 //{ key: 'Alias_Default', value: row.Alias_Default },
@@ -360,7 +360,7 @@ thead tr:nth-child(3) th {
                                 { key: 'Q1_Spending_Plan', value: parseInt(row.q1).toLocaleString() },
                                 { key: 'Q2_Spending_Plan', value: parseInt(row.q2).toLocaleString() },
                                 { key: 'Q3_Spending_Plan', value: parseInt(row.q3).toLocaleString() },
-                                { key: 'Q4_Spending_Plan', value: (parseInt(row.q4)=== 0? (sumac - sumq): parseInt(row.q4) ).toLocaleString() }
+                                { key: 'Q4_Spending_Plan', value: (parseInt(row.q4|| 0)=== 0? (sumac - sumq): parseInt(row.q4 || 0) ).toLocaleString() }
                             ];
                             columns.forEach(col => {
                                 const td = document.createElement('td');
