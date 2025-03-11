@@ -198,44 +198,24 @@ SELECT
     ac.alias_default, 
     ac.sub_type, 
     ac.type,
-    bap.KKU_Item_Name, 
+    bap.KKU_Item_Name,
     bap.Account,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
-SUM(
-    CASE 
-        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2)) 
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END
-) AS TOTAL_BUDGET_2568,
-SUM(
-    CASE 
-        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2)) 
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END
-) AS TOTAL_BUDGET_2567,
-SUM(
-    CASE 
-        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2)) 
-        THEN bpa.TOTAL_BUDGET 
-        ELSE 0 
-    END
-) AS TOTAL_BUDGET_2566,
-    (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-     COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)) 
-     AS Difference_2568_2567,
+    bap.Fund,
+    SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+    SUM(CASE WHEN bap.Budget_Management_Year = 2567 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+    SUM(CASE WHEN bap.Budget_Management_Year = 2566 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
+    COALESCE(bpa_sum.TOTAL_BUDGET_2568, 0) AS TOTAL_BUDGET_2568,
+    COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0) AS TOTAL_BUDGET_2567,
+    COALESCE(bpa_sum.TOTAL_BUDGET_2566, 0) AS TOTAL_BUDGET_2566,
+    (SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+     COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0)) AS Difference_2568_2567,
     CASE
-        WHEN COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
+        WHEN COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0) = 0
         THEN 100
         ELSE 
-            (
-                SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-                COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
-            ) / 
-            NULLIF(COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
+            (SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+             COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0)) / 
+            NULLIF(COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0), 0) * 100
     END AS Percentage_Difference_2568_2567,
     bap.Reason,
     m.CurrentAccount,
@@ -346,15 +326,35 @@ LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan
 LEFT JOIN project pj ON pj.project_id = bap.Project
 LEFT JOIN `account` ac ON ac.account COLLATE utf8mb4_general_ci = bap.Account COLLATE utf8mb4_general_ci
 LEFT JOIN plan p ON p.plan_id = bap.Plan
-LEFT JOIN budget_planning_actual bpa
-    ON bpa.FACULTY = bap.Faculty
-    AND bpa.ACCOUNT = bap.Account
-    AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
-    AND bpa.PROJECT = bap.Project
-    AND bpa.PLAN = bap.Plan
-    AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(bap.Budget_Management_Year - 543 AS CHAR), -2))
-    AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-    AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
+LEFT JOIN (
+    SELECT 
+        bpa.FACULTY,
+        bpa.ACCOUNT,
+        bpa.SUBPLAN,
+        bpa.PROJECT,
+        bpa.PLAN,
+        bpa.SERVICE,
+        bpa.FUND,
+        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
+        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
+        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566
+    FROM budget_planning_actual bpa
+    GROUP BY 
+        bpa.FACULTY,
+        bpa.ACCOUNT,
+        bpa.SUBPLAN,
+        bpa.PROJECT,
+        bpa.PLAN,
+        bpa.SERVICE,
+        bpa.FUND
+) bpa_sum
+    ON bpa_sum.FACULTY = bap.Faculty
+    AND bpa_sum.ACCOUNT = bap.Account
+    AND bpa_sum.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
+    AND bpa_sum.PROJECT = bap.Project
+    AND bpa_sum.PLAN = bap.Plan
+    AND bpa_sum.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
+    AND bpa_sum.FUND = bap.Fund
 WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
 ";
 
@@ -367,10 +367,11 @@ WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
         $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
     }
     // เพิ่มการจัดกลุ่มข้อมูล
-    $query .= " GROUP BY 
+    $query .= "GROUP BY 
     bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
-    bap.Project, pj.project_name, bap.Account, ac.sub_type, 
-    bap.KKU_Item_Name, ft.Alias_Default, ac.alias_default, ac.type, p.plan_name,bap.Reason,bap.Reason,
+    bap.Project, pj.project_name, bap.Account, bap.Fund, ac.sub_type, 
+    bap.KKU_Item_Name, ft.Alias_Default, ac.alias_default, ac.type, p.plan_name, bap.Reason,
+    bpa_sum.TOTAL_BUDGET_2568, bpa_sum.TOTAL_BUDGET_2567, bpa_sum.TOTAL_BUDGET_2566,
     m.CurrentAccount,
     m.Current,
     m.ParentAccount,
@@ -834,12 +835,11 @@ function fetchScenariosData($conn)
                                                             'kku_items' => [],
                                                         ];
                                                     }
-                                                    // รวมข้อมูลของ Plan
+                                                    // รวมข้อมูลของ faculty
                                                     $summary[$faculty]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['Total_Amount_2568'] += $row['Total_Amount_2568'];
-
 
                                                     // รวมข้อมูลของ Plan
                                                     $summary[$faculty]['plan'][$plan]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
@@ -847,13 +847,13 @@ function fetchScenariosData($conn)
                                                     $summary[$faculty]['plan'][$plan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
-                                                    // รวมข้อมูลของ Sub_Plan
+                                                    // รวมข้อมูลของ subPlan
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
-                                                    // รวมข้อมูลของ Project
+                                                    // รวมข้อมูลของ projects
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
@@ -870,6 +870,7 @@ function fetchScenariosData($conn)
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568'] += $row['Total_Amount_2568'];
+
                                                     // รวมข้อมูลของ Name_a3
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567'] += $row['Total_Amount_2567'];
@@ -888,7 +889,7 @@ function fetchScenariosData($conn)
                                                         ? "" . htmlspecialchars($row['Account'] ?? '') . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
                                                         : "" . htmlspecialchars($row['Account'] ?? '') . "";
 
-                                                    $summary[$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
+                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                         'name' => $ItemName_a4,
                                                         'test' => $row['Name_a4'],
                                                         'TOTAL_BUDGET_2566' => $row['TOTAL_BUDGET_2566'],
@@ -938,10 +939,15 @@ function fetchScenariosData($conn)
                                                         echo "<td>" . formatNumber($total_summary['TOTAL_BUDGET_2567']) . "</td>";
                                                         echo "<td>" . formatNumber($total_summary['Total_Amount_2568']) . "</td>";
 
-                                                        // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Plan
                                                         $Difference = $total_summary['Total_Amount_2568'] - $total_summary['TOTAL_BUDGET_2567'];
-                                                        $Percentage_Difference = ($total_summary['TOTAL_BUDGET_2567'] != 0) ? ($Difference / $total_summary['TOTAL_BUDGET_2567']) * 100 : 100;
 
+                                                        // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                        if ($total_summary['TOTAL_BUDGET_2567'] != 0) {
+                                                            $Percentage_Difference = ($Difference / $total_summary['TOTAL_BUDGET_2567']) * 100;
+                                                        } else {
+                                                            // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                            $Percentage_Difference = ($Difference > 0) ? 100 : 0;
+                                                        }
                                                         echo "<td>" . formatNumber($Difference) . "</td>";
                                                         echo "<td>" . formatNumber($Percentage_Difference) . "%</td>";
                                                         echo "<td>" . "</td>";
@@ -967,10 +973,15 @@ function fetchScenariosData($conn)
                                                     echo "<td>" . formatNumber($data['TOTAL_BUDGET_2567']) . "</td>";
                                                     echo "<td>" . formatNumber($data['Total_Amount_2568']) . "</td>";
 
-                                                    // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Plan
                                                     $Difference = $data['Total_Amount_2568'] - $data['TOTAL_BUDGET_2567'];
-                                                    $Percentage_Difference = ($data['TOTAL_BUDGET_2567'] != 0) ? ($Difference / $data['TOTAL_BUDGET_2567']) * 100 : 100;
 
+                                                    // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                    if ($data['TOTAL_BUDGET_2567'] != 0) {
+                                                        $Percentage_Difference = ($Difference / $data['TOTAL_BUDGET_2567']) * 100;
+                                                    } else {
+                                                        // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                        $Percentage_Difference = ($Difference > 0) ? 100 : 0;
+                                                    }
                                                     echo "<td>" . formatNumber($Difference) . "</td>";
                                                     echo "<td>" . formatNumber($Percentage_Difference) . "%</td>";
                                                     echo "<td>" . "</td>";
@@ -990,10 +1001,15 @@ function fetchScenariosData($conn)
                                                         echo "<td>" . formatNumber($plandata['TOTAL_BUDGET_2567']) . "</td>";
                                                         echo "<td>" . formatNumber($plandata['Total_Amount_2568']) . "</td>";
 
-                                                        // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Plan
                                                         $Difference = $plandata['Total_Amount_2568'] - $plandata['TOTAL_BUDGET_2567'];
-                                                        $Percentage_Difference = ($plandata['TOTAL_BUDGET_2567'] != 0) ? ($Difference / $plandata['TOTAL_BUDGET_2567']) * 100 : 100;
 
+                                                        // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                        if ($plandata['TOTAL_BUDGET_2567'] != 0) {
+                                                            $Percentage_Difference = ($Difference / $plandata['TOTAL_BUDGET_2567']) * 100;
+                                                        } else {
+                                                            // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                            $Percentage_Difference = ($Difference > 0) ? 100 : 0;
+                                                        }
                                                         echo "<td>" . formatNumber($Difference) . "</td>";
                                                         echo "<td>" . formatNumber($Percentage_Difference) . "%</td>";
                                                         echo "<td>" . "</td>";
@@ -1016,10 +1032,15 @@ function fetchScenariosData($conn)
                                                             echo "<td>" . formatNumber($subData['TOTAL_BUDGET_2567']) . "</td>";
                                                             echo "<td>" . formatNumber($subData['Total_Amount_2568']) . "</td>";
 
-                                                            // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Plan
                                                             $subDifference = $subData['Total_Amount_2568'] - $subData['TOTAL_BUDGET_2567'];
-                                                            $subPercentage_Difference = ($subData['TOTAL_BUDGET_2567'] != 0) ? ($subDifference / $subData['TOTAL_BUDGET_2567']) * 100 : 100;
 
+                                                            // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                            if ($subData['TOTAL_BUDGET_2567'] != 0) {
+                                                                $subPercentage_Difference = ($subDifference / $subData['TOTAL_BUDGET_2567']) * 100;
+                                                            } else {
+                                                                // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                                $subPercentage_Difference = ($subDifference > 0) ? 100 : 0;
+                                                            }
                                                             echo "<td>" . formatNumber($subDifference) . "</td>";
                                                             echo "<td>" . formatNumber($subPercentage_Difference) . "%</td>";
                                                             echo "<td>" . "</td>";
@@ -1040,9 +1061,15 @@ function fetchScenariosData($conn)
                                                                 echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_2567']) . "</td>";
                                                                 echo "<td>" . formatNumber($projectData['Total_Amount_2568']) . "</td>";
 
-                                                                // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Project
                                                                 $projectDifference = $projectData['Total_Amount_2568'] - $projectData['TOTAL_BUDGET_2567'];
-                                                                $projectPercentage_Difference = ($projectData['TOTAL_BUDGET_2567'] != 0) ? ($projectDifference / $projectData['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                                // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                                if ($projectData['TOTAL_BUDGET_2567'] != 0) {
+                                                                    $projectPercentage_Difference = ($projectDifference / $projectData['TOTAL_BUDGET_2567']) * 100;
+                                                                } else {
+                                                                    // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                                    $projectPercentage_Difference = ($projectDifference > 0) ? 100 : 0;
+                                                                }
 
                                                                 echo "<td>" . formatNumber($projectDifference) . "</td>";
                                                                 echo "<td>" . formatNumber($projectPercentage_Difference) . "%</td>";
@@ -1064,9 +1091,15 @@ function fetchScenariosData($conn)
                                                                     echo "<td>" . formatNumber($dataName_a1['TOTAL_BUDGET_2567']) . "</td>";
                                                                     echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568']) . "</td>";
 
-                                                                    // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
                                                                     $subTypeDifference = $dataName_a1['Total_Amount_2568'] - $dataName_a1['TOTAL_BUDGET_2567'];
-                                                                    $subTypePercentage_Difference = ($dataName_a1['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $subTypeData['TOTAL_BUDGET_2567']) * 100 : 100;
+
+                                                                    // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                                    if ($dataName_a1['TOTAL_BUDGET_2567'] != 0) {
+                                                                        $subTypePercentage_Difference = ($subTypeDifference / $dataName_a1['TOTAL_BUDGET_2567']) * 100;
+                                                                    } else {
+                                                                        // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                                        $subTypePercentage_Difference = ($subTypeDifference > 0) ? 100 : 0;
+                                                                    }
 
                                                                     echo "<td>" . formatNumber($subTypeDifference) . "</td>";
                                                                     echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
@@ -1093,10 +1126,15 @@ function fetchScenariosData($conn)
                                                                             echo "<td>" . formatNumber($dataName_a2['TOTAL_BUDGET_2567']) . "</td>";
                                                                             echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568']) . "</td>";
 
-                                                                            // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
                                                                             $subTypeDifference = $dataName_a2['Total_Amount_2568'] - $dataName_a2['TOTAL_BUDGET_2567'];
-                                                                            $subTypePercentage_Difference = ($dataName_a2['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $dataName_a2['TOTAL_BUDGET_2567']) * 100 : 100;
 
+                                                                            // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                                            if ($dataName_a2['TOTAL_BUDGET_2567'] != 0) {
+                                                                                $subTypePercentage_Difference = ($subTypeDifference / $dataName_a2['TOTAL_BUDGET_2567']) * 100;
+                                                                            } else {
+                                                                                // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                                                $subTypePercentage_Difference = ($subTypeDifference > 0) ? 100 : 0;
+                                                                            }
                                                                             echo "<td>" . formatNumber($subTypeDifference) . "</td>";
                                                                             echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
 
@@ -1124,10 +1162,15 @@ function fetchScenariosData($conn)
                                                                                     echo "<td>" . formatNumber($dataName_a3['TOTAL_BUDGET_2567']) . "</td>";
                                                                                     echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568']) . "</td>";
 
-                                                                                    // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
                                                                                     $subTypeDifference = $dataName_a3['Total_Amount_2568'] - $dataName_a3['TOTAL_BUDGET_2567'];
-                                                                                    $subTypePercentage_Difference = ($dataName_a3['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $dataName_a3['TOTAL_BUDGET_2567']) * 100 : 100;
 
+                                                                                    // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                                                    if ($dataName_a3['TOTAL_BUDGET_2567'] != 0) {
+                                                                                        $subTypePercentage_Difference = ($subTypeDifference / $dataName_a3['TOTAL_BUDGET_2567']) * 100;
+                                                                                    } else {
+                                                                                        // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                                                        $subTypePercentage_Difference = ($subTypeDifference > 0) ? 100 : 0;
+                                                                                    }
                                                                                     echo "<td>" . formatNumber($subTypeDifference) . "</td>";
                                                                                     echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
                                                                                     if ($dataName_a3['test2'] == null || $dataName_a3['test2'] == '') {
@@ -1154,10 +1197,15 @@ function fetchScenariosData($conn)
                                                                                             echo "<td>" . formatNumber($dataName_a4['TOTAL_BUDGET_2567']) . "</td>";
                                                                                             echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568']) . "</td>";
 
-                                                                                            // คำนวณผลต่างและเปอร์เซ็นต์สำหรับ Sub_Type
                                                                                             $subTypeDifference = $dataName_a4['Total_Amount_2568'] - $dataName_a4['TOTAL_BUDGET_2567'];
-                                                                                            $subTypePercentage_Difference = ($dataName_a4['TOTAL_BUDGET_2567'] != 0) ? ($subTypeDifference / $dataName_a4['TOTAL_BUDGET_2567']) * 100 : 100;
 
+                                                                                            // ตรวจสอบไม่ให้เกิดการหารด้วยศูนย์
+                                                                                            if ($dataName_a4['TOTAL_BUDGET_2567'] != 0) {
+                                                                                                $subTypePercentage_Difference = ($subTypeDifference / $dataName_a4['TOTAL_BUDGET_2567']) * 100;
+                                                                                            } else {
+                                                                                                // กรณีที่งบประมาณปี 2567 เป็น 0 ให้ค่าเป็น 100% หรือ 0% ตามที่ต้องการ
+                                                                                                $subTypePercentage_Difference = ($subTypeDifference > 0) ? 100 : 0;
+                                                                                            }
                                                                                             echo "<td>" . formatNumber($subTypeDifference) . "</td>";
                                                                                             echo "<td>" . formatNumber($subTypePercentage_Difference) . "%</td>";
                                                                                             if ($dataName_a4['test2'] == null || $dataName_a4['test2'] == '') {
