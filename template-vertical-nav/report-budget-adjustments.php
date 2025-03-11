@@ -201,19 +201,19 @@ SELECT
     bap.KKU_Item_Name,
     bap.Account,
     bap.Fund,
-    SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
-    SUM(CASE WHEN bap.Budget_Management_Year = 2567 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
-    SUM(CASE WHEN bap.Budget_Management_Year = 2566 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
     COALESCE(bpa_sum.TOTAL_BUDGET_2568, 0) AS TOTAL_BUDGET_2568,
     COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0) AS TOTAL_BUDGET_2567,
     COALESCE(bpa_sum.TOTAL_BUDGET_2566, 0) AS TOTAL_BUDGET_2566,
-    (SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+    (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
      COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0)) AS Difference_2568_2567,
     CASE
         WHEN COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0) = 0
         THEN 100
         ELSE 
-            (SUM(CASE WHEN bap.Budget_Management_Year = 2568 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
+            (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
              COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0)) / 
             NULLIF(COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0), 0) * 100
     END AS Percentage_Difference_2568_2567,
