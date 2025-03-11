@@ -332,7 +332,8 @@ thead tr:nth-child(3) th {
                         console.log(response.bgp);
                         response.bgp.forEach((row, index) => {
                             const tr = document.createElement('tr');
-
+                            var sumac=(parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4) + parseInt(row.a5));
+                            var sumq=(parseInt(row.q1) + parseInt(row.q2) + parseInt(row.q3) + parseInt(row.q4));
                             const columns = [
                                 { key: 'No', value: index + 1 },
                                 //{ key: 'Alias_Default', value: row.Alias_Default },
@@ -354,12 +355,12 @@ thead tr:nth-child(3) th {
                                 { key: 'Investment_Expenses', value: parseInt(row.a3).toLocaleString() }, // ค่าใช้จ่ายลงทุน
                                 { key: 'Subsidy_Operating_Expenses', value: parseInt(row.a4).toLocaleString() }, // ค่าใช้จ่ายเงินอุดหนุนดำเนินงาน
                                 { key: 'Other_Expenses', value: parseInt(row.a5).toLocaleString() }, // ค่าใช้จ่ายอื่น
-                                { key: 'sum', value: (parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4) + parseInt(row.a5)).toLocaleString() },
+                                { key: 'sum', value: sumac.toLocaleString() },
                                 // แผนการใช้จ่ายรายไตรมาส
                                 { key: 'Q1_Spending_Plan', value: parseInt(row.q1).toLocaleString() },
                                 { key: 'Q2_Spending_Plan', value: parseInt(row.q2).toLocaleString() },
                                 { key: 'Q3_Spending_Plan', value: parseInt(row.q3).toLocaleString() },
-                                { key: 'Q4_Spending_Plan', value: parseInt(row.q4).toLocaleString() }
+                                { key: 'Q4_Spending_Plan', value: (parseInt(row.q4)=== 0? (sumac - sumq): parseInt(row.q4) ).toLocaleString() }
                             ];
                             columns.forEach(col => {
                                 const td = document.createElement('td');

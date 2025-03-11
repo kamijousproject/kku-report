@@ -1075,8 +1075,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         FROM budget_planning_annual_budget_plan b
                         LEFT JOIN (SELECT * from Faculty WHERE parent LIKE 'Faculty%') f
                         ON b.faculty=f.faculty
+                        LEFT JOIN account a
+                        ON b.Account=a.account
+                        WHERE a.id>(SELECT id FROM account WHERE parent='Expenses') 
                         
-                        WHERE b.Budget_Management_Year= :fyear AND b.fund= :fund AND f.Alias_Default= :faculty and b.scenario=:scenario)
+                        and b.Budget_Management_Year= :fyear AND b.fund= :fund AND f.Alias_Default= :faculty and b.scenario=:scenario
+							  )
                         ,t1_1 AS (
                         SELECT t.faculty
                         ,t.fund
@@ -1084,6 +1088,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,t.sub_plan
                         ,t.project
                         ,t.Alias_Default
+                        ,t.Budget_Management_Year
                         ,sum(case when a.type='1.ค่าใช้จ่ายบุคลากร' then t.Total_Amount_Quantity ELSE 0 END) AS a1
                         ,sum(case when a.type='2.ค่าใช้จ่ายดำเนินงาน' then t.Total_Amount_Quantity ELSE 0 END) AS a2
                         ,sum(case when a.type='3.ค่าใช้จ่ายลงทุน' then t.Total_Amount_Quantity ELSE 0 END) AS a3
@@ -1101,7 +1106,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,t.plan
                         ,t.sub_plan
                         ,t.project
-                        ,t.Alias_Default)
+                        ,t.Alias_Default
+								,t.Budget_Management_Year)
                         ,t2 AS (
                         SELECT t.*,pr.project_name
                         FROM t1_1 t
