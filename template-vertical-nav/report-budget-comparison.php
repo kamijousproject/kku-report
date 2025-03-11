@@ -596,87 +596,90 @@
                                             </tr>
                                         </thead>
                                         <?php
-                                        // echo "<pre>";
-                                        // print_r($resultsFN);
-                                        // echo "</pre>";
-
                                         $groupedData = [];
-                                        $shownLevels = [];
-
-                                        // จัดกลุ่มข้อมูลตาม Plan, Sub_Plan, Project และ Expense
-                                        // file_put_contents('resultsFN.json', json_encode($resultsFN, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE));
 
                                         foreach ($resultsFN as $row) {
                                             $planKey = $row['Plan'];
                                             $subPlanKey = $row['Sub_Plan'];
                                             $projectKey = $row['Project'];
-                                            $expenseKey = $row['expense'];
+                                            $level3Key = $row['level3']; // ใช้แทน expense
+                                            $level5Key = $row['level5']; // ใช้แทน expense_type
 
                                             if (!isset($groupedData[$planKey])) {
-                                                $groupedData[$planKey] = ['plan_name' => $row['plan_name'], 'sub_plans' => [], 'expenses' => []];
+                                                $groupedData[$planKey] = [
+                                                    'plan_name' => $row['plan_name'],
+                                                    'sub_plans' => [],
+                                                    'expenses' => []
+                                                ];
                                             }
+
                                             if (!isset($groupedData[$planKey]['sub_plans'][$subPlanKey])) {
-                                                $groupedData[$planKey]['sub_plans'][$subPlanKey] = ['sub_plan_name' => $row['sub_plan_name'], 'projects' => [], 'sub_plan_items' => []];
+                                                $groupedData[$planKey]['sub_plans'][$subPlanKey] = [
+                                                    'sub_plan_name' => $row['sub_plan_name'],
+                                                    'sub_plan_items' => [],
+                                                    'projects' => []
+                                                ];
                                             }
+
                                             if (!empty($row['KPI']) && strpos($row['TYPE'], 'sub_plan_kpi') !== false) {
                                                 if (!in_array($row['kpi_name'], $groupedData[$planKey]['sub_plans'][$subPlanKey]['sub_plan_items'])) {
                                                     $groupedData[$planKey]['sub_plans'][$subPlanKey]['sub_plan_items'][] = $row['kpi_name'];
                                                 }
                                             }
+
                                             if (!isset($groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey])) {
-                                                $groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey] = ['project_name' => $row['project_name'], 'project_items' => []];
+                                                $groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey] = [
+                                                    'project_name' => $row['project_name'],
+                                                    'project_items' => []
+                                                ];
                                             }
+
                                             if (!empty($row['KPI']) && strpos($row['TYPE'], 'project_kpi') !== false) {
                                                 if (!in_array($row['kpi_name'], $groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey]['project_items'])) {
                                                     $groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey]['project_items'][] = $row['kpi_name'];
                                                 }
                                             }
-                                            if (!empty($expenseKey)) {
-                                                if (!isset($groupedData[$planKey]['expenses'][$expenseKey])) {
-                                                    $groupedData[$planKey]['expenses'][$expenseKey] = ['expense_type' => $row['expense_type'], 'kku_items' => []];
+
+                                            if (!empty($row['KKU_Item_Name'])) {
+                                                if (!isset($groupedData[$planKey]['expenses'][$level3Key])) {
+                                                    $groupedData[$planKey]['expenses'][$level3Key] = [
+                                                        'expense_types' => []
+                                                    ];
                                                 }
-                                                if (!empty($row['KKU_Item_Name']) && !in_array($row['KKU_Item_Name'], $groupedData[$planKey]['expenses'][$expenseKey]['kku_items'])) {
-                                                    $groupedData[$planKey]['expenses'][$expenseKey]['kku_items'][] = $row['KKU_Item_Name'];
+
+                                                if (!isset($groupedData[$planKey]['expenses'][$level3Key]['expense_types'][$level5Key])) {
+                                                    $groupedData[$planKey]['expenses'][$level3Key]['expense_types'][$level5Key] = [
+                                                        'kku_items' => []
+                                                    ];
+                                                }
+
+                                                if (!in_array($row['KKU_Item_Name'], $groupedData[$planKey]['expenses'][$level3Key]['expense_types'][$level5Key]['kku_items'])) {
+                                                    $groupedData[$planKey]['expenses'][$level3Key]['expense_types'][$level5Key]['kku_items'][] = $row['KKU_Item_Name'];
                                                 }
                                             }
                                         }
 
                                         echo "<tbody>";
-                                        $shownPlans = [];
-                                        $shownSubPlans = [];
-                                        $shownProjects = [];
-                                        $shownExpenses = [];
-                                        $shownExpenseTypes = [];
 
                                         foreach ($groupedData as $planKey => $planData) {
-                                            if (!in_array($planData['plan_name'], $shownPlans)) {
-                                                echo "<tr>
+                                            echo "<tr>
                                                         <td><strong>" . $planData['plan_name'] . "</strong></td>
                                                         <td>-</td><td>-</td><td>-</td><td>-</td>
                                                         <td>-</td><td>-</td><td>-</td><td>-</td>
                                                         <td>-</td><td>-</td><td>-</td><td>-</td>
                                                         <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                     </tr>";
-                                                $shownPlans[] = $planData['plan_name'];
-                                            }
 
                                             foreach ($planData['sub_plans'] as $subPlanKey => $subPlanData) {
-                                                $cleanSubPlanItem = str_replace("SP_", "", $subPlanKey);
+                                                echo "<tr>
+                                                        <td>" . str_repeat("&nbsp;", 15) . $subPlanData['sub_plan_name'] . "</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                    </tr>";
 
-                                                if (!in_array($subPlanData['sub_plan_name'], $shownSubPlans)) {
-                                                    echo "<tr>
-                                                            <td>" . str_repeat("&nbsp;", 15) . $cleanSubPlanItem . " : " . $subPlanData['sub_plan_name'] . "</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                        </tr>";
-
-                                                    $shownSubPlans[] = $subPlanData['sub_plan_name'];
-                                                }
-
-                                                $uniqueSubPlanItems = array_unique($subPlanData['sub_plan_items']);
-                                                foreach ($uniqueSubPlanItems as $subPlanItem) {
+                                                foreach ($subPlanData['sub_plan_items'] as $subPlanItem) {
                                                     foreach ($resultsFN as $row) {
                                                         if ($row['kpi_name'] === $subPlanItem && $row['Sub_Plan'] === $subPlanKey) {
                                                             echo "<tr>
@@ -694,27 +697,23 @@
                                                                     <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
                                                                     <td>100%</td>
                                                                     <td>" . $row['Reason'] . "</td>
-                                                                </tr>";
-                                                            break;
+                                                            </tr>";
+                                                            break; // ออกจากลูปหลังจากเจอข้อมูลที่ตรงกัน
                                                         }
                                                     }
                                                 }
 
+
                                                 foreach ($subPlanData['projects'] as $projectKey => $projectData) {
-                                                    if (!in_array($projectData['project_name'], $shownProjects)) {
-                                                        echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 45) . $projectData['project_name'] . "</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            </tr>";
+                                                    echo "<tr>
+                                                            <td>" . str_repeat("&nbsp;", 45) . $projectData['project_name'] . "</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                         </tr>";
 
-                                                        $shownProjects[] = $projectData['project_name'];
-                                                    }
-
-                                                    $uniqueProjectItems = array_unique($projectData['project_items']);
-                                                    foreach ($uniqueProjectItems as $projectItem) {
+                                                    foreach ($projectData['project_items'] as $projectItem) {
                                                         echo "<tr>
                                                                 <td>" . str_repeat("&nbsp;", 60) . $projectItem . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
@@ -727,78 +726,81 @@
                                             }
 
                                             if (!empty($planData['expenses'])) {
-                                                foreach ($planData['expenses'] as $expenseKey => $expenseData) {
-                                                    $expenseAccount = "";
-                                                    $expenseTypeAccount = "";
+                                                $hasKKUItems = false;
 
-                                                    // หา Account ของ expenses
-                                                    foreach ($resultsFN as $row) {
-                                                        if ($row['expense'] === $expenseKey) {
-                                                            $expenseAccount = $row['Account'] . " : ";
+                                                foreach ($planData['expenses'] as $level3Key => $expenseData) {
+                                                    foreach ($expenseData['expense_types'] as $level5Key => $expenseTypeData) {
+                                                        if (!empty($expenseTypeData['kku_items'])) {
+                                                            $hasKKUItems = true;
                                                             break;
                                                         }
                                                     }
-
-                                                    // หา Account ของ expense_type
-                                                    foreach ($resultsFN as $row) {
-                                                        if ($row['expense_type'] === $expenseData['expense_type']) {
-                                                            $expenseTypeAccount = $row['Account'] . " : ";
-                                                            break;
-                                                        }
+                                                    if ($hasKKUItems) {
+                                                        break;
                                                     }
+                                                }
 
-                                                    // แสดง expense_type พร้อม Account
-                                                    if (!in_array($expenseKey, $shownExpenses)) {
-                                                        $cleanExpenseKey = preg_replace('/^\d+(\.\d+)*\s*/', '', $expenseKey); // ลบตัวเลขและจุดนำหน้า
+                                                if ($hasKKUItems) {
+                                                    foreach ($planData['expenses'] as $level3Key => $expenseData) {
+                                                        $hasKKUItemsInExpense = false;
 
-                                                        echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 90) . $expenseAccount . $cleanExpenseKey . "</td>
+                                                        foreach ($expenseData['expense_types'] as $level5Key => $expenseTypeData) {
+                                                            if (!empty($expenseTypeData['kku_items'])) {
+                                                                $hasKKUItemsInExpense = true;
+                                                                break;
+                                                            }
+                                                        }
+
+                                                        if ($hasKKUItemsInExpense) {
+                                                            echo "<tr>
+                                                                <td>" . str_repeat("&nbsp;", 90) . $level3Key . "</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td>
                                                                 <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                             </tr>";
 
-                                                        $shownExpenses[] = $expenseKey;
-                                                    }
+                                                            foreach ($expenseData['expense_types'] as $level5Key => $expenseTypeData) {
+                                                                if (!empty($expenseTypeData['kku_items'])) {
+                                                                    echo "<tr>
+                                                                        <td>" . str_repeat("&nbsp;", 105) . $level5Key . "</td>
+                                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                    </tr>";
 
-
-                                                    // แสดง expenses พร้อม Account
-                                                    if (!in_array($expenseKey, $shownExpenses)) {
-                                                        echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 90) . $expenseAccount . $expenseKey . "</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            </tr>";
-
-                                                        $shownExpenses[] = $expenseKey;
-                                                    }
-
-                                                    $uniqueKkuItems = array_unique($expenseData['kku_items']);
-                                                    foreach ($uniqueKkuItems as $kkuItem) {
-                                                        $cleanKkuItem = preg_replace('/^\d+(\.\d+)*\s*/', '', $kkuItem); // ลบตัวเลขและจุดนำหน้า
-                                                        echo "<tr>
-                                                            <td>" . str_repeat("&nbsp;", 105) . $row['Account'] . " : " . $cleanKkuItem . "</td>
-                                                            <td>" . $row['uom_kpi'] . "</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>" . $row['kpi_target'] . "</td> 
-                                                            <td>" . $row['total06'] . "</td>
-                                                            <td>" . $row['allocated_total06'] . "</td>
-                                                            <td>" . $row['total08'] . "</td>
-                                                            <td>" . $row['allocated_total08'] . "</td>
-                                                            <td>" . $row['total02'] . "</td>
-                                                            <td>" . $row['allocated_total02'] . "</td>
-                                                            <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
-                                                            <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
-                                                            <td>100%</td>
-                                                            <td>" . $row['Reason'] . "</td>
-                                                        </tr>";
+                                                                    foreach ($expenseTypeData['kku_items'] as $kkuItem) {
+                                                                        foreach ($resultsFN as $row) {
+                                                                            if ($row['KKU_Item_Name'] === $kkuItem && $row['level5'] === $level5Key) {
+                                                                                echo "<tr>
+                                                                                        <td>" . str_repeat("&nbsp;", 125) . $kkuItem . "</td>
+                                                                                        <td>" . $row['uom_kpi'] . "</td>
+                                                                                        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                                                        <td>" . $row['kpi_target'] . "</td>
+                                                                                        <td>" . $row['total06'] . "</td>
+                                                                                        <td>" . $row['allocated_total06'] . "</td>
+                                                                                        <td>" . $row['total08'] . "</td>
+                                                                                        <td>" . $row['allocated_total08'] . "</td>
+                                                                                        <td>" . $row['total02'] . "</td>
+                                                                                        <td>" . $row['allocated_total02'] . "</td>
+                                                                                        <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
+                                                                                        <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
+                                                                                        <td>100%</td>
+                                                                                        <td>" . $row['Reason'] . "</td>
+                                                                                </tr>";
+                                                                                break; // ออกจากลูปหลังจากเจอข้อมูลที่ตรงกัน
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
+
                                         echo "</tbody>";
                                         ?>
 

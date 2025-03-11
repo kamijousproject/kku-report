@@ -140,7 +140,7 @@
                                             prior_periods_debit, 
                                             prior_periods_credit, 
                                             period_activity_debit, 
-                                            period_activity_credit, 
+                                            period_activity_credit,
                                             ending_balances_debit, 
                                             ending_balances_credit 
                                         FROM budget_planning_actual_2 
@@ -153,7 +153,16 @@
                                 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                 ?>
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="budgetYearSelect">ปีบริหารงบประมาณ:</label>
+                                    <select id="budgetYearSelect" class="form-control">
+                                        <option value="">2568</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary">ค้นหา</button>
 
+                                </div>
+
+                                <br>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
