@@ -91,10 +91,9 @@ $faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
 $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
 $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-$budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
-$budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
+
 $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $budget_year4 = null, $budget_year5 = null, $scenario = null)
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $scenario = null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
     if ($budget_year1 === null) {
@@ -106,12 +105,7 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     if ($budget_year3 === null) {
         $budget_year3 = 2566;  // ค่าเริ่มต้น
     }
-    if ($budget_year4 === null) {
-        $budget_year4 = 2565;  // ค่าเริ่มต้น
-    }
-    if ($budget_year5 === null) {
-        $budget_year5 = 2564;  // ค่าเริ่มต้น
-    }
+
 
     // สร้างคิวรี
     $query = "WITH RECURSIVE account_hierarchy AS (
@@ -525,7 +519,7 @@ SELECT * FROM t1";
 
 
 
-$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $scenario);
 function fetchFacultyData($conn)
 {
     // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
@@ -674,15 +668,13 @@ function fetchScenariosData($conn)
                                     const budgetYear1 = <?php echo json_encode($budget_year1); ?>;
                                     const budgetYear2 = <?php echo json_encode($budget_year2); ?>;
                                     const budgetYear3 = <?php echo json_encode($budget_year3); ?>;
-                                    const budgetYear4 = <?php echo json_encode($budget_year4); ?>;
-                                    const budgetYear5 = <?php echo json_encode($budget_year5); ?>;
+
 
                                     // แสดงค่าของ budget_year ในคอนโซล
                                     console.log('Budget Year 1:', budgetYear1);
                                     console.log('Budget Year 2:', budgetYear2);
                                     console.log('Budget Year 3:', budgetYear3);
-                                    console.log('Budget Year 4:', budgetYear4);
-                                    console.log('Budget Year 5:', budgetYear5);
+
                                 </script>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
@@ -823,10 +815,8 @@ function fetchScenariosData($conn)
                                             $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
                                             $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
                                             $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-                                            $budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
-                                            $budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
                                             $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
-                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $scenario);
 
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
@@ -1678,14 +1668,10 @@ function fetchScenariosData($conn)
                                         var budget_year1 = "<?php echo isset($budget_year1) ? $budget_year1 : ''; ?>";
                                         var budget_year2 = "<?php echo isset($budget_year2) ? $budget_year2 : ''; ?>";
                                         var budget_year3 = "<?php echo isset($budget_year3) ? $budget_year3 : ''; ?>";
-                                        var budget_year4 = "<?php echo isset($budget_year4) ? $budget_year4 : ''; ?>";
-                                        var budget_year5 = "<?php echo isset($budget_year5) ? $budget_year5 : ''; ?>";
 
                                         console.log('Selected Year 1: ', budget_year1);
                                         console.log('Selected Year 2: ', budget_year2);
                                         console.log('Selected Year 3: ', budget_year3);
-                                        console.log('Selected Year 4: ', budget_year4);
-                                        console.log('Selected Year 5: ', budget_year5);
 
                                     </script>
                                 </div>
