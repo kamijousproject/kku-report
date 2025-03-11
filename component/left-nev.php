@@ -223,10 +223,10 @@
                     </li>
                 </ul>
             </li>
-            <li>
+            <!-- <li>
                 <a href="../logout.php" aria-expanded="false"><i class="mdi mdi-logout"></i> <span
                         class="nav-text"></span>ออกจากระบบ</a>
-            </li>
+            </li> -->
         </ul>
     </div>
 </div>
