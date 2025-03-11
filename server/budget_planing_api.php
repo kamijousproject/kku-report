@@ -1250,7 +1250,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 LEFT JOIN project pro
                 ON t.project=pro.project_id
 					 ORDER BY t.smain)
-                SELECT* FROM t8";
+                
+					 SELECT *,CAST(CONCAT('20', SUBSTRING(fiscal_year, 3, 2)) AS UNSIGNED) + 543 AS fiscal_year2 FROM t8 order by fiscal_year";
 
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
@@ -1458,7 +1459,7 @@ shifted_hierarchy AS (
                 LEFT JOIN project pro
                 ON t.project=pro.project_id)
                 ,t9 AS(
-					 SELECT t.*,b.Release_Amount
+					 SELECT t.*,b.Release_Amount,CAST(CONCAT('20', SUBSTRING(t.fiscal_year, 3, 2)) AS UNSIGNED) + 543 AS fiscal_year2 
 					 FROM t8 t
 					 LEFT JOIN budget_planning_disbursement_budget_plan_anl_release b
 					 ON t.faculty=b.Faculty AND t.plan=b.plan
@@ -1469,7 +1470,7 @@ shifted_hierarchy AS (
 					 LEFT JOIN shifted_hierarchy h
 					 ON t.account=h.current_acc
                 
-                ORDER BY id";
+                ORDER BY fiscal_year,id";
 
                 $cmd = $conn->prepare($sql);
                 /*  $cmd->bindParam(':fyear', $fyear, PDO::PARAM_STR);

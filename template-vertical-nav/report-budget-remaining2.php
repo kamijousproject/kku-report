@@ -234,7 +234,7 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function (response) {
-                    const year = [...new Set(response.bgp.map(item => item.fiscal_year).filter(fiscal_year => fiscal_year !== null))];
+                    const year = [...new Set(response.bgp.map(item => item.fiscal_year2).filter(fiscal_year2 => fiscal_year2 !== null))];
                     alldata = response.bgp;
                     //console.log(year);
                     $('#dropdown2').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
@@ -256,7 +256,7 @@ thead tr:nth-child(3) th {
 
             $('#dropdown1').change(function () {
                 let fyear = $(this).val();
-                //console.log(alldata);
+                console.log(alldata);
                 $('#dropdown2').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown3').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown4').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
@@ -265,8 +265,8 @@ thead tr:nth-child(3) th {
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const bgy = [...new Set(alldata.filter(item => item.fiscal_year === fyear).map(item => item.BUDGET_PERIOD))];
-                //console.log(fac);
+                const bgy = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear)).map(item => item.BUDGET_PERIOD))];
+                console.log(bgy);
                 bgy.forEach((row) => {
                     $('#dropdown2').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
@@ -284,7 +284,7 @@ thead tr:nth-child(3) th {
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const fac = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.BUDGET_PERIOD === bgyear).map(item => item.fname))];
+                const fac = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear).map(item => item.fname))];
                 fac.sort();
                 //console.log(fac);
                 fac.forEach((row) => {
@@ -302,7 +302,7 @@ thead tr:nth-child(3) th {
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const fund = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.BUDGET_PERIOD === bgyear && item.fname===fac).map(item => item.fund))];
+                const fund = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear && item.fname===fac).map(item => item.fund))];
                 //plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
                 //console.log(plan);
                 fund.sort();
@@ -323,7 +323,7 @@ thead tr:nth-child(3) th {
                 //const splan = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac&& item.fund === fund&& item.plan_name === plan).map(item => item.sub_plan_name))];
                 const planMap = new Map(
                     alldata
-                        .filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.BUDGET_PERIOD === bgyear)
+                        .filter(item => item.fiscal_year2 === parseInt(fyear) && item.fname === fac && item.fund === fund && item.BUDGET_PERIOD === bgyear)
                         .map(item => [item.plan, item.plan_name]) // [key, value] = [plan, plan_name]
                 );
                 var plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
@@ -345,7 +345,7 @@ thead tr:nth-child(3) th {
                 //
                 const splanMap = new Map(
                     alldata
-                        .filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.BUDGET_PERIOD === bgyear)
+                        .filter(item => item.fiscal_year2 === parseInt(fyear) && item.fname === fac && item.fund === fund && item.plan_name === plan && item.BUDGET_PERIOD === bgyear)
                         .map(item => [item.subplan, item.sub_plan_name]) // [key, value] = [plan, plan_name]
                 );
                 var subplan = Array.from(splanMap, ([subplan, sub_plan_name]) => ({ subplan, sub_plan_name }));
@@ -365,7 +365,7 @@ thead tr:nth-child(3) th {
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const pro = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan&& item.BUDGET_PERIOD === bgyear).map(item => item.project_name))];
+                const pro = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan&& item.BUDGET_PERIOD === bgyear).map(item => item.project_name))];
                 //const sc = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project).map(item => item.scenario))];
                 //console.log(fac);
                 pro.sort();
@@ -384,7 +384,7 @@ thead tr:nth-child(3) th {
                 //console.log(alldata);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const sc = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project&& item.BUDGET_PERIOD === bgyear).map(item => item.scenario))];
+                const sc = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project&& item.BUDGET_PERIOD === bgyear).map(item => item.scenario))];
                 //console.log(fac);
                 sc.forEach((row) => {
                     $('#dropdown8').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
@@ -396,91 +396,6 @@ thead tr:nth-child(3) th {
                 if ($(this).val()) {
                     $('#submitBtn').prop('disabled', false);
 
-
-                    /* let fyear = $('#dropdown1').val();
-                    function convertFYtoBuddhistYear(fyear) {
-                        if (fyear.startsWith('FY')) {
-
-                            const fiscalYear = parseInt(fyear.slice(2), 10);
-
-                            return fiscalYear + 2543;
-                        }
-                        return fyear;
-                    }
- */
-
-                    /* let fyear = $('#dropdown1').val();
-                    let bgyear = $('#dropdown2').val();
-                    let fac = $('#dropdown3').val();
-                    let fund = $('#dropdown4 option:selected').text();
-                    let plan = $('#dropdown5 option:selected').text();
-                    let subplan = $('#dropdown6').val();
-                    let project = $('#dropdown7').val();
-                    let scenario = $('#dropdown8').val();
- */
-                    /* 
-                    $('#reportTable thead').empty();
-
-
-                    $('#reportTable thead').append(`
-               <tr>
-                    <th style="text-align: left;" colspan="19">รายงานสรุปยอดงบประมาณคงเหลือ</th>
-                </tr>
-                <tr>
-                    <th style="text-align: left;" colspan="19">ปีงบประมาณ : ${fyear}</th>
-                </tr>
-                
-                <tr>
-                    <th style="text-align: left;" colspan="19">ปีบริหารงบประมาณ  : ${buddhistYear}</th>
-                </tr>
-
-                <tr>
-                    <th style="text-align: left;" colspan="19">ประเภทงบประมาณ : ${scenario}</th>
-                </tr>
-                <tr>
-                    <th style="text-align: left;" colspan="19">แหล่งเงิน : ${fund}</th>
-                </tr>
-                            <tr>
-                    <th style="text-align: left;" colspan="19">ส่วนงาน/หน่วยงาน : ${fac}</th>
-                </tr>
-                <tr>
-                    <th style="text-align: left;" colspan="19">แผนงาน(ผลผลิต) [Plan] : ${plan}</th>
-                </tr>
-                <tr>
-                    <th style="text-align: left;" colspan="19">แผนงานย่อย(ผลผลิตย่อย/กิจกรรม) [Sub plan] : ${subplan}</th>
-                </tr>
-                <tr>
-                    <th style="text-align: left;" colspan="19">โครงการ [Project] : ${project}</th>
-                </tr>
-           
-
-                                                        <tr>
-                                                <th rowspan="2">ค่าใช้จ่าย</th>
-                                                <th colspan="4">ยอดรวมงบประมาณ</th>
-                                                <th colspan="8">เงินประจำงวด</th>
-                                                <th colspan="2">ผูกพัน</th>
-                                                <th colspan="2">ผูกพันงบประมาณตามข้อตกลง/สัญญา</th>
-                                                <th rowspan="2">จำนวนงบประมาณเบิกจ่าย</th>
-                                                <th rowspan="2">เบิกงบประมาณเกินส่งคืน</th>
-                                            </tr>
-                                            <tr>
-                                                <th>จำนวนงบประมาณ</th>
-                                                <th>จำนวนงบประมาณโอนเข้า</th>
-                                                <th>จำนวนงบประมาณโอนออก</th>
-                                                <th>คงเหลือไม่อนุมัติงวดเงิน</th>
-                                                <th>ผูกพันงบประมาณ</th>
-                                                <th>ร้อยละ</th>
-                                                <th>คงเหลือหลังผูกพันงบประมาณ</th>
-                                                <th>ร้อยละ</th>
-                                                <th>เบิกจ่ายงบประมาณ</th>
-                                                <th>ร้อยละ</th>
-                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
-                                                <th>ร้อยละ</th>
-                                                <th>จำนวนงบประมาณ</th>
-                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
-                                                <th>จำนวนงบประมาณ</th>
-                                                <th>คงเหลือหลังเบิกจ่ายงบประมาณ</th>
-                                            </tr>`); */
                 } else {
                     $('#submitBtn').prop('disabled', true);
                 }
@@ -517,7 +432,7 @@ thead tr:nth-child(3) th {
                     success: function (response) {
                         const tableBody = document.querySelector('#reportTable tbody');
                         tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-                        const data = response.bgp.filter(item =>item.fiscal_year === fyear && item.fund === fund && item.fname === fac && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project && item.scenario === scenario && item.BUDGET_PERIOD === bgyear);
+                        const data = response.bgp.filter(item =>item.fiscal_year2 === parseInt(fyear) && item.fund === fund && item.fname === fac && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project && item.scenario === scenario && item.BUDGET_PERIOD === bgyear);
                         const smain = [...new Set(data.map(item => item.level5))];
                         const lv4 = [...new Set(data.map(item => item.level4))];
                         const lv3 = [...new Set(data.map(item => item.level3))];
@@ -559,7 +474,7 @@ thead tr:nth-child(3) th {
                             });
 
                             var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                            var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                            var diff = (parseInt(sums.Release_Amount||0) + parseInt(sums.adj_in||0)+parseInt(sums.adj_out||0));
                             var diff2 = (diff - sum_co);
                             var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                             var total_p1 = (p1 === 0) ? 0 : (100 - p1);
@@ -610,7 +525,7 @@ thead tr:nth-child(3) th {
                                 });
 
                                 var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                                var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                                var diff = (parseInt(sums.Release_Amount||0) + parseInt(sums.adj_in||0)+parseInt(sums.adj_out||0));
                                 var diff2 = (diff - sum_co);
                                 var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                 var total_p1 = (p1 === 0) ? 0 : (100 - p1);
@@ -662,14 +577,14 @@ thead tr:nth-child(3) th {
                                     });
 
                                     var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                                    var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                                    var diff = (parseInt(sums.Release_Amount||0) + parseInt(sums.adj_in||0)+parseInt(sums.adj_out||0));
                                     var diff2 = (diff - sum_co);
                                     var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                     var total_p1 = (p1 === 0) ? 0 : (100 - p1);
                                     var p2 = Math.round((((sums.EXPENDITURES) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                     var diff3 = (diff - sums.EXPENDITURES);
                                     var total_p2 = (p1 === 0) ? 0 : (100 - p2);
-                                    if(l3.length>0)
+                                    if(l3.length>0 && row3!=null)
                                     {
                                         var str = '<tr><td style="text-align:left;" nowrap>'+ '&nbsp;'.repeat(16) + row3 +  '</td>'
                                             + '<td>' + (sums.INITIAL_BUDGET).toLocaleString() + '</td>'
@@ -715,7 +630,7 @@ thead tr:nth-child(3) th {
                                         });
 
                                         var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                                        var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                                        var diff = (parseInt(sums.Release_Amount||0) + parseInt(sums.adj_in||0)+parseInt(sums.adj_out||0));
                                         var diff2 = (diff - sum_co);
                                         var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                         var total_p1 = (p1 === 0) ? 0 : (100 - p1);
@@ -741,28 +656,31 @@ thead tr:nth-child(3) th {
                                         }
                                         if(l2.length>0 && row4==null){
                                             l2.forEach((row4_null) => {
-                                                var sum_co = (parseInt(row4_null.COMMITMENTS) + parseInt(row4_null.OBLIGATIONS));
-                                                var diff = (parseInt(row4_null.Release_Amount) + parseInt(row4_null.adj_in)+row4_null.adj_out);
-                                                var diff2 = (parseInt(diff) - sum_co);
-                                                var p1 = Math.round((((sum_co) * 100) / (parseInt(row4_null.INITIAL_BUDGET))) * 100) / 100 || 0;
-                                                var total_p1 = (100 - p1);
-                                                var p2 = Math.round((((parseInt(row4_null.EXPENDITURES)) * 100) / (parseInt(row4_null.INITIAL_BUDGET))) * 100) / 100 || 0;
-                                                var diff3 = (parseInt(diff) - parseInt(row4_null.EXPENDITURES));
-                                                var total_p2 = (100 - p2);
-                                                var str = '<tr><td style="text-align:left;" nowrap>' + '&nbsp;'.repeat(24) + row4_null.kku_item_name + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.INITIAL_BUDGET)).toLocaleString() + '</td>'
-                                                    + '<td>' + (row4_null.Release_Amount).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.adj_in)).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.adj_out)).toLocaleString() + '</td>'
-                                                    + '<td>' + diff.toLocaleString() + '</td>'
-                                                    
-                                                    + '<td>' + (parseInt(row4_null.COMMITMENTS)).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.OBLIGATIONS)).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(diff2)).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(row4_null.EXPENDITURES)).toLocaleString() + '</td>'
-                                                    + '<td>' + (parseInt(diff3)).toLocaleString() + '</td></tr>';
+                                                if(row4_null.kku_item_name!=null){
+                                                    var sum_co = (parseInt(row4_null.COMMITMENTS) + parseInt(row4_null.OBLIGATIONS));
+                                                    var diff = (parseInt(row4_null.Release_Amount||0) + parseInt(row4_null.adj_in||0)+parseInt(row4_null.adj_out||0));
+                                                    var diff2 = (parseInt(diff) - sum_co);
+                                                    var p1 = Math.round((((sum_co) * 100) / (parseInt(row4_null.INITIAL_BUDGET))) * 100) / 100 || 0;
+                                                    var total_p1 = (100 - p1);
+                                                    var p2 = Math.round((((parseInt(row4_null.EXPENDITURES)) * 100) / (parseInt(row4_null.INITIAL_BUDGET))) * 100) / 100 || 0;
+                                                    var diff3 = (parseInt(diff) - parseInt(row4_null.EXPENDITURES));
+                                                    var total_p2 = (100 - p2);
+                                                    var str = '<tr><td style="text-align:left;" nowrap>' + '&nbsp;'.repeat(24) + row4_null.kku_item_name + '</td>'
+                                                        + '<td>' + (parseInt(row4_null.INITIAL_BUDGET)).toLocaleString() + '</td>'
+                                                        + '<td>' + (row4_null.Release_Amount).toLocaleString() + '</td>'
+                                                        + '<td>' + (parseInt(row4_null.adj_in)).toLocaleString() + '</td>'
+                                                        + '<td>' + (parseInt(row4_null.adj_out)).toLocaleString() + '</td>'
+                                                        + '<td>' + diff.toLocaleString() + '</td>'
+                                                        
+                                                        + '<td>' + (parseInt(row4_null.COMMITMENTS)).toLocaleString() + '</td>'
+                                                        + '<td>' + (parseInt(row4_null.OBLIGATIONS)).toLocaleString() + '</td>'
+                                                        + '<td>' + (parseInt(diff2)).toLocaleString() + '</td>'
+                                                        + '<td>' + (parseInt(row4_null.EXPENDITURES)).toLocaleString() + '</td>'
+                                                        + '<td>' + (parseInt(diff3)).toLocaleString() + '</td></tr>';
 
-                                                tableBody.insertAdjacentHTML('beforeend', str);
+                                                    tableBody.insertAdjacentHTML('beforeend', str);
+                                                }
+                                                
                                             });
                                         }
                                         lv1.forEach((row5, index) => {
@@ -794,7 +712,7 @@ thead tr:nth-child(3) th {
                                             });
 
                                             var sum_co = (sums.COMMITMENTS + sums.OBLIGATIONS);
-                                            var diff = (sums.Release_Amount + sums.adj_in+sums.adj_out);
+                                            var diff = (parseInt(sums.Release_Amount||0) + parseInt(sums.adj_in||0)+parseInt(sums.adj_out||0));
                                             var diff2 = (diff - sum_co);
                                             var p1 = Math.round((((sum_co) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                             var total_p1 = (p1 === 0) ? 0 : (100 - p1);
@@ -820,28 +738,32 @@ thead tr:nth-child(3) th {
                                             }
                                             if(l1.length>0 && row5==null && row4!=null ){
                                                 l1.forEach((row5_null) => {
-                                                    var sum_co = (parseInt(row5_null.COMMITMENTS) + parseInt(row5_null.OBLIGATIONS));
-                                                    var diff = (parseInt(row5_null.Release_Amount) + parseInt(row5_null.adj_in)+row5_null.adj_out);
-                                                    var diff2 = (parseInt(diff) - sum_co);
-                                                    var p1 = Math.round((((sum_co) * 100) / (parseInt(row5_null.INITIAL_BUDGET))) * 100) / 100 || 0;
-                                                    var total_p1 = (100 - p1);
-                                                    var p2 = Math.round((((parseInt(row5_null.EXPENDITURES)) * 100) / (parseInt(row5_null.INITIAL_BUDGET))) * 100) / 100 || 0;
-                                                    var diff3 = (parseInt(diff) - parseInt(row5_null.EXPENDITURES));
-                                                    var total_p2 = (100 - p2);
-                                                    var str = '<tr><td style="text-align:left;" nowrap>' + '&nbsp;'.repeat(32) + row5_null.kku_item_name + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.INITIAL_BUDGET)).toLocaleString() + '</td>'
-                                                        + '<td>' + (row5_null.Release_Amount).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.adj_in)).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.adj_out)).toLocaleString() + '</td>'
-                                                        + '<td>' + diff.toLocaleString() + '</td>'
-                                                        
-                                                        + '<td>' + (parseInt(row5_null.COMMITMENTS)).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.OBLIGATIONS)).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(diff2)).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(row5_null.EXPENDITURES)).toLocaleString() + '</td>'
-                                                        + '<td>' + (parseInt(diff3)).toLocaleString() + '</td></tr>';
+                                                    if(row5_null.kku_item_name!=null)
+                                                    {
+                                                        var sum_co = (parseInt(row5_null.COMMITMENTS) + parseInt(row5_null.OBLIGATIONS));
+                                                        var diff = (parseInt(row5_null.Release_Amount||0) + parseInt(row5_null.adj_in||0)+parseInt(row5_null.adj_out||0));
+                                                        var diff2 = (parseInt(diff) - sum_co);
+                                                        var p1 = Math.round((((sum_co) * 100) / (parseInt(row5_null.INITIAL_BUDGET))) * 100) / 100 || 0;
+                                                        var total_p1 = (100 - p1);
+                                                        var p2 = Math.round((((parseInt(row5_null.EXPENDITURES)) * 100) / (parseInt(row5_null.INITIAL_BUDGET))) * 100) / 100 || 0;
+                                                        var diff3 = (parseInt(diff) - parseInt(row5_null.EXPENDITURES));
+                                                        var total_p2 = (100 - p2);
+                                                        var str = '<tr><td style="text-align:left;" nowrap>' + '&nbsp;'.repeat(32) + row5_null.kku_item_name + '</td>'
+                                                            + '<td>' + (parseInt(row5_null.INITIAL_BUDGET)).toLocaleString() + '</td>'
+                                                            + '<td>' + (row5_null.Release_Amount).toLocaleString() + '</td>'
+                                                            + '<td>' + (parseInt(row5_null.adj_in)).toLocaleString() + '</td>'
+                                                            + '<td>' + (parseInt(row5_null.adj_out)).toLocaleString() + '</td>'
+                                                            + '<td>' + diff.toLocaleString() + '</td>'
+                                                            
+                                                            + '<td>' + (parseInt(row5_null.COMMITMENTS)).toLocaleString() + '</td>'
+                                                            + '<td>' + (parseInt(row5_null.OBLIGATIONS)).toLocaleString() + '</td>'
+                                                            + '<td>' + (parseInt(diff2)).toLocaleString() + '</td>'
+                                                            + '<td>' + (parseInt(row5_null.EXPENDITURES)).toLocaleString() + '</td>'
+                                                            + '<td>' + (parseInt(diff3)).toLocaleString() + '</td></tr>';
 
-                                                    tableBody.insertAdjacentHTML('beforeend', str);
+                                                        tableBody.insertAdjacentHTML('beforeend', str);
+                                                    }
+                                                    
                                                 });
                                             }
                                             
