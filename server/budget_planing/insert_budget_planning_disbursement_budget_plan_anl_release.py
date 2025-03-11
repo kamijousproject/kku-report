@@ -45,7 +45,8 @@ try:
         'Pre_Release_Amount': 0.0,
         'Account': '',
         'Scenario': '',
-        'Version': ''
+        'Version': '',
+        'YEAR': ''
     })
 
 except Exception as e:
@@ -85,7 +86,8 @@ try:
         Pre_Release_Amount DECIMAL(15,2),
         Account VARCHAR(50),
         Scenario VARCHAR(50),
-        Version VARCHAR(50)
+        Version VARCHAR(50),
+        YEAR VARCHAR(50)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     '''
     cursor.execute(create_table_query)
@@ -97,8 +99,8 @@ try:
         INSERT INTO budget_planning_disbursement_budget_plan_anl_release (
             Service, Faculty, Fund, Project, Plan, Sub_Plan, Plan_Desc, SubPlan_Desc,
             Proj_Desc, GF_Item_Code, Release_Amount, Pre_Release_Amount, Account,
-            Scenario, Version
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            Scenario, Version, YEAR
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         '''
         cursor.execute(insert_query, (
             row['Service'],
@@ -115,7 +117,8 @@ try:
             row['Pre_Release_Amount'],
             row['Account'],
             row['Scenario'],
-            row['Version']
+            row['Version'],
+            row['YEAR']
         ))
 
     # บันทึกข้อมูล

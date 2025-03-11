@@ -59,7 +59,8 @@ try:
         'Allocated_Total_Amount_Quantity': 0.0,
         'Plan_Desc': '',
         'SubPlan_Desc': '',
-        'Proj_Desc': ''
+        'Proj_Desc': '',
+        'YEAR': ''
     })
 
 except Exception as e:
@@ -112,7 +113,8 @@ try:
         Allocated_Total_Amount_Quantity DECIMAL(15,2),
         Plan_Desc TEXT,
         SubPlan_Desc TEXT,
-        Proj_Desc TEXT
+        Proj_Desc TEXT,
+        YEAR TEXT,
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     '''
     cursor.execute(create_table_query)
@@ -126,8 +128,8 @@ try:
             GF_Item_Code, GF_Item_Name, Q1_Spending_Plan, Q2_Spending_Plan, Q3_Spending_Plan,
             Q4_Spending_Plan, Allocated_Quantity, Allocated_Unit_Price, Allocated_UOM, Reason,
             Objective, Utility, Place, Account, Scenario, Version, Allocated_Total_Amount_Quantity,
-            Plan_Desc, SubPlan_Desc, Proj_Desc
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
+            Plan_Desc, SubPlan_Desc, Proj_Desc, YEAR
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         '''
         cursor.execute(insert_query, (
             row['Service'],
@@ -157,7 +159,8 @@ try:
             row['Allocated_Total_Amount_Quantity'],
             row['Plan_Desc'],
             row['SubPlan_Desc'],
-            row['Proj_Desc']
+            row['Proj_Desc'],
+            row['YEAR']
         ))
 
     # บันทึกข้อมูล
