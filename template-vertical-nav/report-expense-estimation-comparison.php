@@ -212,152 +212,152 @@ hierarchy_with_max AS (
 
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q1_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q2_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q3_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q4_BUDGET1,
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END)
     ) AS TOTAL_BUDGET_YEAR_1,
         
         SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q1_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q2_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q3_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q4_BUDGET2,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END)
     ) AS TOTAL_BUDGET_YEAR_2,
 
      SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q1_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q2_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q3_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) AS Q4_BUDGET3,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
-        THEN bpa.TOTAL_BUDGET 
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES
         ELSE 0 
     END)
     ) AS TOTAL_BUDGET_YEAR_3,
