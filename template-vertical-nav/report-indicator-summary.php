@@ -136,11 +136,36 @@
                                     $stmt->execute();
                                     $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+                                    $query_fsy = "SELECT DISTINCT x.Budget_Management_Year FROM budget_planning_annual_budget_plan x";
+                                    $stmt = $conn->prepare($query_fsy);
+                                    $stmt->execute();
+                                    $query_fsy = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                    $query_Scenario = "SELECT DISTINCT s.Scenario FROM budget_planning_annual_budget_plan s";
+                                    $stmt = $conn->prepare($query_Scenario);
+                                    $stmt->execute();
+                                    $query_Scenario = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+                                    $where_clause = "AND 1=1";
+                                    $selected_fsy = isset($_GET['Budget_Management_Year']) ? $_GET['Budget_Management_Year'] : '';
+
+                                    // WHERE Clause แบบ Dynamic
+                                    if ($selected_fsy !== '') {
+                                        $where_clause .= " AND annual_bp.Budget_Management_Year = '$selected_fsy'";
+                                    }
+
+                                    $selected_Scenarios = isset($_GET['Scenario']) ? $_GET['Scenario'] : '';
+
+                                    // WHERE Clause แบบ Dynamic
+                                    if ($selected_Scenarios !== '') {
+                                        $where_clause .= " AND annual_bp.Scenario = '$selected_Scenarios'";
+                                    }
+
                                     // รับค่าที่เลือกจากฟอร์ม
                                     $selected_faculty = isset($_GET['faculty']) ? $_GET['faculty'] : '';
 
                                     // WHERE Clause แบบ Dynamic
-                                    $where_clause = "AND 1=1";
                                     if ($selected_faculty !== '') {
                                         $where_clause .= " AND annual_bp.Faculty = '$selected_faculty'";
                                     }
@@ -221,6 +246,34 @@
                                     ?>
 
                                     <form method="GET" class="d-flex align-items-center gap-2">
+                                        <label for="Budget_Management_Year" class="me-2">เลือกปีงบประมาณ:</label>
+                                        <select name="Budget_Management_Year" id="Budget_Management_Year" class="form-control me-2">
+                                            <option value="">เลือกเลือกปีงบประมาณ ทั้งหมด</option>
+                                            <?php
+                                            foreach ($query_fsy as $query_fsys):
+                                                if ($query_fsys['Budget_Management_Year'] != '') {;
+                                            ?>
+                                                    <option value="<?= $query_fsys['Budget_Management_Year'] ?>" <?= ($selected_fsy == $query_fsys['Budget_Management_Year']) ? 'selected' : '' ?>>
+                                                        <?= $query_fsys['Budget_Management_Year'] ?>
+                                                    </option>
+
+                                            <?php }
+                                            endforeach; ?>
+                                        </select>
+                                        <label for="faculty" class="me-2">เลือกประเภทงบประมาณ:</label>
+                                        <select name="Scenario" id="Scenario" class="form-control me-2">
+                                            <option value="">เลือกประเภทงบประมาณ ทั้งหมด</option>
+                                            <?php
+                                            foreach ($query_Scenario as $query_Scenarios):
+                                                if ($query_Scenarios['Scenario'] != '') {;
+                                            ?>
+                                                    <option value="<?= $query_Scenarios['Scenario'] ?>" <?= ($selected_Scenarios == $query_Scenarios['Scenario']) ? 'selected' : '' ?>>
+                                                        <?= $query_Scenarios['Scenario'] ?>
+                                                    </option>
+
+                                            <?php }
+                                            endforeach; ?>
+                                        </select>
                                         <label for="faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
                                         <select name="faculty" id="faculty" class="form-control me-2">
                                             <option value="">เลือกส่วนงาน/หน่วยงาน ทั้งหมด</option>
