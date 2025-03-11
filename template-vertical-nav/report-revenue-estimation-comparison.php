@@ -212,49 +212,49 @@ hierarchy_with_max AS (
 
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q1_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q2_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q3_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q4_BUDGET1,
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -262,50 +262,50 @@ hierarchy_with_max AS (
         
         SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q1_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q2_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q3_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q4_BUDGET2,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -313,50 +313,50 @@ hierarchy_with_max AS (
 
      SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q1_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q2_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q3_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q4_BUDGET3,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -473,7 +473,6 @@ LEFT JOIN budget_planning_actual bpa
     AND bpa.PLAN = bap.Plan
     AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
     AND bpa.FUND = bap.Fund
-    AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
 WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 
     // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
