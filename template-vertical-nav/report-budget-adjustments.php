@@ -203,21 +203,39 @@ SELECT
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
     SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year1 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
-    SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year3 THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566,
+SUM(
+    CASE 
+        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2)) 
+        THEN bpa.TOTAL_BUDGET 
+        ELSE 0 
+    END
+) AS TOTAL_BUDGET_2568,
+SUM(
+    CASE 
+        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2)) 
+        THEN bpa.TOTAL_BUDGET 
+        ELSE 0 
+    END
+) AS TOTAL_BUDGET_2567,
+SUM(
+    CASE 
+        WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2)) 
+        THEN bpa.TOTAL_BUDGET 
+        ELSE 0 
+    END
+) AS TOTAL_BUDGET_2566,
     (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-     COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)) 
+     COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)) 
      AS Difference_2568_2567,
     CASE
-        WHEN COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
+        WHEN COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0) = 0
         THEN 100
         ELSE 
             (
                 SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-                COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
+                COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0)
             ) / 
-            NULLIF(COALESCE(SUM(CASE WHEN (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = $budget_year2 THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
+            NULLIF(COALESCE(SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2))  THEN bpa.TOTAL_BUDGET ELSE 0 END), 0), 0) * 100
     END AS Percentage_Difference_2568_2567,
     bap.Reason,
     m.CurrentAccount,
@@ -334,7 +352,7 @@ LEFT JOIN budget_planning_actual bpa
     AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
     AND bpa.PROJECT = bap.Project
     AND bpa.PLAN = bap.Plan
-    AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
+    AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(bap.Budget_Management_Year - 543 AS CHAR), -2))
     AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
     AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
 WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
@@ -671,7 +689,7 @@ function fetchScenariosData($conn)
                                                     // เก็บข้อมูลของ Plan
                                                     if (!isset($summary[$faculty])) {
                                                         $summary[$faculty] = [
-                                                            'Total_Amount_2566' => 0,
+                                                            'TOTAL_BUDGET_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
                                                             'Total_Amount_2568' => 0,
@@ -685,7 +703,7 @@ function fetchScenariosData($conn)
                                                     if (!isset($summary[$faculty]['plan'][$plan])) {
                                                         $summary[$faculty]['plan'][$plan] = [
                                                             'plan_name' => $row['plan_name'],
-                                                            'Total_Amount_2566' => 0,
+                                                            'TOTAL_BUDGET_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
                                                             'Total_Amount_2568' => 0,
@@ -700,7 +718,7 @@ function fetchScenariosData($conn)
                                                     if (!isset($summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan])) {
                                                         $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan] = [
                                                             'sub_plan_name' => $row['sub_plan_name'],
-                                                            'Total_Amount_2566' => 0,
+                                                            'TOTAL_BUDGET_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
                                                             'Total_Amount_2568' => 0,
@@ -714,7 +732,7 @@ function fetchScenariosData($conn)
                                                     // เก็บข้อมูลของ Project
                                                     if (!isset($summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project])) {
                                                         $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project] = [
-                                                            'Total_Amount_2566' => 0,
+                                                            'TOTAL_BUDGET_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
                                                             'Total_Amount_2568' => 0,
@@ -733,7 +751,7 @@ function fetchScenariosData($conn)
                                                             'name' => $ItemName_a1,
                                                             'a1' => $row['a1'],
                                                             'test' => $row['Name_a1'],
-                                                            'Total_Amount_2566' => 0,
+                                                            'TOTAL_BUDGET_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
                                                             'Total_Amount_2568' => 0,
@@ -757,7 +775,7 @@ function fetchScenariosData($conn)
                                                             'name' => $ItemName_a2,
                                                             'test' => $row['Name_a2'],
                                                             'test2' => $row['Name_a3'],
-                                                            'Total_Amount_2566' => 0,
+                                                            'TOTAL_BUDGET_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
                                                             'Total_Amount_2568' => 0,
@@ -781,7 +799,7 @@ function fetchScenariosData($conn)
                                                             'name' => $ItemName_a3,
                                                             'test' => $row['Name_a3'],
                                                             'test2' => $row['Name_a4'],
-                                                            'Total_Amount_2566' => 0,
+                                                            'TOTAL_BUDGET_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
                                                             'Total_Amount_2568' => 0,
@@ -806,7 +824,7 @@ function fetchScenariosData($conn)
                                                             'name' => $ItemName_a4,
                                                             'test' => $row['Name_a4'],
                                                             'test2' => $row['KKU_Item_Name'],
-                                                            'Total_Amount_2566' => 0,
+                                                            'TOTAL_BUDGET_2566' => 0,
                                                             'Total_Amount_2567' => 0,
                                                             'TOTAL_BUDGET_2567' => 0,
                                                             'Total_Amount_2568' => 0,
@@ -817,49 +835,49 @@ function fetchScenariosData($conn)
                                                         ];
                                                     }
                                                     // รวมข้อมูลของ Plan
-                                                    $summary[$faculty]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$faculty]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
 
                                                     // รวมข้อมูลของ Plan
-                                                    $summary[$faculty]['plan'][$plan]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$faculty]['plan'][$plan]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
                                                     // รวมข้อมูลของ Sub_Plan
-                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
                                                     // รวมข้อมูลของ Project
-                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
                                                     // รวมข้อมูลของ Name_a1
-                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
                                                     // รวมข้อมูลของ Name_a2
-                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Total_Amount_2568'] += $row['Total_Amount_2568'];
                                                     // รวมข้อมูลของ Name_a3
-                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Total_Amount_2568'] += $row['Total_Amount_2568'];
 
                                                     // รวมข้อมูลของ Name_a4
-                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2566'] += $row['Total_Amount_2566'];
+                                                    $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['TOTAL_BUDGET_2566'] += $row['TOTAL_BUDGET_2566'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2567'] += $row['Total_Amount_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['TOTAL_BUDGET_2567'] += $row['TOTAL_BUDGET_2567'];
                                                     $summary[$faculty]['plan'][$plan]['sub_plans'][$subPlan]['projects'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['Total_Amount_2568'] += $row['Total_Amount_2568'];
@@ -873,7 +891,7 @@ function fetchScenariosData($conn)
                                                     $summary[$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                         'name' => $ItemName_a4,
                                                         'test' => $row['Name_a4'],
-                                                        'Total_Amount_2566' => $row['Total_Amount_2566'],
+                                                        'TOTAL_BUDGET_2566' => $row['TOTAL_BUDGET_2566'],
                                                         'Total_Amount_2567' => $row['Total_Amount_2567'],
                                                         'TOTAL_BUDGET_2567' => $row['TOTAL_BUDGET_2567'],
                                                         'Total_Amount_2568' => $row['Total_Amount_2568'],
@@ -886,7 +904,7 @@ function fetchScenariosData($conn)
                                                     $rows = $summary;
                                                     // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
                                                     $total_summary = [
-                                                        'Total_Amount_2566' => 0,
+                                                        'TOTAL_BUDGET_2566' => 0,
                                                         'Total_Amount_2567' => 0,
                                                         'TOTAL_BUDGET_2567' => 0,
                                                         'Total_Amount_2568' => 0,
@@ -898,7 +916,7 @@ function fetchScenariosData($conn)
                                                     // Assuming this is inside a loop where $row is updated (e.g., from a database query)
                                                     foreach ($rows as $row) { // Replace $rows with your actual data source
                                                         // รวมผลรวมทั้งหมดโดยไม่สนใจ Faculty
-                                                        $total_summary['Total_Amount_2566'] += (float) ($row['Total_Amount_2566'] ?? 0);
+                                                        $total_summary['TOTAL_BUDGET_2566'] += (float) ($row['TOTAL_BUDGET_2566'] ?? 0);
                                                         $total_summary['Total_Amount_2567'] += (float) ($row['Total_Amount_2567'] ?? 0);
                                                         $total_summary['TOTAL_BUDGET_2567'] += (float) ($row['TOTAL_BUDGET_2567'] ?? 0);
 
@@ -915,7 +933,7 @@ function fetchScenariosData($conn)
                                                         echo "<tr>";
                                                         // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
                                                         echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
-                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_2566']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['TOTAL_BUDGET_2566']) . "</td>";
                                                         echo "<td>" . formatNumber($total_summary['Total_Amount_2567']) . "</td>";
                                                         echo "<td>" . formatNumber($total_summary['TOTAL_BUDGET_2567']) . "</td>";
                                                         echo "<td>" . formatNumber($total_summary['Total_Amount_2568']) . "</td>";
@@ -944,7 +962,7 @@ function fetchScenariosData($conn)
                                                     if ($selectedFaculty != null) {
                                                         echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
                                                     }
-                                                    echo "<td>" . formatNumber($data['Total_Amount_2566']) . "</td>";
+                                                    echo "<td>" . formatNumber($data['TOTAL_BUDGET_2566']) . "</td>";
                                                     echo "<td>" . formatNumber($data['Total_Amount_2567']) . "</td>";
                                                     echo "<td>" . formatNumber($data['TOTAL_BUDGET_2567']) . "</td>";
                                                     echo "<td>" . formatNumber($data['Total_Amount_2568']) . "</td>";
@@ -967,7 +985,7 @@ function fetchScenariosData($conn)
                                                         if ($selectedFaculty != null) {
                                                             echo "<td style='text-align: left;'>" . htmlspecialchars($plandata['plan_name']) . "<br></td>";
                                                         }
-                                                        echo "<td>" . formatNumber($plandata['Total_Amount_2566']) . "</td>";
+                                                        echo "<td>" . formatNumber($plandata['TOTAL_BUDGET_2566']) . "</td>";
                                                         echo "<td>" . formatNumber($plandata['Total_Amount_2567']) . "</td>";
                                                         echo "<td>" . formatNumber($plandata['TOTAL_BUDGET_2567']) . "</td>";
                                                         echo "<td>" . formatNumber($plandata['Total_Amount_2568']) . "</td>";
@@ -993,7 +1011,7 @@ function fetchScenariosData($conn)
                                                             if ($selectedFaculty != null) {
                                                                 echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($cleanedSubPlan) . " : " . htmlspecialchars($subData['sub_plan_name']) . "<br></td>";
                                                             }
-                                                            echo "<td>" . formatNumber($subData['Total_Amount_2566']) . "</td>";
+                                                            echo "<td>" . formatNumber($subData['TOTAL_BUDGET_2566']) . "</td>";
                                                             echo "<td>" . formatNumber($subData['Total_Amount_2567']) . "</td>";
                                                             echo "<td>" . formatNumber($subData['TOTAL_BUDGET_2567']) . "</td>";
                                                             echo "<td>" . formatNumber($subData['Total_Amount_2568']) . "</td>";
@@ -1017,7 +1035,7 @@ function fetchScenariosData($conn)
                                                                     echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($project) . "<br></td>";
                                                                 }
 
-                                                                echo "<td>" . formatNumber($projectData['Total_Amount_2566']) . "</td>";
+                                                                echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_2566']) . "</td>";
                                                                 echo "<td>" . formatNumber($projectData['Total_Amount_2567']) . "</td>";
                                                                 echo "<td>" . formatNumber($projectData['TOTAL_BUDGET_2567']) . "</td>";
                                                                 echo "<td>" . formatNumber($projectData['Total_Amount_2568']) . "</td>";
@@ -1041,7 +1059,7 @@ function fetchScenariosData($conn)
                                                                     if ($selectedFaculty != null) {
                                                                         echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a1['name'] . "<br></td>";
                                                                     }
-                                                                    echo "<td>" . formatNumber($dataName_a1['Total_Amount_2566']) . "</td>";
+                                                                    echo "<td>" . formatNumber($dataName_a1['TOTAL_BUDGET_2566']) . "</td>";
                                                                     echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567']) . "</td>";
                                                                     echo "<td>" . formatNumber($dataName_a1['TOTAL_BUDGET_2567']) . "</td>";
                                                                     echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568']) . "</td>";
@@ -1070,7 +1088,7 @@ function fetchScenariosData($conn)
                                                                             if ($selectedFaculty != null) {
                                                                                 echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a2['name'] . "<br></td>";
                                                                             }
-                                                                            echo "<td>" . formatNumber($dataName_a2['Total_Amount_2566']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a2['TOTAL_BUDGET_2566']) . "</td>";
                                                                             echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567']) . "</td>";
                                                                             echo "<td>" . formatNumber($dataName_a2['TOTAL_BUDGET_2567']) . "</td>";
                                                                             echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568']) . "</td>";
@@ -1101,7 +1119,7 @@ function fetchScenariosData($conn)
                                                                                     if ($selectedFaculty != null) {
                                                                                         echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a3['name'] . "<br></td>";
                                                                                     }
-                                                                                    echo "<td>" . formatNumber($dataName_a3['Total_Amount_2566']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a3['TOTAL_BUDGET_2566']) . "</td>";
                                                                                     echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567']) . "</td>";
                                                                                     echo "<td>" . formatNumber($dataName_a3['TOTAL_BUDGET_2567']) . "</td>";
                                                                                     echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568']) . "</td>";
@@ -1131,7 +1149,7 @@ function fetchScenariosData($conn)
                                                                                             if ($selectedFaculty != null) {
                                                                                                 echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a4['name'] . "<br></td>";
                                                                                             }
-                                                                                            echo "<td>" . formatNumber($dataName_a4['Total_Amount_2566']) . "</td>";
+                                                                                            echo "<td>" . formatNumber($dataName_a4['TOTAL_BUDGET_2566']) . "</td>";
                                                                                             echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567']) . "</td>";
                                                                                             echo "<td>" . formatNumber($dataName_a4['TOTAL_BUDGET_2567']) . "</td>";
                                                                                             echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568']) . "</td>";
@@ -1161,7 +1179,7 @@ function fetchScenariosData($conn)
                                                                                                     if ($selectedFaculty != null) {
                                                                                                         echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "<br></td>";
                                                                                                     }
-                                                                                                    echo "<td>" . formatNumber($kkuItem['Total_Amount_2566']) . "</td>";
+                                                                                                    echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2566']) . "</td>";
                                                                                                     echo "<td>" . formatNumber($kkuItem['Total_Amount_2567']) . "</td>";
                                                                                                     echo "<td>" . formatNumber($kkuItem['TOTAL_BUDGET_2567']) . "</td>";
                                                                                                     echo "<td>" . formatNumber($kkuItem['Total_Amount_2568']) . "</td>";
