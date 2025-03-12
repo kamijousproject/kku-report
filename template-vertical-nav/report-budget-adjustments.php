@@ -354,13 +354,18 @@ LEFT JOIN (
     AND bpa_sum.PROJECT = bap.Project
     AND bpa_sum.PLAN = bap.Plan
     AND bpa_sum.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-    AND bpa_sum.FUND = bap.Fund
+    AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
 WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
 ";
 
     // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
     if ($faculty) {
         $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
+    }
+
+    // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
+    if ($budget_year1) {
+        $query .= " AND  bap.Budget_Management_Year = :budget_year1"; // กรองตาม Faculty ที่เลือก
     }
 
     // เพิ่มการจัดกลุ่มข้อมูล
@@ -396,6 +401,10 @@ SELECT * FROM t1";
         $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
     }
 
+    // ถ้ามี budget_year1 ให้ผูกค่าพารามิเตอร์
+    if ($budget_year1) {
+        $stmt->bindParam(':budget_year1', $budget_year1, PDO::PARAM_STR);
+    }
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -474,30 +483,27 @@ function fetchYearsData($conn)
                                 </div>
 
                                 <?php
-                                $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
-                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
-                                $scenarios = fetchScenariosData($conn);
+                                $faculties = fetchFacultyData($conn);
+                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล\
+                                $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
                                 ?>
-
-                                <form method="GET" action="" onsubmit="return validateForm()">
+                                <form method="GET" action="" onsubmit="validateForm(event)">
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
                                             ส่วนงาน/หน่วยงาน</label>
                                         <select name="faculty" id="faculty" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ทุกส่วนงาน</option>
+                                            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
                                             <?php
-                                            // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
                                             foreach ($faculties as $faculty) {
-                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']); // ใช้ Faculty_Name แทน Faculty
-                                                $facultyCode = htmlspecialchars($faculty['Faculty']); // ใช้ Faculty รหัสเพื่อส่งไปใน GET
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
                                                 $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
                                                 echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
                                             }
                                             ?>
                                         </select>
                                     </div>
-
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="year" class="label-year"
                                             style="margin-right: 10px;">เลือกปีงบประมาณ</label>
@@ -505,15 +511,15 @@ function fetchYearsData($conn)
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
                                             <option value="">เลือก ปีงบประมาณ</option>
                                             <?php
-                                            // แสดงปีที่ดึงมาจากฟังก์ชัน fetchYearsData
                                             foreach ($years as $year) {
-                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']); // ใช้ Budget_Management_Year เพื่อแสดงปี
+                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']);
                                                 $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
                                                 echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
                                             }
                                             ?>
                                         </select>
                                     </div>
+
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
                                             ประเภทงบประมาณ</label>
@@ -530,33 +536,47 @@ function fetchYearsData($conn)
                                             ?>
                                         </select>
                                     </div>
-                                    <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
                                     <div class="form-group" style="display: flex; justify-content: center;">
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
                                     </div>
                                 </form>
 
                                 <script>
-                                    function validateForm() {
-                                        var faculty = document.getElementById('faculty').value;
-                                        var fiscalYear = document.getElementById('fiscalYear').value; // หรือใช้ ID ของปีงบประมาณที่คุณใช้
+                                    function validateForm(event) {
+                                        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
 
-                                        // เช็คว่าไม่ได้เลือกทั้งปีงบประมาณและส่วนงาน
-                                        if (faculty == '') {
-                                            if (fiscalYear != '') {
-                                                // ถ้าไม่ได้เลือกส่วนงานแต่เลือกปีงบประมาณแล้ว ให้แสดงข้อมูลเฉพาะปีงบประมาณ
-                                                // ในกรณีนี้อาจจะไม่ต้องเปลี่ยนเส้นทาง แต่แสดงข้อมูลที่ต้องการแทน
-                                                // ตัวอย่างเช่นส่งข้อมูลไปยังหน้า report-budget-annual-summary.php
-                                                window.location.href = "http://localhost/kku-report/template-vertical-nav/report-budget-adjustments.php?fiscalYear=" + fiscalYear;
-                                                return false; // ป้องกันการส่งฟอร์ม
-                                            }
+                                        var faculty = document.getElementById('faculty').value;
+                                        var year = document.getElementById('year').value;
+                                        var scenario = document.getElementById('scenario').value;
+
+                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-budget-adjustments.php";
+                                        var params = [];
+
+                                        // เพิ่ม Faculty หากเลือก
+                                        if (faculty) {
+                                            params.push("faculty=" + encodeURIComponent(faculty));
+                                        }
+                                        // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                        if (year && year !== "") {
+                                            params.push("year=" + encodeURIComponent(year));
+                                        }
+                                        // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                        if (scenario && scenario !== "") {
+                                            params.push("scenario=" + encodeURIComponent(scenario));
                                         }
 
-                                        // ถ้าเลือกทั้งปีงบประมาณและส่วนงาน
-                                        return true;
+                                        // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                        console.log("Params:", params);
+
+                                        // ถ้าไม่มีการเลือกอะไรเลย
+                                        if (params.length === 0) {
+                                            window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                        } else {
+                                            // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                            window.location.href = baseUrl + "?" + params.join("&");
+                                        }
                                     }
                                 </script>
-
 
 
                                 <script>
