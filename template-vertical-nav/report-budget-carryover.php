@@ -334,9 +334,7 @@ ON bap.`Account`=m.CurrentAccount
         $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
     }
 
-    if ($budget_year1) {
-        $query .= " AND bap.YEAR = :budget_year1"; // กรองตาม Scenario ที่เลือก
-    }
+
     $query .= " GROUP BY 
             bap.Faculty, 
             ft.Faculty, 
@@ -379,9 +377,7 @@ SELECT * FROM t1";
         $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
     }
 
-    if ($budget_year1) {
-        $stmt->bindParam(':budget_year1', $budget_year1, PDO::PARAM_STR);
-    }
+
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -529,7 +525,7 @@ function fetchScenariosData($conn)
                                         var year = document.getElementById('year').value;
                                         var scenario = document.getElementById('scenario').value;
 
-                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-budget-carryover.php";
+                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-budget-carryover.php";
                                         var params = [];
 
                                         // เพิ่ม Faculty หากเลือก
