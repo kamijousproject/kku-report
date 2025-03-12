@@ -82,14 +82,14 @@ th, td {
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <tr>
+                                            <tr style="background-color: #E0E0E0;">
                                                 <td style="text-align: left;">รวมทั้งหมด</td>
                                                 <td id="sum_type12"></td>
                                                 <td id="sum_type12_new"></td>
                                                 <td id="sum_type12_sum"></td>
                                             </tr>
                                             <!-- ข้อมูลกลุ่ม 1 -->
-                                            <tr>
+                                            <tr style="background-color: #E0E0E0;">
                                                 <td style="text-align: left;">1. พนักงานมหาวิทยาลัยงบประมาณเงินรายได้</td>
                                                 <td id="type1"></td>
                                                 <td id="type1_new"></td>
@@ -139,7 +139,7 @@ th, td {
                                             </tr>
 
                                             <!-- ข้อมูลกลุ่ม 2 -->
-                                            <tr>
+                                            <tr style="background-color: #E0E0E0;">
                                                 <td style="text-align: left;">2. ลูกจ้างของมหาวิทยาลัย</td>
                                                 <td id="type2"></td>
                                                 <td id="type2_new"></td>
