@@ -87,12 +87,7 @@ include '../server/connectdb.php';
 
 $db = new Database();
 $conn = $db->connect();
-$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
-$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
-$budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
 
-$scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
 function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $scenario = null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
@@ -105,7 +100,6 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     if ($budget_year3 === null) {
         $budget_year3 = 2566;  // ค่าเริ่มต้น
     }
-
 
     // สร้างคิวรี
     $query = "WITH RECURSIVE account_hierarchy AS (
@@ -183,343 +177,443 @@ hierarchy_with_max AS (
     FROM hierarchy_with_max
     WHERE depth = max_depth
     ORDER BY account
-),t1 AS(SELECT 
-    bap.id, bap.Faculty,
-    bap.Plan,
-    
-    MAX(p.plan_name) AS plan_name,
-    (SELECT fc.Alias_Default 
-     FROM Faculty fc 
-     WHERE fc.Faculty = bap.Faculty 
-     LIMIT 1) AS Faculty_name,
-    bap.Sub_Plan, sp.sub_plan_name,
-    bap.Project, pj.project_name,
-     ac.sub_type,
-    bap.`Account`,bap.KKU_Item_Name,
-    bap.Total_Amount_Quantity,
-    
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_1,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_3,
-
-
-
-    SUM(CASE 
+),totalActual AS (
+   SELECT 
+    bpa.FACULTY,
+    bpa.ACCOUNT,
+    bpa.SUBPLAN,
+    bpa.PROJECT,
+    bpa.PLAN,
+    bpa.FUND,
+    bpa.SERVICE,
+SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q1_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q2_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q3_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q4_BUDGET1,
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END)
     ) AS TOTAL_BUDGET_YEAR_1,
         
         SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q1_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q2_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q3_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q4_BUDGET2,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2- 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END)
     ) AS TOTAL_BUDGET_YEAR_2,
 
      SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q1_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q2_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q3_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) AS Q4_BUDGET3,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
-        THEN bpa.EXPENDITURES
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2))
+        THEN bpa.EXPENDITURES 
         ELSE 0 
     END)
-    ) AS TOTAL_BUDGET_YEAR_3,
-    
-    
+    ) AS TOTAL_BUDGET_YEAR_3
+FROM budget_planning_actual bpa
+GROUP BY 
+    bpa.FUND,
+    bpa.FACULTY,
+    bpa.ACCOUNT,
+    bpa.SUBPLAN,
+    bpa.PROJECT,
+    bpa.PLAN,
+    bpa.SERVICE
+),totalAmount AS (
+SELECT 
+    tm.Faculty,  
+    tm.Plan, 
+    tm.Sub_Plan, 
+    tm.Project,      
+    tm.Account,
+    tm.Fund,
+    tm.kku_item_name,
+    tm.Reason,
+    tm.Service,
+    tm.Scenario,
+    SUM(CASE WHEN tm.Budget_Management_Year = :budget_year1 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+    SUM(CASE WHEN tm.Budget_Management_Year = :budget_year2 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+    SUM(CASE WHEN tm.Budget_Management_Year = :budget_year3 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566
+FROM 
+    budget_planning_annual_budget_plan tm  
+GROUP BY  
+    tm.Fund,
+    tm.Faculty, 
+    tm.Plan, 
+    tm.Sub_Plan, 
+    tm.Project,      
+    tm.Account,
+    tm.kku_item_name,
+    tm.Reason,
+    tm.Service,
+    tm.Scenario
+),t1 AS(
+SELECT
+    tm.Faculty, 
+    tm.Plan,
+    ft.Alias_Default AS Faculty_name,
+    MAX(p.plan_name) AS plan_name,
+    (SELECT fc.Alias_Default 
+     FROM Faculty fc 
+     WHERE CAST(SUBSTRING(fc.Faculty, 2) AS UNSIGNED) = CAST(tm.Faculty AS UNSIGNED)
+     LIMIT 1) AS Faculty_Name_Main,
+    tm.Sub_Plan, 
+    sp.sub_plan_name,
+    tm.Project, 
+    pj.project_name,
+    tm.KKU_Item_Name,
+    tm.Account,
+    tm.Fund,
+    tm.Scenario,
+    tm.Reason,
+        CASE 
+        WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
+        WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
+        WHEN m.TotalLevels = 3 THEN m.ParentAccount
+    END AS a1,
 
-    
     CASE 
-    WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
-    WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
-    WHEN m.TotalLevels = 3 THEN m.ParentAccount
-END AS a1,
+        WHEN m.TotalLevels = 5 THEN m.GrandparentAccount
+        WHEN m.TotalLevels = 4 THEN m.ParentAccount
+        WHEN m.TotalLevels = 3 THEN m.CurrentAccount
+    END AS a2,
 
-CASE 
-    WHEN m.TotalLevels = 5 THEN m.GrandparentAccount
-    WHEN m.TotalLevels = 4 THEN m.ParentAccount
-    WHEN m.TotalLevels = 3 THEN m.CurrentAccount
-END AS a2,
-
-COALESCE(
-    CASE  
-        WHEN m.TotalLevels = 5 THEN m.ParentAccount
-        WHEN m.TotalLevels = 4 THEN m.CurrentAccount
-        WHEN m.TotalLevels = 3 THEN NULL
-    END,
-    bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
-) AS a3
-,
-
-COALESCE(
-    CASE  
-        WHEN m.TotalLevels = 5 THEN m.CurrentAccount
-        WHEN m.TotalLevels = 4 THEN NULL
-        WHEN m.TotalLevels = 3 THEN NULL
-    END,
-    bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
-) AS a4
-,
+    COALESCE(
         CASE  
-    WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 4 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 3 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-END AS Name_a1,
-
-CASE 
-    WHEN (m.TotalLevels = 5 AND COALESCE(m.GreatGrandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name) 
-         OR (m.TotalLevels = 4 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name) 
-         OR (m.TotalLevels = 3 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-    THEN NULL
-    WHEN m.TotalLevels = 5 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 4 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 3 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-END AS Name_a2,
-
-COALESCE(
-    CASE  
-        WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-             OR (m.TotalLevels = 4 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-             OR (m.TotalLevels = 3 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-        THEN bap.KKU_Item_Name  -- เปลี่ยนจาก NULL เป็น bap.KKU_Item_Name
-        WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-        WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-    END,
-    bap.KKU_Item_Name -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.KKU_Item_Name
-) AS Name_a3,
-
-
-CASE
-    WHEN (
-        COALESCE(
-            CASE  
-                WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-                     OR (m.TotalLevels = 4 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-                     OR (m.TotalLevels = 3 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-                THEN bap.KKU_Item_Name  
-                WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-                WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-            END,
-            bap.KKU_Item_Name
-        ) = bap.KKU_Item_Name
-    )
-    THEN NULL
-    ELSE COALESCE(
-        CASE  
-            WHEN (m.TotalLevels = 5 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-                 OR (m.TotalLevels = 4 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-            THEN NULL
-            WHEN m.TotalLevels = 5 THEN COALESCE(m.Current, bap.KKU_Item_Name)
+            WHEN m.TotalLevels = 5 THEN m.ParentAccount
+            WHEN m.TotalLevels = 4 THEN m.CurrentAccount
+            WHEN m.TotalLevels = 3 THEN NULL
         END,
-        bap.KKU_Item_Name
-    )
-END AS Name_a4
+        tm.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.Account
+    ) AS a3,
+
+    COALESCE(
+        CASE  
+            WHEN m.TotalLevels = 5 THEN m.CurrentAccount
+            WHEN m.TotalLevels = 4 THEN NULL
+            WHEN m.TotalLevels = 3 THEN NULL
+        END,
+        tm.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.Account
+    ) AS a4,
+
+    CASE  
+        WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, tm.KKU_Item_Name)
+        WHEN m.TotalLevels = 4 THEN COALESCE(m.Grandparent, tm.KKU_Item_Name)
+        WHEN m.TotalLevels = 3 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+    END AS Name_a1,
+
+    CASE 
+        WHEN (m.TotalLevels = 5 AND COALESCE(m.GreatGrandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name) 
+             OR (m.TotalLevels = 4 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name) 
+             OR (m.TotalLevels = 3 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+        THEN NULL
+        WHEN m.TotalLevels = 5 THEN COALESCE(m.Grandparent, tm.KKU_Item_Name)
+        WHEN m.TotalLevels = 4 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+        WHEN m.TotalLevels = 3 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+    END AS Name_a2,
+
+    COALESCE(
+        CASE  
+            WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                 OR (m.TotalLevels = 4 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                 OR (m.TotalLevels = 3 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+            THEN tm.KKU_Item_Name  -- เปลี่ยนจาก NULL เป็น tm.KKU_Item_Name
+            WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+            WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+        END,
+        tm.KKU_Item_Name -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.KKU_Item_Name
+    ) AS Name_a3,
+
+    CASE
+        WHEN (
+            COALESCE(
+                CASE  
+                    WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                         OR (m.TotalLevels = 4 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                         OR (m.TotalLevels = 3 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                    THEN tm.KKU_Item_Name  
+                    WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+                    WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+                END,
+                tm.KKU_Item_Name
+            ) = tm.KKU_Item_Name
+        )
+        THEN NULL
+        ELSE COALESCE(
+            CASE  
+                WHEN (m.TotalLevels = 5 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                     OR (m.TotalLevels = 4 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                THEN NULL
+                WHEN m.TotalLevels = 5 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+            END,
+            tm.KKU_Item_Name
+        )
+    END AS Name_a4,
     
-FROM budget_planning_annual_budget_plan bap
+   tm.Total_Amount_2566 AS Total_Amount_3,
+   ta.Q1_BUDGET3 AS Q1_BUDGET3,
+   ta.Q2_BUDGET3 AS Q2_BUDGET3,
+   ta.Q3_BUDGET3 AS Q3_BUDGET3,
+   ta.Q4_BUDGET3 AS Q4_BUDGET3,
+   ta.TOTAL_BUDGET_YEAR_3 AS TOTAL_BUDGET_YEAR_3,
+   tm.Total_Amount_2567 AS Total_Amount_2,
+   ta.Q1_BUDGET2 AS Q1_BUDGET2,
+   ta.Q2_BUDGET2 AS Q2_BUDGET2,
+   ta.Q3_BUDGET2 AS Q3_BUDGET2,
+   ta.Q4_BUDGET2 AS Q4_BUDGET2,
+	ta.TOTAL_BUDGET_YEAR_2 AS TOTAL_BUDGET_YEAR_2,
+	tm.Total_Amount_2568 AS Total_Amount_1,
+	ta.Q1_BUDGET1 AS Q1_BUDGET1,
+   ta.Q2_BUDGET1 AS Q2_BUDGET1,
+   ta.Q3_BUDGET1 AS Q3_BUDGET1,
+   ta.Q4_BUDGET1 AS Q4_BUDGET1,
+	ta.TOTAL_BUDGET_YEAR_1 AS TOTAL_BUDGET_YEAR_1
+FROM totalAmount tm 
 INNER JOIN Faculty ft 
-    ON bap.Faculty = ft.Faculty 
+    ON ft.Faculty = tm.Faculty 
     AND ft.parent LIKE 'Faculty%' 
-LEFT JOIN sub_plan sp 
-    ON sp.sub_plan_id = bap.Sub_Plan
-LEFT JOIN project pj 
-    ON pj.project_id = bap.Project
-LEFT JOIN `account` ac 
-    ON ac.`account` = bap.`Account`
-LEFT JOIN plan p 
-    ON p.plan_id = bap.Plan
-LEFT JOIN main m ON bap.`Account` = m.CurrentAccount
-LEFT JOIN budget_planning_actual bpa
+LEFT JOIN main m ON tm.Account = m.CurrentAccount
+LEFT JOIN sub_plan sp ON sp.sub_plan_id = tm.Sub_Plan
+LEFT JOIN project pj ON pj.project_id = tm.Project
+LEFT JOIN `account` ac ON ac.account COLLATE utf8mb4_general_ci = tm.Account COLLATE UTF8MB4_GENERAL_CI
+LEFT JOIN plan p ON p.plan_id = tm.Plan
+LEFT JOIN totalActual ta
+ON  tm.Faculty = ta.FACULTY
+AND tm.Account = ta.ACCOUNT
+AND tm.Plan = ta.PLAN
+AND CAST(REPLACE(tm.Service, 'SR_', '') AS UNSIGNED) = ta.SERVICE
+AND tm.Project = tm.PROJECT
+AND CAST(SUBSTRING(tm.Sub_Plan, 4) AS UNSIGNED) = ta.SUBPLAN
+AND CAST(REPLACE(tm.Fund, 'FN', '') AS UNSIGNED) = ta.FUND
 
-    ON bpa.FACULTY = bap.Faculty
-    AND bpa.`ACCOUNT` = bap.`Account`
-    AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
-    AND bpa.PROJECT = bap.Project
-    AND bpa.PLAN = bap.Plan
-    AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-    AND bpa.FUND = bap.Fund
-    AND (CAST(SUBSTRING(bpa.FISCAL_YEAR, 3, 2) AS UNSIGNED) + 2543) = bap.Budget_Management_Year
-WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
-
-    // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
-    if ($faculty) {
-        $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
-    }
-    // เพิ่มเงื่อนไขสำหรับ Scenario ถ้ามี
-    if ($scenario) {
-        $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
-    }
-    // เพิ่มการจัดกลุ่มข้อมูล
-    $query .= " GROUP BY bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
-    bap.Project, pj.project_name, bap.`Account`, ac.sub_type, 
-    bap.KKU_Item_Name, ft.Alias_Default,m.CurrentAccount,
-    m.Current,
-    m.ParentAccount,
-    m.Parent,
-    m.GrandparentAccount,
-    m.Grandparent,
+ 
+WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
+GROUP BY 
+    tm.Faculty, 
+    tm.Plan, 
+    ft.Alias_Default,
+    tm.Sub_Plan, 
+    sp.sub_plan_name,
+    tm.Project, 
+    pj.project_name, 
+    tm.KKU_Item_Name,
+    tm.Scenario,
+    tm.Account,
+    tm.Fund,
+    tm.Reason,
+    m.TotalLevels,
     m.GreatGrandparentAccount,
+    m.GrandparentAccount,
+    m.ParentAccount,
     m.GreatGrandparent,
-    m.GreatGreatGrandparentAccount,
-    m.GreatGreatGrandparent,m.TotalLevels
-    ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, 
-                ac.sub_type ASC, 
-                
-                bap.`Account` ASC)
+    m.Grandparent,
+    m.Parent,
+    m.Current,
+   tm.Total_Amount_2566,
+   ta.Q1_BUDGET3,
+   ta.Q2_BUDGET3,
+   ta.Q3_BUDGET3,
+   ta.Q4_BUDGET3,
+   ta.TOTAL_BUDGET_YEAR_3,
+   tm.Total_Amount_2567,
+   ta.Q1_BUDGET2,
+   ta.Q2_BUDGET2,
+   ta.Q3_BUDGET2,
+   ta.Q4_BUDGET2,
+	ta.TOTAL_BUDGET_YEAR_2,
+	tm.Total_Amount_2568,
+	ta.Q1_BUDGET1,
+   ta.Q2_BUDGET1,
+   ta.Q3_BUDGET1,
+   ta.Q4_BUDGET1,
+	ta.TOTAL_BUDGET_YEAR_1
+ 
+ORDER BY tm.Faculty ASC , tm.Plan ASC, tm.Sub_Plan ASC, tm.Project ASC, Name_a1 ASC,Name_a2 ASC,Name_a3 ASC,Name_a4 ASC,tm.Account ASC
+ 
+)
 SELECT * FROM t1";
 
-    // เตรียมคำสั่ง SQL
-    $stmt = $conn->prepare($query);
+
+    // Array to hold the parameters to bind
+    $params = [
+        'budget_year1' => $budget_year1,
+        'budget_year2' => $budget_year2,
+        'budget_year3' => $budget_year3,
+
+    ];
+
+    // Add WHERE clause if Faculty is provided
+    $whereClauses = [];
 
     if ($faculty) {
-        $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+        $whereClauses[] = "Faculty = :faculty";
+        $params['faculty'] = $faculty;  // Bind the faculty parameter
     }
 
+    // Add AND clause if Scenario is provided
     if ($scenario) {
-        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+        $whereClauses[] = "Scenario = :scenario";
+        $params['scenario'] = $scenario;  // Bind the scenario parameter
     }
 
+    // If we have any WHERE clauses, add them to the query
+    if (count($whereClauses) > 0) {
+        $query .= " WHERE " . implode(" AND ", $whereClauses);
+    }
 
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($query);
+    // Bind parameters to the query
+    $stmt->bindParam(':budget_year1', $budget_year1, PDO::PARAM_INT);
+    $stmt->bindParam(':budget_year2', $budget_year2, PDO::PARAM_INT);
+    $stmt->bindParam(':budget_year3', $budget_year3, PDO::PARAM_INT);
+    // Bind other parameters as necessary...
+    // Execute the query with the bound parameters
+    $stmt->execute($params);
 
-    $stmt->execute();
+    // Fetch and return the results
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
+// Retrieve parameters from the query string
+$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+$year = isset($_GET['year']) ? (int) $_GET['year'] : 2568; // Default to 2568 if not provided
+$budget_year1 = $year;
+$budget_year2 = $year - 1;
+$budget_year3 = $year - 2;
 
+$scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
 
-
-
-
+// Fetch the results
 $results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $scenario);
+
 function fetchFacultyData($conn)
 {
     // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
@@ -651,14 +745,39 @@ function fetchScenariosData($conn)
                                 </form>
 
                                 <script>
-                                    function validateForm() {
+                                    function validateForm(event) {
+                                        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
+
                                         var faculty = document.getElementById('faculty').value;
-                                        if (faculty == '') {
-                                            // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
-                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-revenue-estimation-comparison.php";
-                                            return false; // ป้องกันการส่งฟอร์ม
+                                        var year = document.getElementById('year').value;
+                                        var scenario = document.getElementById('scenario').value;
+
+                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-expense-estimation-comparison.php";
+                                        var params = [];
+
+                                        // เพิ่ม Faculty หากเลือก
+                                        if (faculty) {
+                                            params.push("faculty=" + encodeURIComponent(faculty));
                                         }
-                                        return true;
+                                        // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                        if (year && year !== "") {
+                                            params.push("year=" + encodeURIComponent(year));
+                                        }
+                                        // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                        if (scenario && scenario !== "") {
+                                            params.push("scenario=" + encodeURIComponent(scenario));
+                                        }
+
+                                        // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                        console.log("Params:", params);
+
+                                        // ถ้าไม่มีการเลือกอะไรเลย
+                                        if (params.length === 0) {
+                                            window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                        } else {
+                                            // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                            window.location.href = baseUrl + "?" + params.join("&");
+                                        }
                                     }
                                 </script>
 
@@ -812,9 +931,10 @@ function fetchScenariosData($conn)
                                             $previousName_a1 = "";
 
                                             $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-                                            $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
-                                            $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
-                                            $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
+                                            $year = isset($_GET['year']) ? (int) $_GET['year'] : 2568; // Default to 2568 if not provided
+                                            $budget_year1 = $year;
+                                            $budget_year2 = $year - 1;
+                                            $budget_year3 = $year - 2;
                                             $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
                                             $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $scenario);
 

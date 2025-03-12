@@ -88,7 +88,7 @@ include '../server/connectdb.php';
 $db = new Database();
 $conn = $db->connect();
 
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $budget_year4 = null, $budget_year5 = null, $scenario = null)
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null, $scenario = null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
     if ($budget_year1 === null) {
@@ -100,12 +100,7 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
     if ($budget_year3 === null) {
         $budget_year3 = 2566;  // ค่าเริ่มต้น
     }
-    if ($budget_year4 === null) {
-        $budget_year4 = 2565;  // ค่าเริ่มต้น
-    }
-    if ($budget_year5 === null) {
-        $budget_year5 = 2564;  // ค่าเริ่มต้น
-    }
+
 
     // สร้างคิวรี
     $query = "WITH RECURSIVE account_hierarchy AS (
@@ -572,8 +567,6 @@ SELECT * FROM t1";
         'budget_year1' => $budget_year1,
         'budget_year2' => $budget_year2,
         'budget_year3' => $budget_year3,
-        'budget_year4' => $budget_year4,
-        'budget_year5' => $budget_year5
     ];
 
     // Add WHERE clause if Faculty is provided
@@ -615,12 +608,10 @@ $year = isset($_GET['year']) ? (int) $_GET['year'] : 2568; // Default to 2568 if
 $budget_year1 = $year;
 $budget_year2 = $year - 1;
 $budget_year3 = $year - 2;
-$budget_year4 = $year - 3;
-$budget_year5 = $year - 4;
 $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
 
 // Fetch the results
-$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $scenario);
 
 function fetchFacultyData($conn)
 {
@@ -945,10 +936,8 @@ function fetchScenariosData($conn)
                                             $budget_year1 = $year;
                                             $budget_year2 = $year - 1;
                                             $budget_year3 = $year - 2;
-                                            $budget_year4 = $year - 3;
-                                            $budget_year5 = $year - 4;
                                             $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
-                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $scenario);
 
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             if (isset($results) && is_array($results) && count($results) > 0) {
