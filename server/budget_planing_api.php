@@ -669,12 +669,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 									 ,case when b.scenario LIKE '%Annual%' then 'งบประมาณประจำปี'
 									 when b.scenario LIKE '%Midyear%' then 'งบประมาณกลางปี' 
 									 ELSE b.scenario END AS scenario
-                            ,sum(case when b.Fund='FN06' then b.Total_Amount_Quantity ELSE 0 END) AS t06
-                            ,sum(case when b.Fund='FN02' then b.Total_Amount_Quantity ELSE 0 END) AS t02
-                            ,sum(case when b.Fund='FN08' then b.Total_Amount_Quantity ELSE 0 END) AS t08
-                            ,sum(case when ba.Fund='FN06' then ba.EXPENDITURES ELSE 0 END) AS e06
-                            ,sum(case when ba.Fund='FN02' then ba.EXPENDITURES ELSE 0 END) AS e02
-                            ,sum(case when ba.Fund='FN08' then ba.EXPENDITURES ELSE 0 END) AS e08
+                            ,sum(case when replace(b.Fund,'FN','')='06' then b.Total_Amount_Quantity ELSE 0 END) AS t06
+                            ,sum(case when replace(b.Fund,'FN','')='02' then b.Total_Amount_Quantity ELSE 0 END) AS t02
+                            ,sum(case when replace(b.Fund,'FN','')='08' then b.Total_Amount_Quantity ELSE 0 END) AS t08
+                            ,sum(case when replace(ba.Fund,'FN','')='06' then ba.EXPENDITURES ELSE 0 END) AS e06
+                            ,sum(case when replace(ba.Fund,'FN','')='02' then ba.EXPENDITURES ELSE 0 END) AS e02
+                            ,sum(case when replace(ba.Fund,'FN','')='08' then ba.EXPENDITURES ELSE 0 END) AS e08
                             ,b.Account AS account2
                             ,b.KKU_Item_Name
                             ,b.Budget_Management_Year
@@ -697,7 +697,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             LEFT JOIN Faculty f2
                             ON f.parent=f2.Faculty
                             LEFT JOIN budget_planning_actual ba
-                            ON b.faculty=ba.FACULTY COLLATE UTF8MB4_GENERAL_CI AND b.fund=ba.FUND COLLATE UTF8MB4_GENERAL_CI
+                            ON b.faculty=ba.FACULTY COLLATE UTF8MB4_GENERAL_CI AND replace(b.fund,'FN','')=replace(ba.FUND,'FN','') COLLATE UTF8MB4_GENERAL_CI
 									 AND b.Budget_Management_Year=CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(ba.FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR)) COLLATE UTF8MB4_GENERAL_CI
 									 AND b.plan=ba.PLAN COLLATE UTF8MB4_GENERAL_CI AND replace(b.sub_plan,'SP_','')=ba.SUBPLAN AND b.project=ba.PROJECT COLLATE UTF8MB4_GENERAL_CI
 									 AND replace(b.service,'SR_','')=ba.SERVICE AND b.account=ba.account COLLATE UTF8MB4_GENERAL_CI
@@ -770,9 +770,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "SELECT ba.Faculty
 
-                ,sum(case when ba.Fund='FN06' then ba.EXPENDITURES ELSE 0 END) AS n06
-                ,sum(case when ba.Fund='FN02' then ba.EXPENDITURES ELSE 0 END) AS n02
-                ,sum(case when ba.Fund='FN08' then ba.EXPENDITURES ELSE 0 END) AS n08
+                ,sum(case when replace(ba.Fund,'FN','')='06' then ba.EXPENDITURES ELSE 0 END) AS n06
+                ,sum(case when replace(ba.Fund,'FN','')='02' then ba.EXPENDITURES ELSE 0 END) AS n02
+                ,sum(case when replace(ba.Fund,'FN','')='08' then ba.EXPENDITURES ELSE 0 END) AS n08
                 ,CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(ba.FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR)) AS FISCAL_YEAR
 
                 ,replace(f.Alias_Default,'-',':') as Alias_Default
@@ -787,7 +787,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 LEFT JOIN Faculty f2
                 ON f.parent=f2.Faculty
                 left JOIN budget_planning_annual_budget_plan b
-                ON b.faculty=ba.FACULTY COLLATE UTF8MB4_GENERAL_CI AND b.fund=ba.FUND COLLATE UTF8MB4_GENERAL_CI
+                ON b.faculty=ba.FACULTY COLLATE UTF8MB4_GENERAL_CI 
+					 AND replace(b.fund,'FN','')=replace(ba.FUND,'FN','') 
                 AND b.Budget_Management_Year=CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(ba.FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR)) COLLATE UTF8MB4_GENERAL_CI
                 AND b.plan=ba.PLAN COLLATE UTF8MB4_GENERAL_CI AND replace(b.sub_plan,'SP_','')=ba.SUBPLAN AND b.project=ba.PROJECT COLLATE UTF8MB4_GENERAL_CI
                 AND replace(b.service,'SR_','')=ba.SERVICE AND b.account=ba.account COLLATE UTF8MB4_GENERAL_CI
