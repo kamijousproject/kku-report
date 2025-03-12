@@ -786,15 +786,13 @@ function fetchScenariosData($conn)
                                     const budgetYear1 = <?php echo json_encode($budget_year1); ?>;
                                     const budgetYear2 = <?php echo json_encode($budget_year2); ?>;
                                     const budgetYear3 = <?php echo json_encode($budget_year3); ?>;
-                                    const budgetYear4 = <?php echo json_encode($budget_year4); ?>;
-                                    const budgetYear5 = <?php echo json_encode($budget_year5); ?>;
+
 
                                     // แสดงค่าของ budget_year ในคอนโซล
                                     console.log('Budget Year 1:', budgetYear1);
                                     console.log('Budget Year 2:', budgetYear2);
                                     console.log('Budget Year 3:', budgetYear3);
-                                    console.log('Budget Year 4:', budgetYear4);
-                                    console.log('Budget Year 5:', budgetYear5);
+
                                 </script>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
