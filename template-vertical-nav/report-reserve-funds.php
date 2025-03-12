@@ -132,20 +132,30 @@
                                 $selectedYearBE = isset($_GET['year']) ? $_GET['year'] : ($currentYearAD + 543);
                                 $selectedYearAD = $selectedYearBE - 543; // แปลง พ.ศ. → ค.ศ.
 
+                                $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : ''; // ค่าที่เลือกจาก dropdown ส่วนงาน
+
                                 // กำหนดค่าจำนวนแถวต่อหน้า
                                 $limit = 10;
                                 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                                 $offset = ($page - 1) * $limit;
 
-                                // Query นับจำนวนข้อมูลทั้งหมดตามปีที่เลือก (ใช้ timestamp)
-                                $countQuery = "SELECT COUNT(*) as total FROM budget_planning_actual_2 WHERE YEAR(timestamp) = :selectedYear";
+                                // Query นับจำนวนข้อมูลทั้งหมดตามปีและส่วนงาน
+                                $countQuery = "SELECT COUNT(*) as total FROM budget_planning_actual_2 
+               WHERE YEAR(timestamp) = :selectedYear";
+                                if ($selectedFaculty !== '') {
+                                    $countQuery .= " AND SUBSTRING_INDEX(SUBSTRING_INDEX(account, '-', 2), '-', -1) = :faculty";
+                                }
+
                                 $countStmt = $conn->prepare($countQuery);
                                 $countStmt->bindParam(':selectedYear', $selectedYearAD, PDO::PARAM_INT);
+                                if ($selectedFaculty !== '') {
+                                    $countStmt->bindParam(':faculty', $selectedFaculty, PDO::PARAM_STR);
+                                }
                                 $countStmt->execute();
                                 $totalRows = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
                                 $totalPages = ceil($totalRows / $limit);
 
-                                // Query ดึงข้อมูลจาก budget_planning_actual_2 ตามปีที่เลือก
+                                // Query ดึงข้อมูลจาก budget_planning_actual_2 ตามปีที่เลือก และกรองส่วนงาน
                                 $query = "SELECT 
                                             account, 
                                             account_description, 
@@ -156,11 +166,17 @@
                                             ending_balances_debit, 
                                             ending_balances_credit
                                         FROM budget_planning_actual_2 
-                                        WHERE YEAR(timestamp) = :selectedYear
-                                        LIMIT :limit OFFSET :offset";
+                                        WHERE YEAR(timestamp) = :selectedYear";
+                                if ($selectedFaculty !== '') {
+                                    $query .= " AND SUBSTRING_INDEX(SUBSTRING_INDEX(account, '-', 2), '-', -1) = :faculty";
+                                }
+                                $query .= " LIMIT :limit OFFSET :offset";
 
                                 $stmt = $conn->prepare($query);
                                 $stmt->bindParam(':selectedYear', $selectedYearAD, PDO::PARAM_INT);
+                                if ($selectedFaculty !== '') {
+                                    $stmt->bindParam(':faculty', $selectedFaculty, PDO::PARAM_STR);
+                                }
                                 $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
                                 $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
                                 $stmt->execute();
@@ -170,7 +186,7 @@
                                 <!-- ส่วน Dropdown ปี (เป็น พ.ศ.) -->
                                 <div class="d-flex align-items-center gap-2">
                                     <label for="budgetYearSelect">ปีบริหารงบประมาณ:</label>
-                                    <select id="budgetYearSelect" class="form-control" onchange="updateYear()">
+                                    <select id="budgetYearSelect" class="form-control" onchange="updateFilters()">
                                         <?php foreach ($years as $yearAD): ?>
                                             <?php $yearBE = $yearAD + 543; // แปลง ค.ศ. → พ.ศ. 
                                             ?>
@@ -178,17 +194,58 @@
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
+
+                                <!-- ส่วน Dropdown เลือกส่วนงาน -->
                                 <div class="d-flex align-items-center gap-2">
-                                    <label for="">ประเภทแผน:</label>
-                                    <select id="" class="form-control" onchange="updateYear()">
-                                        <option value="">เลือกประเภทแผน</option>
-                                        <option value="">งบประมาณกลางปี</option>
-                                        <option value="">งบประมาณประจำปี</option>
+                                    <label for="facultySelect">เลือกส่วนงาน:</label>
+                                    <select id="facultySelect" class="form-control" onchange="updateFilters()">
+                                        <option value="">เลือก ส่วนงาน</option>
+                                        <option value="00" <?= ($selectedFaculty == '00') ? 'selected' : '' ?>>00 : มหาวิทยาลัยขอนแก่น</option>
+                                        <option value="01" <?= ($selectedFaculty == '01') ? 'selected' : '' ?>>01 : สำนักงานอธิการบดี</option>
+                                        <option value="02" <?= ($selectedFaculty == '02') ? 'selected' : '' ?>>02 : คณะวิทยาศาสตร์</option>
+                                        <option value="03" <?= ($selectedFaculty == '03') ? 'selected' : '' ?>>03 : คณะเกษตรศาสตร์</option>
+                                        <option value="04" <?= ($selectedFaculty == '04') ? 'selected' : '' ?>>04 : คณะวิศวกรรมศาสตร์</option>
+                                        <option value="05" <?= ($selectedFaculty == '05') ? 'selected' : '' ?>>05 : คณะศึกษาศาสตร์</option>
+                                        <option value="06" <?= ($selectedFaculty == '06') ? 'selected' : '' ?>>06 : คณะพยาบาลศาสตร์</option>
+                                        <option value="07" <?= ($selectedFaculty == '07') ? 'selected' : '' ?>>07 : คณะแพทยศาสตร์</option>
+                                        <option value="08" <?= ($selectedFaculty == '08') ? 'selected' : '' ?>>08 : คณะมนุษยศาสตร์และสังคมศาสตร์</option>
+                                        <option value="09" <?= ($selectedFaculty == '09') ? 'selected' : '' ?>>09 : คณะเทคนิคการแพทย์</option>
+                                        <option value="10" <?= ($selectedFaculty == '10') ? 'selected' : '' ?>>10 : บัณฑิตวิทยาลัย</option>
+                                        <option value="11" <?= ($selectedFaculty == '11') ? 'selected' : '' ?>>11 : คณะสาธารณสุขศาสตร์</option>
+                                        <option value="12" <?= ($selectedFaculty == '12') ? 'selected' : '' ?>>12 : สำนักหอสมุด</option>
+                                        <option value="13" <?= ($selectedFaculty == '13') ? 'selected' : '' ?>>13 : คณะทันตแพทยศาสตร์</option>
+                                        <option value="14" <?= ($selectedFaculty == '14') ? 'selected' : '' ?>>14 : วิทยาลัยบัณฑิตศึกษาการจัดการ</option>
+                                        <option value="15" <?= ($selectedFaculty == '15') ? 'selected' : '' ?>>15 : คณะเภสัชศาสตร์</option>
+                                        <option value="16" <?= ($selectedFaculty == '16') ? 'selected' : '' ?>>16 : คณะเทคโนโลยี</option>
+                                        <option value="17" <?= ($selectedFaculty == '17') ? 'selected' : '' ?>>17 : สำนักเทคโนโลยีดิจิทัล</option>
+                                        <option value="18" <?= ($selectedFaculty == '18') ? 'selected' : '' ?>>18 : คณะสัตวแพทยศาสตร์</option>
+                                        <option value="19" <?= ($selectedFaculty == '19') ? 'selected' : '' ?>>19 : คณะสถาปัตยกรรมศาสตร์</option>
+                                        <option value="20" <?= ($selectedFaculty == '20') ? 'selected' : '' ?>>20 : สำนักบริการวิชาการ</option>
+                                        <option value="21" <?= ($selectedFaculty == '21') ? 'selected' : '' ?>>21 : สำนักงานสภามหาวิทยาลัย</option>
+                                        <option value="22" <?= ($selectedFaculty == '22') ? 'selected' : '' ?>>22 : คณะบริหารธุรกิจและการบัญชี</option>
+                                        <option value="23" <?= ($selectedFaculty == '23') ? 'selected' : '' ?>>23 : สำนักบริหารและพัฒนาวิชาการ</option>
+                                        <option value="24" <?= ($selectedFaculty == '24') ? 'selected' : '' ?>>24 : คณะศิลปกรรมศาสตร์</option>
+                                        <option value="25" <?= ($selectedFaculty == '25') ? 'selected' : '' ?>>25 : วิทยาลัยการปกครองท้องถิ่น</option>
+                                        <option value="26" <?= ($selectedFaculty == '26') ? 'selected' : '' ?>>26 : วิทยาลัยนานาชาติ</option>
+                                        <option value="27" <?= ($selectedFaculty == '27') ? 'selected' : '' ?>>27 : คณะเศรษฐศาสตร์</option>
+                                        <option value="28" <?= ($selectedFaculty == '28') ? 'selected' : '' ?>>28 : คณะสหวิทยาการ</option>
+                                        <option value="29" <?= ($selectedFaculty == '29') ? 'selected' : '' ?>>29 : วิทยาลัยการคอมพิวเตอร์</option>
+                                        <option value="30" <?= ($selectedFaculty == '30') ? 'selected' : '' ?>>30 : คณะนิติศาสตร์</option>
                                     </select>
                                 </div>
-
                                 <br>
-
+                                <script>
+                                    function updateFilters() {
+                                        var year = document.getElementById("budgetYearSelect").value;
+                                        var faculty = document.getElementById("facultySelect").value;
+                                        var queryString = "?year=" + year;
+                                        if (faculty !== "") {
+                                            queryString += "&faculty=" + faculty;
+                                        }
+                                        window.location.href = queryString;
+                                    }
+                                </script>
+                                <br>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
