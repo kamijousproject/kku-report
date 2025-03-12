@@ -83,9 +83,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 ,w2.Field_of_Study
                 ,w2.Contract_Type
                 ,w2.Hiring_Start_End_Date
+                
                         FROM workforce_new_positions_allocation w
                         left join workforce_new_position_request w2
-                        on w.Job_Code=w2.Job_Code COLLATE UTF8MB4_GENERAL_CI
+                        on w.faculty=w2.Faculty AND w.NHR=w2.NHR AND w.Personnel_Type=w2.Personnel_Type
+                        AND w.All_PositionTypes=w2.All_PositionTypes AND w.Position=w2.Position
                         LEFT JOIN (
                         SELECT DISTINCT Faculty, Alias_Default ,parent
                         FROM Faculty
