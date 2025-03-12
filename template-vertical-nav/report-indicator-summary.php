@@ -326,21 +326,21 @@
                                         <tbody>
                                             <?php
                                             $current_plan = [];
-                                            $current_sub_plan = [];
+                                            $current_sub_plan = []; // ไม่แยกปี
                                             $Sub_plan_KPI_Name = [];
                                             $Sub_plan_KPI_Name_2 = [];
-
                                             $project_name = [];
                                             $Proj_KPI_Name = [];
-                                            $expense_totals = [];
 
                                             foreach ($data as $row):
                                                 if ($row['Budget_Management_Year'] == '2567' || $row['Budget_Management_Year'] == '2568') {
+                                                    $year = $row['Budget_Management_Year']; // ใช้แยกปีงบประมาณ
 
+                                                    // ตรวจสอบและแสดง Plan Name (แยกปี)
+                                                    if (!isset($current_plan[$year][$row['plan_name']]) && $row['plan_name'] != ''):
                                             ?>
-                                                    <?php if (!in_array($row['plan_name'], $current_plan) && $row['plan_name'] != ''): ?>
                                                         <tr>
-                                                            <td><?= $row['Plan'] . ":" . $row['plan_name'] ?></td>
+                                                            <td><?= $row['plan_name'] ?></td>
                                                             <td>-</td>
                                                             <td>-</td>
                                                             <td>-</td>
@@ -357,12 +357,13 @@
                                                             <td>-</td>
                                                         </tr>
                                                     <?php
-                                                        array_push($current_plan, $row['plan_name']);
+                                                        $current_plan[$year][$row['plan_name']] = true;
                                                     endif;
+
+                                                    // ตรวจสอบและแสดง Sub Plan (ไม่แยกปี)
+                                                    if (!isset($current_sub_plan[$row['Sub_Plan']]) && $row['Sub_Plan'] != ''):
                                                     ?>
-                                                    <?php if (!in_array($row['Sub_Plan'], $current_sub_plan) && $row['Sub_Plan'] != ''): ?>
                                                         <tr>
-                                                            <!-- <td><?= str_repeat("&nbsp;", 15) . $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td> -->
                                                             <td><?= str_repeat("&nbsp;", 15) . str_replace("SP_", "", $row['Sub_Plan']) . ":" . $row['sub_plan_name'] ?></td>
                                                             <td>-</td>
                                                             <td>-</td>
@@ -380,13 +381,15 @@
                                                             <td>-</td>
                                                         </tr>
                                                     <?php
-                                                        array_push($current_sub_plan, $row['Sub_Plan']);
+                                                        $current_sub_plan[$row['Sub_Plan']] = true;
                                                     endif;
+
+                                                    // ตรวจสอบและแสดง Sub Plan KPI (แยกปี)
+                                                    if (!isset($Sub_plan_KPI_Name[$year][$row['Sub_plan_KPI_Name']]) && $row['type'] == '1.sub_plan' && $row['Sub_plan_KPI_Name'] != ''):
                                                     ?>
-                                                    <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '1.sub_plan' && $row['Sub_plan_KPI_Name'] != ''): ?>
-                                                        <?php if ($row['Budget_Management_Year'] == '2567'): ?>
-                                                            <tr>
-                                                                <td><?= str_repeat("&nbsp;", 30) . $row['Sub_plan_KPI_Name'] ?></td>
+                                                        <tr>
+                                                            <td><?= str_repeat("&nbsp;", 30) . $row['Sub_plan_KPI_Name'] ?></td>
+                                                            <?php if ($year == '2567'): ?>
                                                                 <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
                                                                 <td><?= $row['Sub_plan_KPI_Target'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q1'] ?></td>
@@ -394,26 +397,21 @@
                                                                 <td><?= $row['Sub_Prog_Q3'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q4'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                            </tr>
-                                                        <?php endif; ?>
-                                                        <?php if ($row['Budget_Management_Year'] == '2568'): ?>
-                                                            <tr>
-                                                                <td><?= str_repeat("&nbsp;", 30) . $row['Sub_plan_KPI_Name'] ?></td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <!-- -- -->
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            <?php else: ?>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
                                                                 <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
                                                                 <td><?= $row['Sub_plan_KPI_Target'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q1'] ?></td>
@@ -421,13 +419,15 @@
                                                                 <td><?= $row['Sub_Prog_Q3'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q4'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
-                                                            </tr>
-                                                        <?php endif; ?>
+                                                            <?php endif; ?>
+                                                        </tr>
                                                     <?php
-                                                        array_push($Sub_plan_KPI_Name, $row['Sub_plan_KPI_Name']);
+                                                        $Sub_plan_KPI_Name[$year][$row['Sub_plan_KPI_Name']] = true;
                                                     endif;
+
+                                                    // ตรวจสอบและแสดง Project Name (แยกปี)
+                                                    if (!isset($project_name[$year][$row['project_name']]) && $row['project_name'] != ''):
                                                     ?>
-                                                    <?php if (!in_array($row['project_name'], $project_name) && $row['project_name'] != ''): ?>
                                                         <tr>
                                                             <td><?= str_repeat("&nbsp;", 20) . $row['project_name'] ?></td>
                                                             <td>-</td>
@@ -444,15 +444,18 @@
                                                             <td>-</td>
                                                             <td>-</td>
                                                             <td>-</td>
+
                                                         </tr>
                                                     <?php
-                                                        array_push($project_name, $row['project_name']);
+                                                        $project_name[$year][$row['project_name']] = true;
                                                     endif;
+
+                                                    // ตรวจสอบและแสดง Project KPI (แยกปี)
+                                                    if (!isset($Sub_plan_KPI_Name_2[$year][$row['Sub_plan_KPI_Name']]) && $row['type'] == '2.project' && $row['Sub_plan_KPI_Name'] != ''):
                                                     ?>
-                                                    <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name_2) && $row['type'] == '2.project' && $row['Sub_plan_KPI_Name'] != ''): ?>
-                                                        <?php if ($row['Budget_Management_Year'] == '2567'): ?>
-                                                            <tr>
-                                                                <td><?= str_repeat("&nbsp;", 35) . $row['Sub_plan_KPI_Name'] ?></td>
+                                                        <tr>
+                                                            <td><?= str_repeat("&nbsp;", 35) . $row['Sub_plan_KPI_Name'] ?></td>
+                                                            <?php if ($year == '2567'): ?>
                                                                 <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
                                                                 <td><?= $row['Sub_plan_KPI_Target'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q1'] ?></td>
@@ -460,26 +463,21 @@
                                                                 <td><?= $row['Sub_Prog_Q3'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q4'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                            </tr>
-                                                        <?php endif; ?>
-                                                        <?php if ($row['Budget_Management_Year'] == '2568'): ?>
-                                                            <tr>
-                                                                <td><?= str_repeat("&nbsp;", 35) . $row['Sub_plan_KPI_Name'] ?></td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <td>-</td>
-                                                                <!-- -- -->
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                            <?php else: ?>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
+                                                                <td></td>
                                                                 <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
                                                                 <td><?= $row['Sub_plan_KPI_Target'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q1'] ?></td>
@@ -487,14 +485,17 @@
                                                                 <td><?= $row['Sub_Prog_Q3'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q4'] ?></td>
                                                                 <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
-                                                            </tr>
-                                                        <?php endif; ?>
-                                                <?php
-                                                        array_push($Sub_plan_KPI_Name_2, $row['Sub_plan_KPI_Name']);
+                                                            <?php endif; ?>
+                                                        </tr>
+                                            <?php
+                                                        $Sub_plan_KPI_Name_2[$year][$row['Sub_plan_KPI_Name']] = true;
                                                     endif;
-                                                } ?>
-                                            <?php endforeach;  ?>
+                                                }
+                                            endforeach;
+                                            ?>
                                         </tbody>
+
+
                                     </table>
 
                                     <?php
