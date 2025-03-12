@@ -1876,12 +1876,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH t1 AS(
                         SELECT w.*,f.Alias_Default,f2.Alias_Default AS pname
+                        ,h.PROVIDENT_FUND AS PROVIDENT_FUND2,h.SOCIAL_SECURITY_FUND AS SOCIAL_SECURITY_FUND2
+								,h.GOVERNMENT_PENSION_FUND_GPF AS GOVERNMENT_PENSION_FUND_GPF2,h.GOVERNMENT_SERVICE_INSURANCE_FUND_GSIF AS GOVERNMENT_SERVICE_INSURANCE_FUND_GSIF2
                         FROM workforce_hcm_actual w
                         LEFT JOIN (SELECT * from Faculty 
                         WHERE Parent LIKE 'Faculty%') f
                         ON w.faculty=f.faculty
                         LEFT JOIN Faculty f2
-                        ON f.parent=f2.faculty)
+                        ON f.parent=f2.faculty
+								LEFT JOIN HCM_PAYROLL h
+								ON w.EMPLOYEE_ID=h.EMPLOYEE_ID)
                         ,t2 AS (
                         SELECT COALESCE(pname,'No Personnel Type') AS pname
                         ,faculty
@@ -1893,11 +1897,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(COALESCE(FULL_SALARY_COMPENSATION,0)) AS fa
                         ,sum(COALESCE(EXECUTIVE_COMPENSATION,0)) AS ec
                         ,sum(COALESCE(POSITION_CAR_ALLOWANCE,0)) AS pca
+                        ,sum(COALESCE(PROVIDENT_FUND2,0)) AS pf
+                        ,sum(COALESCE(SOCIAL_SECURITY_FUND2,0)) AS ssf
+                        ,sum(COALESCE(GOVERNMENT_PENSION_FUND_GPF2,0)) AS gpf
+                        ,sum(COALESCE(GOVERNMENT_SERVICE_INSURANCE_FUND_GSIF2,0)) AS gsif
                         FROM t1
                         GROUP BY  COALESCE(pname,'No Personnel Type')
                         ,faculty
 								,Alias_Default
                         ,position)
+                        
                         SELECT * FROM t2
                         WHERE Alias_Default IS NOT null
                         ORDER BY pname,Alias_Default";

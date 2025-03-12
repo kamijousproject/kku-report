@@ -111,6 +111,10 @@ thead tr:nth-child(3) th {
                                             <th >ค่าตอบแทนเงินเดือนเต็มขั้น</th>
                                             <th >ค่าตอบแทนตำแหน่งบริหาร</th>
                                             <th >ค่ารถประจำตำแหน่ง</th>
+                                            <th >กองทุนสำรองเลี้ยงชีพ</th>
+                                            <th >กองทุนประกันสังคม</th>
+                                            <th > กบข.</th>
+                                            <th >กสจ.</th>
                                         </tr>
                                         
                                     </thead>
@@ -233,10 +237,10 @@ thead tr:nth-child(3) th {
                     tdAlias.rowSpan = aliasRowSpan[currentAlias]+Object.keys(nameRowSpan[currentAlias]).length+1; // Apply Rowspan
                     tr.appendChild(tdAlias);
                         // Update previous alias
-                    console.log(currentAlias);
+                    /* console.log(currentAlias);
                     console.log(aliasRowSpan[currentAlias]);
                     console.log(Object.keys(nameRowSpan[currentAlias]));
-                    console.log(aliasRowSpan[currentAlias]+Object.keys(nameRowSpan[currentAlias]).length+1);
+                    console.log(aliasRowSpan[currentAlias]+Object.keys(nameRowSpan[currentAlias]).length+1); */
                     var sub_total=all_data.filter(r => r.pname === currentAlias);
                     const parseValue = (value) => {
                         const number = parseFloat(String(value).replace(/,/g, ''));
@@ -249,11 +253,15 @@ thead tr:nth-child(3) th {
                             pc: acc.pc + parseValue(item.pc),
                             fa: acc.fa + parseValue(item.fa),
                             ec: acc.ec + parseValue(item.ec),
-                            pca: acc.pca + parseValue(item.pca)
+                            pca: acc.pca + parseValue(item.pca),
+                            pf: acc.pf + parseValue(item.pf),
+                            ssf: acc.ssf + parseValue(item.ssf),
+                            gpf: acc.gpf + parseValue(item.gpf),
+                            gsif: acc.gsif + parseValue(item.gsif),
                         };
                     }, {
                         position_count: 0, SALARY_RATE: 0, pc: 0, fa: 0,
-                        ec: 0, pca: 0
+                        ec: 0, pca: 0, pf: 0, ssf: 0, gpf: 0, gsif: 0
                     });
                     const fac = document.createElement('td');
                     fac.textContent = "";
@@ -295,6 +303,23 @@ thead tr:nth-child(3) th {
                     tdpca.textContent = (parseFloat(sums.pca).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
                     tdpca.style.backgroundColor = '#f7f7f7';
                     tr.appendChild(tdpca);
+                    
+                    const tdpf = document.createElement('td');
+                    tdpf.textContent = (parseFloat(sums.pf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdpf.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdpf);
+                    const tdssf = document.createElement('td');
+                    tdssf.textContent = (parseFloat(sums.ssf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdssf.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdssf);
+                    const tdgpf = document.createElement('td');
+                    tdgpf.textContent = (parseFloat(sums.gpf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdgpf.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdgpf);
+                    const tdgsif = document.createElement('td');
+                    tdgsif.textContent = (parseFloat(sums.gsif).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdgsif.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdgsif);
 
                     tableBody.appendChild(tr);
                 }
@@ -321,11 +346,15 @@ thead tr:nth-child(3) th {
                             pc: acc.pc + parseValue(item.pc),
                             fa: acc.fa + parseValue(item.fa),
                             ec: acc.ec + parseValue(item.ec),
-                            pca: acc.pca + parseValue(item.pca)
+                            pca: acc.pca + parseValue(item.pca),
+                            pf: acc.pf + parseValue(item.pf),
+                            ssf: acc.ssf + parseValue(item.ssf),
+                            gpf: acc.gpf + parseValue(item.gpf),
+                            gsif: acc.gsif + parseValue(item.gsif),
                         };
                     }, {
                         position_count: 0, SALARY_RATE: 0, pc: 0, fa: 0,
-                        ec: 0, pca: 0
+                        ec: 0, pca: 0, pf: 0, ssf: 0, gpf: 0, gsif: 0
                     });
                     const tdPosition = document.createElement('td');
                     tdPosition.textContent = "";
@@ -362,6 +391,23 @@ thead tr:nth-child(3) th {
                     tdpca.style.backgroundColor = '#f7f7f7';
                     tr.appendChild(tdpca);
 
+                    const tdpf = document.createElement('td');
+                    tdpf.textContent = (parseFloat(sums.pf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdpf.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdpf);
+                    const tdssf = document.createElement('td');
+                    tdssf.textContent = (parseFloat(sums.ssf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdssf.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdssf);
+                    const tdgpf = document.createElement('td');
+                    tdgpf.textContent = (parseFloat(sums.gpf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdgpf.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdgpf);
+                    const tdgsif = document.createElement('td');
+                    tdgsif.textContent = (parseFloat(sums.gsif).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                    tdgsif.style.backgroundColor = '#f7f7f7';
+                    tr.appendChild(tdgsif);
+
                     tableBody.appendChild(tr);
                 }
                 if(currentName !== prevName)
@@ -397,6 +443,19 @@ thead tr:nth-child(3) th {
                 const tdpca = document.createElement('td');
                 tdpca.textContent = (parseFloat(row.pca).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
                 tr.appendChild(tdpca);
+
+                const tdpf = document.createElement('td');
+                tdpf.textContent = (parseFloat(row.pf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdpf);
+                const tdssf = document.createElement('td');
+                tdssf.textContent = (parseFloat(row.ssf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdssf);
+                const tdgpf = document.createElement('td');
+                tdgpf.textContent = (parseFloat(row.gpf).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdgpf);
+                const tdgsif = document.createElement('td');
+                tdgsif.textContent = (parseFloat(row.gsif).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+                tr.appendChild(tdgsif);
 
                 tableBody.appendChild(tr);
                 
@@ -480,67 +539,121 @@ thead tr:nth-child(3) th {
     doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
     doc.addFont("THSarabun.ttf", "THSarabun", "normal");
     doc.setFont("THSarabun");
+    doc.setFontSize(12);
+    doc.text('รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง', 14, 10);
+    // ก่อนสร้างตาราง เราต้องแปลงข้อมูลจากตาราง HTML
+    const tableElement = document.getElementById('reportTable');
+    const tableRows = Array.from(tableElement.querySelectorAll('tr'));
+    
+    // สร้างข้อมูลสำหรับ autoTable โดยรวมค่า rowspan ด้วย
+    const tableData = [];
+    const tableHeaders = [];
+    
+    // ดึงข้อมูลหัวตาราง
+    const headerCells = tableRows[0].querySelectorAll('th');
+    headerCells.forEach(cell => {
+        tableHeaders.push(cell.textContent.trim());
+    });
+    
+    // สร้างอาร์เรย์เก็บข้อมูลการรวมแถว (rowspan)
+    let spanningCells = {}; // เก็บข้อมูล cell ที่มีการรวมแถว
+    
+    // แปลงข้อมูลแถวให้เป็นรูปแบบที่ autoTable รองรับ
+    for (let i = 1; i < tableRows.length; i++) { // เริ่มที่ 1 เพื่อข้ามหัวตาราง
+        const row = tableRows[i];
+        const cells = row.querySelectorAll('td');
+        const rowData = {};
+        
+        let cellIndex = 0;
+        for (let j = 0; j < headerCells.length; j++) {
+            // ตรวจสอบว่ามี cell ที่ถูก span มาจากแถวก่อนหน้าหรือไม่
+            if (spanningCells[j] && spanningCells[j].rowsLeft > 0) {
+                rowData[tableHeaders[j]] = spanningCells[j].content;
+                spanningCells[j].rowsLeft--;
+                continue;
+            }
+            
+            // ถ้าไม่มี cell ที่ถูก span มา ให้ใช้ cell ปัจจุบัน
+            const cell = cells[cellIndex++];
+            if (!cell) continue; // กรณีไม่มี cell นี้ให้ข้าม
+            
+            const content = cell.textContent.trim();
+            rowData[tableHeaders[j]] = content;
+            
+            // บันทึกข้อมูล rowspan หากมี
+            if (cell.hasAttribute('rowspan')) {
+                const rowSpan = parseInt(cell.getAttribute('rowspan'));
+                if (rowSpan > 1) {
+                    spanningCells[j] = {
+                        content: content,
+                        rowsLeft: rowSpan - 1
+                    };
+                }
+            }
+        }
+        
+        tableData.push(rowData);
+    }
 
-    // Configure autoTable
     doc.autoTable({
-        html: '#reportTable',
-        startY: 25,
+        head: [tableHeaders],
+        body: tableData.map(row => tableHeaders.map(header => row[header] || '')),
+        startY: 20,
+        theme: 'grid',
         styles: {
             font: "THSarabun",
-            fontSize: 10,
-            cellPadding: 2,
-            lineWidth: 0.1
+            fontSize: 7,
+            cellPadding: 1,
+            lineWidth: 0.1,
+            lineColor: [0, 0, 0],
+            minCellHeight: 5
         },
         headStyles: {
             fillColor: [220, 230, 241],
             textColor: [0, 0, 0],
-            fontSize: 10,
+            fontSize: 7,
             fontStyle: 'bold',
             halign: 'center',
             valign: 'middle'
         },
         columnStyles: {
-            0: { cellWidth: 40 }, // ส่วนงาน
-            1: { cellWidth: 40 }, // หน่วยงาน
-            2: { cellWidth: 40 }, // ตำแหน่ง
-            3: { cellWidth: 20 }, // จำนวนตำแหน่ง
-            4: { cellWidth: 25 }, // เงินเดือน
-            5: { cellWidth: 30 }, // ค่าตอบแทน
-            6: { cellWidth: 30 }, // เงินเดือนเต็มขั้น
-            7: { cellWidth: 25 }, // ตำแหน่งบริหาร
-            8: { cellWidth: 25 }  // ค่ารถ
-        },
-        didDrawPage: function(data) {
-            // Add header
-            doc.setFontSize(16);
-            doc.text('รายงานประมาณการค่าใช้จ่ายบุคลากรตามกรอบอัตรากำลัง', 14, 15);
-            
-            // Add footer with page number
-            doc.setFontSize(10);
-            doc.text(
-                'หน้า ' + doc.internal.getCurrentPageInfo().pageNumber + ' จาก ' + doc.internal.getNumberOfPages(),
-                doc.internal.pageSize.width - 20, 
-                doc.internal.pageSize.height - 10,
-                { align: 'right' }
-            );
+            0: { cellWidth: 30, halign: 'center' }, // คอลัมน์ "ที่"
+            1: { cellWidth: 30, halign: 'center' }, // ส่วนงาน
+            2: { cellWidth: 35, halign: 'left' }, // ประเภทบริหาร (อัตราปัจจุบัน)
+            3: { cellWidth: 20, halign: 'center' }, // ประเภทบริหาร (กรอบที่พึงมี)
+            4: { cellWidth: 20, halign: 'center' }, // วิชาการ (อัตราปัจจุบัน)
+            5: { cellWidth: 20, halign: 'center' }, // วิชาการ (แผน 2563-2566)
+            6: { cellWidth: 25, halign: 'center' }, // FTES
+            7: { cellWidth: 18, halign: 'center' }, // ภาระงานวิจัย
+            8: { cellWidth: 18, halign: 'center' }, // ภาระงานบริการวิชาการ
+            9: { cellWidth: 18, halign: 'center' }, // รวมวิชาการ
+            10: { cellWidth: 18, halign: 'center' }, // เกณฑ์ภาระงานวิจัย
+            11: { cellWidth: 15, halign: 'center' }, // รวมวิจัย
+            12: { cellWidth: 15, halign: 'center' }, // Healthcare Services
         },
         didParseCell: function(data) {
-            // Apply background color for summary rows
-            const element = data.cell.raw;
-            if (element && element.style && element.style.backgroundColor === 'rgb(247, 247, 247)') {
-                data.cell.styles.fillColor = [247, 247, 247];
-            }
-
-            // Apply text alignment
-            if (element && element.style && element.style.textAlign === 'left') {
-                data.cell.styles.halign = 'left';
+            if (data.section === 'body' && data.column.index === 0) {
+                data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
             }
         },
-        margin: { top: 20, right: 14, bottom: 20, left: 14 }
+        willDrawCell: function(data) {
+            // ตรวจสอบว่าเป็นเซลล์ที่ต้องซ่อนเส้นขอบด้านล่างหรือไม่ (เนื่องจากมี rowspan)
+            if (data.section === 'body') {
+                const rowIndex = data.row.index;
+                const colIndex = data.column.index;
+                
+                // ถ้าเซลล์นี้เป็นส่วนหนึ่งของ rowspan ให้ซ่อนเส้นขอบด้านล่าง
+                if (spanningCells[colIndex] && spanningCells[colIndex].rowsLeft > 0 && 
+                    rowIndex < tableData.length - 1) {
+                    // ซ่อนเส้นขอบด้านล่าง
+                    data.cell.styles.lineWidth = [0.1, 0.1, 0, 0.1]; // [top, right, bottom, left]
+                }
+            }
+        },
+        margin: { top: 15, right: 5, bottom: 10, left:7 },
+        tableWidth: 'auto'
     });
-
-    // Save the PDF
-    doc.save('รายงานประมาณการค่าใช้จ่ายบุคลากร.pdf');
+    doc.save('รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่งรายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง.pdf');
 }
 
 
@@ -608,7 +721,7 @@ thead tr:nth-child(3) th {
         XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
 
         // เขียนไฟล์ Excel
-        XLSX.writeFile(wb, 'report.xlsx');
+        XLSX.writeFile(wb, 'รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง.xlsx');
     }
     </script>
     <!-- Common JS -->
