@@ -187,7 +187,9 @@ thead tr:nth-child(3) th {
             });
         });
         $('#fyear').change(function () {
-            const scenario = [...new Set(all_data.map(item => item.scenario))];
+            let year = document.getElementById("fyear").value;
+            let y=all_data.filter(item=>item.Budget_Management_Year===parseInt(year));
+            const scenario = [...new Set(y.map(item => item.scenario))];
             let facDropdown = document.getElementById("scenario");
                     facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
                     scenario.forEach(category => {
@@ -199,9 +201,15 @@ thead tr:nth-child(3) th {
             $('#scenario').prop('disabled', false);
         });
         $('#scenario').change(function () {
+            let year = document.getElementById("fyear").value;
             let scenario = document.getElementById("scenario").value;
-            let all_data2 = all_data.filter(item=>item.scenario===scenario);
-            console.log(all_data2);
+            let all_data2;
+            if (scenario == "all") {
+                all_data2 = all_data.filter(item=>item.Budget_Management_Year===parseInt(year));
+            } else {
+                all_data2 = all_data.filter(item=>item.scenario===scenario && item.Budget_Management_Year===parseInt(year));
+            }     
+            //console.log(all_data2);
             const fac = [...new Set(all_data2.map(item => item.pname))];
                     let facDropdown = document.getElementById("category");
                     facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
@@ -214,22 +222,25 @@ thead tr:nth-child(3) th {
             $('#category').prop('disabled', false);
         });
         function fetchData() {
+            let year = document.getElementById("fyear").value;
             let category = document.getElementById("category").value;
             let scenario = document.getElementById("scenario").value;
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า      
             let data;
+            data = all_data.filter(item => item.Budget_Management_Year === parseInt(year));
             if (scenario == "all") {
-                data = all_data;
+                //data = all_data;
             } else {
-                data = all_data.filter(item => item.Scenario === scenario);
+                data = data.filter(item => item.scenario === scenario);
             }         
             if(category=="all"){
-                data=all_data;
+                //data=all_data;
             }
             else{
-                data= all_data.filter(item=>item.pname===category);
+                data= data.filter(item=>item.pname===category);
             }
+            console.log(data);
             data.forEach((row, index) => {
                 const tr = document.createElement('tr');
                 var total = parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4)

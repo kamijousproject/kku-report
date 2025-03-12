@@ -831,6 +831,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,b.Principles_of_good_governance
                         ,b.SDGs
                         ,p.Scenario
+                        ,p.Budget_Management_Year
                         FROM budget_planning_annual_budget_plan p
                         LEFT JOIN budget_planning_project_kpi b
                         ON p.Faculty=b.Faculty AND p.Project=b.Project
@@ -849,7 +850,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,b.OKRs_LOV
                         ,b.Principles_of_good_governance
                         ,b.SDGs
-								,p.Scenario)
+								,p.Scenario
+								,p.Budget_Management_Year)
                         ,t2 AS (
                         SELECT t.* ,f.Alias_Default,f2.Alias_Default AS pname
                         FROM t1 t
@@ -884,7 +886,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON replace(tt.OKRs_LOV,'_','-')=ok.okr_id)
 
                         SELECT DISTINCT * FROM t7
-                        ORDER BY Faculty,fund,plan,sub_plan,project,KKU_Strategic_Plan_LOV,OKRs_LOV";
+                        ORDER BY Budget_Management_Year,Faculty,fund,plan,sub_plan,project,KKU_Strategic_Plan_LOV,OKRs_LOV";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);

@@ -94,7 +94,7 @@ thead tr:nth-child(3) th {
                                 <label for="fyear">เลือกปีงบประมาณ:</label>
                                 <select name="fyear" id="fyear">
                                 <option value="">-- Select --</option>
-                                    <option value="2568">2568</option>
+                                    
                                 </select>
                                 <br/>
                                 <label for="scenario">ประเภทงบประมาณ:</label>
@@ -170,9 +170,9 @@ thead tr:nth-child(3) th {
                 dataType: "json",
                 success: function(response) {
                     all_data=response.bgp;
-                    const fac = [...new Set(all_data.map(item => item.pname))];
-                    let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    const fac = [...new Set(all_data.map(item => item.Budget_Management_Year))];
+                    let dropdown = document.getElementById("fyear");
+                    dropdown.innerHTML = '<option value="">-- Select --</option>';
                     fac.forEach(category => {
                         let option = document.createElement("option");
                         option.value = category;
@@ -188,7 +188,9 @@ thead tr:nth-child(3) th {
 
         });
         $('#fyear').change(function () {
-            const scenario = [...new Set(all_data.map(item => item.Scenario))];
+            let year = document.getElementById("fyear").value;
+            let y=all_data.filter(item=>item.Budget_Management_Year===parseInt(year));
+            const scenario = [...new Set(y.map(item => item.Scenario))];
             let facDropdown = document.getElementById("scenario");
                     facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
                     scenario.forEach(category => {
@@ -200,8 +202,15 @@ thead tr:nth-child(3) th {
             $('#scenario').prop('disabled', false);
         });
         $('#scenario').change(function () {
+            let year = document.getElementById("fyear").value;
             let scenario = document.getElementById("scenario").value;
-            let all_data2 = all_data.filter(item=>item.Scenario===scenario);
+            let all_data2;
+            if (scenario == "all") {
+                all_data2 = all_data.filter(item=>item.Budget_Management_Year===parseInt(year));
+            } else {
+                all_data2 = all_data.filter(item => item.Scenario === scenario && item.Budget_Management_Year===parseInt(year));
+            }         
+            
             console.log(all_data2);
             const fac = [...new Set(all_data2.map(item => item.pname))];
                     let facDropdown = document.getElementById("category");
@@ -217,19 +226,23 @@ thead tr:nth-child(3) th {
         function fetchData() {
             let category = document.getElementById("category").value;
             let scenario = document.getElementById("scenario").value;
+            let year = document.getElementById("fyear").value;
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า      
             let data;
+            
+            data = all_data.filter(item => item.Budget_Management_Year === parseInt(year));
+                  
             if (scenario == "all") {
-                data = all_data;
+               
             } else {
-                data = all_data.filter(item => item.Scenario === scenario);
+                data = data.filter(item => item.Scenario === scenario);
             }         
             if(category=="all"){
-                data=all_data;
+                
             }
             else{
-                data= all_data.filter(item=>item.pname===category);
+                data= data.filter(item=>item.pname===category);
             }
             data.forEach((row, index) => {
                 const tr = document.createElement('tr');
