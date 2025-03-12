@@ -466,7 +466,7 @@ function fetchScenariosData($conn)
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล\
                                 $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
                                 ?>
-                                <form method="GET" action="" onsubmit="return validateForm()">
+                                <form method="GET" action="" onsubmit="validateForm(event)">
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
                                             ส่วนงาน/หน่วยงาน</label>
@@ -474,10 +474,9 @@ function fetchScenariosData($conn)
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
                                             <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
                                             <?php
-                                            // แสดง Faculty ที่ดึงมาจากฟังก์ชัน fetchFacultyData
                                             foreach ($faculties as $faculty) {
-                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']); // ใช้ Faculty_Name แทน Faculty
-                                                $facultyCode = htmlspecialchars($faculty['Faculty']); // ใช้ Faculty รหัสเพื่อส่งไปใน GET
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
                                                 $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
                                                 echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
                                             }
@@ -516,23 +515,53 @@ function fetchScenariosData($conn)
                                             ?>
                                         </select>
                                     </div>
-                                    <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
                                     <div class="form-group" style="display: flex; justify-content: center;">
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
                                     </div>
                                 </form>
 
                                 <script>
-                                    function validateForm() {
+                                    function validateForm(event) {
+                                        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
+
                                         var faculty = document.getElementById('faculty').value;
-                                        if (faculty == '') {
-                                            // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
-                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-budget-carryover.php";
-                                            return false; // ป้องกันการส่งฟอร์ม
+                                        var year = document.getElementById('year').value;
+                                        var scenario = document.getElementById('scenario').value;
+
+                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-budget-carryover.php";
+                                        var params = [];
+
+                                        // เพิ่ม Faculty หากเลือก
+                                        if (faculty) {
+                                            params.push("faculty=" + encodeURIComponent(faculty));
                                         }
-                                        return true;
+                                        // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                        if (year && year !== "") {
+                                            params.push("year=" + encodeURIComponent(year));
+                                        }
+                                        // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                        if (scenario && scenario !== "") {
+                                            params.push("scenario=" + encodeURIComponent(scenario));
+                                        }
+
+                                        // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                        console.log("Params:", params);
+
+                                        // ถ้าไม่มีการเลือกอะไรเลย
+                                        if (params.length === 0) {
+                                            window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                        } else {
+                                            // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                            window.location.href = baseUrl + "?" + params.join("&");
+                                        }
                                     }
                                 </script>
+
+
+
+
+
+
 
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
