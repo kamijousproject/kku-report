@@ -194,49 +194,49 @@ hierarchy_with_max AS (
     bpa.SERVICE,
 SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q1_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q2_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q3_BUDGET1,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q4_BUDGET1,
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2568 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -244,50 +244,50 @@ SUM(CASE
         
         SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567- 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q1_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567- 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q2_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567- 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q3_BUDGET2,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567- 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q4_BUDGET2,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567- 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567- 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567- 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2567- 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2- 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -295,50 +295,50 @@ SUM(CASE
 
      SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q1_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q2_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q3_BUDGET3,
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) AS Q4_BUDGET3,
 
     (SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 10 AND 12 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 1 AND 3 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 4 AND 6 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END) +
     SUM(CASE 
         WHEN MONTH(bpa.created_at) BETWEEN 7 AND 9 
-             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(2566 - 543 AS CHAR), -2))
+             AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2))
         THEN bpa.TOTAL_BUDGET 
         ELSE 0 
     END)
@@ -364,8 +364,8 @@ SELECT
     tm.Reason,
     tm.Service,
     tm.Scenario,
-    SUM(CASE WHEN tm.Budget_Management_Year = 2568 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
-    SUM(CASE WHEN tm.Budget_Management_Year = 2567 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+    SUM(CASE WHEN tm.Budget_Management_Year = $budget_year1 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+    SUM(CASE WHEN tm.Budget_Management_Year = $budget_year2 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
     SUM(CASE WHEN tm.Budget_Management_Year = 2566 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566
 FROM 
     budget_planning_annual_budget_plan tm  
@@ -565,28 +565,37 @@ ORDER BY tm.Faculty ASC , tm.Plan ASC, tm.Sub_Plan ASC, tm.Project ASC, Name_a1 
  
 )
 SELECT * FROM t1";
-    // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
+    // Start building the base query
+    $query = "SELECT * FROM t1";
+
+    // Array to hold the parameters to bind
+    $params = [
+        'budget_year1' => $budget_year1,
+        'budget_year2' => $budget_year2,
+        'budget_year3' => $budget_year3,
+        'budget_year4' => $budget_year4,
+        'budget_year5' => $budget_year5
+    ];
+
+    // Add WHERE clause if Faculty is provided
     if ($faculty) {
-        $query .= " WHERE tm.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
+        $query .= " WHERE tm.Faculty = :faculty";
+        $params['faculty'] = $faculty;  // Bind the faculty parameter
     }
-    // เพิ่มเงื่อนไขสำหรับ Scenario ถ้ามี
+
+    // Add AND clause if Scenario is provided
     if ($scenario) {
-        $query .= " AND tm.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
+        $query .= ($faculty ? " AND" : " WHERE") . " tm.Scenario = :scenario";
+        $params['scenario'] = $scenario;  // Bind the scenario parameter
     }
-    // เตรียมคำสั่ง SQL
+
+    // Prepare the SQL statement
     $stmt = $conn->prepare($query);
 
-    if ($faculty) {
-        $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
-    }
+    // Execute the query with the bound parameters
+    $stmt->execute($params);
 
-    if ($scenario) {
-        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
-    }
-
-
-
-    $stmt->execute();
+    // Fetch and return the results
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
@@ -598,6 +607,7 @@ $budget_year3 = $year - 2;
 $budget_year4 = $year - 3;
 $budget_year5 = $year - 4;
 $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+
 $results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
 function fetchFacultyData($conn)
 {
@@ -737,7 +747,7 @@ function fetchScenariosData($conn)
                                         var year = document.getElementById('year').value;
                                         var scenario = document.getElementById('scenario').value;
 
-                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-revenue-estimation-comparison.php";
+                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-revenue-estimation-comparison.php";
                                         var params = [];
 
                                         // เพิ่ม Faculty หากเลือก
@@ -918,11 +928,12 @@ function fetchScenariosData($conn)
                                             $previousName_a1 = "";
 
                                             $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-                                            $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
-                                            $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
-                                            $budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-                                            $budget_year4 = isset($_GET['year']) ? $_GET['year'] - 3 : null;
-                                            $budget_year5 = isset($_GET['year']) ? $_GET['year'] - 4 : null;
+                                            $year = isset($_GET['year']) ? (int) $_GET['year'] : 2568; // Default to 2568 if not provided
+                                            $budget_year1 = $year;
+                                            $budget_year2 = $year - 1;
+                                            $budget_year3 = $year - 2;
+                                            $budget_year4 = $year - 3;
+                                            $budget_year5 = $year - 4;
                                             $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
                                             $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3, $budget_year4, $budget_year5, $scenario);
 

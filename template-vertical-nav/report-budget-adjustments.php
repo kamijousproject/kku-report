@@ -572,7 +572,7 @@ function fetchYearsData($conn)
                                         var year = document.getElementById('year').value;
                                         var scenario = document.getElementById('scenario').value;
 
-                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-budget-adjustments.php";
+                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-budget-adjustments.php";
                                         var params = [];
 
                                         // เพิ่ม Faculty หากเลือก
