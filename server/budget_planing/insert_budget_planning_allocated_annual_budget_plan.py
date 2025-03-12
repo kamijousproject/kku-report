@@ -114,7 +114,7 @@ try:
         Plan_Desc TEXT,
         SubPlan_Desc TEXT,
         Proj_Desc TEXT,
-        YEAR TEXT,
+        YEAR TEXT
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
     '''
     cursor.execute(create_table_query)
