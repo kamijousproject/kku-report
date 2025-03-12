@@ -88,11 +88,7 @@ include '../server/connectdb.php';
 $db = new Database();
 $conn = $db->connect();
 
-$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
-$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
-$budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
-
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
+function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
     if ($budget_year1 === null) {
@@ -107,313 +103,341 @@ function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $budget_y
 
     // สร้างคิวรี
     $query = "WITH RECURSIVE account_hierarchy AS (
-    -- Anchor member: เริ่มจาก account ทุกตัว
-    SELECT 
-        a1.account,
-        a1.account AS account1, -- account สำหรับ level1
-        a1.alias_default AS level1,
-        a1.parent,
-        CAST(NULL AS CHAR(255)) AS account2, -- account สำหรับ level2
-        CAST(NULL AS CHAR(255)) AS level2,
-        CAST(NULL AS CHAR(255)) AS account3, -- account สำหรับ level3
-        CAST(NULL AS CHAR(255)) AS level3,
-        CAST(NULL AS CHAR(255)) AS account4, -- account สำหรับ level4
-        CAST(NULL AS CHAR(255)) AS level4,
-        CAST(NULL AS CHAR(255)) AS account5, -- account สำหรับ level5
-        CAST(NULL AS CHAR(255)) AS level5,
-        1 AS depth
-    FROM account a1
-    WHERE a1.parent IS NOT NULL
-    UNION ALL
-    -- Recursive member: หา parent ต่อไปเรื่อยๆ
-    SELECT 
-        ah.account,
-        ah.account1,
-        ah.level1,
-        a2.parent,
-        CASE WHEN ah.depth = 1 THEN a2.account ELSE ah.account2 END AS account2,
-        CASE WHEN ah.depth = 1 THEN a2.alias_default ELSE ah.level2 END AS level2,
-        CASE WHEN ah.depth = 2 THEN a2.account ELSE ah.account3 END AS account3,
-        CASE WHEN ah.depth = 2 THEN a2.alias_default ELSE ah.level3 END AS level3,
-        CASE WHEN ah.depth = 3 THEN a2.account ELSE ah.account4 END AS account4,
-        CASE WHEN ah.depth = 3 THEN a2.alias_default ELSE ah.level4 END AS level4,
-        CASE WHEN ah.depth = 4 THEN a2.account ELSE ah.account5 END AS account5,
-        CASE WHEN ah.depth = 4 THEN a2.alias_default ELSE ah.level5 END AS level5,
-        ah.depth + 1 AS depth
-    FROM account_hierarchy ah
-    JOIN account a2 
-        ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
-    WHERE ah.parent IS NOT NULL
-    AND ah.depth < 5 -- จำกัดระดับสูงสุดที่ 5
-),
--- หาความลึกสูงสุดสำหรับแต่ละ account
-hierarchy_with_max AS (
-    SELECT 
-        account,
-        account1 AS CurrentAccount,
-        level1 AS Current,
-        account2 AS ParentAccount,
-        level2 AS Parent,
-        account3 AS GrandparentAccount,
-        level3 AS Grandparent,
-        account4 AS GreatGrandparentAccount,
-        level4 AS GreatGrandparent,
-        account5 AS GreatGreatGrandparentAccount,
-        level5 AS GreatGreatGrandparent,
-        depth,
-        MAX(depth) OVER (PARTITION BY account) AS max_depth
-    FROM account_hierarchy
-)
--- เลือกเฉพาะแถวที่ depth = max_depth สำหรับแต่ละ account
-,main AS (SELECT 
-    CurrentAccount,
-    Current,
-    ParentAccount,
-    Parent,
-    GrandparentAccount,
-    Grandparent,
-    GreatGrandparentAccount,
-    GreatGrandparent,
-    GreatGreatGrandparentAccount,
-    GreatGreatGrandparent,
-    depth AS TotalLevels
-FROM hierarchy_with_max
-WHERE depth = max_depth
-ORDER BY account)
-,t1 AS(
-SELECT 
-    bap.id, 
-    bap.Faculty, 
-    bap.Plan,
-    ft.Alias_Default AS Faculty_name,
-    MAX(p.plan_name) AS plan_name,
-    (SELECT fc.Alias_Default 
-     FROM Faculty fc 
-     WHERE CAST(SUBSTRING(fc.Faculty, 2) AS UNSIGNED) = CAST(bap.Faculty AS UNSIGNED)
-     LIMIT 1) AS Faculty_Name_Main,
-    bap.Sub_Plan, 
-    sp.sub_plan_name,
-    bap.Project, 
-    pj.project_name,
-    ac.alias_default, 
-    ac.sub_type, 
-    ac.type,
-    bap.KKU_Item_Name, 
-    bap.Account,
-     bap.Fund,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year2 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
-    SUM(CASE WHEN bap.Budget_Management_Year = $budget_year3 THEN bap.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566,
-    COALESCE(SUM(bpa_sum.TOTAL_BUDGET_2568), 0) AS TOTAL_BUDGET_2568,
-    COALESCE(SUM(bpa_sum.TOTAL_BUDGET_2567), 0) AS TOTAL_BUDGET_2567,
-    COALESCE(SUM(bpa_sum.TOTAL_BUDGET_2566), 0) AS TOTAL_BUDGET_2566,
-    (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-     COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0)) AS Difference_2568_2567,
-    CASE
-        WHEN COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0) = 0
-        THEN 100
-        ELSE 
-            (SUM(CASE WHEN bap.Budget_Management_Year = $budget_year1 THEN bap.Total_Amount_Quantity ELSE 0 END) - 
-             COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0)) / 
-            NULLIF(COALESCE(bpa_sum.TOTAL_BUDGET_2567, 0), 0) * 100
-    END AS Percentage_Difference_2568_2567,
-    bap.Reason,
-    m.CurrentAccount,
-    m.Current,
-    m.ParentAccount,
-    m.Parent,
-    m.GrandparentAccount,
-    m.Grandparent,
-    m.GreatGrandparentAccount,
-    m.GreatGrandparent,
-    m.GreatGreatGrandparentAccount,
-    m.GreatGreatGrandparent,
-    m.TotalLevels,
-    
-CASE 
-    WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
-    WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
-    WHEN m.TotalLevels = 3 THEN m.ParentAccount
-END AS a1,
-
-CASE 
-    WHEN m.TotalLevels = 5 THEN m.GrandparentAccount
-    WHEN m.TotalLevels = 4 THEN m.ParentAccount
-    WHEN m.TotalLevels = 3 THEN m.CurrentAccount
-END AS a2,
-
-COALESCE(
-    CASE  
-        WHEN m.TotalLevels = 5 THEN m.ParentAccount
-        WHEN m.TotalLevels = 4 THEN m.CurrentAccount
-        WHEN m.TotalLevels = 3 THEN NULL
-    END,
-    bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
-) AS a3
-,
-
-COALESCE(
-    CASE  
-        WHEN m.TotalLevels = 5 THEN m.CurrentAccount
-        WHEN m.TotalLevels = 4 THEN NULL
-        WHEN m.TotalLevels = 3 THEN NULL
-    END,
-    bap.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.Account
-) AS a4
-,
-        CASE  
-    WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 4 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 3 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-END AS Name_a1,
-
-CASE 
-    WHEN (m.TotalLevels = 5 AND COALESCE(m.GreatGrandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name) 
-         OR (m.TotalLevels = 4 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name) 
-         OR (m.TotalLevels = 3 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-    THEN NULL
-    WHEN m.TotalLevels = 5 THEN COALESCE(m.Grandparent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 4 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-    WHEN m.TotalLevels = 3 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-END AS Name_a2,
-
-COALESCE(
-    CASE  
-        WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-             OR (m.TotalLevels = 4 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-             OR (m.TotalLevels = 3 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-        THEN bap.KKU_Item_Name  -- เปลี่ยนจาก NULL เป็น bap.KKU_Item_Name
-        WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-        WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-    END,
-    bap.KKU_Item_Name -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า bap.KKU_Item_Name
-) AS Name_a3,
-
-
-CASE
-    WHEN (
-        COALESCE(
-            CASE  
-                WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-                     OR (m.TotalLevels = 4 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-                     OR (m.TotalLevels = 3 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-                THEN bap.KKU_Item_Name  
-                WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, bap.KKU_Item_Name)
-                WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-            END,
-            bap.KKU_Item_Name
-        ) = bap.KKU_Item_Name
+        -- Anchor member: เริ่มจาก account ทุกตัว
+        SELECT 
+            a1.account,
+            a1.account AS account1, -- account สำหรับ level1
+            a1.alias_default AS level1,
+            a1.parent,
+            CAST(NULL AS CHAR(255)) AS account2, -- account สำหรับ level2
+            CAST(NULL AS CHAR(255)) AS level2,
+            CAST(NULL AS CHAR(255)) AS account3, -- account สำหรับ level3
+            CAST(NULL AS CHAR(255)) AS level3,
+            CAST(NULL AS CHAR(255)) AS account4, -- account สำหรับ level4
+            CAST(NULL AS CHAR(255)) AS level4,
+            CAST(NULL AS CHAR(255)) AS account5, -- account สำหรับ level5
+            CAST(NULL AS CHAR(255)) AS level5,
+            1 AS depth
+        FROM account a1
+        WHERE a1.parent IS NOT NULL
+        UNION ALL
+        -- Recursive member: หา parent ต่อไปเรื่อยๆ
+        SELECT 
+            ah.account,
+            ah.account1,
+            ah.level1,
+            a2.parent,
+            CASE WHEN ah.depth = 1 THEN a2.account ELSE ah.account2 END AS account2,
+            CASE WHEN ah.depth = 1 THEN a2.alias_default ELSE ah.level2 END AS level2,
+            CASE WHEN ah.depth = 2 THEN a2.account ELSE ah.account3 END AS account3,
+            CASE WHEN ah.depth = 2 THEN a2.alias_default ELSE ah.level3 END AS level3,
+            CASE WHEN ah.depth = 3 THEN a2.account ELSE ah.account4 END AS account4,
+            CASE WHEN ah.depth = 3 THEN a2.alias_default ELSE ah.level4 END AS level4,
+            CASE WHEN ah.depth = 4 THEN a2.account ELSE ah.account5 END AS account5,
+            CASE WHEN ah.depth = 4 THEN a2.alias_default ELSE ah.level5 END AS level5,
+            ah.depth + 1 AS depth
+        FROM account_hierarchy ah
+        JOIN account a2 
+            ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
+        WHERE ah.parent IS NOT NULL
+        AND ah.depth < 5 -- จำกัดระดับสูงสุดที่ 5
+    ),
+    -- หาความลึกสูงสุดสำหรับแต่ละ account
+    hierarchy_with_max AS (
+        SELECT 
+            account,
+            account1 AS CurrentAccount,
+            level1 AS Current,
+            account2 AS ParentAccount,
+            level2 AS Parent,
+            account3 AS GrandparentAccount,
+            level3 AS Grandparent,
+            account4 AS GreatGrandparentAccount,
+            level4 AS GreatGrandparent,
+            account5 AS GreatGreatGrandparentAccount,
+            level5 AS GreatGreatGrandparent,
+            depth,
+            MAX(depth) OVER (PARTITION BY account) AS max_depth
+        FROM account_hierarchy
     )
-    THEN NULL
-    ELSE COALESCE(
-        CASE  
-            WHEN (m.TotalLevels = 5 AND COALESCE(m.Parent, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-                 OR (m.TotalLevels = 4 AND COALESCE(m.Current, bap.KKU_Item_Name) = bap.KKU_Item_Name)
-            THEN NULL
-            WHEN m.TotalLevels = 5 THEN COALESCE(m.Current, bap.KKU_Item_Name)
-        END,
-        bap.KKU_Item_Name
-    )
-END AS Name_a4
-
-
-FROM budget_planning_annual_budget_plan bap
-INNER JOIN Faculty ft 
-    ON ft.Faculty = bap.Faculty 
-    AND ft.parent LIKE 'Faculty%' 
-LEFT JOIN main m ON bap.Account = m.CurrentAccount
-LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan
-LEFT JOIN project pj ON pj.project_id = bap.Project
-LEFT JOIN `account` ac ON ac.account COLLATE utf8mb4_general_ci = bap.Account COLLATE utf8mb4_general_ci
-LEFT JOIN plan p ON p.plan_id = bap.Plan
-LEFT JOIN (
-    SELECT 
+    -- เลือกเฉพาะแถวที่ depth = max_depth สำหรับแต่ละ account
+    ,main AS (SELECT 
+        CurrentAccount,
+        Current,
+        ParentAccount,
+        Parent,
+        GrandparentAccount,
+        Grandparent,
+        GreatGrandparentAccount,
+        GreatGrandparent,
+        GreatGreatGrandparentAccount,
+        GreatGreatGrandparent,
+        depth AS TotalLevels
+    FROM hierarchy_with_max
+    WHERE depth = max_depth
+    ORDER BY account)
+     
+     
+    ,totalActual AS (
+       SELECT 
         bpa.FACULTY,
         bpa.ACCOUNT,
         bpa.SUBPLAN,
         bpa.PROJECT,
         bpa.PLAN,
-        bpa.SERVICE,
         bpa.FUND,
-        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year1 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
-        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year2 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
-        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST($budget_year3 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566
+        bpa.SERVICE,
+        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year1 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2568,
+        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year2 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2567,
+        SUM(CASE WHEN bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(:budget_year3 - 543 AS CHAR), -2)) THEN bpa.TOTAL_BUDGET ELSE 0 END) AS TOTAL_BUDGET_2566
     FROM budget_planning_actual bpa
     GROUP BY 
+        bpa.FUND,
         bpa.FACULTY,
         bpa.ACCOUNT,
         bpa.SUBPLAN,
         bpa.PROJECT,
         bpa.PLAN,
-        bpa.SERVICE,
-        bpa.FUND
-) bpa_sum
-    ON bpa_sum.FACULTY = bap.Faculty
-    AND bpa_sum.ACCOUNT = bap.Account
-    AND bpa_sum.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
-    AND bpa_sum.PROJECT = bap.Project
-    AND bpa_sum.PLAN = bap.Plan
-    AND bpa_sum.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-    AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
-WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
-";
+        bpa.SERVICE
+    )
+    ,totalAmount AS (
+    SELECT 
+        tm.Faculty,  
+        tm.Plan, 
+        tm.Sub_Plan, 
+        tm.Project,      
+        tm.Account,
+        tm.Fund,
+        tm.kku_item_name,
+        tm.Reason,
+        tm.Service,
+        SUM(CASE WHEN tm.Budget_Management_Year = :budget_year1 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568,
+        SUM(CASE WHEN tm.Budget_Management_Year = :budget_year2 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567,
+        SUM(CASE WHEN tm.Budget_Management_Year = :budget_year3 THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2566
+    FROM 
+        budget_planning_annual_budget_plan tm  
+    GROUP BY  
+        tm.Fund,
+        tm.Faculty, 
+        tm.Plan, 
+        tm.Sub_Plan, 
+        tm.Project,      
+        tm.Account,
+        tm.kku_item_name,
+        tm.Reason,
+        tm.Service
+    ),
+     
+     
+    t1 AS(
+    SELECT
+     
+        tm.Faculty, 
+        tm.Plan,
+        ft.Alias_Default AS Faculty_name,
+        MAX(p.plan_name) AS plan_name,
+        (SELECT fc.Alias_Default 
+         FROM Faculty fc 
+         WHERE CAST(SUBSTRING(fc.Faculty, 2) AS UNSIGNED) = CAST(tm.Faculty AS UNSIGNED)
+         LIMIT 1) AS Faculty_Name_Main,
+        tm.Sub_Plan, 
+        sp.sub_plan_name,
+        tm.Project, 
+        pj.project_name,
+        tm.KKU_Item_Name,
+        tm.Account,
+        tm.Fund,
+        tm.Reason,
+            CASE 
+            WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
+            WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
+            WHEN m.TotalLevels = 3 THEN m.ParentAccount
+        END AS a1,
+     
+        CASE 
+            WHEN m.TotalLevels = 5 THEN m.GrandparentAccount
+            WHEN m.TotalLevels = 4 THEN m.ParentAccount
+            WHEN m.TotalLevels = 3 THEN m.CurrentAccount
+        END AS a2,
+     
+        COALESCE(
+            CASE  
+                WHEN m.TotalLevels = 5 THEN m.ParentAccount
+                WHEN m.TotalLevels = 4 THEN m.CurrentAccount
+                WHEN m.TotalLevels = 3 THEN NULL
+            END,
+            tm.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.Account
+        ) AS a3,
+     
+        COALESCE(
+            CASE  
+                WHEN m.TotalLevels = 5 THEN m.CurrentAccount
+                WHEN m.TotalLevels = 4 THEN NULL
+                WHEN m.TotalLevels = 3 THEN NULL
+            END,
+            tm.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.Account
+        ) AS a4,
+     
+        CASE  
+            WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, tm.KKU_Item_Name)
+            WHEN m.TotalLevels = 4 THEN COALESCE(m.Grandparent, tm.KKU_Item_Name)
+            WHEN m.TotalLevels = 3 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+        END AS Name_a1,
+     
+        CASE 
+            WHEN (m.TotalLevels = 5 AND COALESCE(m.GreatGrandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name) 
+                 OR (m.TotalLevels = 4 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name) 
+                 OR (m.TotalLevels = 3 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+            THEN NULL
+            WHEN m.TotalLevels = 5 THEN COALESCE(m.Grandparent, tm.KKU_Item_Name)
+            WHEN m.TotalLevels = 4 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+            WHEN m.TotalLevels = 3 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+        END AS Name_a2,
+     
+        COALESCE(
+            CASE  
+                WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                     OR (m.TotalLevels = 4 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                     OR (m.TotalLevels = 3 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                THEN tm.KKU_Item_Name  -- เปลี่ยนจาก NULL เป็น tm.KKU_Item_Name
+                WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+                WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+            END,
+            tm.KKU_Item_Name -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.KKU_Item_Name
+        ) AS Name_a3,
+     
+        CASE
+            WHEN (
+                COALESCE(
+                    CASE  
+                        WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                             OR (m.TotalLevels = 4 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                             OR (m.TotalLevels = 3 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                        THEN tm.KKU_Item_Name  
+                        WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+                        WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+                    END,
+                    tm.KKU_Item_Name
+                ) = tm.KKU_Item_Name
+            )
+            THEN NULL
+            ELSE COALESCE(
+                CASE  
+                    WHEN (m.TotalLevels = 5 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                         OR (m.TotalLevels = 4 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                    THEN NULL
+                    WHEN m.TotalLevels = 5 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+                END,
+                tm.KKU_Item_Name
+            )
+        END AS Name_a4,
+        tm.Total_Amount_2568 AS Total_Amount_2568,
+        tm.Total_Amount_2567 AS Total_Amount_2567,
+        tm.Total_Amount_2566 as Total_Amount_2566,
+        ta.TOTAL_BUDGET_2568 AS TOTAL_BUDGET_2568,
+        ta.TOTAL_BUDGET_2567 AS TOTAL_BUDGET_2567,
+        ta.TOTAL_BUDGET_2566 AS TOTAL_BUDGET_2566,
+     
+        SUM(tm.Total_Amount_2568) - SUM(ta.TOTAL_BUDGET_2567) AS Difference_2568_2567,
+     
+        CASE 
+            WHEN SUM(ta.TOTAL_BUDGET_2567) = 0 THEN NULL
+            ELSE (SUM(tm.Total_Amount_2568) - SUM(ta.TOTAL_BUDGET_2567)) / SUM(ta.TOTAL_BUDGET_2567) * 100
+        END AS Percentage_Difference_2568_2567
+     
+    FROM totalAmount tm 
+    INNER JOIN Faculty ft 
+        ON ft.Faculty = tm.Faculty 
+        AND ft.parent LIKE 'Faculty%' 
+    LEFT JOIN main m ON tm.Account = m.CurrentAccount
+    LEFT JOIN sub_plan sp ON sp.sub_plan_id = tm.Sub_Plan
+    LEFT JOIN project pj ON pj.project_id = tm.Project
+    LEFT JOIN `account` ac ON ac.account COLLATE utf8mb4_general_ci = tm.Account COLLATE UTF8MB4_GENERAL_CI
+    LEFT JOIN plan p ON p.plan_id = tm.Plan
+     
+    /* LEFT JOIN totalAmount tm 
+    ON  tm.Faculty = tm.Faculty
+    AND tm.Plan = tm.Plan
+    AND tm.Sub_Plan = tm.Sub_Plan
+    AND tm.Project = tm.Project    
+    AND tm.Account = tm.Account
+    AND tm.Fund = tm.Fund */
+     
+    LEFT JOIN totalActual ta
+    ON  tm.Faculty = ta.FACULTY
+    AND tm.Account = ta.ACCOUNT
+    AND tm.Plan = ta.PLAN
+    AND CAST(REPLACE(tm.Service, 'SR_', '') AS UNSIGNED) = ta.SERVICE
+    AND tm.Project = tm.PROJECT
+    AND CAST(SUBSTRING(tm.Sub_Plan, 4) AS UNSIGNED) = ta.SUBPLAN
+    AND CAST(REPLACE(tm.Fund, 'FN', '') AS UNSIGNED) = ta.FUND
+     
+    WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 
-    // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
-    if ($faculty) {
-        $query .= " AND bap.Faculty = :faculty"; // กรองตาม Faculty ที่เลือก
-    }
-
-    // เพิ่มเงื่อนไขสำหรับ Faculty ถ้ามี
-    if ($budget_year1) {
-        $query .= " AND  bap.Budget_Management_Year = :budget_year1"; // กรองตาม Faculty ที่เลือก
+    if ($selectedFaculty) {
+        $query .= " AND tm.Faculty = :selectedFaculty";
     }
 
     // เพิ่มการจัดกลุ่มข้อมูล
-    $query .= " GROUP BY 
-    bap.id, bap.Faculty, bap.Sub_Plan, sp.sub_plan_name, 
-    bap.Project, pj.project_name, bap.Account, ac.sub_type, 
-    bap.KKU_Item_Name, ft.Alias_Default, ac.alias_default, ac.type, p.plan_name, bap.Reason,
-    m.CurrentAccount,
-    m.Current,
-    m.ParentAccount,
-    m.Parent,
-    m.GrandparentAccount,
-    m.Grandparent,
-    m.GreatGrandparentAccount,
-    m.GreatGrandparent,
-    m.GreatGreatGrandparentAccount,
-    m.GreatGreatGrandparent,
+    $query .= "GROUP BY 
+    tm.Faculty, 
+    tm.Plan, 
+    ft.Alias_Default,
+    tm.Sub_Plan, 
+    sp.sub_plan_name,
+    tm.Project, 
+    pj.project_name, 
+    tm.KKU_Item_Name,
+    tm.Account,
+    tm.Fund,
+    tm.Reason,
+    tm.Total_Amount_2568,
+    tm.Total_Amount_2567,
+    tm.Total_Amount_2566,
+    ta.TOTAL_BUDGET_2568,
+    ta.TOTAL_BUDGET_2567,
+    ta.TOTAL_BUDGET_2566,
     m.TotalLevels,
-    bpa_sum.TOTAL_BUDGET_2568,
-    bpa_sum.TOTAL_BUDGET_2567,
-    bpa_sum.TOTAL_BUDGET_2566
-ORDER BY bap.Faculty ASC, bap.Plan ASC, bap.Sub_Plan ASC, bap.Project ASC, ac.type ASC,
-                ac.sub_type ASC, bap.Account ASC
-)
-SELECT * FROM t1";
+    m.GreatGrandparentAccount,
+    m.GrandparentAccount,
+    m.ParentAccount,
+    m.GreatGrandparent,
+    m.Grandparent,
+    m.Parent,
+    m.Current
+     
+    ORDER BY tm.Faculty ASC , tm.Plan ASC, tm.Sub_Plan ASC, tm.Project ASC, Name_a1 ASC,Name_a2 ASC,Name_a3 ASC,Name_a4 ASC,tm.Account ASC
+     
+    )
+    SELECT * FROM t1";
 
     // เตรียมคำสั่ง SQL
 
+    // เตรียมคำสั่ง SQL
     $stmt = $conn->prepare($query);
-
-    // ถ้ามี Faculty ให้ผูกค่าพารามิเตอร์
-    if ($faculty) {
-        $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+    if ($selectedFaculty) {
+        $stmt->bindParam(':selectedFaculty', $selectedFaculty, PDO::PARAM_STR);
     }
 
-    // ถ้ามี budget_year1 ให้ผูกค่าพารามิเตอร์
-    if ($budget_year1) {
-        $stmt->bindParam(':budget_year1', $budget_year1, PDO::PARAM_STR);
-    }
+    // ผูกค่าพารามิเตอร์
+    $stmt->bindParam(':budget_year1', $budget_year1, PDO::PARAM_INT);
+    $stmt->bindParam(':budget_year2', $budget_year2, PDO::PARAM_INT);
+    $stmt->bindParam(':budget_year3', $budget_year3, PDO::PARAM_INT);
+
+
+    // ประมวลผลคำสั่ง SQL
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+// รับค่าจาก URL
+$selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+$budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
 
-
-
-$results = fetchBudgetData($conn, $faculty, $budget_year1, $budget_year2, $budget_year3);
+// เรียกใช้ฟังก์ชัน
+$results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3);
 
 function fetchFacultyData($conn)
 {
@@ -542,41 +566,17 @@ function fetchYearsData($conn)
                                 </form>
 
                                 <script>
-                                    function validateForm(event) {
-                                        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
-
+                                    function validateForm() {
                                         var faculty = document.getElementById('faculty').value;
-                                        var year = document.getElementById('year').value;
-                                        var scenario = document.getElementById('scenario').value;
-
-                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-budget-adjustments.php";
-                                        var params = [];
-
-                                        // เพิ่ม Faculty หากเลือก
-                                        if (faculty) {
-                                            params.push("faculty=" + encodeURIComponent(faculty));
+                                        if (faculty == '') {
+                                            // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
+                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-budget-adjustments.php";
+                                            return false; // ป้องกันการส่งฟอร์ม
                                         }
-                                        // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
-                                        if (year && year !== "") {
-                                            params.push("year=" + encodeURIComponent(year));
-                                        }
-                                        // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
-                                        if (scenario && scenario !== "") {
-                                            params.push("scenario=" + encodeURIComponent(scenario));
-                                        }
-
-                                        // ตรวจสอบพารามิเตอร์ที่สร้าง
-                                        console.log("Params:", params);
-
-                                        // ถ้าไม่มีการเลือกอะไรเลย
-                                        if (params.length === 0) {
-                                            window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
-                                        } else {
-                                            // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
-                                            window.location.href = baseUrl + "?" + params.join("&");
-                                        }
+                                        return true;
                                     }
                                 </script>
+
 
 
                                 <script>
