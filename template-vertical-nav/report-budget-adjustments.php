@@ -90,18 +90,12 @@ $conn = $db->connect();
 
 function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $budget_year2 = null, $budget_year3 = null)
 {
-    // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
-    if ($budget_year1 === null) {
-        $budget_year1 = 2568;  // ค่าเริ่มต้นถ้าหากไม่ได้รับจาก URL
-    }
-    if ($budget_year2 === null) {
-        $budget_year2 = 2567;  // ค่าเริ่มต้น
-    }
-    if ($budget_year3 === null) {
-        $budget_year3 = 2566;  // ค่าเริ่มต้น
-    }
+    // Set default values for budget years if not provided
+    $budget_year1 = $budget_year1 ?? 2568;
+    $budget_year2 = $budget_year2 ?? 2567;
+    $budget_year3 = $budget_year3 ?? 2566;
 
-    // สร้างคิวรี
+    // Create the base query
     $query = "WITH RECURSIVE account_hierarchy AS (
         -- Anchor member: เริ่มจาก account ทุกตัว
         SELECT 
@@ -374,10 +368,6 @@ function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $
      
     WHERE ac.id < (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 
-    if ($selectedFaculty) {
-        $query .= " AND tm.Faculty = :selectedFaculty";
-    }
-
     // เพิ่มการจัดกลุ่มข้อมูล
     $query .= "GROUP BY 
     tm.Faculty, 
@@ -409,34 +399,43 @@ function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $
     ORDER BY tm.Faculty ASC , tm.Plan ASC, tm.Sub_Plan ASC, tm.Project ASC, Name_a1 ASC,Name_a2 ASC,Name_a3 ASC,Name_a4 ASC,tm.Account ASC
      
     )
-    SELECT * FROM t1";
+     SELECT * FROM t1";
 
-    // เตรียมคำสั่ง SQL
-
-    // เตรียมคำสั่ง SQL
-    $stmt = $conn->prepare($query);
+    // Add the faculty filter conditionally
     if ($selectedFaculty) {
-        $stmt->bindParam(':selectedFaculty', $selectedFaculty, PDO::PARAM_STR);
+        $query .= " WHERE Faculty = :selectedFaculty";
     }
 
-    // ผูกค่าพารามิเตอร์
-    $stmt->bindParam(':budget_year1', $budget_year1, PDO::PARAM_INT);
-    $stmt->bindParam(':budget_year2', $budget_year2, PDO::PARAM_INT);
-    $stmt->bindParam(':budget_year3', $budget_year3, PDO::PARAM_INT);
+    // Prepare the SQL statement
+    $stmt = $conn->prepare($query);
 
+    // Bind parameters
+    $params = [
+        'budget_year1' => $budget_year1,
+        'budget_year2' => $budget_year2,
+        'budget_year3' => $budget_year3
+    ];
 
-    // ประมวลผลคำสั่ง SQL
-    $stmt->execute();
+    // Add the selectedFaculty parameter if it exists
+    if ($selectedFaculty) {
+        $params['selectedFaculty'] = $selectedFaculty;
+    }
+
+    // Execute the query with the bound parameters
+    $stmt->execute($params);
+
+    // Fetch and return the results
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// รับค่าจาก URL
+// Get values from the URL
 $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
-$budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
-$budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
-$budget_year3 = isset($_GET['year']) ? $_GET['year'] - 2 : null;
+$year = isset($_GET['year']) ? (int) $_GET['year'] : 2568; // Default to 2568 if not provided
+$budget_year1 = $year;
+$budget_year2 = $year - 1;
+$budget_year3 = $year - 2;
 
-// เรียกใช้ฟังก์ชัน
+// Call the function
 $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $budget_year3);
 
 function fetchFacultyData($conn)
