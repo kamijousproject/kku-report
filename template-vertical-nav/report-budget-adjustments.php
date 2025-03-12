@@ -565,16 +565,42 @@ function fetchYearsData($conn)
                                 </form>
 
                                 <script>
-                                    function validateForm() {
+                                    function validateForm(event) {
+                                        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
+
                                         var faculty = document.getElementById('faculty').value;
-                                        if (faculty == '') {
-                                            // ถ้าไม่เลือกหน่วยงาน ให้เปลี่ยนเส้นทางไปที่หน้า report-budget-annual-summary.php
-                                            window.location.href = "http://localhost/kku-report/template-vertical-nav/report-budget-adjustments.php";
-                                            return false; // ป้องกันการส่งฟอร์ม
+                                        var year = document.getElementById('year').value;
+                                        var scenario = document.getElementById('scenario').value;
+
+                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-budget-adjustments.php";
+                                        var params = [];
+
+                                        // เพิ่ม Faculty หากเลือก
+                                        if (faculty) {
+                                            params.push("faculty=" + encodeURIComponent(faculty));
                                         }
-                                        return true;
+                                        // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                        if (year && year !== "") {
+                                            params.push("year=" + encodeURIComponent(year));
+                                        }
+                                        // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                        if (scenario && scenario !== "") {
+                                            params.push("scenario=" + encodeURIComponent(scenario));
+                                        }
+
+                                        // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                        console.log("Params:", params);
+
+                                        // ถ้าไม่มีการเลือกอะไรเลย
+                                        if (params.length === 0) {
+                                            window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                        } else {
+                                            // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                            window.location.href = baseUrl + "?" + params.join("&");
+                                        }
                                     }
                                 </script>
+
 
 
 
