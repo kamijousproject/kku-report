@@ -123,7 +123,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 // เชื่อมต่อฐานข้อมูล
                 $sql = "WITH
                         RECURSIVE account_hierarchy AS (
-                            -- Anchor member: Start with all accounts that have a parent
+                            
                             SELECT
                                 a1.account,
                                 a1.account AS acc_id,
@@ -135,7 +135,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             WHERE
                                 a1.parent IS NOT NULL
                             UNION ALL
-                                -- Recursive member: Find parent accounts
+                               
                             SELECT
                                 ah.account,
                                 a2.account AS acc_id,
@@ -147,9 +147,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 JOIN account a2 ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
                             WHERE
                                 a2.parent IS NOT NULL
-                                AND ah.level < 6 -- Maximum 6 levels (increased from 5)
+                                AND ah.level < 6 
                                 ),
-                        -- Get the maximum level for each account to determine total depth
+                        
                         max_levels AS (
                             SELECT
                                 account,
@@ -159,7 +159,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             GROUP BY
                                 account
                         ),
-                        -- Create a pivot table with all levels for each account
+                        
                         hierarchy_pivot AS (
                             SELECT
                                 h.account,
@@ -231,7 +231,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 h.account,
                                 m.max_level
                         ),
-                        -- Shift the hierarchy to the left (compact it)
+                       
                         shifted_hierarchy AS (
                             SELECT
                                 account AS current_acc,
@@ -317,6 +317,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 t.account,
                                 t.service,
                                 t.project,
+                                t.year as year2,
                                 SUM(
                                     Allocated_Total_Amount_Quantity
                                 ) AS Allocated_Total_Amount_Quantity,
@@ -338,7 +339,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 t.project,
                                 tt.Alias_Default,
                                 t.f2,
-                                t.service
+                                t.service,
+                                t.year
                         ),
                         t4 AS (
                             SELECT
@@ -349,6 +351,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 project,
                                 account,
                                 service,
+                                CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR)) AS FISCAL_YEAR,
                                 SUM(COMMITMENTS) AS COMMITMENTS,
                                 SUM(OBLIGATIONS) AS OBLIGATIONS,
                                 SUM(EXPENDITURES) AS EXPENDITURES
@@ -361,14 +364,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 subplan,
                                 project,
                                 account,
-                                service
+                                service,
+										  CONCAT(CAST(CAST(CONCAT('20', SUBSTRING(FISCAL_YEAR, 3, 2)) AS UNSIGNED) + 543 AS CHAR))
                         ),
                         t5 AS (
                             SELECT
                                 t.*,
                                 a.COMMITMENTS,
                                 a.OBLIGATIONS,
-                                a.EXPENDITURES
+                                a.EXPENDITURES,
+                                a.FISCAL_YEAR
                             FROM
                                 t3 t
                                 LEFT JOIN t4 a ON t.faculty = a.FACULTY
@@ -381,6 +386,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 AND t.project = a.project
                                 AND t.account = a.account
                                 AND REPLACE(t.service, 'SR_', '')= a.service
+                                AND t.year2=a.FISCAL_YEAR COLLATE UTF8MB4_GENERAL_CI
                         ),
                         t6 AS (
                             SELECT
@@ -395,6 +401,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 TYPE AS TYPE2,
                                 sub_type AS sub_type2,
                                 account AS account2,
+                                year2 ,
                                 SUM(
                                     CASE WHEN fund = 'FN02' THEN COALESCE(
                                         Allocated_Total_Amount_Quantity,
@@ -438,7 +445,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                                 KKU_Item_Name,
                                 TYPE,
                                 sub_type,
-                                account
+                                account,
+                                year2
                         ),
                         t7 AS (
                             SELECT

@@ -124,7 +124,7 @@
                                     <label for="fiscal-year">เลือกปีงบประมาณ:</label>
                                     <select name="fiscal-year" id="fiscal-year">
                                     <option value="">-- Select --</option>
-                                        <option value="2568">2568</option>
+                                        
                                     </select>
                                 </div>
                                 <br/>
@@ -153,8 +153,8 @@
                                             </tr>
                                             <!-- แถวที่สอง: หัวข้อย่อย -->
                                             <tr>
-                                                <th colspan="5">เงินอุดหนุนจากรัฐ (FN06)</th>
-                                                <th colspan="5">เงินรายได้ (FN02)</th>
+                                                <th colspan="5">เงินอุดหนุนจากรัฐ</th>
+                                                <th colspan="5">เงินรายได้</th>
 
                                             </tr>
                                             <!-- แถวที่สาม: รายละเอียด -->
@@ -215,17 +215,17 @@
                 dataType: "json",
                 success: function(response) {
                     all_data = response.bgp;
-
+                    console.log(all_data);
                     // เติมข้อมูลใน select ส่วนงาน
-                    /* const fac = [...new Set(all_data.map(item => item.f1))];
-                    let facDropdown = document.getElementById("category");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+                    const fac = [...new Set(all_data.map(item => item.year2))];
+                    let facDropdown = document.getElementById("fiscal-year");
+                    facDropdown.innerHTML = '<option value="">-- Select --</option>';
                     fac.forEach(category => {
                         let option = document.createElement("option");
                         option.value = category;
                         option.textContent = category;
                         facDropdown.appendChild(option);
-                    });    */
+                    });   
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -248,9 +248,15 @@
             
         });
         $('#scenario').change(function () {
+            let year = document.getElementById("fiscal-year").value;
             let scenario = document.getElementById("scenario").value;
-            let all_data2 = all_data.filter(item=>item.Scenario===scenario);
-            console.log(all_data2);
+            let all_data2;
+            if (scenario == "all") {
+                all_data2 = all_data.filter(item=>item.year2===year);
+            } else {
+                all_data2 = all_data.filter(item => item.Scenario === scenario && item.year2===year);
+            }         
+            console.log(year);
             const fac = [...new Set(all_data2.map(item => item.f1))];
                     let facDropdown = document.getElementById("category");
                     facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
@@ -263,20 +269,22 @@
             $('#category').prop('disabled', false);
         });
         function fetchData() {
+            let year = document.getElementById("fiscal-year").value;
             let category = document.getElementById("category").value;
             let scenario = document.getElementById("scenario").value;
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า      
             let data;
+            data = all_data.filter(item => item.year2 === year);
             if (scenario == "all") {
-                data = all_data;
+                //data = all_data;
             } else {
-                data = all_data.filter(item => item.Scenario === scenario);
+                data = data.filter(item => item.Scenario === scenario);
             }         
             if (category == "all") {
-                data = all_data;
+                //data = all_data;
             } else {
-                data = all_data.filter(item => item.f1 === category);
+                data = data.filter(item => item.f1 === category);
             }
             //console.log(all_data);
             const f1 = [...new Set(data.map(item => item.f1))];
