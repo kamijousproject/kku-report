@@ -147,19 +147,19 @@
                                     $query_Scenario = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
-                                    $where_clause = "AND 1=1";
+                                    $where_clause = "WHERE 1=1";
                                     $selected_fsy = isset($_GET['Budget_Management_Year']) ? $_GET['Budget_Management_Year'] : '';
 
                                     // WHERE Clause แบบ Dynamic
                                     if ($selected_fsy !== '') {
-                                        $where_clause .= " AND annual_bp.Budget_Management_Year = '$selected_fsy'";
+                                        $where_clause .= " AND t4.Budget_Management_Year = '$selected_fsy'";
                                     }
 
                                     $selected_Scenarios = isset($_GET['Scenario']) ? $_GET['Scenario'] : '';
 
                                     // WHERE Clause แบบ Dynamic
                                     if ($selected_Scenarios !== '') {
-                                        $where_clause .= " AND annual_bp.Scenario = '$selected_Scenarios'";
+                                        $where_clause .= " AND t4.Scenario = '$selected_Scenarios'";
                                     }
 
                                     // รับค่าที่เลือกจากฟอร์ม
@@ -167,12 +167,14 @@
 
                                     // WHERE Clause แบบ Dynamic
                                     if ($selected_faculty !== '') {
-                                        $where_clause .= " AND annual_bp.Faculty = '$selected_faculty'";
+                                        $where_clause .= " AND t4.Faculty = '$selected_faculty'";
                                     }
 
                                     $query = "WITH t1 AS (SELECT DISTINCT annual_bp.Faculty,
                                                     annual_bp.Plan,
                                                     annual_bp.Sub_Plan,
+                                                    annual_bp.Scenario,
+                                                    annual_bp.Budget_Management_Year,
                                                     NULL AS project,
                                                     sub_p_kpi.Sub_plan_KPI_Name,
                                                     sub_p_kpi.Sub_plan_KPI_Target,
@@ -194,11 +196,15 @@
                                                     AND sub_p_kpi.Sub_Plan = sub_p_progress.Sub_Plan
                                                     AND sub_p_kpi.Faculty = sub_p_progress.Faculty
                                                     AND sub_p_kpi.KPI=sub_p_progress.KPI
-                                                    WHERE sub_p_kpi.KPI IS NOT NULL $where_clause)
+                                                    WHERE sub_p_kpi.KPI IS NOT NULL)
                                                 
                                                 ,t2 AS (SELECT DISTINCT annual_bp.Faculty,
-                                                    NULL AS plan,
-                                                    NULL AS sub_plan,
+                                                    -- NULL AS plan,
+                                                    -- NULL AS sub_plan,
+                                                    annual_bp.Plan,
+			                                        annual_bp.Sub_Plan,
+                                                    annual_bp.Scenario,
+                                                    annual_bp.Budget_Management_Year,
                                                     annual_bp.Project,
                                                     p_kpi.Proj_KPI_Name,
                                                     p_kpi.Proj_KPI_Target,
@@ -232,9 +238,7 @@
                                                 LEFT JOIN plan p ON t.Plan = p.plan_id
                                                 LEFT JOIN sub_plan sp ON t.Sub_Plan = sp.sub_plan_id
                                                 LEFT JOIN project pj ON t.Project = pj.project_id)
-                                                
-                                                    SELECT distinct * FROM t4
-                                                
+                                                    SELECT distinct * FROM t4 $where_clause
                                                 ORDER BY Faculty,type,plan,sub_plan,kpi";
 
                                     // เตรียมและ execute คำสั่ง SQL
@@ -331,120 +335,164 @@
                                             $expense_totals = [];
 
                                             foreach ($data as $row):
+                                                if ($row['Budget_Management_Year'] == '2567' || $row['Budget_Management_Year'] == '2568') {
+
                                             ?>
-                                                <?php if (!in_array($row['plan_name'], $current_plan) && $row['plan_name'] != ''): ?>
-                                                    <tr>
-                                                        <td><?= "plan_name :" . $row['Plan'] . ":" . $row['plan_name'] ?></td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                    </tr>
+                                                    <?php if (!in_array($row['plan_name'], $current_plan) && $row['plan_name'] != ''): ?>
+                                                        <tr>
+                                                            <td><?= "plan_name :" . $row['Plan'] . ":" . $row['plan_name'] ?></td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                        </tr>
+                                                    <?php
+                                                        array_push($current_plan, $row['plan_name']);
+                                                    endif;
+                                                    ?>
+                                                    <?php if (!in_array($row['Sub_Plan'], $current_sub_plan) && $row['Sub_Plan'] != ''): ?>
+                                                        <tr>
+                                                            <td><?= str_repeat("&nbsp;", 15) . "Sub_Plan :" . $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                        </tr>
+                                                    <?php
+                                                        array_push($current_sub_plan, $row['Sub_Plan']);
+                                                    endif;
+                                                    ?>
+                                                    <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '1.sub_plan' && $row['Sub_plan_KPI_Name'] != ''): ?>
+                                                        <?php if ($row['Budget_Management_Year'] == '2567'): ?>
+                                                            <tr>
+                                                                <td><?= str_repeat("&nbsp;", 30) . "Sub_plan_KPI_Name :" . $row['Sub_plan_KPI_Name'] ?></td>
+                                                                <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
+                                                                <td><?= $row['Sub_plan_KPI_Target'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q1'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q2'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q3'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q4'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                        <?php endif; ?>
+                                                        <?php if ($row['Budget_Management_Year'] == '2568'): ?>
+                                                            <tr>
+                                                                <td><?= str_repeat("&nbsp;", 30) . "Sub_plan_KPI_Name :" . $row['Sub_plan_KPI_Name'] ?></td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <!-- -- -->
+                                                                <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
+                                                                <td><?= $row['Sub_plan_KPI_Target'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q1'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q2'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q3'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q4'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
+                                                            </tr>
+                                                        <?php endif; ?>
+                                                    <?php
+                                                        array_push($Sub_plan_KPI_Name, $row['Sub_plan_KPI_Name']);
+                                                    endif;
+                                                    ?>
+                                                    <?php if (!in_array($row['project_name'], $project_name) && $row['project_name'] != ''): ?>
+                                                        <tr>
+                                                            <td><?= str_repeat("&nbsp;", 20) . "project_name :" . $row['project_name'] ?></td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                            <td>-</td>
+                                                        </tr>
+                                                    <?php
+                                                        array_push($project_name, $row['project_name']);
+                                                    endif;
+                                                    ?>
+                                                    <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name_2) && $row['type'] == '2.project' && $row['Sub_plan_KPI_Name'] != ''): ?>
+                                                        <?php if ($row['Budget_Management_Year'] == '2567'): ?>
+                                                            <tr>
+                                                                <td><?= str_repeat("&nbsp;", 35) . "Project_KPI_Name :" . $row['Sub_plan_KPI_Name'] ?></td>
+                                                                <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
+                                                                <td><?= $row['Sub_plan_KPI_Target'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q1'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q2'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q3'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q4'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                            </tr>
+                                                        <?php endif; ?>
+                                                        <?php if ($row['Budget_Management_Year'] == '2568'): ?>
+                                                            <tr>
+                                                                <td><?= str_repeat("&nbsp;", 35) . "Project_KPI_Name :" . $row['Sub_plan_KPI_Name'] ?></td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <td>-</td>
+                                                                <!-- -- -->
+                                                                <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
+                                                                <td><?= $row['Sub_plan_KPI_Target'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q1'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q2'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q3'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q4'] ?></td>
+                                                                <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
+                                                            </tr>
+                                                        <?php endif; ?>
                                                 <?php
-                                                    array_push($current_plan, $row['plan_name']);
-                                                endif;
-                                                ?>
-                                                <?php if (!in_array($row['Sub_Plan'], $current_sub_plan) && $row['Sub_Plan'] != ''): ?>
-                                                    <tr>
-                                                        <td><?= str_repeat("&nbsp;", 15) . "Sub_Plan :" . $row['Sub_Plan'] . ":" . $row['sub_plan_name'] ?></td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                    </tr>
-                                                <?php
-                                                    array_push($current_sub_plan, $row['Sub_Plan']);
-                                                endif;
-                                                ?>
-                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name) && $row['type'] == '1.sub_plan' && $row['Sub_plan_KPI_Name'] != ''): ?>
-                                                    <tr>
-                                                        <td><?= str_repeat("&nbsp;", 30) . "Sub_plan_KPI_Name :" . $row['Sub_plan_KPI_Name'] ?></td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <!-- -- -->
-                                                        <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
-                                                        <td><?= $row['Sub_plan_KPI_Target'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q1'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q2'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q3'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q4'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
-                                                    </tr>
-                                                <?php
-                                                    array_push($Sub_plan_KPI_Name, $row['Sub_plan_KPI_Name']);
-                                                endif;
-                                                ?>
-                                                <?php if (!in_array($row['project_name'], $project_name) && $row['project_name'] != ''): ?>
-                                                    <tr>
-                                                        <td><?= str_repeat("&nbsp;", 45) . "project_name :" . $row['project_name'] ?></td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                    </tr>
-                                                <?php
-                                                    array_push($project_name, $row['project_name']);
-                                                endif;
-                                                ?>
-                                                <?php if (!in_array($row['Sub_plan_KPI_Name'], $Sub_plan_KPI_Name_2) && $row['type'] == '2.project' && $row['Sub_plan_KPI_Name'] != ''): ?>
-                                                    <tr>
-                                                        <td><?= str_repeat("&nbsp;", 60) . "project_KPI_Name :" . $row['Sub_plan_KPI_Name'] ?></td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <td>-</td>
-                                                        <!-- -- -->
-                                                        <td><?= $row['UoM_for_Sub_plan_KPI'] ?></td>
-                                                        <td><?= $row['Sub_plan_KPI_Target'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q1'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q2'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q3'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q4'] ?></td>
-                                                        <td><?= $row['Sub_Prog_Q1'] + $row['Sub_Prog_Q2'] + $row['Sub_Prog_Q3'] + $row['Sub_Prog_Q4'] ?></td>
-                                                    </tr>
-                                                <?php
-                                                    array_push($Sub_plan_KPI_Name_2, $row['Sub_plan_KPI_Name']);
-                                                endif;
-                                                ?>
-                                            <?php endforeach; ?>
+                                                        array_push($Sub_plan_KPI_Name_2, $row['Sub_plan_KPI_Name']);
+                                                    endif;
+                                                } ?>
+                                            <?php endforeach;  ?>
                                         </tbody>
                                     </table>
 

@@ -121,19 +121,31 @@
                                 $database = new Database();
                                 $conn = $database->connect();
 
+                                // กำหนดปีปัจจุบัน (ค.ศ.) และ 3 ปีย้อนหลัง
+                                $currentYearAD = date("Y");
+                                $years = [];
+                                for ($i = 0; $i < 4; $i++) {
+                                    $years[] = $currentYearAD - $i;
+                                }
+
+                                // รับค่าปีที่เลือกจาก URL (แปลง พ.ศ. → ค.ศ.)
+                                $selectedYearBE = isset($_GET['year']) ? $_GET['year'] : ($currentYearAD + 543);
+                                $selectedYearAD = $selectedYearBE - 543; // แปลง พ.ศ. → ค.ศ.
+
                                 // กำหนดค่าจำนวนแถวต่อหน้า
                                 $limit = 10;
                                 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                                 $offset = ($page - 1) * $limit;
 
-                                // Query นับจำนวนข้อมูลทั้งหมด
-                                $countQuery = "SELECT COUNT(*) as total FROM budget_planning_actual_2";
+                                // Query นับจำนวนข้อมูลทั้งหมดตามปีที่เลือก (ใช้ timestamp)
+                                $countQuery = "SELECT COUNT(*) as total FROM budget_planning_actual_2 WHERE YEAR(timestamp) = :selectedYear";
                                 $countStmt = $conn->prepare($countQuery);
+                                $countStmt->bindParam(':selectedYear', $selectedYearAD, PDO::PARAM_INT);
                                 $countStmt->execute();
                                 $totalRows = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
                                 $totalPages = ceil($totalRows / $limit);
 
-                                // Query ดึงข้อมูลจาก budget_planning_actual_2
+                                // Query ดึงข้อมูลจาก budget_planning_actual_2 ตามปีที่เลือก
                                 $query = "SELECT 
                                             account, 
                                             account_description, 
@@ -142,27 +154,41 @@
                                             period_activity_debit, 
                                             period_activity_credit,
                                             ending_balances_debit, 
-                                            ending_balances_credit 
+                                            ending_balances_credit
                                         FROM budget_planning_actual_2 
+                                        WHERE YEAR(timestamp) = :selectedYear
                                         LIMIT :limit OFFSET :offset";
 
                                 $stmt = $conn->prepare($query);
+                                $stmt->bindParam(':selectedYear', $selectedYearAD, PDO::PARAM_INT);
                                 $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
                                 $stmt->bindParam(':offset', $offset, PDO::PARAM_INT);
                                 $stmt->execute();
                                 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
                                 ?>
+
+                                <!-- ส่วน Dropdown ปี (เป็น พ.ศ.) -->
                                 <div class="d-flex align-items-center gap-2">
                                     <label for="budgetYearSelect">ปีบริหารงบประมาณ:</label>
-                                    <select id="budgetYearSelect" class="form-control">
-                                        <option value="">2568</option>
+                                    <select id="budgetYearSelect" class="form-control" onchange="updateYear()">
+                                        <?php foreach ($years as $yearAD): ?>
+                                            <?php $yearBE = $yearAD + 543; // แปลง ค.ศ. → พ.ศ. 
+                                            ?>
+                                            <option value="<?= $yearBE ?>" <?= ($yearBE == $selectedYearBE) ? 'selected' : '' ?>><?= $yearBE ?></option>
+                                        <?php endforeach; ?>
                                     </select>
-                                    <button type="submit" class="btn btn-primary">ค้นหา</button>
-
+                                </div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <label for="">ประเภทแผน:</label>
+                                    <select id="" class="form-control" onchange="updateYear()">
+                                        <option value="">เลือกประเภทแผน</option>
+                                        <option value="">งบประมาณกลางปี</option>
+                                        <option value="">งบประมาณประจำปี</option>
+                                    </select>
                                 </div>
 
                                 <br>
+
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -235,26 +261,24 @@
                                         <ul class="pagination">
                                             <?php if ($page > 1): ?>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page=1">หน้าแรก</a>
+                                                    <a class="page-link" href="?page=1&year=<?= $selectedYearBE ?>">หน้าแรก</a>
                                                 </li>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page=<?= $page - 1 ?>">ก่อนหน้า</a>
+                                                    <a class="page-link" href="?page=<?= $page - 1 ?>&year=<?= $selectedYearBE ?>">ก่อนหน้า</a>
                                                 </li>
                                             <?php endif; ?>
 
                                             <?php
-                                            $visiblePages = 5; // จำนวนหน้าที่แสดงรอบๆ หน้าปัจจุบัน
+                                            $visiblePages = 5;
                                             $startPage = max(1, $page - $visiblePages);
                                             $endPage = min($totalPages, $page + $visiblePages);
 
-                                            if ($startPage > 1) {
-                                                echo '<li class="page-item"><a class="page-link">...</a></li>';
-                                            }
+                                            if ($startPage > 1) echo '<li class="page-item"><a class="page-link">...</a></li>';
 
                                             for ($i = $startPage; $i <= $endPage; $i++):
                                             ?>
                                                 <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                                                    <a class="page-link" href="?page=<?= $i ?>"><?= $i ?></a>
+                                                    <a class="page-link" href="?page=<?= $i ?>&year=<?= $selectedYearBE ?>"><?= $i ?></a>
                                                 </li>
                                             <?php endfor; ?>
 
@@ -264,15 +288,23 @@
 
                                             <?php if ($page < $totalPages): ?>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page=<?= $page + 1 ?>">ถัดไป</a>
+                                                    <a class="page-link" href="?page=<?= $page + 1 ?>&year=<?= $selectedYearBE ?>">ถัดไป</a>
                                                 </li>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page=<?= $totalPages ?>">หน้าสุดท้าย</a>
+                                                    <a class="page-link" href="?page=<?= $totalPages ?>&year=<?= $selectedYearBE ?>">หน้าสุดท้าย</a>
                                                 </li>
                                             <?php endif; ?>
                                         </ul>
                                     </nav>
                                 </div>
+
+                                <script>
+                                    function updateYear() {
+                                        var year = document.getElementById("budgetYearSelect").value;
+                                        window.location.href = "?year=" + year;
+                                    }
+                                </script>
+
                                 <!-- <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button> -->
                                 <button onclick="window.location.href='../server/export_csv_29-7-10.php'" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
