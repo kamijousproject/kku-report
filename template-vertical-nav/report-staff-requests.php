@@ -82,6 +82,12 @@ th, td {
                                             </tr>
                                         </thead>
                                         <tbody>
+                                            <tr>
+                                                <td style="text-align: left;">รวมทั้งหมด</td>
+                                                <td id="sum_type12"></td>
+                                                <td id="sum_type12_new"></td>
+                                                <td id="sum_type12_sum"></td>
+                                            </tr>
                                             <!-- ข้อมูลกลุ่ม 1 -->
                                             <tr>
                                                 <td style="text-align: left;">1. พนักงานมหาวิทยาลัยงบประมาณเงินรายได้</td>
@@ -341,6 +347,8 @@ th, td {
                 }
                 else{}
             });
+            var sum_type12=type1+type2;
+            console.log(sum_type12);
             document.getElementById("research1").innerText="-";
             document.getElementById("research2").innerText=research2;
             document.getElementById("academic1").innerText="-";
@@ -352,9 +360,9 @@ th, td {
             document.getElementById("emp3").innerText=emp3;
             document.getElementById("type1").innerText=type1;
             document.getElementById("type2").innerText=type2;
-        
-    
-    
+            document.getElementById("sum_type12").innerText=sum_type12;
+           
+            
             var research=0;
             var research2=0;
             var academic=0;
@@ -443,6 +451,7 @@ th, td {
                 }
                 else{}
             });
+            var sum_type12_new=type1+type2;
             document.getElementById("research1_new").innerText=research;
             document.getElementById("research2_new").innerText=research2;
             document.getElementById("academic1_new").innerText=academic;
@@ -454,6 +463,7 @@ th, td {
             document.getElementById("emp3_new").innerText=emp3;
             document.getElementById("type1_new").innerText=type1;
             document.getElementById("type2_new").innerText=type2;
+            document.getElementById("sum_type12_new").innerText=sum_type12_new;
                 
             document.getElementById("research1_sum").innerText=Sumresearch;
             document.getElementById("research2_sum").innerText=Sumresearch2;
@@ -466,6 +476,7 @@ th, td {
             document.getElementById("emp3_sum").innerText=Sumemp3;
             document.getElementById("type1_sum").innerText=Sumtype1;
             document.getElementById("type2_sum").innerText=Sumtype2;
+            document.getElementById("sum_type12_sum").innerText=Sumtype1+Sumtype2;
         });
         function exportCSV() {
             const table = document.getElementById('reportTable');
