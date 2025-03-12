@@ -91,10 +91,6 @@ $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
 $faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 function fetchBudgetData($conn, $budget_year1 = null, $scenario = null, $faculty = null)
 {
-    // ตรวจสอบว่า $budget_year1 ถูกตั้งค่าแล้วหรือไม่
-    if ($budget_year1 === null) {
-        $budget_year1 = 2568;  // ค่าเริ่มต้นถ้าหากไม่ได้รับจาก URL
-    }
 
     // สร้างคิวรี
     $query = "WITH RECURSIVE account_hierarchy AS (
@@ -296,6 +292,9 @@ function fetchBudgetData($conn, $budget_year1 = null, $scenario = null, $faculty
         $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
     }
 
+    if ($budget_year1 != null) {
+        $query .= " AND bap.Budget_Management_Year = :budget_year1"; // กรองตาม Faculty ที่เลือก
+    }
     // เพิ่มการจัดกลุ่มข้อมูล
     $query .= " GROUP BY 
         bap.Faculty, fta.Alias_Default, ft.Alias_Default, bap.Plan, p.plan_id, p.plan_name, 
@@ -333,6 +332,10 @@ function fetchBudgetData($conn, $budget_year1 = null, $scenario = null, $faculty
     }
     if ($faculty) {
         $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+    }
+
+    if ($budget_year1) {
+        $stmt->bindParam(':budget_year1', $budget_year1, PDO::PARAM_STR);
     }
     // รันคำสั่ง SQL
     $stmt->execute();
