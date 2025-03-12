@@ -404,7 +404,7 @@
                 str20 = '<td>' + sums[year].t08.toLocaleString() + '</td>';
                 str21 = '<td>' + sum.toLocaleString() + '</td>';
                 str22 = '<td>' + (sum-(sumacy1+sumn1)).toLocaleString() + '</td>';
-                str23 = '<td>'+((sumacy1+sumn1) === 0 ? '100%' :parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') +'%</td></tr>';
+                str23 = '<td>'+((sumacy1+sumn1) === 0 ? '100%' :parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') +'%</td></tr>';
                 html += str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8 + str9 + str10 + str11 + str12 + str13 + str14 + str15 +
                     str16 + str17 + str18 + str19 + str20 + str21 + str22 + str23;
             }
@@ -496,7 +496,7 @@
                 str20 = '<td>' + sums[year].t08.toLocaleString();
                 str21 = '<td>' + sum.toLocaleString();
                 str22 = '<td>' + (sum-(sumacy1+sumn1)).toLocaleString();
-                str23 = '<td>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                str23 = '<td>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                 f2.forEach((row2) => {
                     const pi = data2.filter(item => item.pillar_name === row2 && item.Alias_Default === row1);
                     const parseValue = (value) => {
@@ -556,7 +556,7 @@
                         str20 += '<br/>' + sums[year].t08.toLocaleString();
                         str21 += '<br/>' + sum.toLocaleString();
                         str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                        str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                        str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                     }
                     account.forEach((row6) => {
                         const ac = pi.filter(item => item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -617,7 +617,7 @@
                             str20 += '<br/>' + sums[year].t08.toLocaleString();
                             str21 += '<br/>' + sum.toLocaleString();
                             str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                         }
                         sub_account.forEach((row7) => {
                             const sa = ac.filter(item => item.level4 === row7 && item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -679,7 +679,7 @@
                                 str20 += '<br/>' + sums[year].t08.toLocaleString();
                                 str21 += '<br/>' + sum.toLocaleString();
                                 str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                             }
                             accname.forEach((row8) => {
                                 const sa2 = sa.filter(item => item.level3 === row8 && item.level4 === row7 && item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -740,7 +740,7 @@
                                     str20 += '<br/>' + sums[year].t08.toLocaleString();
                                     str21 += '<br/>' + sum.toLocaleString();
                                     str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                 }
                                 if (sa2.length > 0 && row8 == null) {
                                     const item_name = [...new Set(sa2.map(item => item.KKU_Item_Name2))];
@@ -804,7 +804,7 @@
                                             str20 += '<br/>' + sums[year].t08.toLocaleString();
                                             str21 += '<br/>' + sum.toLocaleString();
                                             str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                         }
                                     });
                                 }
@@ -867,7 +867,7 @@
                                         str20 += '<br/>' + sums[year].t08.toLocaleString();
                                         str21 += '<br/>' + sum.toLocaleString();
                                         str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                        str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                        str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                     }
                                     if (l2.length > 0 && row9 == null && row8 != null) {
                                         
@@ -933,7 +933,7 @@
                                                 str20 += '<br/>' + sums[year].t08.toLocaleString();
                                                 str21 += '<br/>' + sum.toLocaleString();
                                                 str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                                str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                                str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                             }
                                         });
                                     }
@@ -996,7 +996,7 @@
                                             str20 += '<br/>' + sums[year].t08.toLocaleString();
                                             str21 += '<br/>' + sum.toLocaleString();
                                             str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                             const item_name = [...new Set(l1.map(item => item.KKU_Item_Name2))];
                                             item_name.forEach((row10_item) => {
                                                 let all_item= l1.filter(item=>item.KKU_Item_Name2===row10_item);
@@ -1057,7 +1057,7 @@
                                                     str20 += '<br/>' + sums[year].t08.toLocaleString();
                                                     str21 += '<br/>' + sum.toLocaleString();
                                                     str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                                 }
                                             });
                                         }
@@ -1122,7 +1122,7 @@
                                                     str20 += '<br/>' + sums[year].t08.toLocaleString();
                                                     str21 += '<br/>' + sum.toLocaleString();
                                                     str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat(((sum*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                                 }
                                             });
                                         }
@@ -1162,7 +1162,7 @@
                 str19 += '<br/>' + (0).toLocaleString();
                 str20 += '<br/>' + (0).toLocaleString();
                 str21 += '<br/>' + (0).toLocaleString();
-                str22 += '<br/>' + (-sumy1).toLocaleString();
+                str22 += '<br/>' + (sumy1 === 0 ?0:(-sumy1)).toLocaleString();
                 str23 += '<br/>0%';
 
                 str1 += '</td>';
