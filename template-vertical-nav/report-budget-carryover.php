@@ -324,7 +324,8 @@ ON bap.`Account`=m.CurrentAccount
             AND bpa.FUND = CAST(REPLACE(bap.Fund, 'FN', '') AS UNSIGNED)
             AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
             AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
-            AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(bap.`YEAR` - 543 AS CHAR), -2))";
+            AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(bap.`YEAR` - 543 AS CHAR), -2))
+            WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')";
 
     if ($faculty) {
         $query .= " AND bap.Faculty = :faculty";
@@ -909,7 +910,6 @@ function fetchScenariosData($conn)
                                                     echo "<tr>";
                                                     // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
                                                     echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
-
                                                     // Check if the keys exist before accessing them
                                                     echo "<td>" . (isset($total_summary['Total_Amount_2567_FN06']) ? formatNumber($total_summary['Total_Amount_2567_FN06']) : '0') . "</td>";
                                                     echo "<td>" . (isset($total_summary['Total_Amount_2567_FN08']) ? formatNumber($total_summary['Total_Amount_2567_FN08']) : '0') . "</td>";
@@ -941,10 +941,9 @@ function fetchScenariosData($conn)
                                                 }
                                             }
                                             // แสดงผลลัพธ์
-                                            foreach ($summary as $Alias_Default => $data) {
+                                            foreach ($summary as $Faculty => $data) {
                                                 // แสดงผลรวมของ Plan
                                                 echo "<tr>";
-
 
                                                 if ($selectedFaculty == null) {
                                                     $facultyData = str_replace('-', ':', $data['Alias_Default']);
@@ -981,145 +980,143 @@ function fetchScenariosData($conn)
 
                                                 echo "</tr>";
 
-                                                // แสดงข้อมูลของ Main_Name
-                                                if (isset($data['Main_Name']) && is_array($data['Main_Name'])) {
-                                                    foreach ($data['Main_Name'] as $Main_Name => $dataMain_Name) {
-                                                        echo "<tr>";
-                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . $Main_Name . "<br></td>";
-                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN06']) . "</td>";
-                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN08']) . "</td>";
-                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN02']) . "</td>";
-                                                        $total1 = $dataMain_Name['Total_Amount_2567_FN06'] + $dataMain_Name['Total_Amount_2567_FN08'] + $dataMain_Name['Total_Amount_2567_FN02'];
-                                                        echo "<td>" . formatNumber($total1) . "</td>";
-                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN06']) . "</td>";
-                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN08']) . "</td>";
-                                                        echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN02']) . "</td>";
-                                                        $total2 = $dataMain_Name['Total_Amount_2568_FN06'] + $dataMain_Name['Total_Amount_2568_FN08'] + $dataMain_Name['Total_Amount_2568_FN02'];
-                                                        echo "<td>" . formatNumber($total2) . "</td>";
-                                                        $Difference = $total2 - $total1;
-                                                        echo "<td>" . formatNumber($Difference) . "</td>";
-                                                        $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
-                                                        echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                                        echo "</tr>";
-                                                        // แสดงข้อมูลของ Name_a1
-                                                        if (isset($dataMain_Name['Name_a1']) && is_array($dataMain_Name['Name_a1'])) {
-                                                            foreach ($dataMain_Name['Name_a1'] as $Name_a1 => $dataName_a1) {
-                                                                echo "<tr>";
-                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $dataName_a1['name'] . "<br></td>";
-                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN06']) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN08']) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN02']) . "</td>";
-                                                                $total1 = $dataName_a1['Total_Amount_2567_FN06'] + $dataName_a1['Total_Amount_2567_FN08'] + $dataName_a1['Total_Amount_2567_FN02'];
-                                                                echo "<td>" . formatNumber($total1) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN06']) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN08']) . "</td>";
-                                                                echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN02']) . "</td>";
-                                                                $total2 = $dataName_a1['Total_Amount_2568_FN06'] + $dataName_a1['Total_Amount_2568_FN08'] + $dataName_a1['Total_Amount_2568_FN02'];
-                                                                echo "<td>" . formatNumber($total2) . "</td>";
-                                                                $Difference = $total2 - $total1;
-                                                                echo "<td>" . formatNumber($Difference) . "</td>";
-                                                                $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
-                                                                echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+                                                foreach ($data['Main_Name'] as $Main_Name => $dataMain_Name) {
+                                                    echo "<tr>";
+                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . $Main_Name . "<br></td>";
+                                                    echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN06']) . "</td>";
+                                                    echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN08']) . "</td>";
+                                                    echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN02']) . "</td>";
+                                                    $total1 = $dataMain_Name['Total_Amount_2567_FN06'] + $dataMain_Name['Total_Amount_2567_FN08'] + $dataMain_Name['Total_Amount_2567_FN02'];
+                                                    echo "<td>" . formatNumber($total1) . "</td>";
+                                                    echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN06']) . "</td>";
+                                                    echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN08']) . "</td>";
+                                                    echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2568_FN02']) . "</td>";
+                                                    $total2 = $dataMain_Name['Total_Amount_2568_FN06'] + $dataMain_Name['Total_Amount_2568_FN08'] + $dataMain_Name['Total_Amount_2568_FN02'];
+                                                    echo "<td>" . formatNumber($total2) . "</td>";
+                                                    $Difference = $total2 - $total1;
+                                                    echo "<td>" . formatNumber($Difference) . "</td>";
+                                                    $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                    echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                                                echo "</tr>";
-                                                                if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
-                                                                    foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
-                                                                        if ($dataName_a2['test'] == null || $dataName_a2['test'] == '' || $dataName_a1['name'] == $dataName_a2['name']) {
-                                                                            continue;
-                                                                        }
-                                                                        echo "<tr>";
-                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a2['name'] . "<br></td>";
-                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN06']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN08']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN02']) . "</td>";
-                                                                        $total1 = $dataName_a2['Total_Amount_2567_FN06'] + $dataName_a2['Total_Amount_2567_FN08'] + $dataName_a2['Total_Amount_2567_FN02'];
-                                                                        echo "<td>" . formatNumber($total1) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN06']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN08']) . "</td>";
-                                                                        echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN02']) . "</td>";
-                                                                        $total2 = $dataName_a2['Total_Amount_2568_FN06'] + $dataName_a2['Total_Amount_2568_FN08'] + $dataName_a2['Total_Amount_2568_FN02'];
-                                                                        echo "<td>" . formatNumber($total2) . "</td>";
-                                                                        $Difference = $total2 - $total1;
-                                                                        echo "<td>" . formatNumber($Difference) . "</td>";
-                                                                        $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
-                                                                        echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+                                                    echo "</tr>";
+                                                    // แสดงข้อมูลของ Name_a1
+                                                    if (isset($dataMain_Name['Name_a1']) && is_array($dataMain_Name['Name_a1'])) {
+                                                        foreach ($dataMain_Name['Name_a1'] as $Name_a1 => $dataName_a1) {
+                                                            echo "<tr>";
+                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $dataName_a1['name'] . "<br></td>";
+                                                            echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN06']) . "</td>";
+                                                            echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN08']) . "</td>";
+                                                            echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN02']) . "</td>";
+                                                            $total1 = $dataName_a1['Total_Amount_2567_FN06'] + $dataName_a1['Total_Amount_2567_FN08'] + $dataName_a1['Total_Amount_2567_FN02'];
+                                                            echo "<td>" . formatNumber($total1) . "</td>";
+                                                            echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN06']) . "</td>";
+                                                            echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN08']) . "</td>";
+                                                            echo "<td>" . formatNumber($dataName_a1['Total_Amount_2568_FN02']) . "</td>";
+                                                            $total2 = $dataName_a1['Total_Amount_2568_FN06'] + $dataName_a1['Total_Amount_2568_FN08'] + $dataName_a1['Total_Amount_2568_FN02'];
+                                                            echo "<td>" . formatNumber($total2) . "</td>";
+                                                            $Difference = $total2 - $total1;
+                                                            echo "<td>" . formatNumber($Difference) . "</td>";
+                                                            $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                            echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                                                        echo "</tr>";
+                                                            echo "</tr>";
+                                                            if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
+                                                                foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
+                                                                    if ($dataName_a2['test'] == null || $dataName_a2['test'] == '' || $dataName_a1['name'] == $dataName_a2['name']) {
+                                                                        continue;
+                                                                    }
+                                                                    echo "<tr>";
+                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a2['name'] . "<br></td>";
+                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN06']) . "</td>";
+                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN08']) . "</td>";
+                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN02']) . "</td>";
+                                                                    $total1 = $dataName_a2['Total_Amount_2567_FN06'] + $dataName_a2['Total_Amount_2567_FN08'] + $dataName_a2['Total_Amount_2567_FN02'];
+                                                                    echo "<td>" . formatNumber($total1) . "</td>";
+                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN06']) . "</td>";
+                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN08']) . "</td>";
+                                                                    echo "<td>" . formatNumber($dataName_a2['Total_Amount_2568_FN02']) . "</td>";
+                                                                    $total2 = $dataName_a2['Total_Amount_2568_FN06'] + $dataName_a2['Total_Amount_2568_FN08'] + $dataName_a2['Total_Amount_2568_FN02'];
+                                                                    echo "<td>" . formatNumber($total2) . "</td>";
+                                                                    $Difference = $total2 - $total1;
+                                                                    echo "<td>" . formatNumber($Difference) . "</td>";
+                                                                    $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                                    echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                                                        if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
-                                                                            foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
-                                                                                if ($dataName_a3['test'] == null || $dataName_a3['test'] == '' || $dataName_a2['name'] == $dataName_a3['name']) {
-                                                                                    continue;
-                                                                                }
-                                                                                echo "<tr>";
-                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a3['name'] . "<br></td>";
-                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN06']) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN08']) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN02']) . "</td>";
-                                                                                $total1 = $dataName_a3['Total_Amount_2567_FN06'] + $dataName_a3['Total_Amount_2567_FN08'] + $dataName_a3['Total_Amount_2567_FN02'];
-                                                                                echo "<td>" . formatNumber($total1) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN06']) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN08']) . "</td>";
-                                                                                echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN02']) . "</td>";
-                                                                                $total2 = $dataName_a3['Total_Amount_2568_FN06'] + $dataName_a3['Total_Amount_2568_FN08'] + $dataName_a3['Total_Amount_2568_FN02'];
-                                                                                echo "<td>" . formatNumber($total2) . "</td>";
-                                                                                $Difference = $total2 - $total1;
-                                                                                echo "<td>" . formatNumber($Difference) . "</td>";
-                                                                                $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
-                                                                                echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+                                                                    echo "</tr>";
 
-                                                                                echo "</tr>";
-                                                                                if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
-                                                                                    foreach ($dataName_a3['Name_a4'] as $Name_a4 => $dataName_a4) {
-                                                                                        if ($dataName_a4['test'] == null || $dataName_a4['test'] == '' || $dataName_a3['name'] == $dataName_a4['name']) {
-                                                                                            continue;
-                                                                                        }
-                                                                                        echo "<tr>";
-                                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a4['name'] . "<br></td>";
-                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN06']) . "</td>";
-                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN08']) . "</td>";
-                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN02']) . "</td>";
-                                                                                        $total1 = $dataName_a4['Total_Amount_2567_FN06'] + $dataName_a4['Total_Amount_2567_FN08'] + $dataName_a4['Total_Amount_2567_FN02'];
-                                                                                        echo "<td>" . formatNumber($total1) . "</td>";
-                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN06']) . "</td>";
-                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN08']) . "</td>";
-                                                                                        echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN02']) . "</td>";
-                                                                                        $total2 = $dataName_a4['Total_Amount_2568_FN06'] + $dataName_a4['Total_Amount_2568_FN08'] + $dataName_a4['Total_Amount_2568_FN02'];
-                                                                                        echo "<td>" . formatNumber($total2) . "</td>";
-                                                                                        $Difference = $total2 - $total1;
-                                                                                        echo "<td>" . formatNumber($Difference) . "</td>";
-                                                                                        $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
-                                                                                        echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+                                                                    if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
+                                                                        foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
+                                                                            if ($dataName_a3['test'] == null || $dataName_a3['test'] == '' || $dataName_a2['name'] == $dataName_a3['name']) {
+                                                                                continue;
+                                                                            }
+                                                                            echo "<tr>";
+                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a3['name'] . "<br></td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN06']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN08']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN02']) . "</td>";
+                                                                            $total1 = $dataName_a3['Total_Amount_2567_FN06'] + $dataName_a3['Total_Amount_2567_FN08'] + $dataName_a3['Total_Amount_2567_FN02'];
+                                                                            echo "<td>" . formatNumber($total1) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN06']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN08']) . "</td>";
+                                                                            echo "<td>" . formatNumber($dataName_a3['Total_Amount_2568_FN02']) . "</td>";
+                                                                            $total2 = $dataName_a3['Total_Amount_2568_FN06'] + $dataName_a3['Total_Amount_2568_FN08'] + $dataName_a3['Total_Amount_2568_FN02'];
+                                                                            echo "<td>" . formatNumber($total2) . "</td>";
+                                                                            $Difference = $total2 - $total1;
+                                                                            echo "<td>" . formatNumber($Difference) . "</td>";
+                                                                            $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                                            echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                                                                        echo "</tr>";
+                                                                            echo "</tr>";
+                                                                            if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
+                                                                                foreach ($dataName_a3['Name_a4'] as $Name_a4 => $dataName_a4) {
+                                                                                    if ($dataName_a4['test'] == null || $dataName_a4['test'] == '' || $dataName_a3['name'] == $dataName_a4['name']) {
+                                                                                        continue;
+                                                                                    }
+                                                                                    echo "<tr>";
+                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a4['name'] . "<br></td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN06']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN08']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN02']) . "</td>";
+                                                                                    $total1 = $dataName_a4['Total_Amount_2567_FN06'] + $dataName_a4['Total_Amount_2567_FN08'] + $dataName_a4['Total_Amount_2567_FN02'];
+                                                                                    echo "<td>" . formatNumber($total1) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN06']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN08']) . "</td>";
+                                                                                    echo "<td>" . formatNumber($dataName_a4['Total_Amount_2568_FN02']) . "</td>";
+                                                                                    $total2 = $dataName_a4['Total_Amount_2568_FN06'] + $dataName_a4['Total_Amount_2568_FN08'] + $dataName_a4['Total_Amount_2568_FN02'];
+                                                                                    echo "<td>" . formatNumber($total2) . "</td>";
+                                                                                    $Difference = $total2 - $total1;
+                                                                                    echo "<td>" . formatNumber($Difference) . "</td>";
+                                                                                    $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                                                    echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
 
-                                                                                        if (isset($dataName_a4['Name_a4']) && is_array($dataName_a4['Name_a4'])) {
-                                                                                            foreach ($dataName_a4['kku_items'] as $kkuItem) {
-                                                                                                if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $dataName_a4['name'] == $kkuItem['name']) {
-                                                                                                    continue;
-                                                                                                }
-                                                                                                echo "<tr>";
-                                                                                                // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a4
-                                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "<br></td>";
-                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
-                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
-                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
-                                                                                                $total1 = $kkuItem['Total_Amount_2567_FN06'] + $kkuItem['Total_Amount_2567_FN08'] + $kkuItem['Total_Amount_2567_FN02'];
-                                                                                                echo "<td>" . formatNumber($total1) . "</td>";
-                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN06']) . "</td>";
-                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN08']) . "</td>";
-                                                                                                echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN02']) . "</td>";
-                                                                                                $total2 = $kkuItem['Total_Amount_2568_FN06'] + $kkuItem['Total_Amount_2568_FN08'] + $kkuItem['Total_Amount_2568_FN02'];
-                                                                                                echo "<td>" . formatNumber($total2) . "</td>";
-                                                                                                $Difference = $total2 - $total1;
-                                                                                                echo "<td>" . formatNumber($Difference) . "</td>";
-                                                                                                $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
-                                                                                                echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+                                                                                    echo "</tr>";
 
-                                                                                                echo "</tr>";
-
+                                                                                    if (isset($dataName_a4['Name_a4']) && is_array($dataName_a4['Name_a4'])) {
+                                                                                        foreach ($dataName_a4['kku_items'] as $kkuItem) {
+                                                                                            if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $dataName_a4['name'] == $kkuItem['name']) {
+                                                                                                continue;
                                                                                             }
+                                                                                            echo "<tr>";
+                                                                                            // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a4
+                                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "<br></td>";
+                                                                                            echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
+                                                                                            echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
+                                                                                            echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
+                                                                                            $total1 = $kkuItem['Total_Amount_2567_FN06'] + $kkuItem['Total_Amount_2567_FN08'] + $kkuItem['Total_Amount_2567_FN02'];
+                                                                                            echo "<td>" . formatNumber($total1) . "</td>";
+                                                                                            echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN06']) . "</td>";
+                                                                                            echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN08']) . "</td>";
+                                                                                            echo "<td>" . formatNumber($kkuItem['Total_Amount_2568_FN02']) . "</td>";
+                                                                                            $total2 = $kkuItem['Total_Amount_2568_FN06'] + $kkuItem['Total_Amount_2568_FN08'] + $kkuItem['Total_Amount_2568_FN02'];
+                                                                                            echo "<td>" . formatNumber($total2) . "</td>";
+                                                                                            $Difference = $total2 - $total1;
+                                                                                            echo "<td>" . formatNumber($Difference) . "</td>";
+                                                                                            $Percentage_Difference = ($total1 != 0) ? ($Difference / $total1) * 100 : 100;
+                                                                                            echo "<td>" . formatNumber($Percentage_Difference) . "</td>";
+
+                                                                                            echo "</tr>";
+
                                                                                         }
                                                                                     }
                                                                                 }
