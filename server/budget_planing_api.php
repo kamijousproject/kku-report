@@ -68,12 +68,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         SELECT Faculty
                         ,type
                         ,scenario
+                        ,Budget_Management_Year
                         ,SUM(Total_Amount_Quantity) AS Total_Amount
                         FROM t1
                         GROUP BY Faculty
-                        ,type,scenario)
+                        ,type,scenario,Budget_Management_Year)
                         ,t3 AS(
-                        SELECT Faculty,scenario
+                        SELECT Faculty,scenario,Budget_Management_Year
                         ,sum(case when type='1.เงินอุดหนุนจากรัฐ' then Total_Amount ELSE 0 END) AS a1
                         ,sum(case when type='2.เงินและทรัพย์สินซึ่งมีผู้อุทิศให้แก่มหาวิทยาลัย' then Total_Amount ELSE 0 END) AS a2
                         ,sum(case when type='3.เงินกองทุนที่รัฐบาลหรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้หรือผลประโยชน์จากกองทุน' then Total_Amount ELSE 0 END) AS a3
@@ -84,7 +85,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ,sum(case when type='8.เงินและผลประโยชน์ที่ได้รับจากการบริการวิชาการ การวิจัย และนำทรัพย์สินทางปัญญาไปหาประโยชน์' then Total_Amount ELSE 0 END) AS a8
                         ,sum(case when type='9.รายได้ผลประโยชน์อย่างอื่น' then Total_Amount ELSE 0 END) AS a9
                         FROM t2
-                        GROUP BY Faculty,scenario)
+                        GROUP BY Faculty,scenario,Budget_Management_Year)
 
                         SELECT t.*,f.Alias_Default,f2.Alias_Default AS pname
 								FROM t3 t
@@ -95,7 +96,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         ON t.Faculty = f.Faculty COLLATE UTF8MB4_GENERAL_CI
                         LEFT JOIN Faculty f2
                         ON f.parent=f2.Faculty COLLATE UTF8MB4_GENERAL_CI
-                        order by f.Alias_Default";
+                        order by t.Budget_Management_Year,f.Alias_Default";
                 $cmd = $conn->prepare($sql);
                 $cmd->execute();
                 $bgp = $cmd->fetchAll(PDO::FETCH_ASSOC);

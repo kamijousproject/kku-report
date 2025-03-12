@@ -98,8 +98,7 @@ thead tr:nth-child(3) th {
                                 </div>
                                 <label for="fyear">ปีงบประมาณ:</label>
                                 <select name="fyear" id="fyear" >
-                                    <option value="">-- Select --</option>
-                                    <option value="">2568</option>
+                                    <option value="">-- Select --</option>    
                                 </select>
                                 <br/>
                                 <label for="scenario">ประเภทงบประมาณ:</label>
@@ -170,10 +169,11 @@ thead tr:nth-child(3) th {
                 dataType: "json",
                 success: function(response) {
                     all_data=response.bgp;
-                    const fac = [...new Set(all_data.map(item => item.pname))];
-                    let dropdown = document.getElementById("category");
-                    dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    fac.forEach(category => {
+                    console.log(all_data);
+                    const year = [...new Set(all_data.map(item => item.Budget_Management_Year))];
+                    let dropdown = document.getElementById("fyear");
+                    dropdown.innerHTML = '<option value="">-- Select --</option>';
+                    year.forEach(category => {
                         let option = document.createElement("option");
                         option.value = category;
                         option.textContent = category;
