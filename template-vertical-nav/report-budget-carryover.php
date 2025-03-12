@@ -283,20 +283,20 @@ END AS Name_a4
         SUM(CASE WHEN bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN06,
         SUM(CASE WHEN bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_FN08,
         SUM(bap.Allocated_Total_Amount_Quantity) AS Total_Amount,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN02,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN06,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN08,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_SUM,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN02,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN06,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN08,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_SUM,
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) - 
-        SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Difference_2568_2567,
+        SUM(CASE WHEN bap.YEAR = $budget_year1 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN02,
+        SUM(CASE WHEN bap.YEAR = $budget_year1 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN06,
+        SUM(CASE WHEN bap.YEAR = $budget_year1 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_FN08,
+        SUM(CASE WHEN bap.YEAR = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2568_SUM,
+        SUM(CASE WHEN bap.YEAR = $budget_year2 AND bap.Fund = 'FN02' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN02,
+        SUM(CASE WHEN bap.YEAR = $budget_year2 AND bap.Fund = 'FN06' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN06,
+        SUM(CASE WHEN bap.YEAR = $budget_year2 AND bap.Fund = 'FN08' THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_FN08,
+        SUM(CASE WHEN bap.YEAR = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Amount_2567_SUM,
+        SUM(CASE WHEN bap.YEAR = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) - 
+        SUM(CASE WHEN bap.YEAR = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) AS Difference_2568_2567,
         CASE
-            WHEN SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 THEN 100
-            ELSE (SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) / 
-                  SUM(CASE WHEN bpa.BUDGET_PERIOD = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) * 100
+            WHEN SUM(CASE WHEN bap.YEAR = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) = 0 THEN 100
+            ELSE (SUM(CASE WHEN bap.YEAR = $budget_year1 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END) / 
+                  SUM(CASE WHEN bap.YEAR = $budget_year2 THEN bap.Allocated_Total_Amount_Quantity ELSE 0 END)) * 100
         END AS Percentage_2568_to_2567,
             m.CurrentAccount,
     m.Current,
@@ -317,19 +317,24 @@ END AS Name_a4
         INNER JOIN account ac ON bap.`Account` = ac.`account`
         LEFT JOIN main m
 ON bap.`Account`=m.CurrentAccount
-        INNER JOIN budget_planning_actual bpa ON bpa.PROJECT = bap.Project
+        LEFT JOIN budget_planning_actual bpa ON bpa.PROJECT = bap.Project
             AND bap.Faculty = bpa.Faculty
             AND bpa.`ACCOUNT` = bap.`Account`
             AND bpa.PLAN = bap.Plan
             AND bpa.FUND = bap.Fund
             AND bpa.SUBPLAN = CAST(SUBSTRING(bap.Sub_Plan, 4) AS UNSIGNED)
-            AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)";
+            AND bpa.SERVICE = CAST(REPLACE(bap.Service, 'SR_', '') AS UNSIGNED)
+            AND bpa.FISCAL_YEAR = CONCAT('FY', SUBSTRING(CAST(bap.`YEAR` - 543 AS CHAR), -2))";
 
     if ($faculty) {
         $query .= " AND bap.Faculty = :faculty";
     }
     if ($scenario) {
         $query .= " AND bap.Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
+    }
+
+    if ($budget_year1) {
+        $query .= " AND bap.YEAR = :budget_year1"; // กรองตาม Scenario ที่เลือก
     }
     $query .= " GROUP BY 
             bap.Faculty, 
@@ -373,6 +378,9 @@ SELECT * FROM t1";
         $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
     }
 
+    if ($budget_year1) {
+        $stmt->bindParam(':budget_year1', $budget_year1, PDO::PARAM_STR);
+    }
 
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
