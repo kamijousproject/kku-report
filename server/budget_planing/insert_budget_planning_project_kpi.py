@@ -79,7 +79,7 @@ try:
             Faculty, Project, Proj_KPI_Name, Proj_KPI_Target, UoM_for_Proj_KPI, Reason,
             Objective, Project_Output, Project_Outcome, Project_Impact, Process_Plan,
             KKU_Strategic_Plan_LOV, OKRs_LOV, Principles_of_good_governance, SDGs,
-            KPI, Scenario, Version,, YEAR
+            KPI, Scenario, Version, YEAR
         ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         '''
         cursor.execute(insert_query, (

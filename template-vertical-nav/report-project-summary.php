@@ -86,58 +86,206 @@
                                         $where_clause .= " AND Budget_Management_Year = :years";
                                     }
 
-                                    $query = "SELECT
-                                    project.project_name,
-                                    annual_bp.Project,
-                                    b_actual.FISCAL_YEAR,
-                                    annual_bp.Budget_Management_Year,
-                                    annual_bp.Plan,
-                                    annual_bp.Sub_Plan,
-                                    annual_bp.Faculty,
-                                    annual_bp.Total_Amount_Quantity,
-                                    f.Alias_Default AS faculty_name,
-                                    account.alias_default,
-                                    plan.plan_name,
-                                    sub_plan.sub_plan_name,
-                                    account.parent,
-                                    kpi.KKU_Strategic_Plan_LOV,  
-                                    pilar.pillar_name  
-                                FROM
-                                    budget_planning_annual_budget_plan AS annual_bp
-                                    LEFT JOIN (
-                                        SELECT DISTINCT Faculty, fund, plan, subplan, project, account, service, fiscal_year
-                                        FROM budget_planning_actual
-                                    ) b_actual 
-                                    ON b_actual.PLAN = annual_bp.Plan
-                                    AND annual_bp.faculty = b_actual.Faculty
-                                    AND b_actual.SUBPLAN = REPLACE(annual_bp.Sub_Plan, 'SP_', '')
-                                    AND b_actual.PROJECT = annual_bp.Project
-                                    AND annual_bp.account = b_actual.account
-                                    AND b_actual.fund = REPLACE(annual_bp.fund, 'FN', '')
-                                    AND b_actual.service = REPLACE(annual_bp.service, 'SR_', '')
-            
-                                    LEFT JOIN account ON account.account = annual_bp.Account
-                                    LEFT JOIN (
-                                        SELECT * FROM Faculty WHERE parent LIKE 'FACULTY%'
-                                    ) f ON f.Faculty = annual_bp.Faculty
-                                    LEFT JOIN plan ON plan.plan_id = annual_bp.Plan
-                                    LEFT JOIN sub_plan ON sub_plan.sub_plan_id = annual_bp.Sub_Plan
-                                    LEFT JOIN project ON project.project_id = annual_bp.Project
-                                    
-                                    LEFT JOIN (
-                                        SELECT Project, MAX(KKU_Strategic_Plan_LOV) AS KKU_Strategic_Plan_LOV 
-                                        FROM budget_planning_project_kpi 
-                                        GROUP BY Project
-                                    ) kpi ON kpi.Project = annual_bp.Project
-            
-                                    LEFT JOIN (
-                                        SELECT pillar_id, MAX(pillar_name) AS pillar_name
-                                        FROM pilars2
-                                        GROUP BY pillar_id
-                                    ) pilar ON pilar.pillar_id = REPLACE(kpi.KKU_Strategic_Plan_LOV, '_', '')
-
+                                    $query = "WITH
+                                                RECURSIVE account_hierarchy AS (
+                                                    -- Anchor member: Start with all accounts that have a parent
+                                                    SELECT
+                                                        a1.account,
+                                                        a1.account AS acc_id,
+                                                        a1.alias_default AS alias,
+                                                        a1.parent,
+                                                        1 AS LEVEL
+                                                    FROM
+                                                        account a1
+                                                    WHERE
+                                                        a1.parent IS NOT NULL
+                                                    UNION ALL
+                                                        -- Recursive member: Find parent accounts
+                                                    SELECT
+                                                        ah.account,
+                                                        a2.account AS acc_id,
+                                                        a2.alias_default AS alias,
+                                                        a2.parent,
+                                                        ah.level + 1 AS LEVEL
+                                                    FROM
+                                                        account_hierarchy ah
+                                                        JOIN account a2 ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
+                                                    WHERE
+                                                        a2.parent IS NOT NULL
+                                                        AND ah.level < 6 -- Maximum 6 levels (increased from 5)
+                                                        ),
+                                                -- Get the maximum level for each account to determine total depth
+                                                max_levels AS (
+                                                    SELECT
+                                                        account,
+                                                        MAX(LEVEL) AS max_level
+                                                    FROM
+                                                        account_hierarchy
+                                                    GROUP BY
+                                                        account
+                                                ),
+                                                -- Create a pivot table with all levels for each account
+                                                hierarchy_pivot AS (
+                                                    SELECT
+                                                        h.account,
+                                                        m.max_level,
+                                                        MAX(
+                                                            CASE WHEN h.level = 1 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level1_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 2 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level2_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 3 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level3_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 4 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level4_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 5 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level5_value,
+                                                        MAX(
+                                                            CASE WHEN h.level = 6 THEN CONCAT(
+                                                                h.acc_id,
+                                                                ' : ',
+                                                                REGEXP_REPLACE(
+                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
+                                                                    ''
+                                                                )
+                                                            ) END
+                                                        ) AS level6_value
+                                                    FROM
+                                                        account_hierarchy h
+                                                        JOIN max_levels m ON h.account = m.account
+                                                    GROUP BY
+                                                        h.account,
+                                                        m.max_level
+                                                ),
+                                                -- Shift the hierarchy to the left (compact it)
+                                                shifted_hierarchy AS (
+                                                    SELECT
+                                                        account AS current_acc,
+                                                        max_level AS TotalLevels,
+                                                        CASE WHEN max_level = 1 THEN level1_value WHEN max_level = 2 THEN level2_value WHEN max_level = 3 THEN level3_value WHEN max_level = 4 THEN level4_value WHEN max_level = 5 THEN level5_value WHEN max_level = 6 THEN level6_value END AS level6,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN level1_value WHEN max_level = 3 THEN level2_value WHEN max_level = 4 THEN level3_value WHEN max_level = 5 THEN level4_value WHEN max_level = 6 THEN level5_value END AS level5,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN level1_value WHEN max_level = 4 THEN level2_value WHEN max_level = 5 THEN level3_value WHEN max_level = 6 THEN level4_value END AS level4,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN level1_value WHEN max_level = 5 THEN level2_value WHEN max_level = 6 THEN level3_value END AS level3,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN NULL WHEN max_level = 5 THEN level1_value WHEN max_level = 6 THEN level2_value END AS level2,
+                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN NULL WHEN max_level = 5 THEN NULL WHEN max_level = 6 THEN level1_value END AS level1
+                                                    FROM
+                                                        hierarchy_pivot
+                                                ),
+                                                b_actual AS (
+                                                    SELECT
+                                                        DISTINCT Faculty,
+                                                        fund,
+                                                        plan,
+                                                        subplan,
+                                                        project,
+                                                        account,
+                                                        service,
+                                                        fiscal_year
+                                                    FROM
+                                                        budget_planning_actual
+                                                ),
+                                                kpi AS (
+                                                    SELECT
+                                                        Project,
+                                                        MAX(KKU_Strategic_Plan_LOV) AS KKU_Strategic_Plan_LOV
+                                                    FROM
+                                                        budget_planning_project_kpi
+                                                    GROUP BY
+                                                        Project
+                                                ),
+                                                pilar AS (
+                                                    SELECT
+                                                        pillar_id,
+                                                        MAX(pillar_name) AS pillar_name
+                                                    FROM
+                                                        pilars2
+                                                    GROUP BY
+                                                        pillar_id
+                                                )
+                                            SELECT
+                                                project.project_name,
+                                                annual_bp.Project,
+                                                b_actual.FISCAL_YEAR,
+                                                annual_bp.Budget_Management_Year,
+                                                annual_bp.Plan,
+                                                annual_bp.Sub_Plan,
+                                                annual_bp.Faculty,
+                                                annual_bp.Total_Amount_Quantity,
+                                                f.Alias_Default AS faculty_name,
+                                                account.alias_default,
+                                                plan.plan_name,
+                                                sub_plan.sub_plan_name,
+                                                account.parent,
+                                                kpi.KKU_Strategic_Plan_LOV,
+                                                pilar.pillar_name,
+                                                sh.*
+                                            FROM
+                                                budget_planning_annual_budget_plan AS annual_bp
+                                                LEFT JOIN shifted_hierarchy sh ON sh.current_acc = annual_bp.`Account`
+                                                LEFT JOIN b_actual ON b_actual.PLAN = annual_bp.Plan
+                                                AND annual_bp.faculty = b_actual.Faculty
+                                                AND b_actual.SUBPLAN = REPLACE(annual_bp.Sub_Plan, 'SP_', '')
+                                                AND b_actual.PROJECT = annual_bp.Project
+                                                AND annual_bp.account = b_actual.account
+                                                AND b_actual.fund = REPLACE(annual_bp.fund, 'FN', '')
+                                                AND b_actual.service = REPLACE(annual_bp.service, 'SR_', '')
+                                                LEFT JOIN account ON account.account = annual_bp.Account
+                                                LEFT JOIN (
+                                                    SELECT
+                                                        *
+                                                    FROM
+                                                        Faculty
+                                                    WHERE
+                                                        parent LIKE 'FACULTY%'
+                                                ) f ON f.Faculty = annual_bp.Faculty
+                                                LEFT JOIN plan ON plan.plan_id = annual_bp.Plan
+                                                LEFT JOIN sub_plan ON sub_plan.sub_plan_id = annual_bp.Sub_Plan
+                                                LEFT JOIN project ON project.project_id = annual_bp.Project
+                                                LEFT JOIN kpi ON kpi.Project = annual_bp.Project
+                                                LEFT JOIN pilar ON pilar.pillar_id = REPLACE(
+                                                    kpi.KKU_Strategic_Plan_LOV, '_',
+                                                    ''
+                                                )
                                     $where_clause";
-
 
                                     if ($selected_faculty !== '') {
                                         $stmt->bindParam(':faculty', $selected_faculty, PDO::PARAM_STR);
@@ -173,16 +321,6 @@
                                             <?php foreach ($scenarios as $scenario): ?>
                                                 <option value="<?= $scenario['Scenario'] ?>" <?= ($selected_scenario == $scenario['Scenario']) ? 'selected' : '' ?>>
                                                     <?= $scenario['Scenario'] ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-
-                                        <label for="Faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
-                                        <select name="Faculty" id="Faculty" class="form-control me-2">
-                                            <option value="">เลือกทั้งหมด</option>
-                                            <?php foreach ($faculties as $faculty): ?>
-                                                <option value="<?= $faculty['Faculty'] ?>" <?= ($selected_faculty == $faculty['Faculty']) ? 'selected' : '' ?>>
-                                                    <?= $faculty['Alias_Default'] ?>
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
