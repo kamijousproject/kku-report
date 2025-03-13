@@ -469,7 +469,7 @@ thead tr:nth-child(3) th {
                     success: function (response) {
                         const tableBody = document.querySelector('#reportTable tbody');
                         tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-                        const data = response.bgp.filter(item =>item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear);
+                        let data = response.bgp.filter(item =>item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear);
                         if (fac !== "all") {
                             data = data.filter(item => item.fname === fac);
                         }
