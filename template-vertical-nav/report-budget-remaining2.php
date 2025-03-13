@@ -226,6 +226,7 @@ thead tr:nth-child(3) th {
     <script>
         $(document).ready(function () {
             let alldata;
+            let filterdata;
             $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
@@ -287,6 +288,7 @@ thead tr:nth-child(3) th {
                 const fac = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear).map(item => item.fname))];
                 fac.sort();
                 //console.log(fac);
+                 $('#dropdown3').append('<option value="all">เลือกทั้งหมด</option>');
                 fac.forEach((row) => {
                     $('#dropdown3').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
@@ -302,14 +304,24 @@ thead tr:nth-child(3) th {
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const fund = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear && item.fname===fac).map(item => item.fund))];
+                if(fac=="all"){
+                    filterdata=alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear);
+                    fund = [...new Set(filterdata.map(item => item.fund))];
+                }
+                else{
+                    filterdata=alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear && item.fname===fac);
+                    fund = [...new Set(filterdata.map(item => item.fund))];
+                }
+                
                 //plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
                 //console.log(plan);
                 fund.sort();
+                $('#dropdown4').append('<option value="all">เลือกทั้งหมด</option>');
                 fund.forEach((row) => {
                     $('#dropdown4').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
             });
+            let filteredByFund;
             $('#dropdown4').change(function () {
                 let fyear = $('#dropdown1').val();
                 let bgyear = $('#dropdown2').val();
@@ -321,17 +333,24 @@ thead tr:nth-child(3) th {
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
                 //const splan = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac&& item.fund === fund&& item.plan_name === plan).map(item => item.sub_plan_name))];
-                const planMap = new Map(
-                    alldata
-                        .filter(item => item.fiscal_year2 === parseInt(fyear) && item.fname === fac && item.fund === fund && item.BUDGET_PERIOD === bgyear)
-                        .map(item => [item.plan, item.plan_name]) // [key, value] = [plan, plan_name]
+                if (fund === "all") {
+                    filteredByFund = filterdata; // Use the existing filterdata from #dropdown3
+                } else {
+                    filteredByFund = filterdata.filter(item => item.fund === fund);
+                }
+                let planMap;
+                planMap = new Map(
+                    filteredByFund.map(item => [item.plan, item.plan_name]) // [key, value] = [plan, plan_name]
                 );
+                
                 var plan = Array.from(planMap, ([plan, plan_name]) => ({ plan, plan_name }));
                 plan.sort((a, b) => a.plan - b.plan);
+                $('#dropdown5').append('<option value="all">เลือกทั้งหมด</option>');
                 plan.forEach((row) => {
                     $('#dropdown5').append('<option value="' + row.plan_name + '">' + row.plan_name + '</option>').prop('disabled', false);
                 });
             });
+            let filteredByPlan;
             $('#dropdown5').change(function () {
                 let fyear = $('#dropdown1').val();
                 let bgyear = $('#dropdown2').val();
@@ -343,17 +362,22 @@ thead tr:nth-child(3) th {
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
                 //
+                if (plan === "all") {
+                    filteredByPlan = filteredByFund; // Use the existing filterdata from #dropdown3
+                } else {
+                    filteredByPlan = filteredByFund.filter(item => item.plan_name === plan);
+                }
                 const splanMap = new Map(
-                    alldata
-                        .filter(item => item.fiscal_year2 === parseInt(fyear) && item.fname === fac && item.fund === fund && item.plan_name === plan && item.BUDGET_PERIOD === bgyear)
-                        .map(item => [item.subplan, item.sub_plan_name]) // [key, value] = [plan, plan_name]
+                    filteredByPlan.map(item => [item.subplan, item.sub_plan_name]) // [key, value] = [plan, plan_name]
                 );
                 var subplan = Array.from(splanMap, ([subplan, sub_plan_name]) => ({ subplan, sub_plan_name }));
                 subplan.sort((a, b) => a.subplan - b.subplan);
+                $('#dropdown6').append('<option value="all">เลือกทั้งหมด</option>');
                 subplan.forEach((row) => {
                     $('#dropdown6').append('<option value="' + row.sub_plan_name + '">' + row.subplan + " : " + row.sub_plan_name + '</option>').prop('disabled', false);
                 });
             });
+            let filteredBySubPlan;
             $('#dropdown6').change(function () {
                 let fyear = $('#dropdown1').val();
                 let bgyear = $('#dropdown2').val();
@@ -365,14 +389,21 @@ thead tr:nth-child(3) th {
                 $('#dropdown7').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
-                const pro = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan&& item.BUDGET_PERIOD === bgyear).map(item => item.project_name))];
+                if (subplan === "all") {
+                    filteredBySubPlan = filteredByPlan; // Use the existing filterdata from #dropdown3
+                } else {
+                    filteredBySubPlan = filteredByPlan.filter(item => item.sub_plan_name === subplan);
+                }
+                const pro = [...new Set(filteredBySubPlan.map(item => item.project_name))];
                 //const sc = [...new Set(alldata.filter(item => item.fiscal_year === fyear && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project).map(item => item.scenario))];
                 //console.log(fac);
                 pro.sort();
+                $('#dropdown7').append('<option value="all">เลือกทั้งหมด</option>');
                 pro.forEach((row) => {
                     $('#dropdown7').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
             });
+            let filteredByProject;
             $('#dropdown7').change(function () {
                 let fyear = $('#dropdown1').val();
                 let bgyear = $('#dropdown2').val();
@@ -383,8 +414,14 @@ thead tr:nth-child(3) th {
                 let project = $('#dropdown7').val();
                 //console.log(alldata);
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
+                $('#dropdown8').append('<option value="all">เลือกทั้งหมด</option>');
                 $('#submitBtn').prop('disabled', true);
-                const sc = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear) && item.fname === fac && item.fund === fund && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project&& item.BUDGET_PERIOD === bgyear).map(item => item.scenario))];
+                if (project === "all") {
+                    filteredByProject = filteredBySubPlan; // Use the existing filterdata from #dropdown3
+                } else {
+                    filteredByProject = filteredBySubPlan.filter(item => item.project_name === project);
+                }
+                const sc = [...new Set(filteredByProject.map(item => item.scenario))];
                 //console.log(fac);
                 sc.forEach((row) => {
                     $('#dropdown8').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
@@ -432,7 +469,30 @@ thead tr:nth-child(3) th {
                     success: function (response) {
                         const tableBody = document.querySelector('#reportTable tbody');
                         tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-                        const data = response.bgp.filter(item =>item.fiscal_year2 === parseInt(fyear) && item.fund === fund && item.fname === fac && item.plan_name === plan && item.sub_plan_name === subplan && item.project_name === project && item.scenario === scenario && item.BUDGET_PERIOD === bgyear);
+                        const data = response.bgp.filter(item =>item.fiscal_year2 === parseInt(fyear) && item.BUDGET_PERIOD === bgyear);
+                        if (fac !== "all") {
+                            data = data.filter(item => item.fname === fac);
+                        }
+
+                        if (fund !== "all") {
+                            data = data.filter(item => item.fund === fund);
+                        }
+
+                        if (plan !== "all") {
+                            data = data.filter(item => item.plan_name === plan);
+                        }
+
+                        if (subplan !== "all") {
+                            data = data.filter(item => item.sub_plan_name === subplan);
+                        }
+
+                        if (project !== "all") {
+                            data = data.filter(item => item.project_name === project);
+                        }
+
+                        if (scenario !== "all") {
+                            data = data.filter(item => item.scenario === scenario);
+                        }
                         const smain = [...new Set(data.map(item => item.level5))];
                         const lv4 = [...new Set(data.map(item => item.level4))];
                         const lv3 = [...new Set(data.map(item => item.level3))];
