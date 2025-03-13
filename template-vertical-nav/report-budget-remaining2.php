@@ -256,7 +256,7 @@ thead tr:nth-child(3) th {
 
             $('#dropdown1').change(function () {
                 let fyear = $(this).val();
-                console.log(alldata);
+                //console.log(alldata);
                 $('#dropdown2').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown3').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#dropdown4').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
@@ -266,7 +266,7 @@ thead tr:nth-child(3) th {
                 $('#dropdown8').html('<option value="">--- เลือก ---</option>').prop('disabled', true);
                 $('#submitBtn').prop('disabled', true);
                 const bgy = [...new Set(alldata.filter(item => item.fiscal_year2 === parseInt(fyear)).map(item => item.BUDGET_PERIOD))];
-                console.log(bgy);
+                //console.log(bgy);
                 bgy.forEach((row) => {
                     $('#dropdown2').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
                 });
@@ -547,7 +547,7 @@ thead tr:nth-child(3) th {
                                     + '<td>' + (diff3).toLocaleString() + '</td></tr>';
 
                                 tableBody.insertAdjacentHTML('beforeend', str);
-                                console.log(lv3);
+                                //console.log(lv3);
                                 lv3.forEach((row3, index) => {
                                     const l3 = l4.filter(item => item.level3 === row3 &&item.level4 === row2 && item.level5 === row1);
                                     //console.log(l3);
@@ -667,7 +667,7 @@ thead tr:nth-child(3) th {
                                                     var total_p2 = (100 - p2);
                                                     var str = '<tr><td style="text-align:left;" nowrap>' + '&nbsp;'.repeat(24) + row4_null.kku_item_name + '</td>'
                                                         + '<td>' + (parseInt(row4_null.INITIAL_BUDGET)).toLocaleString() + '</td>'
-                                                        + '<td>' + (row4_null.Release_Amount).toLocaleString() + '</td>'
+                                                        + '<td>' + (row4_null.Release_Amount||0).toLocaleString() + '</td>'
                                                         + '<td>' + (parseInt(row4_null.adj_in)).toLocaleString() + '</td>'
                                                         + '<td>' + (parseInt(row4_null.adj_out)).toLocaleString() + '</td>'
                                                         + '<td>' + diff.toLocaleString() + '</td>'
@@ -685,7 +685,7 @@ thead tr:nth-child(3) th {
                                         }
                                         lv1.forEach((row5, index) => {
                                             const l1 = l2.filter(item => item.level1 === row5 &&item.level2 === row4 &&item.level3 === row3 &&item.level4 === row2 && item.level5 === row1);
-                                            //console.log(l2);
+                                            console.log(l1);
                                             
                                             const parseValue = (value) => {
                                                 if (value === null || value === undefined) {
@@ -750,7 +750,7 @@ thead tr:nth-child(3) th {
                                                         var total_p2 = (100 - p2);
                                                         var str = '<tr><td style="text-align:left;" nowrap>' + '&nbsp;'.repeat(32) + row5_null.kku_item_name + '</td>'
                                                             + '<td>' + (parseInt(row5_null.INITIAL_BUDGET)).toLocaleString() + '</td>'
-                                                            + '<td>' + (row5_null.Release_Amount).toLocaleString() + '</td>'
+                                                            + '<td>' + (row5_null.Release_Amount||0).toLocaleString() + '</td>'
                                                             + '<td>' + (parseInt(row5_null.adj_in)).toLocaleString() + '</td>'
                                                             + '<td>' + (parseInt(row5_null.adj_out)).toLocaleString() + '</td>'
                                                             + '<td>' + diff.toLocaleString() + '</td>'
