@@ -504,11 +504,11 @@ thead tr:nth-child(3) th {
                         const project_name = [...new Set(response.bgp.map(item => item.project_name))];
                         const account = [...new Set(response.bgp.map(item => item.TYPE))];
                         const sub_account = [...new Set(response.bgp.map(item => item.sub_type))]; */
-                        console.log(lv2);
+                        console.log(lv4);
                         //console.log(smain);
                         smain.forEach((row1, index) => {
                             const sm = data.filter(item => item.level5 === row1);
-                            //console.log(sm);
+                            console.log(sm);
                             const parseValue = (value) => {
                                 if (value === null || value === undefined) {
                                     return 0;
@@ -592,8 +592,8 @@ thead tr:nth-child(3) th {
                                 var p2 = Math.round((((sums.EXPENDITURES) * 100) / (sums.INITIAL_BUDGET)) * 100) / 100 || 0;
                                 var diff3 = (diff - sums.EXPENDITURES);
                                 var total_p2 = (p1 === 0) ? 0 : (100 - p2);
-
-                                var str = '<tr><td style="text-align:left;" nowrap>'+ '&nbsp;'.repeat(8) + row2 +  '</td>'
+                                if(l4.length>0){
+                                    var str = '<tr><td style="text-align:left;" nowrap>'+ '&nbsp;'.repeat(8) + row2 +  '</td>'
                                     + '<td>' + (sums.INITIAL_BUDGET).toLocaleString() + '</td>'
                                     + '<td>' + (sums.Release_Amount).toLocaleString() + '</td>'
                                     + '<td>' + (sums.adj_in).toLocaleString() + '</td>'
@@ -607,6 +607,8 @@ thead tr:nth-child(3) th {
                                     + '<td>' + (diff3).toLocaleString() + '</td></tr>';
 
                                 tableBody.insertAdjacentHTML('beforeend', str);
+                                }
+                                
                                 //console.log(lv3);
                                 lv3.forEach((row3, index) => {
                                     const l3 = l4.filter(item => item.level3 === row3 &&item.level4 === row2 && item.level5 === row1);
@@ -745,7 +747,7 @@ thead tr:nth-child(3) th {
                                         }
                                         lv1.forEach((row5, index) => {
                                             const l1 = l2.filter(item => item.level1 === row5 &&item.level2 === row4 &&item.level3 === row3 &&item.level4 === row2 && item.level5 === row1);
-                                            console.log(l1);
+                                            //console.log(l1);
                                             
                                             const parseValue = (value) => {
                                                 if (value === null || value === undefined) {
