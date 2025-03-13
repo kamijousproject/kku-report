@@ -725,12 +725,12 @@ function fetchScenariosData($conn)
                                                     ];
                                                 }
                                                 // ตรวจสอบและกำหนดค่าของ $ItemName_a4
-                                                if (!empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                if (!empty($row['a2']) && !empty($row['Name_a2']) && $row['a2'] != $row['Account']) {
                                                     $ItemName_a2 = htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
-                                                } elseif (empty($row['a2']) && !empty($row['Name_a2'])) {
-                                                    $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                } elseif (!empty($row['a2']) && !empty($row['Name_a2']) && $row['a2'] == $row['Account']) {
+                                                    $ItemName_a2 = "-" . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
                                                 } else {
-                                                    $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    $ItemName_a2 = "-" . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                 }
 
                                                 if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
@@ -754,12 +754,12 @@ function fetchScenariosData($conn)
                                                 }
 
                                                 // ตรวจสอบและกำหนดค่าของ $ItemName_a4
-                                                if (!empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                if (!empty($row['a3']) && !empty($row['Name_a3']) && $row['a3'] != $row['Account']) {
                                                     $ItemName_a3 = htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
-                                                } elseif (empty($row['a3']) && !empty($row['Name_a3'])) {
-                                                    $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                } elseif (!empty($row['a3']) && !empty($row['Name_a3']) && $row['a3'] == $row['Account']) {
+                                                    $ItemName_a3 = "-" . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
                                                 } else {
-                                                    $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    $ItemName_a3 = "-" . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                 }
                                                 if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
                                                     $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
@@ -782,12 +782,12 @@ function fetchScenariosData($conn)
                                                 }
 
                                                 // ตรวจสอบและกำหนดค่าของ $ItemName_a4
-                                                if (!empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                if (!empty($row['a4']) && !empty($row['Name_a4']) && $row['a4'] != $row['Account']) {
                                                     $ItemName_a4 = htmlspecialchars($row['a4']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
-                                                } elseif (empty($row['a4']) && !empty($row['Name_a4'])) {
-                                                    $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                } elseif (!empty($row['a4']) && !empty($row['Name_a4']) && $row['a4'] == $row['Account']) {
+                                                    $ItemName_a4 = "-" . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
                                                 } else {
-                                                    $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    $ItemName_a4 = "-" . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                 }
                                                 if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
                                                     $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4] = [
@@ -858,8 +858,8 @@ function fetchScenariosData($conn)
 
                                                 // เก็บข้อมูลของ KKU_Item_Name
                                                 $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                    ? "" . htmlspecialchars($row['Account'] ?? '') . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
-                                                    : "" . htmlspecialchars($row['Account'] ?? '') . "";
+                                                    ? "" . "-" . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                    : "" . "";
                                                 $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                     'name' => $kkuItemName,
                                                     'a4' => $row['a4'],
@@ -1024,7 +1024,7 @@ function fetchScenariosData($conn)
                                                             echo "</tr>";
                                                             if (isset($dataName_a1['Name_a2']) && is_array($dataName_a1['Name_a2'])) {
                                                                 foreach ($dataName_a1['Name_a2'] as $Name_a2 => $dataName_a2) {
-                                                                    if ($dataName_a2['test'] == null || $dataName_a2['test'] == '' || $dataName_a1['name'] == $dataName_a2['name']) {
+                                                                    if ($dataName_a2['test'] == null || $dataName_a2['test'] == '' || $dataName_a2['a1'] == $dataName_a2['a2']) {
                                                                         continue;
                                                                     }
                                                                     echo "<tr>";
@@ -1056,7 +1056,7 @@ function fetchScenariosData($conn)
 
                                                                     if (isset($dataName_a2['Name_a3']) && is_array($dataName_a2['Name_a3'])) {
                                                                         foreach ($dataName_a2['Name_a3'] as $Name_a3 => $dataName_a3) {
-                                                                            if ($dataName_a3['test'] == null || $dataName_a3['test'] == '' || $dataName_a2['name'] == $dataName_a3['name']) {
+                                                                            if ($dataName_a3['test'] == null || $dataName_a3['test'] == '' || $dataName_a3['a2'] == $dataName_a3['a3']) {
                                                                                 continue;
                                                                             }
                                                                             echo "<tr>";
@@ -1087,7 +1087,7 @@ function fetchScenariosData($conn)
                                                                             echo "</tr>";
                                                                             if (isset($dataName_a3['Name_a4']) && is_array($dataName_a3['Name_a4'])) {
                                                                                 foreach ($dataName_a3['Name_a4'] as $Name_a4 => $dataName_a4) {
-                                                                                    if ($dataName_a4['test'] == null || $dataName_a4['test'] == '' || $dataName_a3['name'] == $dataName_a4['name']) {
+                                                                                    if ($dataName_a4['test'] == null || $dataName_a4['test'] == '' || $dataName_a4['a3'] == $dataName_a4['a4']) {
                                                                                         continue;
                                                                                     }
                                                                                     echo "<tr>";
@@ -1119,7 +1119,7 @@ function fetchScenariosData($conn)
 
                                                                                     if (isset($dataName_a4['Name_a4']) && is_array($dataName_a4['Name_a4'])) {
                                                                                         foreach ($dataName_a4['kku_items'] as $kkuItem) {
-                                                                                            if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $dataName_a4['name'] == $kkuItem['name']) {
+                                                                                            if ($kkuItem['test'] == null || $kkuItem['test'] == '' || $kkuItem['a4'] == $kkuItem['a5']) {
                                                                                                 continue;
                                                                                             }
                                                                                             echo "<tr>";
