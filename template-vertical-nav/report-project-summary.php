@@ -33,48 +33,178 @@
                                 <div class="card-title">
                                     <h4>รายงานสรุปรายโครงการ</h4>
                                 </div>
-                                <div class="row">
-                                    <!-- ปีที่จัดสรรงบประมาณ -->
-                                    <div class="col-md-3">
-                                        <label for="allocationYearSelect">ปีที่จัดสรรงบประมาณ:</label>
-                                        <select id="allocationYearSelect" class="form-control">
-                                            <option value="FY25">FY25</option>
-                                        </select>
-                                    </div>
+                                <br>
+                                <div class="table-responsive">
+                                    <?php
+                                    error_reporting(E_ALL);
+                                    ini_set('display_errors', 1);
 
-                                    <!-- ปีบริหารงบประมาณ -->
-                                    <div class="col-md-2">
-                                        <label for="budgetYearSelect">ปีบริหารงบประมาณ:</label>
-                                        <select id="budgetYearSelect" class="form-control">
-                                            <option value="2568">2568</option>
-                                        </select>
-                                    </div>
-                                    <!-- Scenario -->
-                                    <div class="col-md-3">
-                                        <label for="scenarioSelect">ประเภทงบประมาณ:</label>
-                                        <select id="scenarioSelect" class="form-control">
-                                            <option value="Annual Budget Plan">Annual Budget Plan</option>
-                                            <option value="Mid Year1 Allocated Plan">Mid Year1 Allocated Plan</option>
-                                            <option value="Mid Year2 Allocated Plan">Mid Year2 Allocated Plan</option>
-                                        </select>
-                                    </div>
+                                    include '../server/connectdb.php';
+                                    $database = new Database();
+                                    $conn = $database->connect();
 
-                                    <!-- Fund -->
-                                    <div class="col-md-3">
+                                    $query_fsy = "SELECT DISTINCT Budget_Management_Year FROM budget_planning_annual_budget_plan ORDER BY Budget_Management_Year DESC";
+                                    $stmt = $conn->prepare($query_fsy);
+                                    $stmt->execute();
+                                    $years = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                    // ดึงค่า Scenario
+                                    $query_scenario = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+                                    $stmt = $conn->prepare($query_scenario);
+                                    $stmt->execute();
+                                    $scenarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                    $query_faculty = "SELECT DISTINCT abp.Faculty, Faculty.Alias_Default 
+                                                    FROM budget_planning_allocated_annual_budget_plan abp
+                                                    LEFT JOIN Faculty ON abp.Faculty = Faculty.Faculty";
+                                    $stmt = $conn->prepare($query_faculty);
+                                    $stmt->execute();
+                                    $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+                                    $selected_scenario = isset($_GET['Scenario']) ? $_GET['Scenario'] : '';
+                                    $selected_faculty = isset($_GET['Faculty']) ? $_GET['Faculty'] : '';
+                                    $selected_year = isset($_GET['years']) ? $_GET['years'] : '';
+                                    $select_fund = isset($_GET['fundSelect']) ? $_GET['fundSelect'] : '';
+
+                                    // WHERE Clause
+                                    $where_clause = "WHERE 1=1";
+                                    if ($selected_scenario !== '') {
+                                        $where_clause .= " AND annual_bp.Scenario = '$selected_scenario'";
+                                    }
+
+                                    if ($selected_faculty !== '') {
+                                        $where_clause .= " AND annual_bp.Faculty = '$selected_faculty'";
+                                    }
+
+                                    if ($select_fund !== '') {
+                                        $where_clause .= " AND annual_bp.Fund = '$select_fund'";
+                                    }
+
+                                    if ($selected_year !== '') {
+                                        $where_clause .= " AND Budget_Management_Year = :years";
+                                    }
+
+                                    $query = "SELECT
+                                    project.project_name,
+                                    annual_bp.Project,
+                                    b_actual.FISCAL_YEAR,
+                                    annual_bp.Budget_Management_Year,
+                                    annual_bp.Plan,
+                                    annual_bp.Sub_Plan,
+                                    annual_bp.Faculty,
+                                    annual_bp.Total_Amount_Quantity,
+                                    f.Alias_Default AS faculty_name,
+                                    account.alias_default,
+                                    plan.plan_name,
+                                    sub_plan.sub_plan_name,
+                                    account.parent,
+                                    kpi.KKU_Strategic_Plan_LOV,  
+                                    pilar.pillar_name  
+                                FROM
+                                    budget_planning_annual_budget_plan AS annual_bp
+                                    LEFT JOIN (
+                                        SELECT DISTINCT Faculty, fund, plan, subplan, project, account, service, fiscal_year
+                                        FROM budget_planning_actual
+                                    ) b_actual 
+                                    ON b_actual.PLAN = annual_bp.Plan
+                                    AND annual_bp.faculty = b_actual.Faculty
+                                    AND b_actual.SUBPLAN = REPLACE(annual_bp.Sub_Plan, 'SP_', '')
+                                    AND b_actual.PROJECT = annual_bp.Project
+                                    AND annual_bp.account = b_actual.account
+                                    AND b_actual.fund = REPLACE(annual_bp.fund, 'FN', '')
+                                    AND b_actual.service = REPLACE(annual_bp.service, 'SR_', '')
+            
+                                    LEFT JOIN account ON account.account = annual_bp.Account
+                                    LEFT JOIN (
+                                        SELECT * FROM Faculty WHERE parent LIKE 'FACULTY%'
+                                    ) f ON f.Faculty = annual_bp.Faculty
+                                    LEFT JOIN plan ON plan.plan_id = annual_bp.Plan
+                                    LEFT JOIN sub_plan ON sub_plan.sub_plan_id = annual_bp.Sub_Plan
+                                    LEFT JOIN project ON project.project_id = annual_bp.Project
+                                    
+                                    LEFT JOIN (
+                                        SELECT Project, MAX(KKU_Strategic_Plan_LOV) AS KKU_Strategic_Plan_LOV 
+                                        FROM budget_planning_project_kpi 
+                                        GROUP BY Project
+                                    ) kpi ON kpi.Project = annual_bp.Project
+            
+                                    LEFT JOIN (
+                                        SELECT pillar_id, MAX(pillar_name) AS pillar_name
+                                        FROM pilars2
+                                        GROUP BY pillar_id
+                                    ) pilar ON pilar.pillar_id = REPLACE(kpi.KKU_Strategic_Plan_LOV, '_', '')
+
+                                    $where_clause";
+
+
+                                    if ($selected_faculty !== '') {
+                                        $stmt->bindParam(':faculty', $selected_faculty, PDO::PARAM_STR);
+                                    }
+                                    if ($selected_year !== '') {
+                                        $stmt->bindParam(':years', $selected_year, PDO::PARAM_STR);
+                                    }
+                                    if ($selected_Scenario !== '') {
+                                        $stmt->bindParam(':Scenario', $selected_Scenario, PDO::PARAM_STR);
+                                    }
+                                    if ($select_fund !== '') {
+                                        $stmt->bindParam(':Scenario', $select_fund, PDO::PARAM_STR);
+                                    }
+
+                                    $stmt = $conn->prepare($query);
+                                    $stmt->execute();
+                                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                    ?>
+                                    <form method="GET" class="d-flex align-items-center gap-2">
+                                        <label for="Budget_Management_Year" class="me-2">เลือกปีงบประมาณ:</label>
+                                        <select name="Budget_Management_Year" id="Budget_Management_Year" class="form-control me-2">
+                                            <?php foreach ($years as $year): ?>
+                                                <option value="<?= $year['Budget_Management_Year'] ?>" <?= ($selected_year == $year['Budget_Management_Year']) ? 'selected' : '' ?>>
+                                                    <?= $year['Budget_Management_Year'] ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                        <label for="Scenario" class="me-2">เลือกประเภทงบประมาณ:</label>
+                                        <select name="Scenario" id="Scenario" class="form-control me-2">
+                                            <option value="">เลือกทั้งหมด</option>
+                                            <?php foreach ($scenarios as $scenario): ?>
+                                                <option value="<?= $scenario['Scenario'] ?>" <?= ($selected_scenario == $scenario['Scenario']) ? 'selected' : '' ?>>
+                                                    <?= $scenario['Scenario'] ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                        <label for="Faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
+                                        <select name="Faculty" id="Faculty" class="form-control me-2">
+                                            <option value="">เลือกทั้งหมด</option>
+                                            <?php foreach ($faculties as $faculty): ?>
+                                                <option value="<?= $faculty['Faculty'] ?>" <?= ($selected_faculty == $faculty['Faculty']) ? 'selected' : '' ?>>
+                                                    <?= $faculty['Alias_Default'] ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                        <label for="Faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
+                                        <select name="Faculty" id="Faculty" class="form-control me-2">
+                                            <option value="">เลือกทั้งหมด</option>
+                                            <?php foreach ($faculties as $faculty): ?>
+                                                <option value="<?= $faculty['Faculty'] ?>" <?= ($selected_faculty == $faculty['Faculty']) ? 'selected' : '' ?>>
+                                                    <?= $faculty['Alias_Default'] ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
                                         <label for="fundSelect">แหล่งเงิน:</label>
-                                        <select id="fundSelect" class="form-control">
+                                        <select id="fundSelect" name="fundSelect" class="form-control me-2">
                                             <option value="FN02">FN02</option>
                                             <option value="FN06" selected>FN06</option>
                                         </select>
-                                    </div>
 
-                                    <!-- ปุ่มค้นหา -->
-                                    <div class="col-md-1 d-flex align-items-end">
-                                        <button onclick="loadData()" class="btn btn-info w-100">ค้นหา</button>
-                                    </div>
-                                </div>
-                                <br>
-                                <div class="table-responsive">
+                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                    </form>
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
                                             <tr class="">
@@ -133,133 +263,18 @@
             </div>
         </div>
     </div>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
-        $(document).ready(function() {
-            loadData();
-        });
-
-        function loadData() {
-            const scenario = document.getElementById("scenarioSelect").value;
-            const fund = document.getElementById("fundSelect").value;
-
-        $.ajax({
-        type: "POST",
-        url: "../server/api.php",
-        // url: "mockup-api",
-        data: {
-            'command': 'report-project-summary',
-            'scenario': scenario,
-            'fund': fund
-        },
-        dataType: "json",
-        success: function(response) {
-            console.log("API Response:", response.plan); // ตรวจสอบข้อมูลที่ได้รับ
-
-            const tableBody = document.querySelector('#reportTable tbody');
-            tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-
-            const headerCells = document.querySelectorAll("#reportTable thead th[value]");
-
-            // ใช้ Map เพื่อจัดกลุ่มข้อมูล
-            const projectMap = new Map();
-
-            response.plan.forEach(row => {
-                const projectKey = `${row.pillar_name}|${row.faculty_name}|${row.plan_name}|${row.sub_plan_name}|${row.project_name}`;
-
-                if (!projectMap.has(projectKey)) {
-                    // ถ้ายังไม่มีข้อมูลของโครงการนี้ ให้เพิ่มข้อมูลใหม่
-                    projectMap.set(projectKey, {
-                        ...row,
-                        totalAmount: parseFloat(row.Total_Amount_Quantity) || 0
-                    });
-                } else {
-                    // ถ้ามีข้อมูลนี้แล้ว ให้รวมค่าของ Total_Amount_Quantity
-                    const existingProject = projectMap.get(projectKey);
-                    existingProject.totalAmount += parseFloat(row.Total_Amount_Quantity) || 0;
-                }
-            });
-
-            // แสดงข้อมูลที่จัดกลุ่มแล้วในตาราง
-            projectMap.forEach(row => {
-                const tr = document.createElement('tr');
-
-                // แสดงรายละเอียดในคอลัมน์แรก
-                const td1 = document.createElement('td');
-                td1.innerHTML = `
-                    <div style="font-weight: bold;">${row.pillar_name || "-"}</div>
-                    <div>
-                        ${row.faculty_name}<br>
-                        ${row.plan_name}<br>
-                        ${row.sub_plan_name}<br>
-                        <strong>${row.project_name}</strong>
-                    </div>
-                `;
-                tr.appendChild(td1);
-
-                let totalSum = 0;
-                let hasValue = false;
-
-                // แสดงข้อมูลในคอลัมน์งบประมาณ
-                headerCells.forEach(th => {
-                    const td = document.createElement('td');
-                    const parentValue = th.getAttribute("value");
-                    
-
-                    if (row.parent === parentValue) {
-                        // console.log("parentValue", parentValue);
-                        // console.log("row", row.parent);
-                        const value = row.totalAmount; // ใช้ค่ารวมที่คำนวณแล้ว
-                        td.textContent = value.toLocaleString();
-                        totalSum += value;
-                        if (value > 0) hasValue = true;
-                    } else {
-                        td.textContent = "-";
-                    }
-
-                    tr.appendChild(td);
-                });
-
-                // คอลัมน์รวมงบประมาณ
-                const totalTd = document.createElement('td');
-                totalTd.textContent = totalSum.toLocaleString();
-                totalTd.style.fontWeight = "bold";
-                tr.appendChild(totalTd);
-
-             
-                if (totalSum > 0 || hasValue) {
-                    tableBody.appendChild(tr); // ✅ แสดงเฉพาะแถวที่มีค่า
-                }
-                
-            });
-        },
-        error: function(jqXHR, exception) {
-            console.error("Error: " + exception);
-            responseError(jqXHR, exception);
-        }
-    });
-
-        }
-
-
         function exportCSV() {
-            const rows = [];
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells.join(","));
-            }
-            const csvContent = "\uFEFF" + rows.join("\n"); // Add BOM
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
+            const wb = XLSX.utils.table_to_book(table, {
+                sheet: "รายงาน",
+                raw: true
             });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงานการจัดสรรเงินรายงวด.csv');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.writeFile(wb, 'รายงานการจัดสรรเงินรายงวด.csv', {
+                bookType: 'csv',
+                type: 'array'
+            });
         }
 
         function exportPDF() {
@@ -275,7 +290,7 @@
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+            doc.text("รายงานการจัดสรรเงินรายงวด", 10, 10);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -300,33 +315,15 @@
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงานการจัดสรรเงินรายงวด.pdf');
+            doc.save('รายงาน.pdf');
         }
 
         function exportXLS() {
-            const rows = [];
             const table = document.getElementById('reportTable');
-            for (let row of table.rows) {
-                const cells = Array.from(row.cells).map(cell => cell.innerText.trim());
-                rows.push(cells);
-            }
-            let xlsContent = "<table>";
-            rows.forEach(row => {
-                xlsContent += "<tr>" + row.map(cell => `<td>${cell}</td>`).join('') + "</tr>";
+            const wb = XLSX.utils.table_to_book(table, {
+                sheet: "รายงาน"
             });
-            xlsContent += "</table>";
-
-            const blob = new Blob([xlsContent], {
-                type: 'application/vnd.ms-excel'
-            });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.setAttribute('href', url);
-            link.setAttribute('download', 'รายงานการจัดสรรเงินรายงวด.xls');
-            link.style.visibility = 'hidden';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            XLSX.writeFile(wb, 'รายงานการจัดสรรเงินรายงวด.xlsx');
         }
     </script>
     <!-- Common JS -->

@@ -40,7 +40,8 @@ try:
         "UoM for Sub-plan's KPI": '',
         'KPI': '',
         'Scenario': '',
-        'Version': ''
+        'Version': '',
+        'YEAR': ''
     })
 
 except Exception as e:
@@ -67,8 +68,8 @@ try:
         insert_query = '''
         INSERT INTO budget_planning_subplan_kpi (
             Faculty, Plan, Sub_Plan, Sub_plan_KPI_Name, Sub_plan_KPI_Target,
-            UoM_for_Sub_plan_KPI, KPI, Scenario, Version
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);
+            UoM_for_Sub_plan_KPI, KPI, Scenario, Version, YEAR
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
         '''
         cursor.execute(insert_query, (
             row['Faculty'],
@@ -79,7 +80,8 @@ try:
             row["UoM for Sub-plan's KPI"],
             row['KPI'],
             row['Scenario'],
-            row['Version']
+            row['Version'],
+            row['YEAR']
         ))
 
     # บันทึกข้อมูล
