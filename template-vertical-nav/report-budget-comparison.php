@@ -135,17 +135,49 @@
                                 $stmt->execute();
                                 $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+                                $query_year = "SELECT DISTINCT
+                                                    x.Budget_Management_Year
+                                                FROM
+                                                    budget_planning_annual_budget_plan x";
+                                $stmt = $conn->prepare($query_year);
+                                $stmt->execute();
+                                $year = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                $query_Scenario = "SELECT DISTINCT
+                                                    x.Scenario
+                                                FROM
+                                                    budget_planning_annual_budget_plan x";
+                                $stmt = $conn->prepare($query_Scenario);
+                                $stmt->execute();
+                                $Scenarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
                                 // รับค่าที่เลือกจากฟอร์ม
                                 $selected_faculty = isset($_GET['faculty']) ? $_GET['faculty'] : '';
 
+                                $selected_year = isset($_GET['years']) ? $_GET['years'] : '';
+
+                                $selected_Scenario = isset($_GET['Scenario']) ? $_GET['Scenario'] : '';
+
+
+
                                 // WHERE Clause แบบ Dynamic
                                 $where_clause = "WHERE 1=1";
+                                $where_clause_2 = "WHERE 1=1";
+
+                                if ($selected_year !== '') {
+                                    $where_clause .= " AND Budget_Management_Year = :years";
+                                }
+                                if ($selected_Scenario !== '') {
+                                    $where_clause_2 .= " AND b.Scenario = :Scenario";
+                                }
                                 if ($selected_faculty !== '') {
                                     $where_clause .= " AND Faculty = :faculty";
                                 }
 
+                                
+
                                 // ฟังก์ชันดึงข้อมูล
-                                function fetchBudgetData($conn, $where_clause, $selected_faculty)
+                                function fetchBudgetData($conn, $where_clause, $selected_faculty, $selected_year, $where_clause_2, $selected_Scenario)
                                 {
                                     $query = "WITH
                                                 RECURSIVE account_hierarchy AS (
@@ -280,6 +312,7 @@
                                                             budget_planning_annual_budget_plan b
                                                             LEFT JOIN plan p ON b.Plan = p.plan_id
                                                             LEFT JOIN sub_plan sp ON b.Sub_Plan = sp.sub_plan_id
+                                                            $where_clause_2
                                                     ),
                                                     t2 AS (
                                                         SELECT
@@ -535,7 +568,12 @@
                                         if ($selected_faculty !== '') {
                                             $stmt->bindParam(':faculty', $selected_faculty, PDO::PARAM_STR);
                                         }
-
+                                        if ($selected_year !== '') {
+                                            $stmt->bindParam(':years', $selected_year, PDO::PARAM_STR);
+                                        }
+                                        if ($selected_Scenario !== '') {
+                                            $stmt->bindParam(':Scenario', $selected_Scenario, PDO::PARAM_STR);
+                                        }
                                         $stmt->execute();
                                         return $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     } catch (PDOException $e) {
@@ -544,10 +582,31 @@
                                     }
                                 }
 
-                                $resultsFN = fetchBudgetData($conn, $where_clause, $selected_faculty);
+                                $resultsFN = fetchBudgetData($conn, $where_clause, $selected_faculty, $selected_year, $where_clause_2, $selected_Scenario);
                                 ?>
 
                                 <form method="GET" class="d-flex align-items-center gap-2">
+                                    <label for="years" class="me-2">เลือกปีงบประมาณ:</label>
+                                    <select name="years" id="years" class="form-control me-2">
+                                        <option value="">เลือกปีงบประมาณ ทั้งหมด</option>
+                                        <?php foreach ($year as $all_year): ?>
+                                            <option value="<?= $all_year['Budget_Management_Year'] ?>" <?= ($selected_year == $all_year['Budget_Management_Year']) ? 'selected' : '' ?>>
+                                                <?= $all_year['Budget_Management_Year'] ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+
+                                    <label for="Scenario" class="me-2">เลือกประเภทงบประมาณ:</label>
+                                    <select name="Scenario" id="Scenario" class="form-control me-2">
+                                        <option value="">เลือกประเภทงบประมาณ ทั้งหมด</option>
+                                        <?php foreach ($Scenarios as $all_Scenario): ?>
+                                            <option value="<?= $all_Scenario['Scenario'] ?>" <?= ($selected_Scenario == $all_Scenario['Scenario']) ? 'selected' : '' ?>>
+                                                <?= $all_Scenario['Scenario'] ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+
+
                                     <label for="faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
                                     <select name="faculty" id="faculty" class="form-control me-2">
                                         <option value="">เลือกส่วนงาน/หน่วยงาน ทั้งหมด</option>
@@ -681,82 +740,166 @@
                                                       </tr>";
 
                                                 foreach ($subPlanData['sub_plan_items'] as $subPlanItem) {
+                                                    $dataByYear = [];
+
                                                     foreach ($resultsFN as $row) {
                                                         if ($row['kpi_name'] === $subPlanItem && $row['Sub_Plan'] === $subPlanKey) {
-                                                            echo "<tr>
-                                                                    <td>" . str_repeat("&nbsp;", 30) . $subPlanItem . "</td>
-                                                                    <td>" . $row['uom_kpi'] . "</td>
-                                                                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                    <td>" . $row['kpi_target'] . "</td>
-                                                                    <td>" . $row['total06'] . "</td>
-                                                                    <td>" . $row['allocated_total06'] . "</td>
-                                                                    <td>" . $row['total08'] . "</td>
-                                                                    <td>" . $row['allocated_total08'] . "</td>
-                                                                    <td>" . $row['total02'] . "</td>
-                                                                    <td>" . $row['allocated_total02'] . "</td>
-                                                                    <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
-                                                                    <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
-                                                                    <td>100%</td>
-                                                                    <td>" . $row['Reason'] . "</td>
-                                                                  </tr>";
-                                                            break;
+                                                            $year = $row['Budget_Management_Year']; // แยกข้อมูลตามปี
+                                                            $dataByYear[$year] = [
+                                                                'uom' => $row['uom_kpi'],
+                                                                'kpi_target' => $row['kpi_target'],
+                                                                'total06' => $row['total06'],
+                                                                'allocated_total06' => $row['allocated_total06'],
+                                                                'total08' => $row['total08'],
+                                                                'allocated_total08' => $row['allocated_total08'],
+                                                                'total02' => $row['total02'],
+                                                                'allocated_total02' => $row['allocated_total02'],
+                                                                'sumfn' => $row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08'],
+                                                                'Reason' => $row['Reason']
+                                                            ];
                                                         }
                                                     }
+
+                                                    // กำหนดค่าเริ่มต้นให้เป็น "-" ถ้าไม่มีข้อมูลในปีนั้น ๆ
+                                                    $year_2567 = $dataByYear['2567'] ?? [
+                                                        'uom' => '-',
+                                                        'kpi_target' => '-',
+                                                        'total06' => '-',
+                                                        'allocated_total06' => '-',
+                                                        'total08' => '-',
+                                                        'allocated_total08' => '-',
+                                                        'total02' => '-',
+                                                        'allocated_total02' => '-',
+                                                        'sumfn' => '-',
+                                                        'Reason' => '-'
+                                                    ];
+                                                    $year_2568 = $dataByYear['2568'] ?? [
+                                                        'uom' => '-',
+                                                        'kpi_target' => '-',
+                                                        'total06' => '-',
+                                                        'allocated_total06' => '-',
+                                                        'total08' => '-',
+                                                        'allocated_total08' => '-',
+                                                        'total02' => '-',
+                                                        'allocated_total02' => '-',
+                                                        'sumfn' => '-',
+                                                        'Reason' => '-'
+                                                    ];
+
+                                                    echo "<tr>
+                                                                <td>" . str_repeat("&nbsp;", 30) . $subPlanItem . "</td>
+                                                                <td>" . $year_2567['uom'] . "</td>
+                                                                <td>" . $year_2567['kpi_target'] . "</td>
+                                                                <td>" . $year_2567['allocated_total06'] . "</td>
+                                                                <td>" . $year_2567['allocated_total02'] . "</td>
+                                                                <td>" . $year_2567['allocated_total08'] . "</td>
+                                                                <td>" . $year_2567['sumfn'] . "</td>
+                                                                <td>" . $year_2568['kpi_target'] . "</td>
+                                                                <td>" . $year_2568['total06'] . "</td>
+                                                                <td>" . $year_2568['allocated_total06'] . "</td>
+                                                                <td>" . $year_2568['total08'] . "</td>
+                                                                <td>" . $year_2568['allocated_total08'] . "</td>
+                                                                <td>" . $year_2568['total02'] . "</td>
+                                                                <td>" . $year_2568['allocated_total02'] . "</td>
+                                                                <td>" . $year_2568['sumfn'] . "</td>
+                                                                <td>" . (($year_2568['sumfn'] !== '-' && $year_2567['sumfn'] !== '-') ? ($year_2568['sumfn'] - $year_2567['sumfn']) : '-') . "</td>
+                                                                <td>100%</td>
+                                                                <td>" . ($year_2568['Reason'] !== '-' ? $year_2568['Reason'] : $year_2567['Reason']) . "</td>
+                                                              </tr>";
                                                 }
                                             }
 
-                                            if (!empty($planData['expenses'])) {
-                                                foreach ($planData['expenses'] as $level5Key => $level5Data) {
+                                            foreach ($planData['expenses'] as $level5Key => $level5Data) {
+                                                echo "<tr>
+                                                        <td>" . str_repeat("&nbsp;", 45) . $level5Key . "</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                      </tr>";
+
+                                                foreach ($level5Data['level3_items'] as $level3Key => $level3Data) {
                                                     echo "<tr>
-                                                            <td>" . str_repeat("&nbsp;", 90) . $level5Key . "</td>
+                                                            <td>" . str_repeat("&nbsp;", 60) . $level3Key . "</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
                                                           </tr>";
 
-                                                    foreach ($level5Data['level3_items'] as $level3Key => $level3Data) {
-                                                        echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 105) . $level3Key . "</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                              </tr>";
+                                                    foreach ($level3Data['kku_items'] as $kkuItem) {
+                                                        $dataByYear = [];
 
-                                                        foreach ($level3Data['kku_items'] as $kkuItem) {
-                                                            foreach ($resultsFN as $row) {
-                                                                if ($row['KKU_Item_Name'] === $kkuItem && $row['level3'] === $level3Key) {
-                                                                    echo "<tr>
-                                                                            <td>" . str_repeat("&nbsp;", 125) . "- " . $kkuItem . "</td>
-                                                                            <td>" . $row['uom_kpi'] . "</td>
-                                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                            <td>" . $row['kpi_target'] . "</td>
-                                                                            <td>" . $row['total06'] . "</td>
-                                                                            <td>" . $row['allocated_total06'] . "</td>
-                                                                            <td>" . $row['total08'] . "</td>
-                                                                            <td>" . $row['allocated_total08'] . "</td>
-                                                                            <td>" . $row['total02'] . "</td>
-                                                                            <td>" . $row['allocated_total02'] . "</td>
-                                                                            <td>" . ($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) . "</td>
-                                                                            <td>" . (($row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08']) - 0) . "</td>
-                                                                            <td>100%</td>
-                                                                            <td>" . $row['Reason'] . "</td>
-                                                                          </tr>";
-                                                                    break;
-                                                                }
+                                                        foreach ($resultsFN as $row) {
+                                                            if ($row['KKU_Item_Name'] === $kkuItem && $row['level3'] === $level3Key) {
+                                                                $year = $row['Budget_Management_Year']; // แยกข้อมูลตามปี
+                                                                $dataByYear[$year] = [
+                                                                    'uom' => $row['uom_kpi'],
+                                                                    'kpi_target' => $row['kpi_target'],
+                                                                    'total06' => $row['total06'],
+                                                                    'allocated_total06' => $row['allocated_total06'],
+                                                                    'total08' => $row['total08'],
+                                                                    'allocated_total08' => $row['allocated_total08'],
+                                                                    'total02' => $row['total02'],
+                                                                    'allocated_total02' => $row['allocated_total02'],
+                                                                    'sumfn' => $row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08'],
+                                                                    'Reason' => $row['Reason']
+                                                                ];
                                                             }
                                                         }
+
+                                                        // ถ้าไม่มีข้อมูลของปีนั้น ให้แสดง "-"
+                                                        $year_2567 = $dataByYear['2567'] ?? [
+                                                            'uom' => '-',
+                                                            'kpi_target' => '-',
+                                                            'total06' => '-',
+                                                            'allocated_total06' => '-',
+                                                            'total08' => '-',
+                                                            'allocated_total08' => '-',
+                                                            'total02' => '-',
+                                                            'allocated_total02' => '-',
+                                                            'sumfn' => '-',
+                                                            'Reason' => '-'
+                                                        ];
+                                                        $year_2568 = $dataByYear['2568'] ?? [
+                                                            'uom' => '-',
+                                                            'kpi_target' => '-',
+                                                            'total06' => '-',
+                                                            'allocated_total06' => '-',
+                                                            'total08' => '-',
+                                                            'allocated_total08' => '-',
+                                                            'total02' => '-',
+                                                            'allocated_total02' => '-',
+                                                            'sumfn' => '-',
+                                                            'Reason' => '-'
+                                                        ];
+
+                                                        echo "<tr>
+                                                                <td>" . str_repeat("&nbsp;", 75) . "- " . $kkuItem . "</td>
+                                                                <td>" . $year_2567['uom'] . "</td>
+                                                                <td>" . $year_2567['kpi_target'] . "</td>
+                                                                <td>" . $year_2567['allocated_total06'] . "</td>
+                                                                <td>" . $year_2567['allocated_total02'] . "</td>
+                                                                <td>" . $year_2567['allocated_total08'] . "</td>
+                                                                <td>" . $year_2567['sumfn'] . "</td>
+                                                                <td>" . $year_2568['kpi_target'] . "</td>
+                                                                <td>" . $year_2568['total06'] . "</td>
+                                                                <td>" . $year_2568['allocated_total06'] . "</td>
+                                                                <td>" . $year_2568['total08'] . "</td>
+                                                                <td>" . $year_2568['allocated_total08'] . "</td>
+                                                                <td>" . $year_2568['total02'] . "</td>
+                                                                <td>" . $year_2568['allocated_total02'] . "</td>
+                                                                <td>" . $year_2568['sumfn'] . "</td>
+                                                                <td>" . (($year_2568['sumfn'] !== '-' && $year_2567['sumfn'] !== '-') ? ($year_2568['sumfn'] - $year_2567['sumfn']) : '-') . "</td>
+                                                                <td>100%</td>
+                                                                <td>" . ($year_2568['Reason'] !== '-' ? $year_2568['Reason'] : $year_2567['Reason']) . "</td>
+                                                              </tr>";
                                                     }
                                                 }
                                             }
                                         }
-
-
                                         echo "</tbody>";
                                         ?>
-
-
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
