@@ -709,8 +709,8 @@ function fetchScenariosData($conn)
                                                     : "" . htmlspecialchars($row['a1']) . "";
                                                 if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1])) {
                                                     $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1] = [
-                                                        'name' => $ItemName_a1,
                                                         'a1' => $row['a1'],
+                                                        'name' => $ItemName_a1,
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
                                                         'Total_Amount_2567_FN02' => 0,
@@ -735,8 +735,9 @@ function fetchScenariosData($conn)
 
                                                 if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
                                                     $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2] = [
-                                                        'name' => $ItemName_a2,
+                                                        'a1' => $row['a1'],
                                                         'a2' => $row['a2'],
+                                                        'name' => $ItemName_a2,
                                                         'test' => $row['Name_a2'],
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
@@ -762,8 +763,9 @@ function fetchScenariosData($conn)
                                                 }
                                                 if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
                                                     $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3] = [
-                                                        'name' => $ItemName_a3,
+                                                        'a2' => $row['a2'],
                                                         'a3' => $row['a3'],
+                                                        'name' => $ItemName_a3,
                                                         'test' => $row['Name_a3'],
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
@@ -789,8 +791,9 @@ function fetchScenariosData($conn)
                                                 }
                                                 if (!isset($summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
                                                     $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4] = [
-                                                        'name' => $ItemName_a4,
+                                                        'a3' => $row['a3'],
                                                         'a4' => $row['a4'],
+                                                        'name' => $ItemName_a4,
                                                         'test' => $row['Name_a4'],
                                                         'Total_Amount_2567_FN06' => 0,
                                                         'Total_Amount_2567_FN08' => 0,
@@ -859,6 +862,8 @@ function fetchScenariosData($conn)
                                                     : "" . htmlspecialchars($row['Account'] ?? '') . "";
                                                 $summary[$Faculty]['Main_Name'][$Main_Name]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                     'name' => $kkuItemName,
+                                                    'a4' => $row['a4'],
+                                                    'a5' => $row['Account'],
                                                     'test' => $row['KKU_Item_Name'],
                                                     'Total_Amount_2567_FN06' => $row['Total_Amount_2567_FN06'],
                                                     'Total_Amount_2567_FN08' => $row['Total_Amount_2567_FN08'],
@@ -905,7 +910,7 @@ function fetchScenariosData($conn)
                                                     // แสดงผลลัพธ์ในรูปแบบตาราง
                                                     echo "<tr>";
                                                     // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a2 และ subType
-                                                    echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                    echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "</td>";
                                                     // Check if the keys exist before accessing them
                                                     echo "<td>" . (isset($total_summary['Total_Amount_2567_FN06']) ? formatNumber($total_summary['Total_Amount_2567_FN06']) : '0') . "</td>";
                                                     echo "<td>" . (isset($total_summary['Total_Amount_2567_FN08']) ? formatNumber($total_summary['Total_Amount_2567_FN08']) : '0') . "</td>";
@@ -943,10 +948,10 @@ function fetchScenariosData($conn)
 
                                                 if ($selectedFaculty == null) {
                                                     $facultyData = str_replace('-', ':', $data['Alias_Default']);
-                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "<br></td>";
+                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "</td>";
                                                 }
                                                 if ($selectedFaculty != null) {
-                                                    echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                    echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "</td>";
                                                 }
 
                                                 // Check if the keys exist before accessing them
@@ -979,7 +984,7 @@ function fetchScenariosData($conn)
 
                                                 foreach ($data['Main_Name'] as $Main_Name => $dataMain_Name) {
                                                     echo "<tr>";
-                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . $Main_Name . "<br></td>";
+                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 8) . $Main_Name . "</td>";
                                                     echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN06']) . "</td>";
                                                     echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN08']) . "</td>";
                                                     echo "<td>" . formatNumber($dataMain_Name['Total_Amount_2567_FN02']) . "</td>";
@@ -1000,7 +1005,7 @@ function fetchScenariosData($conn)
                                                     if (isset($dataMain_Name['Name_a1']) && is_array($dataMain_Name['Name_a1'])) {
                                                         foreach ($dataMain_Name['Name_a1'] as $Name_a1 => $dataName_a1) {
                                                             echo "<tr>";
-                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $dataName_a1['name'] . "<br></td>";
+                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 16) . $dataName_a1['name'] . "</td>";
                                                             echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN06']) . "</td>";
                                                             echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN08']) . "</td>";
                                                             echo "<td>" . formatNumber($dataName_a1['Total_Amount_2567_FN02']) . "</td>";
@@ -1023,7 +1028,15 @@ function fetchScenariosData($conn)
                                                                         continue;
                                                                     }
                                                                     echo "<tr>";
-                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a2['name'] . "<br></td>";
+                                                                    if ($dataName_a2['a1'] == $dataName_a2['a2']) {
+                                                                        $dataName_a2Name = preg_replace('/^\d+\s*:/', '- :', $dataName_a2['name']);
+
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a2Name . "</td>";
+
+                                                                    } else {
+                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 24) . $dataName_a2['name'] . "</td>";
+                                                                    }
+
                                                                     echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN06']) . "</td>";
                                                                     echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN08']) . "</td>";
                                                                     echo "<td>" . formatNumber($dataName_a2['Total_Amount_2567_FN02']) . "</td>";
@@ -1047,7 +1060,15 @@ function fetchScenariosData($conn)
                                                                                 continue;
                                                                             }
                                                                             echo "<tr>";
-                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a3['name'] . "<br></td>";
+                                                                            if ($dataName_a3['a2'] == $dataName_a3['a3']) {
+                                                                                $dataName_a3Name = preg_replace('/^\d+\s*:/', '- :', $dataName_a3['name']);
+
+                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a3Name . "</td>";
+
+                                                                            } else {
+                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 32) . $dataName_a3['name'] . "</td>";
+                                                                            }
+
                                                                             echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN06']) . "</td>";
                                                                             echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN08']) . "</td>";
                                                                             echo "<td>" . formatNumber($dataName_a3['Total_Amount_2567_FN02']) . "</td>";
@@ -1070,7 +1091,15 @@ function fetchScenariosData($conn)
                                                                                         continue;
                                                                                     }
                                                                                     echo "<tr>";
-                                                                                    echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a4['name'] . "<br></td>";
+                                                                                    if ($dataName_a4['a3'] == $dataName_a4['a4']) {
+                                                                                        $dataName_a4Name = preg_replace('/^\d+\s*:/', '- :', $dataName_a4['name']);
+
+                                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", times: 40) . $dataName_a4Name . "</td>";
+
+                                                                                    } else {
+                                                                                        echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 40) . $dataName_a4['name'] . "</td>";
+                                                                                    }
+
                                                                                     echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN06']) . "</td>";
                                                                                     echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN08']) . "</td>";
                                                                                     echo "<td>" . formatNumber($dataName_a4['Total_Amount_2567_FN02']) . "</td>";
@@ -1095,7 +1124,15 @@ function fetchScenariosData($conn)
                                                                                             }
                                                                                             echo "<tr>";
                                                                                             // แสดงผลข้อมูลโดยเพิ่ม `:` คั่นระหว่าง a1 และ Name_a4
-                                                                                            echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "<br></td>";
+                                                                                            if ($kkuItem['a4'] == $kkuItem['a5']) {
+                                                                                                $kkuItemName = preg_replace('/^\d+\s*:/', '- :', $kkuItem['name']);
+
+                                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", times: 48) . $kkuItemName . "</td>";
+
+                                                                                            } else {
+                                                                                                echo "<td style='text-align: left; '>" . str_repeat("&nbsp;", 48) . $kkuItem['name'] . "</td>";
+                                                                                            }
+
                                                                                             echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN06']) . "</td>";
                                                                                             echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN08']) . "</td>";
                                                                                             echo "<td>" . formatNumber($kkuItem['Total_Amount_2567_FN02']) . "</td>";
