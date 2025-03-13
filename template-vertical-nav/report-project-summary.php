@@ -293,11 +293,11 @@
                                     if ($selected_year !== '') {
                                         $stmt->bindParam(':years', $selected_year, PDO::PARAM_STR);
                                     }
-                                    if ($selected_Scenario !== '') {
-                                        $stmt->bindParam(':Scenario', $selected_Scenario, PDO::PARAM_STR);
+                                    if ($selected_scenario !== '') {
+                                        $stmt->bindParam(':Scenario', $selected_scenario, PDO::PARAM_STR);
                                     }
                                     if ($select_fund !== '') {
-                                        $stmt->bindParam(':Scenario', $select_fund, PDO::PARAM_STR);
+                                        $stmt->bindParam(':fund', $select_fund, PDO::PARAM_STR);
                                     }
 
                                     $stmt = $conn->prepare($query);
