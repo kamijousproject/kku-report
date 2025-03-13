@@ -127,14 +127,36 @@
                                     $stmt->execute();
                                     $years = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                                    // กำหนดปีที่เลือกจาก Dropdown (ค่าเริ่มต้นเป็นปีล่าสุด)
-                                    $selected_year = isset($_GET['Budget_Management_Year']) ? $_GET['Budget_Management_Year'] : (count($years) > 0 ? $years[0]['Budget_Management_Year'] : '');
+                                    // ดึงค่า Scenario
+                                    $query_scenario = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+                                    $stmt = $conn->prepare($query_scenario);
+                                    $stmt->execute();
+                                    $scenarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                                    // กำหนดปีเปรียบเทียบ (ปีที่เลือก -1)
+                                    // ดึงค่า Faculty
+                                    $query_faculty = "SELECT DISTINCT abp.Faculty, Faculty.Alias_Default 
+                      FROM budget_planning_allocated_annual_budget_plan abp
+                      LEFT JOIN Faculty ON abp.Faculty = Faculty.Faculty";
+                                    $stmt = $conn->prepare($query_faculty);
+                                    $stmt->execute();
+                                    $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                    // กำหนดค่าที่เลือกจาก Dropdown
+                                    $selected_year = isset($_GET['Budget_Management_Year']) ? $_GET['Budget_Management_Year'] : (count($years) > 0 ? $years[0]['Budget_Management_Year'] : '');
                                     $compare_year = $selected_year ? $selected_year - 1 : '';
+                                    $selected_scenario = isset($_GET['Scenario']) ? $_GET['Scenario'] : '';
+                                    $selected_faculty = isset($_GET['Faculty']) ? $_GET['Faculty'] : '';
 
                                     // WHERE Clause
                                     $where_clause = "WHERE t4.Budget_Management_Year IN ('$selected_year', '$compare_year')";
+
+                                    if ($selected_scenario !== '') {
+                                        $where_clause .= " AND t4.Scenario = '$selected_scenario'";
+                                    }
+
+                                    if ($selected_faculty !== '') {
+                                        $where_clause .= " AND t4.Faculty = '$selected_faculty'";
+                                    }
 
                                     // ดึงข้อมูล
                                     $query = "
@@ -205,8 +227,7 @@
                                                 LEFT JOIN project pj ON t.Project = pj.project_id
                                             )
                                             SELECT DISTINCT * FROM t4 $where_clause
-                                            ORDER BY Faculty, type, plan, sub_plan, kpi
-                                        ";
+                                            ORDER BY Faculty, type, plan, sub_plan, kpi";
 
                                     $stmt = $conn->prepare($query);
                                     $stmt->execute();
@@ -223,7 +244,28 @@
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
-                                        <button type="submit" class="btn btn-primary">เปรียบเทียบ</button>
+
+                                        <label for="Scenario" class="me-2">เลือกประเภทงบประมาณ:</label>
+                                        <select name="Scenario" id="Scenario" class="form-control me-2">
+                                            <option value="">เลือกทั้งหมด</option>
+                                            <?php foreach ($scenarios as $scenario): ?>
+                                                <option value="<?= $scenario['Scenario'] ?>" <?= ($selected_scenario == $scenario['Scenario']) ? 'selected' : '' ?>>
+                                                    <?= $scenario['Scenario'] ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                        <label for="Faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
+                                        <select name="Faculty" id="Faculty" class="form-control me-2">
+                                            <option value="">เลือกทั้งหมด</option>
+                                            <?php foreach ($faculties as $faculty): ?>
+                                                <option value="<?= $faculty['Faculty'] ?>" <?= ($selected_faculty == $faculty['Faculty']) ? 'selected' : '' ?>>
+                                                    <?= $faculty['Alias_Default'] ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+
+                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
                                     </form>
 
                                     <!-- แสดงตารางเปรียบเทียบ -->
