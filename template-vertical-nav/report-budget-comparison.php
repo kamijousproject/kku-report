@@ -733,12 +733,12 @@
 
                                             foreach ($planData['sub_plans'] as $subPlanKey => $subPlanData) {
                                                 echo "<tr>
-                                                            <td>" . str_repeat("&nbsp;", 15) . str_replace("SP_", "", $row['Sub_Plan']) . " : " . $subPlanData['sub_plan_name'] . "</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                          </tr>";
+                                                        <td>" . str_repeat("&nbsp;", 15) . str_replace("SP_", "", $subPlanData['Sub_Plan']) . " : " . $subPlanData['sub_plan_name'] . "</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
+                                                        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
+                                                    </tr>";
 
                                                 foreach ($subPlanData['sub_plan_items'] as $subPlanItem) {
                                                     $dataByYear = [];
