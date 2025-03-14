@@ -135,8 +135,8 @@
 
                                     // ดึงค่า Faculty
                                     $query_faculty = "SELECT DISTINCT abp.Faculty, Faculty.Alias_Default 
-                      FROM budget_planning_allocated_annual_budget_plan abp
-                      LEFT JOIN Faculty ON abp.Faculty = Faculty.Faculty";
+                                    FROM budget_planning_allocated_annual_budget_plan abp
+                                    LEFT JOIN Faculty ON abp.Faculty = Faculty.Faculty";
                                     $stmt = $conn->prepare($query_faculty);
                                     $stmt->execute();
                                     $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -439,7 +439,14 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
         function exportCSV() {
-            const table = document.getElementById('reportTable');
+            const table = document.getElementById('reportTable').cloneNode(true);
+            const newRow = table.insertRow(0);
+            const cell = newRow.insertCell(0);
+            cell.colSpan = table.rows[1].cells.length;
+            cell.style.textAlign = "center";
+            cell.style.fontWeight = "bold";
+            cell.innerText = "รายงานสรุปรายการ ตัวชี้วัดแผน/ผลของแผนงานย่อย";
+
             const wb = XLSX.utils.table_to_book(table, {
                 sheet: "รายงาน",
                 raw: true
@@ -448,6 +455,21 @@
                 bookType: 'csv',
                 type: 'array'
             });
+        }
+
+        function exportXLS() {
+            const table = document.getElementById('reportTable').cloneNode(true);
+            const newRow = table.insertRow(0);
+            const cell = newRow.insertCell(0);
+            cell.colSpan = table.rows[1].cells.length;
+            cell.style.textAlign = "center";
+            cell.style.fontWeight = "bold";
+            cell.innerText = "รายงานสรุปรายการ ตัวชี้วัดแผน/ผลของแผนงานย่อย";
+
+            const wb = XLSX.utils.table_to_book(table, {
+                sheet: "รายงาน"
+            });
+            XLSX.writeFile(wb, 'รายงานสรุปรายการ ตัวชี้วัดแผน/ผลของแผนงานย่อย.xlsx');
         }
 
         function exportPDF() {
@@ -489,14 +511,6 @@
 
             // บันทึกไฟล์ PDF
             doc.save('รายงานสรุปรายการ ตัวชี้วัดแผน/ผลของแผนงานย่อย.pdf');
-        }
-
-        function exportXLS() {
-            const table = document.getElementById('reportTable');
-            const wb = XLSX.utils.table_to_book(table, {
-                sheet: "รายงาน"
-            });
-            XLSX.writeFile(wb, 'รายงานสรุปรายการ ตัวชี้วัดแผน/ผลของแผนงานย่อย.xlsx');
         }
     </script>
     <!-- Common JS -->
