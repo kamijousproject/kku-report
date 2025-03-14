@@ -612,12 +612,12 @@ function fetchScenariosData($conn)
                                                     }
 
                                                     // ตรวจสอบและกำหนดค่าของ $ItemName_a2
-                                                    if (!empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                    if (!empty($row['a2']) && !empty($row['Name_a2']) && $row['Name_a2'] != $row['KKU_Item_Name']) {
                                                         $ItemName_a2 = htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
                                                     } elseif (empty($row['a2']) && !empty($row['Name_a2'])) {
-                                                        $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                        $ItemName_a2 = "- " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
                                                     } else {
-                                                        $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                        $ItemName_a2 = "- " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                     }
                                                     // เก็บข้อมูลของ Name_a2
                                                     if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2])) {
@@ -634,12 +634,12 @@ function fetchScenariosData($conn)
                                                     }
 
                                                     // ตรวจสอบและกำหนดค่าของ $ItemName_a3
-                                                    if (!empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                    if (!empty($row['a3']) && !empty($row['Name_a3']) && $row['Name_a3'] != $row['KKU_Item_Name']) {
                                                         $ItemName_a3 = htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
                                                     } elseif (empty($row['a3']) && !empty($row['Name_a3'])) {
-                                                        $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                        $ItemName_a3 = "- " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
                                                     } else {
-                                                        $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                        $ItemName_a3 = "- " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                     }
                                                     // เก็บข้อมูลของ Name_a3
                                                     if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
@@ -656,12 +656,12 @@ function fetchScenariosData($conn)
                                                     }
 
                                                     // ตรวจสอบและกำหนดค่าของ $ItemName_a3
-                                                    if (!empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                    if (!empty($row['a4']) && !empty($row['Name_a4']) && $row['Name_a4'] != $row['KKU_Item_Name']) {
                                                         $ItemName_a4 = htmlspecialchars($row['a4']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
                                                     } elseif (empty($row['a4']) && !empty($row['Name_a4'])) {
-                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                        $ItemName_a4 = "- " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
                                                     } else {
-                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                        $ItemName_a4 = "- " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                     }
                                                     // เก็บข้อมูลของ Name_a4
                                                     if (!isset($summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
@@ -725,8 +725,8 @@ function fetchScenariosData($conn)
 
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? "" . htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
-                                                        : "" . htmlspecialchars($row['Account']) . "";
+                                                        ? "" . "- " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                        : "" . "";
                                                     $summary[$DefaultFaculty]['faculty'][$faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                         'name' => $kkuItemName,
                                                         'test' => $row['KKU_Item_Name'],
