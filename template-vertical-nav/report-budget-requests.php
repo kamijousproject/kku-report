@@ -418,22 +418,7 @@ function fetchScenariosData($conn)
                                     ?>
 
                                     <form method="GET" action="" onsubmit="return validateForm()">
-                                        <div class="form-group" style="display: flex; align-items: center;">
-                                            <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
-                                                ส่วนงาน/หน่วยงาน</label>
-                                            <select name="faculty" id="faculty" class="form-control"
-                                                style="width: 100%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                                <option value="">เลือก ทุกส่วนงาน</option>
-                                                <?php
-                                                foreach ($faculties as $faculty) {
-                                                    $facultyName = htmlspecialchars($faculty['Faculty_Name']);
-                                                    $facultyCode = htmlspecialchars($faculty['Faculty']);
-                                                    $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
-                                                    echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
-                                                }
-                                                ?>
-                                            </select>
-                                        </div>
+
                                         <div class="form-group" style="display: flex; align-items: center;">
                                             <label for="year" class="label-year"
                                                 style="margin-right: 10px;">เลือกปีงบประมาณ</label>
@@ -469,7 +454,22 @@ function fetchScenariosData($conn)
                                             </select>
                                         </div>
 
-
+                                        <div class="form-group" style="display: flex; align-items: center;">
+                                            <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
+                                                ส่วนงาน/หน่วยงาน</label>
+                                            <select name="faculty" id="faculty" class="form-control"
+                                                style="width: 100%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                                <option value="">เลือก ทุกส่วนงาน</option>
+                                                <?php
+                                                foreach ($faculties as $faculty) {
+                                                    $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                    $facultyCode = htmlspecialchars($faculty['Faculty']);
+                                                    $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                    echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
                                         <div class="form-group" style="display: flex; justify-content: center;">
                                             <button type="submit" class="btn btn-primary">ค้นหา</button>
                                         </div>
@@ -478,13 +478,39 @@ function fetchScenariosData($conn)
                                     </form>
 
                                     <script>
-                                        function validateForm() {
+                                        function validateForm(event) {
+                                            event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
+
+                                            var faculty = document.getElementById('faculty').value;
                                             var year = document.getElementById('year').value;
-                                            if (year == '') {
-                                                alert('กรุณาเลือกปีงบประมาณ');
-                                                return false;  // ป้องกันการส่งฟอร์ม
+                                            var scenario = document.getElementById('scenario').value;
+
+                                            var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-budget-requests.php";
+                                            var params = [];
+
+                                            // เพิ่ม Faculty หากเลือก
+                                            if (faculty) {
+                                                params.push("faculty=" + encodeURIComponent(faculty));
                                             }
-                                            return true;  // ส่งฟอร์มได้
+                                            // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                            if (year && year !== "") {
+                                                params.push("year=" + encodeURIComponent(year));
+                                            }
+                                            // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                            if (scenario && scenario !== "") {
+                                                params.push("scenario=" + encodeURIComponent(scenario));
+                                            }
+
+                                            // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                            console.log("Params:", params);
+
+                                            // ถ้าไม่มีการเลือกอะไรเลย
+                                            if (params.length === 0) {
+                                                window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                            } else {
+                                                // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                                window.location.href = baseUrl + "?" + params.join("&");
+                                            }
                                         }
                                     </script>
 

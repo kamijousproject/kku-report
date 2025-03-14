@@ -454,25 +454,24 @@ function fetchScenariosData($conn)
 
                                 <!-- ฟอร์มค้นหา -->
                                 <form method="GET" action="">
-                                    <!-- Dropdown สำหรับเลือกส่วนงาน/หน่วยงาน -->
+
+
+                                    <!-- Dropdown สำหรับเลือกปีงบประมาณ -->
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="faculty" class="label-faculty"
-                                            style="margin-right: 10px;">เลือกส่วนงาน/หน่วยงาน</label>
-                                        <select name="faculty" id="faculty" class="form-control"
+                                        <label for="year" class="label-year"
+                                            style="margin-right: 10px;">เลือกปีงบประมาณ</label>
+                                        <select name="year" id="year" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือกทุกส่วนงาน</option>
+                                            <option value="">เลือกปีงบประมาณ</option>
                                             <?php
-                                            foreach ($faculties as $faculty) {
-                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
-                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
-                                                $selected = ($selectedFaculty == $facultyCode) ? 'selected' : '';
-                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+                                            foreach ($years as $year) {
+                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']);
+                                                $selected = ($selectedYear == $yearValue) ? 'selected' : '';
+                                                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
                                             }
                                             ?>
                                         </select>
                                     </div>
-
-
                                     <!-- Dropdown สำหรับเลือกประเภทงบประมาณ -->
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="dropdown2" class="label-scenario"
@@ -497,21 +496,19 @@ function fetchScenariosData($conn)
                                             ?>
                                         </select>
                                     </div>
-
-
-
-                                    <!-- Dropdown สำหรับเลือกปีงบประมาณ -->
+                                    <!-- Dropdown สำหรับเลือกส่วนงาน/หน่วยงาน -->
                                     <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="year" class="label-year"
-                                            style="margin-right: 10px;">เลือกปีงบประมาณ</label>
-                                        <select name="year" id="year" class="form-control"
+                                        <label for="faculty" class="label-faculty"
+                                            style="margin-right: 10px;">เลือกส่วนงาน/หน่วยงาน</label>
+                                        <select name="faculty" id="faculty" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือกปีงบประมาณ</option>
+                                            <option value="">เลือกทุกส่วนงาน</option>
                                             <?php
-                                            foreach ($years as $year) {
-                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']);
-                                                $selected = ($selectedYear == $yearValue) ? 'selected' : '';
-                                                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
+                                            foreach ($faculties as $faculty) {
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
+                                                $selected = ($selectedFaculty == $facultyCode) ? 'selected' : '';
+                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
                                             }
                                             ?>
                                         </select>
@@ -539,6 +536,43 @@ function fetchScenariosData($conn)
                                         <button type="submit" class="btn btn-primary">ค้นหา</button>
                                     </div>
                                 </form>
+
+                                <script>
+                                    function validateForm(event) {
+                                        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
+
+                                        var faculty = document.getElementById('faculty').value;
+                                        var year = document.getElementById('year').value;
+                                        var scenario = document.getElementById('scenario').value;
+
+                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-budget-allocation.php";
+                                        var params = [];
+
+                                        // เพิ่ม Faculty หากเลือก
+                                        if (faculty) {
+                                            params.push("faculty=" + encodeURIComponent(faculty));
+                                        }
+                                        // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                        if (year && year !== "") {
+                                            params.push("year=" + encodeURIComponent(year));
+                                        }
+                                        // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                        if (scenario && scenario !== "") {
+                                            params.push("scenario=" + encodeURIComponent(scenario));
+                                        }
+
+                                        // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                        console.log("Params:", params);
+
+                                        // ถ้าไม่มีการเลือกอะไรเลย
+                                        if (params.length === 0) {
+                                            window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                        } else {
+                                            // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                            window.location.href = baseUrl + "?" + params.join("&");
+                                        }
+                                    }
+                                </script>
                                 <script>
                                     document.addEventListener("DOMContentLoaded", function () {
                                         console.log("Script Loaded");
@@ -792,12 +826,12 @@ function fetchScenariosData($conn)
 
 
                                                     // ตรวจสอบและกำหนดค่าของ $ItemName_a4
-                                                    if (!empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                    if (!empty($row['a2']) && !empty($row['Name_a2']) && $row['Name_a2'] != $row['KKU_Item_Name']) {
                                                         $ItemName_a2 = htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
                                                     } elseif (empty($row['a2']) && !empty($row['Name_a2'])) {
-                                                        $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                        $ItemName_a2 = "- " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
                                                     } else {
-                                                        $ItemName_a2 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                        $ItemName_a2 = "- " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                     }
 
                                                     // เก็บข้อมูลของ Name_a2
@@ -818,12 +852,12 @@ function fetchScenariosData($conn)
                                                         ];
                                                     }
                                                     // ตรวจสอบและกำหนดค่าของ $ItemName_a3
-                                                    if (!empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                    if (!empty($row['a3']) && !empty($row['Name_a3']) && $row['Name_a3'] != $row['KKU_Item_Name']) {
                                                         $ItemName_a3 = htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
                                                     } elseif (empty($row['a3']) && !empty($row['Name_a3'])) {
-                                                        $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                        $ItemName_a3 = "- " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
                                                     } else {
-                                                        $ItemName_a3 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                        $ItemName_a3 = "- " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                     }
                                                     // เก็บข้อมูลของ Name_a3
                                                     if (!isset($summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3])) {
@@ -845,12 +879,12 @@ function fetchScenariosData($conn)
                                                     }
 
                                                     // ตรวจสอบและกำหนดค่าของ $ItemName_a4
-                                                    if (!empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                    if (!empty($row['a4']) && !empty($row['Name_a4']) && $row['Name_a4'] != $row['KKU_Item_Name']) {
                                                         $ItemName_a4 = htmlspecialchars($row['a4']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
                                                     } elseif (empty($row['a4']) && !empty($row['Name_a4'])) {
-                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                        $ItemName_a4 = "- " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
                                                     } else {
-                                                        $ItemName_a4 = htmlspecialchars($row['Account']) . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                        $ItemName_a4 = "- " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
                                                     }
                                                     // เก็บข้อมูลของ Name_a4
                                                     if (!isset($summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4])) {
@@ -949,8 +983,8 @@ function fetchScenariosData($conn)
 
                                                     // เก็บข้อมูลของ KKU_Item_Name
                                                     $kkuItemName = (!empty($row['KKU_Item_Name']))
-                                                        ? "" . htmlspecialchars($row['Account'] ?? '') . " : " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
-                                                        : "" . htmlspecialchars($row['Account'] ?? '') . "";
+                                                        ? "" . "- " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                        : "" . "";
 
                                                     $summary[$Faculty]['plan'][$plan]['sub_plan'][$subPlan]['project'][$project]['Name_a1'][$Name_a1]['Name_a2'][$Name_a2]['Name_a3'][$Name_a3]['Name_a4'][$Name_a4]['kku_items'][] = [
                                                         'name' => $kkuItemName,

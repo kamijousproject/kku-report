@@ -464,22 +464,7 @@ function fetchScenariosData($conn)
                                 $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
                                 ?>
                                 <form method="GET" action="" onsubmit="validateForm(event)">
-                                    <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
-                                            ส่วนงาน/หน่วยงาน</label>
-                                        <select name="faculty" id="faculty" class="form-control"
-                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
-                                            <?php
-                                            foreach ($faculties as $faculty) {
-                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
-                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
-                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
-                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
+
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="year" class="label-year"
                                             style="margin-right: 10px;">เลือกปีงบประมาณ</label>
@@ -508,6 +493,22 @@ function fetchScenariosData($conn)
                                                 $scenarioCode = htmlspecialchars($scenario['Scenario']);
                                                 $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
                                                 echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
+                                            ส่วนงาน/หน่วยงาน</label>
+                                        <select name="faculty" id="faculty" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
+                                            <?php
+                                            foreach ($faculties as $faculty) {
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
+                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
                                             }
                                             ?>
                                         </select>
@@ -725,9 +726,9 @@ function fetchScenariosData($conn)
                                                     ];
                                                 }
                                                 // ตรวจสอบและกำหนดค่าของ $ItemName_a4
-                                                if (!empty($row['a2']) && !empty($row['Name_a2']) && $row['a2'] != $row['Account']) {
+                                                if (!empty($row['a2']) && !empty($row['Name_a2']) && $row['Name_a2'] != $row['KKU_Item_Name']) {
                                                     $ItemName_a2 = htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
-                                                } elseif (!empty($row['a2']) && !empty($row['Name_a2']) && $row['a2'] == $row['Account']) {
+                                                } elseif (!empty($row['a2']) && !empty($row['Name_a2'])) {
                                                     $ItemName_a2 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
                                                 } else {
                                                     $ItemName_a2 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
@@ -754,9 +755,9 @@ function fetchScenariosData($conn)
                                                 }
 
                                                 // ตรวจสอบและกำหนดค่าของ $ItemName_a4
-                                                if (!empty($row['a3']) && !empty($row['Name_a3']) && $row['a3'] != $row['Account']) {
+                                                if (!empty($row['a3']) && !empty($row['Name_a3']) && $row['Name_a3'] != $row['KKU_Item_Name']) {
                                                     $ItemName_a3 = htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
-                                                } elseif (!empty($row['a3']) && !empty($row['Name_a3']) && $row['a3'] == $row['Account']) {
+                                                } elseif (!empty($row['a3']) && !empty($row['Name_a3'])) {
                                                     $ItemName_a3 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
                                                 } else {
                                                     $ItemName_a3 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
@@ -782,9 +783,9 @@ function fetchScenariosData($conn)
                                                 }
 
                                                 // ตรวจสอบและกำหนดค่าของ $ItemName_a4
-                                                if (!empty($row['a4']) && !empty($row['Name_a4']) && $row['a4'] != $row['Account']) {
+                                                if (!empty($row['a4']) && !empty($row['Name_a4']) && $row['Name_a4'] != $row['KKU_Item_Name']) {
                                                     $ItemName_a4 = htmlspecialchars($row['a4']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
-                                                } elseif (!empty($row['a4']) && !empty($row['Name_a4']) && $row['a4'] == $row['Account']) {
+                                                } elseif (!empty($row['a4']) && !empty($row['Name_a4'])) {
                                                     $ItemName_a4 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
                                                 } else {
                                                     $ItemName_a4 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
