@@ -622,39 +622,42 @@
                                 <hr>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover">
-                                        <thead>
-                                            <tr>
-                                                <th rowspan="3">รายการ</th>
-                                                <th rowspan="3" value="UOM">หน่วยนับของตัวชี้วัด (UOM)</th>
-                                                <th colspan="5">ปี 2567 (ปีปัจจุบัน)</th>
-                                                <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
-                                                <th colspan="2" rowspan="2">เพิ่ม/ลด</th>
-                                                <th rowspan="3" value="explain">คำชี้แจง</th>
-                                            </tr>
-                                            <tr>
-                                                <th rowspan="2">ปริมาณของตัวชี้วัด</th>
-                                                <th rowspan="2">เงินอุดหนุนจากรัฐ</th>
-                                                <th rowspan="2">เงินนอกงบประมาณ</th>
-                                                <th rowspan="2">เงินรายได้</th>
-                                                <th rowspan="2">รวม</th>
-                                                <th rowspan="2" value="indicators">ปริมาณของตัวชี้วัด</th>
-                                                <th colspan="2">เงินอุดหนุนจากรัฐ</th>
-                                                <th colspan="2">เงินนอกงบประมาณ</th>
-                                                <th colspan="2">เงินรายได้</th>
-                                                <th rowspan="2" value="sumfn">รวม</th>
-                                            </tr>
-                                            <tr>
-                                                <th value="fn06-1">คำขอ</th>
-                                                <th value="fn06-2">จัดสรร</th>
-                                                <th value="fn08-1">คำขอ</th>
-                                                <th value="fn08-2">จัดสรร</th>
-                                                <th value="fn02-1">คำขอ</th>
-                                                <th value="fn02-2">จัดสรร</th>
-                                                <th value="quantity">จำนวน</th>
-                                                <th value="percentage">ร้อยละ</th>
-                                            </tr>
-                                        </thead>
                                         <?php
+                                        $selected_year = isset($_GET['years']) && !empty($_GET['years']) ? $_GET['years'] : date("Y") + 543; // ถ้าไม่ได้เลือกใช้ปีปัจจุบัน
+                                        $previous_year = $selected_year - 1; // ปีที่แล้ว
+
+                                        echo "<thead>
+                                                <tr>
+                                                    <th rowspan='3'>รายการ</th>
+                                                    <th rowspan='3' value='UOM'>หน่วยนับของตัวชี้วัด (UOM)</th>
+                                                    <th colspan='5'>ปี $previous_year </th>
+                                                    <th colspan='8'>ปี $selected_year </th>
+                                                    <th colspan='2' rowspan='2'>เพิ่ม/ลด</th>
+                                                    <th rowspan='3' value='explain'>คำชี้แจง</th>
+                                                </tr>
+                                                <tr>
+                                                    <th rowspan='2'>ปริมาณของตัวชี้วัด</th>
+                                                    <th rowspan='2'>เงินอุดหนุนจากรัฐ</th>
+                                                    <th rowspan='2'>เงินนอกงบประมาณ</th>
+                                                    <th rowspan='2'>เงินรายได้</th>
+                                                    <th rowspan='2'>รวม</th>
+                                                    <th rowspan='2' value='indicators'>ปริมาณของตัวชี้วัด</th>
+                                                    <th colspan='2'>เงินอุดหนุนจากรัฐ</th>
+                                                    <th colspan='2'>เงินนอกงบประมาณ</th>
+                                                    <th colspan='2'>เงินรายได้</th>
+                                                    <th rowspan='2' value='sumfn'>รวม</th>
+                                                </tr>
+                                                <tr>
+                                                    <th value='fn06-1'>คำขอ</th>
+                                                    <th value='fn06-2'>จัดสรร</th>
+                                                    <th value='fn08-1'>คำขอ</th>
+                                                    <th value='fn08-2'>จัดสรร</th>
+                                                    <th value='fn02-1'>คำขอ</th>
+                                                    <th value='fn02-2'>จัดสรร</th>
+                                                    <th value='quantity'>จำนวน</th>
+                                                    <th value='percentage'>ร้อยละ</th>
+                                                </tr>
+                                            </thead>";
                                         $groupedData = [];
 
                                         foreach ($resultsFN as $row) {
@@ -743,8 +746,9 @@
                                                     $dataByYear = [];
 
                                                     foreach ($resultsFN as $row) {
-                                                        if ($row['kpi_name'] === $subPlanItem && $row['Sub_Plan'] === $subPlanKey) {
-                                                            $year = $row['Budget_Management_Year'];
+                                                        if (!empty($row['KKU_Item_Name']) && isset($row['level3'])) {
+                                                            $kkuItem = $row['KKU_Item_Name'];
+                                                            $year = $row['Budget_Management_Year']; // แยกข้อมูลตามปี
                                                             $dataByYear[$year] = [
                                                                 'uom' => $row['uom_kpi'] ?? '-',
                                                                 'kpi_target' => $row['kpi_target'] ?? '-',
@@ -759,6 +763,7 @@
                                                             ];
                                                         }
                                                     }
+
 
                                                     $year_2567 = [
                                                         'uom' => $dataByYear['2567']['uom'] ?? '-',
@@ -830,7 +835,7 @@
                                                 foreach ($planData['expenses'] as $level5Key => $level5Data) {
                                                     // echo "<pre>";
                                                     // print_r($level5Data);
-                                                    // echo "</pre>";
+                                                    // echo "</pre>";  
                                                     echo "<tr>
                                                             <td>" . str_repeat("&nbsp;", 55) . $level5Key . "</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td>
@@ -869,8 +874,8 @@
                                                                 }
                                                             }
 
-                                                            // ถ้าไม่มีข้อมูลของปีนั้น ให้แสดง "-"
-                                                            $year_2567 = $dataByYear['2567'] ?? [
+                                                            // ใช้ $previous_year และ $selected_year ในการดึงข้อมูล
+                                                            $year_prev = $dataByYear[$previous_year] ?? [
                                                                 'uom' => '-',
                                                                 'kpi_target' => '-',
                                                                 'total06' => '-',
@@ -882,7 +887,8 @@
                                                                 'sumfn' => '-',
                                                                 'Reason' => '-'
                                                             ];
-                                                            $year_2568 = $dataByYear['2568'] ?? [
+
+                                                            $year_selected = $dataByYear[$selected_year] ?? [
                                                                 'uom' => '-',
                                                                 'kpi_target' => '-',
                                                                 'total06' => '-',
@@ -897,24 +903,24 @@
 
                                                             echo "<tr>
                                                                     <td>" . str_repeat("&nbsp;", 85) . "- " . $kkuItem . "</td>
-                                                                    <td>" . $year_2567['uom'] . "</td>
-                                                                    <td>" . $year_2567['kpi_target'] . "</td>
-                                                                    <td>" . ($year_2567['total06'] !== '-' ? $year_2567['total06'] : '-') . "</td>
-                                                                    <td>" . ($year_2567['total08'] !== '-' ? $year_2567['total08'] : '-') . "</td>
-                                                                    <td>" . ($year_2567['total02'] !== '-' ? $year_2567['total02'] : '-') . "</td>
-                                                                    <td>" . $year_2567['sumfn'] . "</td>
-                                                                    <td>" . $year_2568['kpi_target'] . "</td>
-                                                                    <td>" . $year_2568['total06'] . "</td>
-                                                                    <td>" . ($year_2568['total06'] !== '-' ? $year_2568['total06'] : '-') . "</td>
-                                                                    <td>" . $year_2568['total08'] . "</td>
-                                                                    <td>" . ($year_2568['total08'] !== '-' ? $year_2568['total08'] : '-') . "</td>
-                                                                    <td>" . $year_2568['total02'] . "</td>
-                                                                    <td>" . ($year_2568['total02'] !== '-' ? $year_2568['total02'] : '-') . "</td>
-                                                                    <td>" . $year_2568['sumfn'] . "</td>
-                                                                    <td>" . (($year_2568['sumfn'] !== '-' && $year_2567['sumfn'] !== '-') ? ($year_2568['sumfn'] - $year_2567['sumfn']) : '-') . "</td>
+                                                                    <td>" . $year_prev['uom'] . "</td>
+                                                                    <td>" . $year_prev['kpi_target'] . "</td>
+                                                                    <td>" . ($year_prev['total06'] !== '-' ? $year_prev['total06'] : '-') . "</td>
+                                                                    <td>" . ($year_prev['total08'] !== '-' ? $year_prev['total08'] : '-') . "</td>
+                                                                    <td>" . ($year_prev['total02'] !== '-' ? $year_prev['total02'] : '-') . "</td>
+                                                                    <td>" . $year_prev['sumfn'] . "</td>
+                                                                    <td>" . $year_selected['kpi_target'] . "</td>
+                                                                    <td>" . $year_selected['total06'] . "</td>
+                                                                    <td>" . ($year_selected['total06'] !== '-' ? $year_selected['total06'] : '-') . "</td>
+                                                                    <td>" . $year_selected['total08'] . "</td>
+                                                                    <td>" . ($year_selected['total08'] !== '-' ? $year_selected['total08'] : '-') . "</td>
+                                                                    <td>" . $year_selected['total02'] . "</td>
+                                                                    <td>" . ($year_selected['total02'] !== '-' ? $year_selected['total02'] : '-') . "</td>
+                                                                    <td>" . $year_selected['sumfn'] . "</td>
+                                                                    <td>" . (($year_selected['sumfn'] !== '-' && $year_prev['sumfn'] !== '-') ? ($year_selected['sumfn'] - $year_prev['sumfn']) : '-') . "</td>
                                                                     <td>100%</td>
-                                                                    <td>" . ($year_2568['Reason'] !== '-' ? $year_2568['Reason'] : $year_2567['Reason']) . "</td>
-                                                                  </tr>";
+                                                                    <td>" . ($year_selected['Reason'] !== '-' ? $year_selected['Reason'] : $year_prev['Reason']) . "</td>
+                                                                </tr>";
                                                         }
                                                     }
                                                 }
