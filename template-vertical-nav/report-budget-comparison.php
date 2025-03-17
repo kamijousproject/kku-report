@@ -828,9 +828,9 @@
                                                     }
                                                 }
                                                 foreach ($planData['expenses'] as $level5Key => $level5Data) {
-                                                    echo "<pre>";
-                                                    print_r($level5Data);
-                                                    echo "</pre>";
+                                                    // echo "<pre>";
+                                                    // print_r($level5Data);
+                                                    // echo "</pre>";
                                                     echo "<tr>
                                                             <td>" . str_repeat("&nbsp;", 55) . $level5Key . "</td>
                                                             <td>-</td><td>-</td><td>-</td><td>-</td>
