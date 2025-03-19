@@ -1177,7 +1177,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql = "WITH t1 AS(
                 SELECT TYPE 
                 FROM account 
-                WHERE id < (SELECT id FROM account WHERE account = 'Expenses') AND TYPE is not null
+                WHERE id < (SELECT id FROM account WHERE parent = 'Expenses') AND TYPE is not null
                 GROUP BY TYPE)
                 ,t2 AS (
                 SELECT b.Total_Amount_Quantity,a.`type`,f.Alias_Default
@@ -1228,7 +1228,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 $sql = "WITH t1 AS(
                 SELECT TYPE 
                 FROM account 
-                WHERE id > (SELECT id FROM account WHERE account = 'Expenses') AND TYPE is not null
+                WHERE id > (SELECT id FROM account WHERE parent = 'Expenses') AND TYPE is not null
                 GROUP BY TYPE)
                 ,t2 AS (
                 SELECT b.Total_Amount_Quantity,a.`type`,f.Alias_Default
