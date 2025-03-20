@@ -1171,9 +1171,116 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                                                 'Total_Amount_4' => $row['Total_Amount_4'],
                                                                 'Total_Amount_5' => $row['Total_Amount_5'],
                                                             ];
+                                                            $rows = $summary;
+                                                            // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
+                                                            $total_summary = [
+                                                                'Total_Amount_1_1' => 0,
+                                                                'Total_Amount_1_2' => 0,
+                                                                'Total_Amount_1_3' => 0,
+                                                                'Total_Amount_1_4' => 0,
+                                                                'Total_Amount_1_4_1' => 0,
+                                                                'Total_Amount_1_4_2' => 0,
+                                                                'Total_Amount_1_4_3' => 0,
+                                                                'Total_Amount_1_4_4' => 0,
+                                                                'Total_Amount_1_4_5' => 0,
+                                                                'Total_Amount_1_4_6' => 0,
+                                                                'Total_Amount_1_4_7' => 0,
+                                                                'Total_Amount_2_1' => 0,
+                                                                'Total_Amount_2_2' => 0,
+                                                                'Total_Amount_2_3' => 0,
+                                                                'Total_Amount_2_4' => 0,
+                                                                'Total_Amount_2_5' => 0,
+                                                                'Total_Amount_2_6' => 0,
+                                                                'Total_Amount_3_1' => 0,
+                                                                'Total_Amount_3_2' => 0,
+                                                                'Total_Amount_3_3' => 0,
+                                                                'Total_Amount_4' => 0,
+                                                                'Total_Amount_5' => 0,
+                                                            ];
+                                                            // แสดงผลรวมทั้งหมด
+                                                            //print_r($total_summary);
+                                                            // Assuming this is inside a loop where $row is updated (e.g., from a database query)
+                                                            foreach ($rows as $row) { // Replace $rows with your actual data source
+                                                                // รวมผลรวมทั้งหมดโดยไม่สนใจ Faculty
+                                                                $total_summary['Total_Amount_1_1'] += (float) ($row['Total_Amount_1_1'] ?? 0);
+                                                                $total_summary['Total_Amount_1_2'] += (float) ($row['Total_Amount_1_2'] ?? 0);
+                                                                $total_summary['Total_Amount_1_3'] += (float) ($row['Total_Amount_1_3'] ?? 0);
+                                                                $total_summary['Total_Amount_1_4'] += (float) ($row['Total_Amount_1_4'] ?? 0);
+                                                                $total_summary['Total_Amount_1_4_1'] += (float) ($row['Total_Amount_1_4_1'] ?? 0);
+                                                                $total_summary['Total_Amount_1_4_2'] += (float) ($row['Total_Amount_1_4_2'] ?? 0);
+                                                                $total_summary['Total_Amount_1_4_3'] += (float) ($row['Total_Amount_1_4_3'] ?? 0);
+                                                                $total_summary['Total_Amount_1_4_4'] += (float) ($row['Total_Amount_1_4_4'] ?? 0);
+                                                                $total_summary['Total_Amount_1_4_5'] += (float) ($row['Total_Amount_1_4_5'] ?? 0);
+                                                                $total_summary['Total_Amount_1_4_6'] += (float) ($row['Total_Amount_1_4_6'] ?? 0);
+                                                                $total_summary['Total_Amount_1_4_7'] += (float) ($row['Total_Amount_1_4_7'] ?? 0);
+                                                                $total_summary['Total_Amount_2_1'] += (float) ($row['Total_Amount_2_1'] ?? 0);
+                                                                $total_summary['Total_Amount_2_2'] += (float) ($row['Total_Amount_2_2'] ?? 0);
+                                                                $total_summary['Total_Amount_2_3'] += (float) ($row['Total_Amount_2_3'] ?? 0);
+                                                                $total_summary['Total_Amount_2_4'] += (float) ($row['Total_Amount_2_4'] ?? 0);
+                                                                $total_summary['Total_Amount_2_5'] += (float) ($row['Total_Amount_2_5'] ?? 0);
+                                                                $total_summary['Total_Amount_2_6'] += (float) ($row['Total_Amount_2_6'] ?? 0);
+                                                                $total_summary['Total_Amount_3_1'] += (float) ($row['Total_Amount_3_1'] ?? 0);
+                                                                $total_summary['Total_Amount_3_2'] += (float) ($row['Total_Amount_3_2'] ?? 0);
+                                                                $total_summary['Total_Amount_3_3'] += (float) ($row['Total_Amount_3_3'] ?? 0);
+                                                                $total_summary['Total_Amount_4'] += (float) ($row['Total_Amount_4'] ?? 0);
+                                                                $total_summary['Total_Amount_5'] += (float) ($row['Total_Amount_5'] ?? 0);
+                                                            }
                                                         }
                                                     }
-
+                                                    if ($selectedFaculty == null) {
+                                                        if (isset($summary) && is_array($summary)) {
+                                                            $total = $total_summary['Total_Amount_1_1']
+                                                                + $total_summary['Total_Amount_1_2']
+                                                                + $total_summary['Total_Amount_1_3']
+                                                                + $total_summary['Total_Amount_1_4']
+                                                                + $total_summary['Total_Amount_1_4_1']
+                                                                + $total_summary['Total_Amount_1_4_2']
+                                                                + $total_summary['Total_Amount_1_4_3']
+                                                                + $total_summary['Total_Amount_1_4_4']
+                                                                + $total_summary['Total_Amount_1_4_5']
+                                                                + $total_summary['Total_Amount_1_4_6']
+                                                                + $total_summary['Total_Amount_2_1']
+                                                                + $total_summary['Total_Amount_2_2']
+                                                                + $total_summary['Total_Amount_2_3']
+                                                                + $total_summary['Total_Amount_2_4']
+                                                                + $total_summary['Total_Amount_2_5']
+                                                                + $total_summary['Total_Amount_2_6']
+                                                                + $total_summary['Total_Amount_3_1']
+                                                                + $total_summary['Total_Amount_3_2']
+                                                                + $total_summary['Total_Amount_3_3']
+                                                                + $total_summary['Total_Amount_4']
+                                                                + $total_summary['Total_Amount_5']
+                                                            ;
+                                                            echo "<tr>";
+                                                            echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_1']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_3']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_1']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_3']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_4']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_5']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_6']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_7']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_1']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_3']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_4']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_5']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_6']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_3_1']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_3_2']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_3_3']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_4']) . "</td>";
+                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_5']) . "</td>";
+                                                            echo "<td>" . formatNumber($total) . "</td>";
+                                                            echo "</tr>";
+                                                        } else {
+                                                            echo "<tr><td colspan='29' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                                        }
+                                                    }
                                                     // แสดงผลลัพธ์ในรูปแบบตาราง
                                                     foreach ($summary as $pilar_name => $data1) {
                                                         $total = $data1['Total_Amount_1_1']
@@ -1199,7 +1306,11 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                                             + $data1['Total_Amount_5']
                                                         ;
                                                         echo "<tr>";
-                                                        echo "<td style='text-align: left;'>" . htmlspecialchars($data1['name'] ?? '') . "</td>";
+                                                        if ($selectedFaculty == null) {
+                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($data1['name'] ?? '') . "</td>";
+                                                        } else {
+                                                            echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                        }
                                                         echo "<td>" . formatNumber($data1['Total_Amount_1_1']) . "</td>";
                                                         echo "<td>" . formatNumber($data1['Total_Amount_1_2']) . "</td>";
                                                         echo "<td>" . formatNumber($data1['Total_Amount_1_3']) . "</td>";
@@ -1249,7 +1360,11 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                                                 + $data2['Total_Amount_5']
                                                             ;
                                                             echo "<tr>";
-                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($data2['name'] ?? '') . "</td>";
+                                                            if ($selectedFaculty == null) {
+                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($data2['name'] ?? '') . "</td>";
+                                                            } else {
+                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($data2['name'] ?? '') . "</td>";
+                                                            }
                                                             echo "<td>" . formatNumber($data2['Total_Amount_1_1']) . "</td>";
                                                             echo "<td>" . formatNumber($data2['Total_Amount_1_2']) . "</td>";
                                                             echo "<td>" . formatNumber($data2['Total_Amount_1_3']) . "</td>";
@@ -1299,7 +1414,11 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                                                     + $data3['Total_Amount_5']
                                                                 ;
                                                                 echo "<tr>";
-                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($data3['name'] ?? '') . "</td>";
+                                                                if ($selectedFaculty == null) {
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($data3['name'] ?? '') . "</td>";
+                                                                } else {
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($data3['name'] ?? '') . "</td>";
+                                                                }
                                                                 echo "<td>" . formatNumber($data3['Total_Amount_1_1']) . "</td>";
                                                                 echo "<td>" . formatNumber($data3['Total_Amount_1_2']) . "</td>";
                                                                 echo "<td>" . formatNumber($data3['Total_Amount_1_3']) . "</td>";
@@ -1349,7 +1468,11 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                                                         + $data4['Total_Amount_5']
                                                                     ;
                                                                     echo "<tr>";
-                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($data4['name'] ?? '') . "</td>";
+                                                                    if ($selectedFaculty == null) {
+                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($data4['name'] ?? '') . "</td>";
+                                                                    } else {
+                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($data4['name'] ?? '') . "</td>";
+                                                                    }
                                                                     echo "<td>" . formatNumber($data4['Total_Amount_1_1']) . "</td>";
                                                                     echo "<td>" . formatNumber($data4['Total_Amount_1_2']) . "</td>";
                                                                     echo "<td>" . formatNumber($data4['Total_Amount_1_3']) . "</td>";
@@ -1399,7 +1522,12 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                                                             + $data5['Total_Amount_5']
                                                                         ;
                                                                         echo "<tr>";
-                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($data5['name'] ?? '') . "</td>";
+                                                                        if ($selectedFaculty == null) {
+                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($data5['name'] ?? '') . "</td>";
+                                                                        } else {
+                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($data5['name'] ?? '') . "</td>";
+                                                                        }
+
                                                                         echo "<td>" . formatNumber($data5['Total_Amount_1_1']) . "</td>";
                                                                         echo "<td>" . formatNumber($data5['Total_Amount_1_2']) . "</td>";
                                                                         echo "<td>" . formatNumber($data5['Total_Amount_1_3']) . "</td>";
@@ -1449,7 +1577,12 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                                                                 + $data6['Total_Amount_5']
                                                                             ;
                                                                             echo "<tr>";
-                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($data6['name'] ?? '') . "</td>";
+                                                                            if ($selectedFaculty == null) {
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($data6['name'] ?? '') . "</td>";
+                                                                            } else {
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($data6['name'] ?? '') . "</td>";
+                                                                            }
+
                                                                             echo "<td>" . formatNumber($data6['Total_Amount_1_1']) . "</td>";
                                                                             echo "<td>" . formatNumber($data6['Total_Amount_1_2']) . "</td>";
                                                                             echo "<td>" . formatNumber($data6['Total_Amount_1_3']) . "</td>";
