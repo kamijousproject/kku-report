@@ -159,7 +159,7 @@ GROUP BY ppp.Faculty,
     ppp.KPI
 ),kpiSubplan AS (SELECT DISTINCT spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.KPI,spi.UoM_for_Sub_plan_KPI,
 SUM(case when spi.`YEAR` = $budget_year1 then spi.Sub_plan_KPI_Target ELSE 0 END) AS Sub_plan_KPI_Target_1,
-SUM(case when spi.`YEAR` = $budget_year1 then spi.Sub_plan_KPI_Target ELSE 0 END) AS Sub_plan_KPI_Target_2
+SUM(case when spi.`YEAR` = $budget_year2 then spi.Sub_plan_KPI_Target ELSE 0 END) AS Sub_plan_KPI_Target_2
 FROM budget_planning_subplan_kpi spi
 GROUP BY spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.UoM_for_Sub_plan_KPI,spi.KPI)
 ,t1 AS (SELECT spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.KPI,spi.UoM_for_Sub_plan_KPI,spi.Sub_plan_KPI_Target_1,spi.Sub_plan_KPI_Target_2

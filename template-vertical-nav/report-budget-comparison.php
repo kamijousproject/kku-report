@@ -80,27 +80,210 @@
         /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
     }
 </style>
+<?php
+
+include '../server/connectdb.php';
+
+$db = new Database();
+$conn = $db->connect();
+$selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+$year = isset($_GET['year']) ? (int) $_GET['year'] : 2568; // Default to 2568 if not provided
+$budget_year1 = $year;
+$budget_year2 = $year - 1;
+$scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $scenario = null)
+{
+    $budget_year1 = $budget_year1 ?? 2568;
+
+    $query = "";
+
+    // Initialize an array to store conditions
+    $conditions = [];
+    $params = [];
+
+    // Add conditions based on provided parameters
+    if ($selectedFaculty) {
+        $conditions[] = "Faculty = :selectedFaculty";
+        $params[':selectedFaculty'] = $selectedFaculty;
+    }
+    if ($scenario) {
+        $conditions[] = "Scenario = :scenario";
+        $params[':scenario'] = $scenario;
+    }
+
+    // Append conditions to the query if any exist
+    if (!empty($conditions)) {
+        $query .= " WHERE " . implode(" AND ", $conditions);
+    }
+
+    // Prepare and execute the query
+    $stmt = $conn->prepare($query);
+
+    // Bind parameters if they exist
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value);
+    }
+
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+$query2 = "
+WITH kpiProgress AS (SELECT DISTINCT 
+    ppp.Faculty,
+    ppp.Sub_Plan,
+    ppp.KPI,
+    SUM(case when ppp.YEAR = $budget_year1 THEN ppp.Prog_Q1 ELSE 0 END)AS Prog_Q1_1,
+    SUM(case when ppp.YEAR = $budget_year1 THEN ppp.Prog_Q2 ELSE 0 END)AS Prog_Q2_1,
+    SUM(case when ppp.YEAR = $budget_year1 THEN ppp.Prog_Q3 ELSE 0 END)AS Prog_Q3_1,
+    SUM(case when ppp.YEAR = $budget_year1 THEN ppp.Prog_Q4 ELSE 0 END)AS Prog_Q4_1,
+    SUM(case when ppp.YEAR = $budget_year2 THEN ppp.Prog_Q1 ELSE 0 END)AS Prog_Q1_2,
+    SUM(case when ppp.YEAR = $budget_year2 THEN ppp.Prog_Q2 ELSE 0 END)AS Prog_Q2_2,
+    SUM(case when ppp.YEAR = $budget_year2 THEN ppp.Prog_Q3 ELSE 0 END)AS Prog_Q3_2,
+    SUM(case when ppp.YEAR = $budget_year2 THEN ppp.Prog_Q4 ELSE 0 END)AS Prog_Q4_2
+FROM budget_planning_sub_plan_kpi_progress ppp
+GROUP BY ppp.Faculty,
+    ppp.Sub_Plan,
+    ppp.KPI
+),kpiSubplan AS (SELECT DISTINCT spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.KPI,spi.UoM_for_Sub_plan_KPI,
+SUM(case when spi.`YEAR` = $budget_year1 then spi.Sub_plan_KPI_Target ELSE 0 END) AS Sub_plan_KPI_Target_1,
+SUM(case when spi.`YEAR` = $budget_year2 then spi.Sub_plan_KPI_Target ELSE 0 END) AS Sub_plan_KPI_Target_2
+FROM budget_planning_subplan_kpi spi
+GROUP BY spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.UoM_for_Sub_plan_KPI,spi.KPI)
+,t1 AS (SELECT spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.KPI,spi.UoM_for_Sub_plan_KPI,spi.Sub_plan_KPI_Target_1,spi.Sub_plan_KPI_Target_2
+,ppp.Prog_Q1_1
+,ppp.Prog_Q2_1
+,ppp.Prog_Q3_1
+,ppp.Prog_Q4_1
+,ppp.Prog_Q1_2
+,ppp.Prog_Q2_2
+,ppp.Prog_Q3_2
+,ppp.Prog_Q4_2 FROM kpiSubplan spi 
+LEFT JOIN kpiProgress ppp
+ON ppp.Faculty = spi.Faculty
+AND ppp.Sub_Plan = spi.Sub_Plan
+AND ppp.KPI = spi.KPI
+)
+SELECT * FROM t1
+";
+
+// เตรียม Query 2
+$stmt2 = $conn->prepare($query2);
+$stmt2->execute();
+$results2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+$query3 = "
+   WITH kpiProject AS (
+       SELECT DISTINCT 
+           pki.Faculty,
+           pki.Project,
+           pki.Proj_KPI_Name,
+           pki.UoM_for_Proj_KPI,
+           pki.KPI,
+           SUM(CASE WHEN pki.YEAR = $budget_year1 THEN pki.Proj_KPI_Target ELSE 0 END) AS Proj_KPI_Target_1,
+           SUM(CASE WHEN pki.YEAR = $budget_year2 THEN pki.Proj_KPI_Target ELSE 0 END) AS Proj_KPI_Target_2
+       FROM budget_planning_project_kpi pki
+       GROUP BY pki.Faculty, pki.Project, pki.Proj_KPI_Name, pki.UoM_for_Proj_KPI, pki.KPI
+   ),
+   kpiProgress AS (
+       SELECT DISTINCT 
+           ppp.Faculty,
+           ppp.Project,
+           ppp.KPI,
+           SUM(CASE WHEN ppp.YEAR = $budget_year1 THEN ppp.Prog_Q1 ELSE 0 END) AS Prog_Q1_1,
+           SUM(CASE WHEN ppp.YEAR = $budget_year1 THEN ppp.Prog_Q2 ELSE 0 END) AS Prog_Q2_1,
+           SUM(CASE WHEN ppp.YEAR = $budget_year1 THEN ppp.Prog_Q3 ELSE 0 END) AS Prog_Q3_1,
+           SUM(CASE WHEN ppp.YEAR = $budget_year1 THEN ppp.Prog_Q4 ELSE 0 END) AS Prog_Q4_1,
+           SUM(CASE WHEN ppp.YEAR = $budget_year2 THEN ppp.Prog_Q1 ELSE 0 END) AS Prog_Q1_2,
+           SUM(CASE WHEN ppp.YEAR = $budget_year2 THEN ppp.Prog_Q2 ELSE 0 END) AS Prog_Q2_2,
+           SUM(CASE WHEN ppp.YEAR = $budget_year2 THEN ppp.Prog_Q3 ELSE 0 END) AS Prog_Q3_2,
+           SUM(CASE WHEN ppp.YEAR = $budget_year2 THEN ppp.Prog_Q4 ELSE 0 END) AS Prog_Q4_2
+       FROM budget_planning_project_kpi_progress ppp
+       GROUP BY ppp.Faculty, ppp.Project, ppp.KPI
+   ),
+   t1 AS (
+       SELECT 
+           pki.Faculty,
+           pki.Project,
+           pki.Proj_KPI_Name,
+           pki.KPI,
+           pki.UoM_for_Proj_KPI,
+           pki.Proj_KPI_Target_1,
+           ppp.Prog_Q1_1,
+           ppp.Prog_Q2_1,
+           ppp.Prog_Q3_1,
+           ppp.Prog_Q4_1,
+           pki.Proj_KPI_Target_2,
+           ppp.Prog_Q1_2,
+           ppp.Prog_Q2_2,
+           ppp.Prog_Q3_2,
+           ppp.Prog_Q4_2
+       FROM kpiProject pki
+       LEFT JOIN kpiProgress ppp 
+       ON ppp.Faculty = pki.Faculty
+       AND ppp.Project = pki.Project
+       AND ppp.KPI = pki.KPI
+   )
+   SELECT * FROM t1
+";
+
+$stmt3 = $conn->prepare($query3);
+$stmt3->execute();
+$results3 = $stmt3->fetchAll(PDO::FETCH_ASSOC);
+
+$results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $scenario);
+
+function fetchFacultyData($conn)
+{
+    // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
+    $query = "SELECT DISTINCT bap.Faculty, ft.Alias_Default AS Faculty_Name
+              FROM budget_planning_annual_budget_plan bap
+              LEFT JOIN Faculty ft ON ft.Faculty = bap.Faculty";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+}
+function fetchScenariosData($conn)
+{
+    $query = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+function fetchYearsData($conn)
+{
+    $query = "SELECT DISTINCT Budget_Management_Year 
+              FROM budget_planning_annual_budget_plan 
+              ORDER BY Budget_Management_Year DESC"; // ดึงปีจากฐานข้อมูล และเรียงลำดับจากปีล่าสุด
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+?>
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<?php include('../component/header.php'); ?>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
-    <div id="preloader">
-        <div class="loader">
-            <svg class="circular" viewBox="25 25 50 50">
-                <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="3" stroke-miterlimit="10" />
-            </svg>
-        </div>
-    </div>
     <div id="main-wrapper">
         <?php include('../component/left-nev.php') ?>
+
         <div class="content-body">
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4>รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/</br>ผลการใช้งบประมาณในภาพรวม</h4>
+                        <h4> รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
-                            <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a>
-                            </li>
+                            <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a></li>
                             <li class="breadcrumb-item active">
                                 รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</li>
                         </ol>
@@ -111,779 +294,212 @@
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4>รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</h4>
+                                    <h4> รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</h4>
                                 </div>
-                                </br>
+
                                 <?php
-                                error_reporting(E_ALL);
-                                ini_set('display_errors', 1);
-
-                                include '../server/connectdb.php';
-
-                                $db = new Database();
-                                $conn = $db->connect();
-
-                                // ดึงข้อมูล Faculty
-                                $query_faculty = "SELECT DISTINCT
-                                                    abp.Faculty, 
-                                                    Faculty.Alias_Default
-                                                FROM
-                                                    budget_planning_allocated_annual_budget_plan abp
-                                                LEFT JOIN Faculty 
-                                                    ON abp.Faculty = Faculty.Faculty";
-                                $stmt = $conn->prepare($query_faculty);
-                                $stmt->execute();
-                                $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                                $query_year = "SELECT DISTINCT
-                                                    x.Budget_Management_Year
-                                                FROM
-                                                    budget_planning_annual_budget_plan x";
-                                $stmt = $conn->prepare($query_year);
-                                $stmt->execute();
-                                $year = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                                $query_Scenario = "SELECT DISTINCT
-                                                    x.Scenario
-                                                FROM
-                                                    budget_planning_annual_budget_plan x";
-                                $stmt = $conn->prepare($query_Scenario);
-                                $stmt->execute();
-                                $Scenarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                                // รับค่าที่เลือกจากฟอร์ม
-                                $selected_faculty = isset($_GET['faculty']) ? $_GET['faculty'] : '';
-
-                                $selected_year = isset($_GET['years']) ? $_GET['years'] : '';
-
-                                $selected_Scenario = isset($_GET['Scenario']) ? $_GET['Scenario'] : '';
-
-
-
-                                // WHERE Clause แบบ Dynamic
-                                $where_clause = "WHERE 1=1";
-                                $where_clause_2 = "WHERE 1=1";
-
-                                if ($selected_year !== '') {
-                                    $where_clause .= " AND Budget_Management_Year = :years OR Budget_Management_Year = :years - 1";
-                                }
-                                if ($selected_Scenario !== '') {
-                                    $where_clause_2 .= " AND b.Scenario = :Scenario";
-                                }
-                                if ($selected_faculty !== '') {
-                                    $where_clause .= " AND Faculty = :faculty";
-                                }
-
-
-
-                                // ฟังก์ชันดึงข้อมูล
-                                function fetchBudgetData($conn, $where_clause, $selected_faculty, $selected_year, $where_clause_2, $selected_Scenario)
-                                {
-                                    $query = "WITH
-                                                RECURSIVE account_hierarchy AS (
-                                                    -- Anchor member: Start with all accounts that have a parent
-                                                    SELECT
-                                                        a1.account,
-                                                        a1.account AS acc_id,
-                                                        a1.alias_default AS alias,
-                                                        a1.parent,
-                                                        1 AS LEVEL
-                                                    FROM
-                                                        account a1
-                                                    WHERE
-                                                        a1.parent IS NOT NULL
-                                                    UNION ALL
-                                                        -- Recursive member: Find parent accounts
-                                                    SELECT
-                                                        ah.account,
-                                                        a2.account AS acc_id,
-                                                        a2.alias_default AS alias,
-                                                        a2.parent,
-                                                        ah.level + 1 AS LEVEL
-                                                    FROM
-                                                        account_hierarchy ah
-                                                        JOIN account a2 ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
-                                                    WHERE
-                                                        a2.parent IS NOT NULL
-                                                        AND ah.level < 6 -- Maximum 6 levels (increased from 5)
-                                                        ),
-                                                -- Get the maximum level for each account to determine total depth
-                                                max_levels AS (
-                                                    SELECT
-                                                        account,
-                                                        MAX(LEVEL) AS max_level
-                                                    FROM
-                                                        account_hierarchy
-                                                    GROUP BY
-                                                        account
-                                                ),
-                                                -- Create a pivot table with all levels for each account
-                                                hierarchy_pivot AS (
-                                                    SELECT
-                                                        h.account,
-                                                        m.max_level,
-                                                        MAX(
-                                                            CASE WHEN h.level = 1 THEN CONCAT(
-                                                                h.acc_id,
-                                                                ' : ',
-                                                                REGEXP_REPLACE(
-                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
-                                                                    ''
-                                                                )
-                                                            ) END
-                                                        ) AS level1_value,
-                                                        MAX(
-                                                            CASE WHEN h.level = 2 THEN CONCAT(
-                                                                h.acc_id,
-                                                                ' : ',
-                                                                REGEXP_REPLACE(
-                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
-                                                                    ''
-                                                                )
-                                                            ) END
-                                                        ) AS level2_value,
-                                                        MAX(
-                                                            CASE WHEN h.level = 3 THEN CONCAT(
-                                                                h.acc_id,
-                                                                ' : ',
-                                                                REGEXP_REPLACE(
-                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
-                                                                    ''
-                                                                )
-                                                            ) END
-                                                        ) AS level3_value,
-                                                        MAX(
-                                                            CASE WHEN h.level = 4 THEN CONCAT(
-                                                                h.acc_id,
-                                                                ' : ',
-                                                                REGEXP_REPLACE(
-                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
-                                                                    ''
-                                                                )
-                                                            ) END
-                                                        ) AS level4_value,
-                                                        MAX(
-                                                            CASE WHEN h.level = 5 THEN CONCAT(
-                                                                h.acc_id,
-                                                                ' : ',
-                                                                REGEXP_REPLACE(
-                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
-                                                                    ''
-                                                                )
-                                                            ) END
-                                                        ) AS level5_value,
-                                                        MAX(
-                                                            CASE WHEN h.level = 6 THEN CONCAT(
-                                                                h.acc_id,
-                                                                ' : ',
-                                                                REGEXP_REPLACE(
-                                                                    h.alias, '^[0-9]+(.[0-9]+)*[. ]+',
-                                                                    ''
-                                                                )
-                                                            ) END
-                                                        ) AS level6_value
-                                                    FROM
-                                                        account_hierarchy h
-                                                        JOIN max_levels m ON h.account = m.account
-                                                    GROUP BY
-                                                        h.account,
-                                                        m.max_level
-                                                ),
-                                                -- Shift the hierarchy to the left (compact it)
-                                                shifted_hierarchy AS (
-                                                    SELECT
-                                                        account AS current_acc,
-                                                        max_level AS TotalLevels,
-                                                        CASE WHEN max_level = 1 THEN level1_value WHEN max_level = 2 THEN level2_value WHEN max_level = 3 THEN level3_value WHEN max_level = 4 THEN level4_value WHEN max_level = 5 THEN level5_value WHEN max_level = 6 THEN level6_value END AS level6,
-                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN level1_value WHEN max_level = 3 THEN level2_value WHEN max_level = 4 THEN level3_value WHEN max_level = 5 THEN level4_value WHEN max_level = 6 THEN level5_value END AS level5,
-                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN level1_value WHEN max_level = 4 THEN level2_value WHEN max_level = 5 THEN level3_value WHEN max_level = 6 THEN level4_value END AS level4,
-                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN level1_value WHEN max_level = 5 THEN level2_value WHEN max_level = 6 THEN level3_value END AS level3,
-                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN NULL WHEN max_level = 5 THEN level1_value WHEN max_level = 6 THEN level2_value END AS level2,
-                                                        CASE WHEN max_level = 1 THEN NULL WHEN max_level = 2 THEN NULL WHEN max_level = 3 THEN NULL WHEN max_level = 4 THEN NULL WHEN max_level = 5 THEN NULL WHEN max_level = 6 THEN level1_value END AS level1
-                                                    FROM
-                                                        hierarchy_pivot
-                                                ),
-                                                    t1 AS(
-                                                        SELECT
-                                                            b.*,
-                                                            p.plan_name,
-                                                            sp.sub_plan_name
-                                                        FROM
-                                                            budget_planning_annual_budget_plan b
-                                                            LEFT JOIN plan p ON b.Plan = p.plan_id
-                                                            LEFT JOIN sub_plan sp ON b.Sub_Plan = sp.sub_plan_id
-                                                            $where_clause_2
-                                                    ),
-                                                    t2 AS (
-                                                        SELECT
-                                                            t.*,
-                                                            skpi.UoM_for_Sub_plan_KPI,
-                                                            skpi.KPI,
-                                                            skpi.Sub_plan_KPI_Name,
-                                                            skpi.Sub_plan_KPI_Target
-                                                        FROM
-                                                            t1 t
-                                                            LEFT JOIN budget_planning_subplan_kpi skpi ON t.faculty = skpi.faculty COLLATE utf8mb4_general_ci
-                                                            AND t.plan = skpi.plan
-                                                            AND t.sub_plan = skpi.Sub_Plan
-                                                        WHERE
-                                                            skpi.KPI IS NOT NULL
-                                                    ),
-                                                    t3 AS (
-                                                        SELECT
-                                                            Faculty,
-                                                            Budget_Management_Year,
-                                                            fund,
-                                                            plan,
-                                                            plan_name,
-                                                            sub_plan,
-                                                            sub_plan_name,
-                                                            project,
-                                                            service,
-                                                            reason,
-                                                            kpi,
-                                                            sub_plan_kpi_name AS kpi_name,
-                                                            Sub_plan_KPI_Target AS kpi_target,
-                                                            UoM_for_Sub_plan_KPI AS uom_kpi,
-                                                            account,
-                                                            NULL AS expense,
-                                                            NULL AS expense_type,
-                                                            kku_item_name,
-                                                            CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
-                                                            CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
-                                                            CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
-                                                            '1.sub_plan_kpi' AS TYPE
-                                                        FROM
-                                                            t2
-                                                    ),
-                                                    t4 AS (
-                                                        SELECT
-                                                            t.*,
-                                                            CASE WHEN t.fund = 'FN02' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total02,
-                                                            CASE WHEN t.fund = 'FN06' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total06,
-                                                            CASE WHEN t.fund = 'FN08' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total08
-                                                        FROM
-                                                            t3 t
-                                                            LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
-                                                            AND t.fund = b.Fund
-                                                            AND t.plan = b.Plan
-                                                            AND t.sub_plan = b.Sub_Plan
-                                                            AND t.project = b.Project
-                                                            AND t.service = b.Service
-                                                            AND t.account = b.Account
-                                                    ),
-                                                    t5 AS (
-                                                        SELECT
-                                                            t.*,
-                                                            b.UoM_for_Proj_KPI,
-                                                            b.KPI,
-                                                            b.Proj_KPI_Name,
-                                                            b.Proj_KPI_Target
-                                                        FROM
-                                                            t1 t
-                                                            LEFT JOIN budget_planning_project_kpi b ON t.faculty = b.Faculty COLLATE UTF8MB4_GENERAL_CI
-                                                            AND t.project = b.project
-                                                        WHERE
-                                                            b.KPI IS NOT NULL
-                                                    ),
-                                                    t6 AS (
-                                                        SELECT
-                                                            Faculty,
-                                                            Budget_Management_Year,
-                                                            fund,
-                                                            plan,
-                                                            plan_name,
-                                                            sub_plan,
-                                                            sub_plan_name,
-                                                            project,
-                                                            service,
-                                                            reason,
-                                                            kpi,
-                                                            Proj_KPI_Name AS kpi_name,
-                                                            Proj_KPI_Target AS kpi_target,
-                                                            UoM_for_Proj_KPI AS uom_kpi,
-                                                            account,
-                                                            NULL AS expense,
-                                                            NULL AS expense_type,
-                                                            kku_item_name,
-                                                            CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
-                                                            CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
-                                                            CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
-                                                            '2.project_kpi' AS TYPE
-                                                        FROM
-                                                            t5
-                                                    ),
-                                                    t7 AS (
-                                                        SELECT
-                                                            t.*,
-                                                            CASE WHEN t.fund = 'FN02' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total02,
-                                                            CASE WHEN t.fund = 'FN06' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total06,
-                                                            CASE WHEN t.fund = 'FN08' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total08
-                                                        FROM
-                                                            t6 t
-                                                            LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
-                                                            AND t.fund = b.Fund
-                                                            AND t.plan = b.Plan
-                                                            AND t.sub_plan = b.Sub_Plan
-                                                            AND t.project = b.Project
-                                                            AND t.service = b.Service
-                                                            AND t.account = b.Account
-                                                    ),
-                                                    t8 AS (
-                                                        SELECT
-                                                            t.*,
-                                                            a.alias_default,
-                                                            a.type
-                                                        FROM
-                                                            t1 t
-                                                            LEFT JOIN (
-                                                                SELECT
-                                                                    *
-                                                                FROM
-                                                                    account
-                                                                WHERE
-                                                                    id >(
-                                                                        SELECT
-                                                                            id
-                                                                        FROM
-                                                                            account
-                                                                        WHERE
-                                                                            parent = 'Expenses'
-                                                                    )
-                                                            ) a ON t.account = a.account
-                                                        WHERE
-                                                            a.type IS NOT NULL
-                                                    ),
-                                                    t9 AS (
-                                                        SELECT
-                                                            Faculty,
-                                                            Budget_Management_Year,
-                                                            fund,
-                                                            plan,
-                                                            plan_name,
-                                                            sub_plan,
-                                                            sub_plan_name,
-                                                            project,
-                                                            service,
-                                                            reason,
-                                                            NULL AS kpi,
-                                                            NULL AS kpi_name,
-                                                            NULL AS kpi_target,
-                                                            NULL AS uom_kpi,
-                                                            account,
-                                                            alias_default AS expense,
-                                                            TYPE AS expense_type,
-                                                            kku_item_name,
-                                                            CASE WHEN fund = 'FN02' THEN Total_Amount_Quantity ELSE 0 END AS total02,
-                                                            CASE WHEN fund = 'FN06' THEN Total_Amount_Quantity ELSE 0 END AS total06,
-                                                            CASE WHEN fund = 'FN08' THEN Total_Amount_Quantity ELSE 0 END AS total08,
-                                                            '3.expense' AS TYPE
-                                                        FROM
-                                                            t8
-                                                    ),
-                                                    t10 AS (
-                                                        SELECT
-                                                            t.*,
-                                                            CASE WHEN t.fund = 'FN02' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total02,
-                                                            CASE WHEN t.fund = 'FN06' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total06,
-                                                            CASE WHEN t.fund = 'FN08' THEN COALESCE(
-                                                                Allocated_Total_Amount_Quantity,
-                                                                0
-                                                            ) ELSE 0 END AS allocated_total08
-                                                        FROM
-                                                            t9 t
-                                                            LEFT JOIN budget_planning_allocated_annual_budget_plan b ON t.faculty = b.Faculty
-                                                            AND t.fund = b.Fund
-                                                            AND t.plan = b.Plan
-                                                            AND t.sub_plan = b.Sub_Plan
-                                                            AND t.project = b.Project
-                                                            AND t.service = b.Service
-                                                            AND t.account = b.Account
-                                                    ),
-                                                    t11 AS (
-                                                        SELECT
-                                                            *
-                                                        FROM
-                                                            t4
-                                                        UNION ALL
-                                                        SELECT
-                                                            *
-                                                        FROM
-                                                            t7
-                                                        UNION ALL
-                                                        SELECT
-                                                            *
-                                                        FROM
-                                                            t10
-                                                    ),
-                                                    t12 AS (
-                                                        SELECT
-                                                            t.*,
-                                                            p.project_name
-                                                        FROM
-                                                            t11 t
-                                                            LEFT JOIN project p ON t.Project = p.project_id
-                                                    )
-                                                SELECT
-                                                    *
-                                                FROM
-                                                    t12 t
-                                                    LEFT JOIN shifted_hierarchy h ON t.account = h.current_acc
-                                                    $where_clause
-                                                ORDER BY
-                                                    Faculty,
-                                                    fund,
-                                                    plan,
-                                                    sub_plan,
-                                                    project";
-
-                                    try {
-                                        $stmt = $conn->prepare($query);
-
-                                        // ผูกค่า Parameter ป้องกัน SQL Injection
-                                        if ($selected_faculty !== '') {
-                                            $stmt->bindParam(':faculty', $selected_faculty, PDO::PARAM_STR);
-                                        }
-                                        if ($selected_year !== '') {
-                                            $stmt->bindParam(':years', $selected_year, PDO::PARAM_STR);
-                                        }
-                                        if ($selected_Scenario !== '') {
-                                            $stmt->bindParam(':Scenario', $selected_Scenario, PDO::PARAM_STR);
-                                        }
-                                        $stmt->execute();
-                                        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                    } catch (PDOException $e) {
-                                        echo "Error: " . $e->getMessage();
-                                        return [];
-                                    }
-                                }
-
-                                $resultsFN = fetchBudgetData($conn, $where_clause, $selected_faculty, $selected_year, $where_clause_2, $selected_Scenario);
+                                $faculties = fetchFacultyData($conn);
+                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล\
+                                $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
                                 ?>
+                                <form method="GET" action="" onsubmit="validateForm(event)">
 
-                                <form method="GET">
-                                    <label for="years" class="me-2">เลือกปีงบประมาณ:</label>
-                                    <select name="years" id="years" class="form-control me-2">
-                                        <option value="">เลือกปีงบประมาณ ทั้งหมด</option>
-                                        <?php foreach ($year as $all_year): ?>
-                                            <option value="<?= $all_year['Budget_Management_Year'] ?>" <?= ($selected_year == $all_year['Budget_Management_Year']) ? 'selected' : '' ?>>
-                                                <?= $all_year['Budget_Management_Year'] ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="year" class="label-year"
+                                            style="margin-right: 10px;">เลือกปีงบประมาณ</label>
+                                        <select name="year" id="year" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ปีงบประมาณ</option>
+                                            <?php
+                                            foreach ($years as $year) {
+                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']);
+                                                $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
+                                                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
 
-                                    <label for="Scenario" class="me-2">เลือกประเภทงบประมาณ:</label>
-                                    <select name="Scenario" id="Scenario" class="form-control me-2">
-                                        <option value="">เลือกประเภทงบประมาณ ทั้งหมด</option>
-                                        <?php foreach ($Scenarios as $all_Scenario): ?>
-                                            <option value="<?= $all_Scenario['Scenario'] ?>" <?= ($selected_Scenario == $all_Scenario['Scenario']) ? 'selected' : '' ?>>
-                                                <?= $all_Scenario['Scenario'] ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-
-
-                                    <label for="faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
-                                    <select name="faculty" id="faculty" class="form-control me-2">
-                                        <option value="">เลือกส่วนงาน/หน่วยงาน ทั้งหมด</option>
-                                        <?php foreach ($faculties as $faculty): ?>
-                                            <option value="<?= $faculty['Faculty'] ?>" <?= ($selected_faculty == $faculty['Faculty']) ? 'selected' : '' ?>>
-                                                <?= $faculty['Alias_Default'] ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-
-                                    <button type="submit" class="btn btn-primary" style="margin-top: 10px;">ค้นหา</button>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="scenario" class="label-scenario" style="margin-right: 10px;">เลือก
+                                            ประเภทงบประมาณ</label>
+                                        <select name="scenario" id="scenario" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุก ประเภทงบประมาณ</option>
+                                            <?php
+                                            foreach ($scenarios as $scenario) {
+                                                $scenarioName = htmlspecialchars($scenario['Scenario']);
+                                                $scenarioCode = htmlspecialchars($scenario['Scenario']);
+                                                $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
+                                                echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
+                                            ส่วนงาน/หน่วยงาน</label>
+                                        <select name="faculty" id="faculty" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
+                                            <?php
+                                            foreach ($faculties as $faculty) {
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
+                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="form-group" style="display: flex; justify-content: center;">
+                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                    </div>
                                 </form>
-                                <hr>
+
+                                <script>
+                                    function validateForm(event) {
+                                        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
+
+                                        var faculty = document.getElementById('faculty').value;
+                                        var year = document.getElementById('year').value;
+                                        var scenario = document.getElementById('scenario').value;
+
+                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-budget-comparison.php";
+                                        var params = [];
+
+                                        // เพิ่ม Faculty หากเลือก
+                                        if (faculty) {
+                                            params.push("faculty=" + encodeURIComponent(faculty));
+                                        }
+                                        // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                        if (year && year !== "") {
+                                            params.push("year=" + encodeURIComponent(year));
+                                        }
+                                        // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                        if (scenario && scenario !== "") {
+                                            params.push("scenario=" + encodeURIComponent(scenario));
+                                        }
+
+                                        // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                        console.log("Params:", params);
+
+                                        // ถ้าไม่มีการเลือกอะไรเลย
+                                        if (params.length === 0) {
+                                            window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                        } else {
+                                            // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                            window.location.href = baseUrl + "?" + params.join("&");
+                                        }
+                                    }
+                                </script>
+
                                 <div class="table-responsive">
-                                    <table id="reportTable" class="table table-bordered table-hover">
-                                        <?php
-                                        $selected_year = isset($_GET['years']) && !empty($_GET['years']) ? $_GET['years'] : date("Y") + 543; // ถ้าไม่ได้เลือกใช้ปีปัจจุบัน
-                                        $previous_year = $selected_year - 1; // ปีที่แล้ว
+                                    <table id="reportTable" class="table table-hover">
+                                        <thead>
+                                            <?php
 
-                                        echo "<thead>
-                                                <tr>
-                                                    <th rowspan='3'>รายการ</th>
-                                                    <th rowspan='3' value='UOM'>หน่วยนับของตัวชี้วัด (UOM)</th>
-                                                    <th colspan='5'>ปี $previous_year </th>
-                                                    <th colspan='8'>ปี $selected_year </th>
-                                                    <th colspan='2' rowspan='2'>เพิ่ม/ลด</th>
-                                                    <th rowspan='3' value='explain'>คำชี้แจง</th>
-                                                </tr>
-                                                <tr>
-                                                    <th rowspan='2'>ปริมาณของตัวชี้วัด</th>
-                                                    <th rowspan='2'>เงินอุดหนุนจากรัฐ</th>
-                                                    <th rowspan='2'>เงินนอกงบประมาณ</th>
-                                                    <th rowspan='2'>เงินรายได้</th>
-                                                    <th rowspan='2'>รวม</th>
-                                                    <th rowspan='2' value='indicators'>ปริมาณของตัวชี้วัด</th>
-                                                    <th colspan='2'>เงินอุดหนุนจากรัฐ</th>
-                                                    <th colspan='2'>เงินนอกงบประมาณ</th>
-                                                    <th colspan='2'>เงินรายได้</th>
-                                                    <th rowspan='2' value='sumfn'>รวม</th>
-                                                </tr>
-                                                <tr>
-                                                    <th value='fn06-1'>คำขอ</th>
-                                                    <th value='fn06-2'>จัดสรร</th>
-                                                    <th value='fn08-1'>คำขอ</th>
-                                                    <th value='fn08-2'>จัดสรร</th>
-                                                    <th value='fn02-1'>คำขอ</th>
-                                                    <th value='fn02-2'>จัดสรร</th>
-                                                    <th value='quantity'>จำนวน</th>
-                                                    <th value='percentage'>ร้อยละ</th>
-                                                </tr>
-                                            </thead>";
-                                        $groupedData = [];
 
-                                        foreach ($resultsFN as $row) {
-                                            $planKey = $row['Plan'];
-                                            $subPlanKey = $row['Sub_Plan'];
-                                            $projectKey = $row['Project'];
-                                            $level3Key = $row['level3']; // ใช้แทน expense
-                                            $level5Key = $row['level5']; // ใช้แทน expense_type
+                                            // ตรวจสอบและกำหนดค่า $selectedFacultyName
+                                            $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                            $selectedFacultyName = 'แสดงทุกหน่วยงาน';
 
-                                            if (!isset($groupedData[$planKey])) {
-                                                $groupedData[$planKey] = [
-                                                    'plan_name' => $row['plan_name'],
-                                                    'sub_plans' => [],
-                                                    'expenses' => []
-                                                ];
-                                            }
-
-                                            if (!isset($groupedData[$planKey]['sub_plans'][$subPlanKey])) {
-                                                $groupedData[$planKey]['sub_plans'][$subPlanKey] = [
-                                                    'Sub_Plan' => $row['Sub_Plan'],
-                                                    'sub_plan_name' => $row['sub_plan_name'],
-                                                    'sub_plan_items' => [],
-                                                    'projects' => []
-                                                ];
-                                            }
-
-                                            if (!empty($row['KPI']) && strpos($row['TYPE'], '1.sub_plan_kpi') !== false) {
-                                                if (!in_array($row['kpi_name'], $groupedData[$planKey]['sub_plans'][$subPlanKey]['sub_plan_items'])) {
-                                                    $groupedData[$planKey]['sub_plans'][$subPlanKey]['sub_plan_items'][] = $row['kpi_name'];
-                                                }
-                                            }
-
-                                            if (!isset($groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey])) {
-                                                $groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey] = [
-                                                    'project_name' => $row['project_name'],
-                                                    'project_items' => []
-                                                ];
-                                            }
-
-                                            if (!empty($row['KPI']) && strpos($row['TYPE'], '2.project_kpi') !== false) {
-                                                if (!in_array($row['kpi_name'], $groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey]['project_items'])) {
-                                                    $groupedData[$planKey]['sub_plans'][$subPlanKey]['projects'][$projectKey]['project_items'][] = $row['kpi_name'];
-                                                }
-                                            }
-
-                                            if (!empty($row['KKU_Item_Name']) || (!empty($row['level5']) && !empty($row['level3']))) {
-                                                if (!isset($groupedData[$planKey]['sub_plans'][$subPlanKey]['expenses'][$level5Key])) {
-                                                    $groupedData[$planKey]['sub_plans'][$subPlanKey]['expenses'][$level5Key] = [
-                                                        'level3_items' => []
-                                                    ];
-                                                }
-
-                                                if (!isset($groupedData[$planKey]['sub_plans'][$subPlanKey]['expenses'][$level5Key]['level3_items'][$level3Key])) {
-                                                    $groupedData[$planKey]['sub_plans'][$subPlanKey]['expenses'][$level5Key]['level3_items'][$level3Key] = [
-                                                        'kku_items' => []
-                                                    ];
-                                                }
-
-                                                // ให้เพิ่ม KKU_Item_Name ถึงแม้จะเป็นค่าว่าง
-                                                if (!isset($groupedData[$planKey]['sub_plans'][$subPlanKey]['expenses'][$level5Key]['level3_items'][$level3Key]['kku_items'])) {
-                                                    $groupedData[$planKey]['sub_plans'][$subPlanKey]['expenses'][$level5Key]['level3_items'][$level3Key]['kku_items'] = [];
-                                                }
-
-                                                if (!empty($row['KKU_Item_Name']) && !in_array($row['KKU_Item_Name'], $groupedData[$planKey]['sub_plans'][$subPlanKey]['expenses'][$level5Key]['level3_items'][$level3Key]['kku_items'])) {
-                                                    $groupedData[$planKey]['sub_plans'][$subPlanKey]['expenses'][$level5Key]['level3_items'][$level3Key]['kku_items'][] = $row['KKU_Item_Name'];
-                                                }
-                                            }
-                                        }
-
-                                        echo "<tbody>";;
-                                        foreach ($groupedData as $planKey => $planData) {
-
-                                            echo "<tr>
-                                                    <td><strong>" . $planData['plan_name'] . "</strong></td>
-                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                  </tr>";
-
-                                            foreach ($planData['sub_plans'] as $subPlanKey => $subPlanData) {
-                                                echo "<tr>
-                                                        <td>" . str_repeat("&nbsp;", 15) . str_replace("SP_", "", $subPlanData['Sub_Plan']) . " : " . $subPlanData['sub_plan_name'] . "</td>
-                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                        <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                        <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                    </tr>";
-
-                                                foreach ($subPlanData['sub_plan_items'] as $subPlanItem) {
-                                                    $dataByYear = [];
-                                                    echo "<tr>
-                                                            <td>" . str_repeat("&nbsp;", 30) . $subPlanItem . "</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                        </tr>";
-                                                }
-
-                                                foreach ($subPlanData['projects'] as $projectKey => $projectData) {
-                                                    echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 45) . $projectData['project_name'] . "</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                              </tr>";
-
-                                                    foreach ($projectData['project_items'] as $projectItem) {
-                                                        echo "<tr>
-                                                                    <td>" . str_repeat("&nbsp;", 60) . $projectItem . "</td>
-                                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                    <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                    <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                  </tr>";
-                                                    }
-                                                }
-                                                if (isset($subPlanData['expenses']) && is_array($subPlanData['expenses'])) {
-                                                    foreach ($subPlanData['expenses'] as $level5Key => $level5Data) {
-                                                        echo "<tr>
-                                                            <td>" . str_repeat("&nbsp;", 55) . $level5Key . "</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                            <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                          </tr>";
-
-                                                        foreach ($level5Data['level3_items'] as $level3Key => $level3Data) {
-                                                            echo "<tr>
-                                                                <td>" . str_repeat("&nbsp;", 70) . $level3Key . "</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td>
-                                                                <td>-</td><td>-</td><td>-</td><td>-</td><td>-</td>
-                                                              </tr>";
-
-                                                            foreach ($level3Data['kku_items'] as $kkuItem) {
-                                                                $dataByYear = [];
-
-                                                                foreach ($resultsFN as $row) {
-
-                                                                    if ($row['KKU_Item_Name'] === $kkuItem && $row['level3'] === $level3Key && $row['uom_kpi'] != '') {
-                                                                        // echo "<pre>";
-                                                                        // print_r($row);
-                                                                        // echo "</pre>";
-                                                                        $year = $row['Budget_Management_Year']; // แยกข้อมูลตามปี
-                                                                        $dataByYear[$year] = [
-                                                                            'uom_kpi' => $row['uom_kpi'],
-                                                                            'kpi_target' => $row['kpi_target'],
-                                                                            'total06' => $row['total06'],
-                                                                            'allocated_total06' => $row['allocated_total06'],
-                                                                            'total08' => $row['total08'],
-                                                                            'allocated_total08' => $row['allocated_total08'],
-                                                                            'total02' => $row['total02'],
-                                                                            'allocated_total02' => $row['allocated_total02'],
-                                                                            'sumfn' => $row['allocated_total06'] + $row['allocated_total02'] + $row['allocated_total08'],
-                                                                            'Reason' => $row['Reason']
-                                                                        ];
-                                                                    }
-                                                                }
-
-                                                                // ใช้ $previous_year และ $selected_year ในการดึงข้อมูล
-                                                                $year_prev = $dataByYear[$previous_year] ?? [
-                                                                    'uom_kpi' => '-',
-                                                                    'kpi_target' => '-',
-                                                                    'total06' => '-',
-                                                                    'allocated_total06' => '-',
-                                                                    'total08' => '-',
-                                                                    'allocated_total08' => '-',
-                                                                    'total02' => '-',
-                                                                    'allocated_total02' => '-',
-                                                                    'sumfn' => '-',
-                                                                    'Reason' => '-'
-                                                                ];
-
-                                                                $year_selected = $dataByYear[$selected_year] ?? [
-                                                                    'uom_kpi' => '-',
-                                                                    'kpi_target' => '-',
-                                                                    'total06' => '-',
-                                                                    'allocated_total06' => '-',
-                                                                    'total08' => '-',
-                                                                    'allocated_total08' => '-',
-                                                                    'total02' => '-',
-                                                                    'allocated_total02' => '-',
-                                                                    'sumfn' => '-',
-                                                                    'Reason' => '-'
-                                                                ];
-
-                                                                echo "<tr>
-                                                                    <td>" . str_repeat("&nbsp;", 85) . "- " . $kkuItem . "</td>
-                                                                    <td>" . $year_prev['uom_kpi'] . "</td>
-                                                                    <td>" . $year_prev['kpi_target'] . "</td>
-                                                                    <td>" . ($year_prev['total06'] !== '-' ? $year_prev['total06'] : '-') . "</td>
-                                                                    <td>" . ($year_prev['total08'] !== '-' ? $year_prev['total08'] : '-') . "</td>
-                                                                    <td>" . ($year_prev['total02'] !== '-' ? $year_prev['total02'] : '-') . "</td>
-                                                                    <td>" . $year_prev['sumfn'] . "</td>
-                                                                    <td>" . $year_selected['kpi_target'] . "</td>
-                                                                    <td>" . $year_selected['total06'] . "</td>
-                                                                    <td>" . ($year_selected['total06'] !== '-' ? $year_selected['total06'] : '-') . "</td>
-                                                                    <td>" . $year_selected['total08'] . "</td>
-                                                                    <td>" . ($year_selected['total08'] !== '-' ? $year_selected['total08'] : '-') . "</td>
-                                                                    <td>" . $year_selected['total02'] . "</td>
-                                                                    <td>" . ($year_selected['total02'] !== '-' ? $year_selected['total02'] : '-') . "</td>
-                                                                    <td>" . $year_selected['sumfn'] . "</td>
-                                                                    <td>" . (($year_selected['sumfn'] !== '-' && $year_prev['sumfn'] !== '-') ? ($year_selected['sumfn'] - $year_prev['sumfn']) : '-') . "</td>
-                                                                    <td>100%</td>
-                                                                    <td>" . ($year_selected['Reason'] !== '-' ? $year_selected['Reason'] : $year_prev['Reason']) . "</td>
-                                                                </tr>";
-                                                            }
-                                                        }
+                                            if ($selectedFacultyCode) {
+                                                // ค้นหาชื่อคณะจากรหัสคณะที่เลือก
+                                                foreach ($faculties as $faculty) {
+                                                    if ($faculty['Faculty'] === $selectedFacultyCode) {
+                                                        $selectedFacultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                        break;
                                                     }
                                                 }
                                             }
-                                        }
-                                        echo "</tbody>";
-                                        ?>
+                                            ?>
+                                            <tr>
+                                                <th colspan="18" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+
+
+                                                        <?php
+                                                        $facultyData = str_replace('-', ':', $selectedFacultyName);
+
+                                                        echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th rowspan="3">รายการ</th>
+                                                <th rowspan="3" value="UOM">หน่วยนับของตัวชี้วัด (UOM)</th>
+                                                <th colspan="5">ปี 2567 (ปีปัจจุบัน)</th>
+                                                <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
+                                                <th colspan="2" rowspan="2">เพิ่ม/ลด</th>
+                                                <th rowspan="3" value="explain">คำชี้แจง</th>
+                                            </tr>
+                                            <tr>
+                                                <th rowspan="2">ปริมาณของตัวชี้วัด</th>
+                                                <th rowspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                <th rowspan="2">เงินนอกงบประมาณ</th>
+                                                <th rowspan="2">เงินรายได้</th>
+                                                <th rowspan="2">รวม</th>
+                                                <th rowspan="2" value="indicators">ปริมาณของตัวชี้วัด</th>
+                                                <th colspan="2">เงินอุดหนุนจากรัฐ</th>
+                                                <th colspan="2">เงินนอกงบประมาณ</th>
+                                                <th colspan="2">เงินรายได้</th>
+                                                <th rowspan="2" value="sumfn">รวม</th>
+                                            </tr>
+                                            <tr>
+                                                <th value="fn06-1">คำขอ</th>
+                                                <th value="fn06-2">จัดสรร</th>
+                                                <th value="fn08-1">คำขอ</th>
+                                                <th value="fn08-2">จัดสรร</th>
+                                                <th value="fn02-1">คำขอ</th>
+                                                <th value="fn02-2">จัดสรร</th>
+                                                <th value="quantity">จำนวน</th>
+                                                <th value="percentage">ร้อยละ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
+
+                                            function formatNumber($number)
+                                            {
+                                                return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
+                                            }
+
+                                            function removeLeadingNumbers($text)
+                                            {
+                                                // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
+                                                return preg_replace('/^[\d.]+\s*/', '', $text);
+                                            }
+                                            $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : "";
+                                            $results = fetchBudgetData($conn, $selectedFaculty);
+
+                                            // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                            
+                                            if (isset($results) && is_array($results) && count($results) > 0) {
+                                                $summary = [];
+
+                                                // เรียงข้อมูลใน $results ให้เป็นแบบซ้อนกันตาม Faculty, Plan, Sub_Plan, Project, Type, SubType
+                                                foreach ($results as $row) {
+
+                                                }
+                                            } else {
+                                                echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                            }
+                                            ?>
+
+                                        </tbody>
+                                        <script>
+                                            // การส่งค่าของ selectedFaculty ไปยัง JavaScript
+                                            var selectedFaculty = "<?php echo isset($selectedFaculty) ? htmlspecialchars($selectedFaculty, ENT_QUOTES, 'UTF-8') : ''; ?>";
+                                            console.log('Selected Faculty: ', selectedFaculty);</script>
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
                                 <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
                             </div>
-                        </div>
 
+                        </div>
                     </div>
                 </div>
             </div>
@@ -894,27 +510,74 @@
             </div>
         </div>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script>
         function exportCSV() {
-            const table = document.getElementById('reportTable').cloneNode(true);
-            const newRow = table.insertRow(0);
-            const cell = newRow.insertCell(0);
-            cell.colSpan = table.rows[1].cells.length;
-            cell.style.textAlign = "center";
-            cell.style.fontWeight = "bold";
-            cell.innerText = "รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม";
+            const table = document.getElementById('reportTable');
+            const csvRows = [];
 
-            const wb = XLSX.utils.table_to_book(table, {
-                sheet: "รายงาน",
-                raw: true
+            // วนลูปทีละ <tr>
+            for (const row of table.rows) {
+                // เก็บบรรทัดย่อยของแต่ละเซลล์
+                const cellLines = [];
+                let maxSubLine = 1;
+
+                // วนลูปทีละเซลล์ <td>/<th>
+                for (const cell of row.cells) {
+                    let html = cell.innerHTML;
+
+                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    html = html.replace(/(&nbsp;)+/g, (match) => {
+                        const count = match.match(/&nbsp;/g).length;
+                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                    });
+
+
+                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    html = html.replace(/<\/?[^>]+>/g, '');
+
+                    // 4) แยกเป็น array บรรทัดย่อย
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
+
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+
+                    cellLines.push(lines);
+                }
+
+                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+
+                    // วนลูปแต่ละเซลล์
+                    for (const lines of cellLines) {
+                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
+                        // Escape double quotes
+                        text = text.replace(/"/g, '""');
+                        // ครอบด้วย ""
+                        text = `"${text}"`;
+                        rowData.push(text);
+                    }
+
+                    csvRows.push(rowData.join(','));
+                }
+            }
+
+            // รวมเป็น CSV + BOM
+            const csvContent = "\uFEFF" + csvRows.join("\n");
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
             });
-            XLSX.writeFile(wb, 'รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม.csv', {
-                bookType: 'csv',
-                type: 'array'
-            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
-
 
         function exportPDF() {
             const {
@@ -929,7 +592,7 @@
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานกรอบอัตรากำลังระยะเวลา 4 ปี", 10, 10);
+            doc.text("รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -954,28 +617,210 @@
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงาน.pdf');
+            doc.save('รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม.pdf');
         }
 
         function exportXLS() {
-            const table = document.getElementById('reportTable').cloneNode(true);
-            const newRow = table.insertRow(0);
-            const cell = newRow.insertCell(0);
-            cell.colSpan = table.rows[1].cells.length;
-            cell.style.textAlign = "center";
-            cell.style.fontWeight = "bold";
-            cell.innerText = "รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม";
+            const table = document.getElementById('reportTable');
 
-            const wb = XLSX.utils.table_to_book(table, {
-                sheet: "รายงาน"
+            // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
+            const {
+                theadRows,
+                theadMerges
+            } = parseThead(table.tHead);
+
+            // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br />, ไม่ merge) ============
+            const tbodyRows = parseTbody(table.tBodies[0]);
+
+            // รวม rows ทั้งหมด: thead + tbody
+            const allRows = [...theadRows, ...tbodyRows];
+
+            // สร้าง Workbook + Worksheet
+            const wb = XLSX.utils.book_new();
+            const ws = XLSX.utils.aoa_to_sheet(allRows);
+
+            // ใส่ merges ของ thead ลงใน sheet (ถ้ามี)
+            ws['!merges'] = theadMerges;
+
+            // ตั้งค่า vertical-align: bottom ให้ทุกเซลล์
+            applyCellStyles(ws, "bottom");
+
+            // เพิ่ม worksheet ลงใน workbook
+            XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+
+            // เขียนไฟล์เป็น .xlsx (แทน .xls เพื่อรองรับ style)
+            const excelBuffer = XLSX.write(wb, {
+                bookType: 'xlsx',
+                type: 'array'
             });
-            XLSX.writeFile(wb, 'รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม.xlsx');
+
+            // สร้าง Blob + ดาวน์โหลด
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = 'รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        /**
+         * -----------------------
+         * 1) parseThead: รองรับ merge
+         * -----------------------
+         */
+        function parseThead(thead) {
+            const theadRows = [];
+            const theadMerges = [];
+
+            if (!thead) {
+                return {
+                    theadRows,
+                    theadMerges
+                };
+            }
+
+            const skipMap = {};
+
+            for (let rowIndex = 0; rowIndex < thead.rows.length; rowIndex++) {
+                const tr = thead.rows[rowIndex];
+                const rowData = [];
+                let colIndex = 0;
+
+                for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
+                    while (skipMap[`${rowIndex},${colIndex}`]) {
+                        rowData[colIndex] = "";
+                        colIndex++;
+                    }
+
+                    const cell = tr.cells[cellIndex];
+                    let text = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, m => ' '.repeat(m.match(/&nbsp;/g).length)) // แทนที่ &nbsp; ด้วยช่องว่าง
+                        .replace(/<\/?[^>]+>/g, '') // ลบแท็ก HTML ทั้งหมด
+                        .trim();
+
+                    rowData[colIndex] = text;
+
+                    const rowspan = cell.rowSpan || 1;
+                    const colspan = cell.colSpan || 1;
+
+                    if (rowspan > 1 || colspan > 1) {
+                        theadMerges.push({
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
+                        });
+
+                        for (let r = 0; r < rowspan; r++) {
+                            for (let c = 0; c < colspan; c++) {
+                                if (r === 0 && c === 0) continue;
+                                skipMap[`${rowIndex + r},${colIndex + c}`] = true;
+                            }
+                        }
+                    }
+                    colIndex++;
+                }
+                theadRows.push(rowData);
+            }
+
+            return {
+                theadRows,
+                theadMerges
+            };
+        }
+
+        /**
+         * -----------------------
+         * 2) parseTbody: แตก <br/> เป็นหลาย sub-row
+         * -----------------------
+         */
+        function parseTbody(tbody) {
+            const rows = [];
+
+            if (!tbody) return rows;
+
+            for (const tr of tbody.rows) {
+                const cellLines = [];
+                let maxSubLine = 1;
+
+                for (const cell of tr.cells) {
+                    let html = cell.innerHTML
+                        .replace(/(&nbsp;)+/g, match => {
+                            const count = match.match(/&nbsp;/g).length;
+                            return ' '.repeat(count);
+                        })
+                        .replace(/<\/?[^>]+>/g, ''); // ลบแท็ก HTML ทั้งหมด
+
+                    const lines = html.split('\n').map(x => x.trimEnd());
+                    if (lines.length > maxSubLine) {
+                        maxSubLine = lines.length;
+                    }
+                    cellLines.push(lines);
+                }
+
+                for (let i = 0; i < maxSubLine; i++) {
+                    const rowData = [];
+                    for (const lines of cellLines) {
+                        rowData.push(lines[i] || '');
+                    }
+                    rows.push(rowData);
+                }
+            }
+
+            return rows;
+        }
+
+        /**
+         * -----------------------
+         * 3) applyCellStyles: ตั้งค่า vertical-align ให้ทุก cell
+         * -----------------------
+         */
+        function applyCellStyles(ws, verticalAlign) {
+            if (!ws['!ref']) return;
+
+            const range = XLSX.utils.decode_range(ws['!ref']);
+            for (let R = range.s.r; R <= range.e.r; ++R) {
+                for (let C = range.s.c; C <= range.e.c; ++C) {
+                    const cell_address = XLSX.utils.encode_cell({
+                        r: R,
+                        c: C
+                    });
+                    if (!ws[cell_address]) continue;
+
+                    if (!ws[cell_address].s) ws[cell_address].s = {};
+                    ws[cell_address].s.alignment = {
+                        vertical: verticalAlign
+                    };
+                }
+            }
         }
     </script>
-    <!-- Common JS -->
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+
+
+    <!-- โหลดไลบรารีที่จำเป็น -->
     <script src="../assets/plugins/common/common.min.js"></script>
-    <!-- Custom script -->
     <script src="../js/custom.min.js"></script>
+
+
+    <!-- โหลดฟอนต์ THSarabun (ตรวจสอบไม่ให้ประกาศซ้ำ) -->
+    <script>
+        if (typeof window.thsarabunnew_webfont_normal === 'undefined') {
+            window.thsarabunnew_webfont_normal = "data:font/truetype;base64,AAEAAA...";
+        }
+    </script>
 </body>
 
 </html>
