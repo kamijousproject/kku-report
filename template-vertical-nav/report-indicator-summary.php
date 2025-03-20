@@ -106,29 +106,38 @@ function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $
         ORDER BY bap.Faculty ASC, bap.Plan ASC , bap.Sub_Plan ASC , bap.Project ASC 
     )
     SELECT * FROM Annual";
+
+    // Initialize an array to store conditions
+    $conditions = [];
+    $params = [];
+
+    // Add conditions based on provided parameters
     if ($selectedFaculty) {
-        $query .= " WHERE Faculty = :selectedFaculty";
+        $conditions[] = "Faculty = :selectedFaculty";
+        $params[':selectedFaculty'] = $selectedFaculty;
     }
     if ($scenario) {
-        $query .= " AND Scenario = :scenario";
+        $conditions[] = "Scenario = :scenario";
+        $params[':scenario'] = $scenario;
     }
 
+    // Append conditions to the query if any exist
+    if (!empty($conditions)) {
+        $query .= " WHERE " . implode(" AND ", $conditions);
+    }
+
+    // Prepare and execute the query
     $stmt = $conn->prepare($query);
 
-    // ผูกพารามิเตอร์ใน SQL ที่มี :selectedFaculty และ :scenario
-    if ($selectedFaculty) {
-        $stmt->bindParam(':selectedFaculty', $selectedFaculty, PDO::PARAM_STR);
-    }
-    if ($scenario) {
-        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+    // Bind parameters if they exist
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value);
     }
 
-    // ไม่มีการส่ง $params ใน execute เพราะเราได้ผูกพารามิเตอร์ไว้แล้ว
     $stmt->execute();
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
 
 
 $query2 = "
