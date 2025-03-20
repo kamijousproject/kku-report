@@ -691,7 +691,7 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                         var strategicPlan = document.getElementById('Strategic_Plan_Cleaned').value;
                                         var fund = document.getElementById('fund').value;
 
-                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-project-summary.php";
+                                        var baseUrl = "http://202.28.118.192:8081/kku-report/template-vertical-nav/report-project-summary.php";
                                         var params = [];
 
                                         // เพิ่ม Faculty หากเลือก
