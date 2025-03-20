@@ -547,20 +547,20 @@ function fetchYearsData($conn)
                                                 foreach ($summary as $Faculty => $data1) {
                                                     echo "<tr>";
                                                     echo "<td style='text-align: left;'>" . htmlspecialchars($data1['name'] ?? '') . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
-                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "-" . "</td>";
                                                     echo "</tr>";
                                                     foreach ($data1['plan'] as $Plan => $data2) {
                                                         echo "<tr>";
