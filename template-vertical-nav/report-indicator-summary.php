@@ -80,6 +80,191 @@
         /* ทำให้สามารถเลื่อนข้อมูลในตารางได้ */
     }
 </style>
+<?php
+
+include '../server/connectdb.php';
+
+$db = new Database();
+$conn = $db->connect();
+$selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+$year = isset($_GET['year']) ? (int) $_GET['year'] : 2568; // Default to 2568 if not provided
+$budget_year1 = $year;
+$budget_year2 = $year - 1;
+$scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $scenario = null)
+{
+    $budget_year1 = $budget_year1 ?? 2568;
+
+    $query = "WITH Annual AS (
+        SELECT DISTINCT bap.Faculty, ft.Alias_Default, bap.Plan, p.plan_name, 
+                        bap.Sub_Plan, sp.sub_plan_name, bap.Project, pj.project_name, bap.Scenario
+        FROM budget_planning_annual_budget_plan bap
+        LEFT JOIN Faculty ft ON ft.Faculty = bap.Faculty AND ft.parent LIKE 'Faculty%' 
+        LEFT JOIN plan p ON p.plan_id = bap.Plan
+        LEFT JOIN sub_plan sp ON sp.sub_plan_id = bap.Sub_Plan
+        LEFT JOIN project pj ON pj.project_id = bap.Project
+        ORDER BY bap.Faculty ASC, bap.Plan ASC , bap.Sub_Plan ASC , bap.Project ASC 
+    )
+    SELECT * FROM Annual";
+    if ($selectedFaculty) {
+        $query .= " WHERE Faculty = :selectedFaculty";
+    }
+    if ($scenario) {
+        $query .= " AND Scenario = :scenario";
+    }
+
+    $stmt = $conn->prepare($query);
+
+    // ผูกพารามิเตอร์ใน SQL ที่มี :selectedFaculty และ :scenario
+    if ($selectedFaculty) {
+        $stmt->bindParam(':selectedFaculty', $selectedFaculty, PDO::PARAM_STR);
+    }
+    if ($scenario) {
+        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
+    }
+
+    // ไม่มีการส่ง $params ใน execute เพราะเราได้ผูกพารามิเตอร์ไว้แล้ว
+    $stmt->execute();
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+
+$query2 = "
+WITH kpiProgress AS (SELECT DISTINCT 
+    ppp.Faculty,
+    ppp.Sub_Plan,
+    ppp.KPI,
+    SUM(case when ppp.YEAR = $budget_year1 THEN ppp.Prog_Q1 ELSE 0 END)AS Prog_Q1_1,
+    SUM(case when ppp.YEAR = $budget_year1 THEN ppp.Prog_Q2 ELSE 0 END)AS Prog_Q2_1,
+    SUM(case when ppp.YEAR = $budget_year1 THEN ppp.Prog_Q3 ELSE 0 END)AS Prog_Q3_1,
+    SUM(case when ppp.YEAR = $budget_year1 THEN ppp.Prog_Q4 ELSE 0 END)AS Prog_Q4_1,
+    SUM(case when ppp.YEAR = $budget_year2 THEN ppp.Prog_Q1 ELSE 0 END)AS Prog_Q1_2,
+    SUM(case when ppp.YEAR = $budget_year2 THEN ppp.Prog_Q2 ELSE 0 END)AS Prog_Q2_2,
+    SUM(case when ppp.YEAR = $budget_year2 THEN ppp.Prog_Q3 ELSE 0 END)AS Prog_Q3_2,
+    SUM(case when ppp.YEAR = $budget_year2 THEN ppp.Prog_Q4 ELSE 0 END)AS Prog_Q4_2
+FROM budget_planning_sub_plan_kpi_progress ppp
+GROUP BY ppp.Faculty,
+    ppp.Sub_Plan,
+    ppp.KPI
+),kpiSubplan AS (SELECT DISTINCT spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.KPI,spi.UoM_for_Sub_plan_KPI,
+SUM(case when spi.`YEAR` = $budget_year1 then spi.Sub_plan_KPI_Target ELSE 0 END) AS Sub_plan_KPI_Target_1,
+SUM(case when spi.`YEAR` = $budget_year1 then spi.Sub_plan_KPI_Target ELSE 0 END) AS Sub_plan_KPI_Target_2
+FROM budget_planning_subplan_kpi spi
+GROUP BY spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.UoM_for_Sub_plan_KPI,spi.KPI)
+,t1 AS (SELECT spi.Faculty,spi.Plan,spi.Sub_Plan,spi.Sub_plan_KPI_Name,spi.KPI,spi.UoM_for_Sub_plan_KPI,spi.Sub_plan_KPI_Target_1,spi.Sub_plan_KPI_Target_2
+,ppp.Prog_Q1_1
+,ppp.Prog_Q2_1
+,ppp.Prog_Q3_1
+,ppp.Prog_Q4_1
+,ppp.Prog_Q1_2
+,ppp.Prog_Q2_2
+,ppp.Prog_Q3_2
+,ppp.Prog_Q4_2 FROM kpiSubplan spi 
+LEFT JOIN kpiProgress ppp
+ON ppp.Faculty = spi.Faculty
+AND ppp.Sub_Plan = spi.Sub_Plan
+AND ppp.KPI = spi.KPI
+)
+SELECT * FROM t1
+";
+
+// เตรียม Query 2
+$stmt2 = $conn->prepare($query2);
+$stmt2->execute();
+$results2 = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+$query3 = "
+   WITH kpiProject AS (
+       SELECT DISTINCT 
+           pki.Faculty,
+           pki.Project,
+           pki.Proj_KPI_Name,
+           pki.UoM_for_Proj_KPI,
+           pki.KPI,
+           SUM(CASE WHEN pki.YEAR = $budget_year1 THEN pki.Proj_KPI_Target ELSE 0 END) AS Proj_KPI_Target_1,
+           SUM(CASE WHEN pki.YEAR = $budget_year2 THEN pki.Proj_KPI_Target ELSE 0 END) AS Proj_KPI_Target_2
+       FROM budget_planning_project_kpi pki
+       GROUP BY pki.Faculty, pki.Project, pki.Proj_KPI_Name, pki.UoM_for_Proj_KPI, pki.KPI
+   ),
+   kpiProgress AS (
+       SELECT DISTINCT 
+           ppp.Faculty,
+           ppp.Project,
+           ppp.KPI,
+           SUM(CASE WHEN ppp.YEAR = $budget_year1 THEN ppp.Prog_Q1 ELSE 0 END) AS Prog_Q1_1,
+           SUM(CASE WHEN ppp.YEAR = $budget_year1 THEN ppp.Prog_Q2 ELSE 0 END) AS Prog_Q2_1,
+           SUM(CASE WHEN ppp.YEAR = $budget_year1 THEN ppp.Prog_Q3 ELSE 0 END) AS Prog_Q3_1,
+           SUM(CASE WHEN ppp.YEAR = $budget_year1 THEN ppp.Prog_Q4 ELSE 0 END) AS Prog_Q4_1,
+           SUM(CASE WHEN ppp.YEAR = $budget_year2 THEN ppp.Prog_Q1 ELSE 0 END) AS Prog_Q1_2,
+           SUM(CASE WHEN ppp.YEAR = $budget_year2 THEN ppp.Prog_Q2 ELSE 0 END) AS Prog_Q2_2,
+           SUM(CASE WHEN ppp.YEAR = $budget_year2 THEN ppp.Prog_Q3 ELSE 0 END) AS Prog_Q3_2,
+           SUM(CASE WHEN ppp.YEAR = $budget_year2 THEN ppp.Prog_Q4 ELSE 0 END) AS Prog_Q4_2
+       FROM budget_planning_project_kpi_progress ppp
+       GROUP BY ppp.Faculty, ppp.Project, ppp.KPI
+   ),
+   t1 AS (
+       SELECT 
+           pki.Faculty,
+           pki.Project,
+           pki.Proj_KPI_Name,
+           pki.KPI,
+           pki.UoM_for_Proj_KPI,
+           pki.Proj_KPI_Target_1,
+           ppp.Prog_Q1_1,
+           ppp.Prog_Q2_1,
+           ppp.Prog_Q3_1,
+           ppp.Prog_Q4_1,
+           pki.Proj_KPI_Target_2,
+           ppp.Prog_Q1_2,
+           ppp.Prog_Q2_2,
+           ppp.Prog_Q3_2,
+           ppp.Prog_Q4_2
+       FROM kpiProject pki
+       LEFT JOIN kpiProgress ppp 
+       ON ppp.Faculty = pki.Faculty
+       AND ppp.Project = pki.Project
+       AND ppp.KPI = pki.KPI
+   )
+   SELECT * FROM t1
+";
+
+$stmt3 = $conn->prepare($query3);
+$stmt3->execute();
+$results3 = $stmt3->fetchAll(PDO::FETCH_ASSOC);
+
+$results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $scenario);
+
+function fetchFacultyData($conn)
+{
+    // ดึงข้อมูล Faculty_Name แทน Faculty จากตาราง Faculty
+    $query = "SELECT DISTINCT bap.Faculty, ft.Alias_Default AS Faculty_Name
+              FROM budget_planning_annual_budget_plan bap
+              LEFT JOIN Faculty ft ON ft.Faculty = bap.Faculty";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+}
+function fetchScenariosData($conn)
+{
+    $query = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+function fetchYearsData($conn)
+{
+    $query = "SELECT DISTINCT Budget_Management_Year 
+              FROM budget_planning_annual_budget_plan 
+              ORDER BY Budget_Management_Year DESC"; // ดึงปีจากฐานข้อมูล และเรียงลำดับจากปีล่าสุด
+    $stmt = $conn->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+?>
 
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
@@ -114,167 +299,165 @@
                                 </div>
                                 <div class="table-responsive">
                                     <?php
-                                    error_reporting(E_ALL);
-                                    ini_set('display_errors', 1);
-
-                                    include '../server/connectdb.php';
-                                    $database = new Database();
-                                    $conn = $database->connect();
-
-                                    // ดึงปีงบประมาณที่มีในระบบ
-                                    $query_fsy = "SELECT DISTINCT Budget_Management_Year FROM budget_planning_annual_budget_plan ORDER BY Budget_Management_Year DESC";
-                                    $stmt = $conn->prepare($query_fsy);
-                                    $stmt->execute();
-                                    $years = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                                    // ดึงค่า Scenario
-                                    $query_scenario = "SELECT DISTINCT Scenario FROM budget_planning_annual_budget_plan";
-                                    $stmt = $conn->prepare($query_scenario);
-                                    $stmt->execute();
-                                    $scenarios = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                                    // ดึงค่า Faculty
-                                    $query_faculty = "SELECT DISTINCT abp.Faculty, Faculty.Alias_Default 
-                                    FROM budget_planning_allocated_annual_budget_plan abp
-                                    LEFT JOIN Faculty ON abp.Faculty = Faculty.Faculty";
-                                    $stmt = $conn->prepare($query_faculty);
-                                    $stmt->execute();
-                                    $faculties = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-                                    // กำหนดค่าที่เลือกจาก Dropdown
-                                    $selected_year = isset($_GET['Budget_Management_Year']) ? $_GET['Budget_Management_Year'] : (count($years) > 0 ? $years[0]['Budget_Management_Year'] : '');
-                                    $compare_year = $selected_year ? $selected_year - 1 : '';
-                                    $selected_scenario = isset($_GET['Scenario']) ? $_GET['Scenario'] : '';
-                                    $selected_faculty = isset($_GET['Faculty']) ? $_GET['Faculty'] : '';
-
-                                    // WHERE Clause
-                                    $where_clause = "WHERE t4.Budget_Management_Year IN ('$selected_year', '$compare_year')";
-
-                                    if ($selected_scenario !== '') {
-                                        $where_clause .= " AND t4.Scenario = '$selected_scenario'";
-                                    }
-
-                                    if ($selected_faculty !== '') {
-                                        $where_clause .= " AND t4.Faculty = '$selected_faculty'";
-                                    }
-
-                                    // ดึงข้อมูล
-                                    $query = "
-                                            WITH t1 AS (
-                                                SELECT DISTINCT annual_bp.Faculty,
-                                                                annual_bp.Plan,
-                                                                annual_bp.Sub_Plan,
-                                                                annual_bp.Scenario,
-                                                                annual_bp.Budget_Management_Year,
-                                                                NULL AS project,
-                                                                sub_p_kpi.Sub_plan_KPI_Name,
-                                                                sub_p_kpi.Sub_plan_KPI_Target,
-                                                                sub_p_kpi.UoM_for_Sub_plan_KPI,
-                                                                sub_p_progress.Prog_Q1 AS Sub_Prog_Q1,
-                                                                sub_p_progress.Prog_Q2 AS Sub_Prog_Q2,
-                                                                sub_p_progress.Prog_Q3 AS Sub_Prog_Q3,
-                                                                sub_p_progress.Prog_Q4 AS Sub_Prog_Q4,
-                                                                sub_p_kpi.KPI,
-                                                                '1.sub_plan' AS type
-                                                FROM budget_planning_annual_budget_plan AS annual_bp
-                                                LEFT JOIN budget_planning_subplan_kpi AS sub_p_kpi
-                                                    ON annual_bp.Plan = sub_p_kpi.Plan
-                                                    AND annual_bp.Sub_Plan = sub_p_kpi.Sub_Plan
-                                                    AND annual_bp.Faculty = sub_p_kpi.Faculty
-                                                LEFT JOIN budget_planning_sub_plan_kpi_progress AS sub_p_progress 
-                                                    ON sub_p_kpi.Plan = sub_p_progress.Plan
-                                                    AND sub_p_kpi.Sub_Plan = sub_p_progress.Sub_Plan
-                                                    AND sub_p_kpi.Faculty = sub_p_progress.Faculty
-                                                    AND sub_p_kpi.KPI = sub_p_progress.KPI
-                                                WHERE sub_p_kpi.KPI IS NOT NULL
-                                            ),
-                                            t2 AS (
-                                                SELECT DISTINCT annual_bp.Faculty,
-                                                                annual_bp.Plan,
-                                                                annual_bp.Sub_Plan,
-                                                                annual_bp.Scenario,
-                                                                annual_bp.Budget_Management_Year,
-                                                                annual_bp.Project,
-                                                                p_kpi.Proj_KPI_Name,
-                                                                p_kpi.Proj_KPI_Target,
-                                                                p_kpi.UoM_for_Proj_KPI,
-                                                                p_kpi_progress.Prog_Q1 AS Proj_Prog_Q1,
-                                                                p_kpi_progress.Prog_Q2 AS Proj_Prog_Q2,
-                                                                p_kpi_progress.Prog_Q3 AS Proj_Prog_Q3,
-                                                                p_kpi_progress.Prog_Q4 AS Proj_Prog_Q4,
-                                                                p_kpi.KPI,
-                                                                '2.project' AS type
-                                                FROM budget_planning_annual_budget_plan AS annual_bp
-                                                LEFT JOIN budget_planning_project_kpi AS p_kpi 
-                                                    ON annual_bp.Project = p_kpi.Project
-                                                    AND annual_bp.Faculty = p_kpi.Faculty
-                                                LEFT JOIN budget_planning_project_kpi_progress AS p_kpi_progress 
-                                                    ON p_kpi.Project = p_kpi_progress.Project
-                                                    AND p_kpi.Faculty = p_kpi_progress.Faculty
-                                                    AND p_kpi.KPI = p_kpi_progress.KPI
-                                                WHERE p_kpi.kpi IS NOT NULL
-                                            ),
-                                            t3 AS (
-                                                SELECT * FROM t1
-                                                UNION ALL
-                                                SELECT * FROM t2
-                                            ),
-                                            t4 AS (
-                                                SELECT t.*, p.plan_name, sp.sub_plan_name, pj.project_name
-                                                FROM t3 t
-                                                LEFT JOIN plan p ON t.Plan = p.plan_id
-                                                LEFT JOIN sub_plan sp ON t.Sub_Plan = sp.sub_plan_id
-                                                LEFT JOIN project pj ON t.Project = pj.project_id
-                                            )
-                                            SELECT DISTINCT * FROM t4 $where_clause
-                                            ORDER BY Faculty, type, plan, sub_plan, kpi";
-
-                                    $stmt = $conn->prepare($query);
-                                    $stmt->execute();
-                                    $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    $faculties = fetchFacultyData($conn);
+                                    $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล\
+                                    $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
                                     ?>
+                                    <form method="GET" action="" onsubmit="validateForm(event)">
 
-                                    <!-- Dropdown เลือกปีงบประมาณ -->
-                                    <form method="GET" class="d-flex align-items-center gap-2">
-                                        <label for="Budget_Management_Year" class="me-2">เลือกปีงบประมาณ:</label>
-                                        <select name="Budget_Management_Year" id="Budget_Management_Year" class="form-control me-2">
-                                            <?php foreach ($years as $year): ?>
-                                                <option value="<?= $year['Budget_Management_Year'] ?>" <?= ($selected_year == $year['Budget_Management_Year']) ? 'selected' : '' ?>>
-                                                    <?= $year['Budget_Management_Year'] ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
+                                        <div class="form-group" style="display: flex; align-items: center;">
+                                            <label for="year" class="label-year"
+                                                style="margin-right: 10px;">เลือกปีงบประมาณ</label>
+                                            <select name="year" id="year" class="form-control"
+                                                style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                                <option value="">เลือก ปีงบประมาณ</option>
+                                                <?php
+                                                foreach ($years as $year) {
+                                                    $yearValue = htmlspecialchars($year['Budget_Management_Year']);
+                                                    $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
+                                                    echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
 
-                                        <label for="Scenario" class="me-2">เลือกประเภทงบประมาณ:</label>
-                                        <select name="Scenario" id="Scenario" class="form-control me-2">
-                                            <option value="">เลือกทั้งหมด</option>
-                                            <?php foreach ($scenarios as $scenario): ?>
-                                                <option value="<?= $scenario['Scenario'] ?>" <?= ($selected_scenario == $scenario['Scenario']) ? 'selected' : '' ?>>
-                                                    <?= $scenario['Scenario'] ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-
-                                        <label for="Faculty" class="me-2">เลือกส่วนงาน/หน่วยงาน:</label>
-                                        <select name="Faculty" id="Faculty" class="form-control me-2">
-                                            <option value="">เลือกทั้งหมด</option>
-                                            <?php foreach ($faculties as $faculty): ?>
-                                                <option value="<?= $faculty['Faculty'] ?>" <?= ($selected_faculty == $faculty['Faculty']) ? 'selected' : '' ?>>
-                                                    <?= $faculty['Alias_Default'] ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-
-                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                        <div class="form-group" style="display: flex; align-items: center;">
+                                            <label for="scenario" class="label-scenario"
+                                                style="margin-right: 10px;">เลือก
+                                                ประเภทงบประมาณ</label>
+                                            <select name="scenario" id="scenario" class="form-control"
+                                                style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                                <option value="">เลือก ทุก ประเภทงบประมาณ</option>
+                                                <?php
+                                                foreach ($scenarios as $scenario) {
+                                                    $scenarioName = htmlspecialchars($scenario['Scenario']);
+                                                    $scenarioCode = htmlspecialchars($scenario['Scenario']);
+                                                    $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
+                                                    echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="display: flex; align-items: center;">
+                                            <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
+                                                ส่วนงาน/หน่วยงาน</label>
+                                            <select name="faculty" id="faculty" class="form-control"
+                                                style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                                <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
+                                                <?php
+                                                foreach ($faculties as $faculty) {
+                                                    $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                    $facultyCode = htmlspecialchars($faculty['Faculty']);
+                                                    $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                    echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+                                                }
+                                                ?>
+                                            </select>
+                                        </div>
+                                        <div class="form-group" style="display: flex; justify-content: center;">
+                                            <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                        </div>
                                     </form>
 
-                                    <!-- แสดงตารางเปรียบเทียบ -->
+                                    <script>
+                                        function validateForm(event) {
+                                            event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
+
+                                            var faculty = document.getElementById('faculty').value;
+                                            var year = document.getElementById('year').value;
+                                            var scenario = document.getElementById('scenario').value;
+
+                                            var baseUrl = "http://202.28.118.192:8081/kku-report/template-vertical-nav/report-indicator-summary.php";
+                                            var params = [];
+
+                                            // เพิ่ม Faculty หากเลือก
+                                            if (faculty) {
+                                                params.push("faculty=" + encodeURIComponent(faculty));
+                                            }
+                                            // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                            if (year && year !== "") {
+                                                params.push("year=" + encodeURIComponent(year));
+                                            }
+                                            // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                            if (scenario && scenario !== "") {
+                                                params.push("scenario=" + encodeURIComponent(scenario));
+                                            }
+
+                                            // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                            console.log("Params:", params);
+
+                                            // ถ้าไม่มีการเลือกอะไรเลย
+                                            if (params.length === 0) {
+                                                window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                            } else {
+                                                // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                                window.location.href = baseUrl + "?" + params.join("&");
+                                            }
+                                        }
+                                    </script>
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
                                             <tr>
+                                                <th colspan="15" style='text-align: left;'>
+                                                    รายงานสรุปรายการตัวชี้วัดแผน/ผลของแผนงานย่อย</th>
+                                            </tr>
+
+                                            <?php
+
+
+                                            // ตรวจสอบและกำหนดค่า $selectedFacultyName
+                                            $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                            $selectedYear = isset($_GET['year']) && $_GET['year'] != '' ? (int) $_GET['year'] : '2568';
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+                                            $selectedFacultyName = 'แสดงทุกหน่วยงาน';
+
+                                            if ($selectedFacultyCode) {
+                                                // ค้นหาชื่อคณะจากรหัสคณะที่เลือก
+                                                foreach ($faculties as $faculty) {
+                                                    if ($faculty['Faculty'] === $selectedFacultyCode) {
+                                                        $selectedFacultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            ?>
+                                            <tr>
+                                                <th colspan="15" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+                                                        <?php
+                                                        if ($selectedYear) {
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ " . ($selectedYear - 1) . " ถึง " . $selectedYear;
+                                                        } else {
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ: ไม่ได้เลือกปีงบประมาณ";
+                                                        }
+                                                        ?> </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="15" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+
+
+                                                        <?php
+                                                        $facultyData = str_replace('-', ':', $selectedFacultyName);
+
+                                                        echo "ส่วนงาน / หน่วยงาน: " . $facultyData; ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="15" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+                                                        <?php
+                                                        echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
+                                                        ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
                                                 <th rowspan="3">รายการ</th>
-                                                <th colspan="7">ปี <?= $compare_year ?></th>
-                                                <th colspan="7">ปี <?= $selected_year ?></th>
+                                                <th colspan="7">ปี <?= ($selectedYear - 1) ?></th>
+                                                <th colspan="7">ปี <?= $selectedYear ?></th>
                                             </tr>
                                             <tr>
                                                 <th rowspan="2">หน่วยนับของตัวชี้วัด</th>
@@ -299,120 +482,287 @@
                                         </thead>
                                         <tbody>
                                             <?php
-                                            $current_plan = [];
-                                            $current_sub_plan = [];
-                                            $grouped_kpi = [];
-                                            $grouped_project_kpi = [];
 
-                                            foreach ($data as $row):
-                                                $year = $row['Budget_Management_Year']; // ปีของข้อมูลที่กำลังอ่าน
-
-                                                // ตรวจสอบและแสดง Plan Name (แยกปี)
-                                                if (!isset($current_plan[$year][$row['plan_name']]) && $row['plan_name'] != ''):
-                                            ?>
-                                                    <tr>
-                                                        <td><?= $row['plan_name'] ?></td>
-                                                        <td colspan="14">-</td>
-                                                    </tr>
-                                                <?php
-                                                    $current_plan[$year][$row['plan_name']] = true;
-                                                endif;
-
-                                                // ตรวจสอบและแสดง Sub Plan (ไม่แยกปี)
-                                                if (!isset($current_sub_plan[$row['Sub_Plan']]) && $row['Sub_Plan'] != ''):
-                                                ?>
-                                                    <tr>
-                                                        <td><?= str_repeat("&nbsp;", 15) . str_replace("SP_", "", $row['Sub_Plan']) . ":" . $row['sub_plan_name'] ?></td>
-                                                        <td colspan="14">-</td>
-                                                    </tr>
-                                                    <?php
-                                                    $current_sub_plan[$row['Sub_Plan']] = true;
-                                                endif;
-
-                                                // จัดกลุ่ม KPI แยกตามชื่อ KPI
-                                                if ($row['type'] == '1.sub_plan' && $row['Sub_plan_KPI_Name'] != '') {
-                                                    $kpi_name = $row['Sub_plan_KPI_Name'];
-                                                    if (!isset($grouped_kpi[$kpi_name])) {
-                                                        $grouped_kpi[$kpi_name] = [$compare_year => null, $selected_year => null];
-                                                    }
-                                                    $grouped_kpi[$kpi_name][$year] = $row;
-                                                }
-
-                                                // จัดกลุ่ม Project KPI แยกตามชื่อ KPI
-                                                if ($row['type'] == '2.project' && $row['Sub_plan_KPI_Name'] != '') {
-                                                    $project_kpi_name = $row['Sub_plan_KPI_Name'];
-                                                    if (!isset($grouped_project_kpi[$project_kpi_name])) {
-                                                        $grouped_project_kpi[$project_kpi_name] = [$compare_year => null, $selected_year => null];
-                                                    }
-                                                    $grouped_project_kpi[$project_kpi_name][$year] = $row;
-                                                }
-                                            endforeach;
-
-                                            // ฟังก์ชันแสดง KPI (Sub Plan KPI และ Project KPI แยกกลุ่มกัน)
-                                            function displayKPI($grouped_data, $compare_year, $selected_year)
+                                            function formatNumber($number)
                                             {
-                                                foreach ($grouped_data as $kpi_name => $years) {
-                                                    if ($years[$compare_year] && $years[$selected_year]) {
-                                                        // กรณีมีทั้งปีเปรียบเทียบ และปีที่เลือก -> แสดงในบรรทัดเดียวกัน
-                                                    ?>
-                                                        <tr>
-                                                            <td><?= str_repeat("&nbsp;", 30) . $kpi_name ?></td>
-                                                            <td><?= $years[$compare_year]['UoM_for_Sub_plan_KPI'] ?></td>
-                                                            <td><?= $years[$compare_year]['Sub_plan_KPI_Target'] ?></td>
-                                                            <td><?= $years[$compare_year]['Sub_Prog_Q1'] ?></td>
-                                                            <td><?= $years[$compare_year]['Sub_Prog_Q2'] ?></td>
-                                                            <td><?= $years[$compare_year]['Sub_Prog_Q3'] ?></td>
-                                                            <td><?= $years[$compare_year]['Sub_Prog_Q4'] ?></td>
-                                                            <td><?= $years[$compare_year]['Sub_Prog_Q1'] + $years[$compare_year]['Sub_Prog_Q2'] + $years[$compare_year]['Sub_Prog_Q3'] + $years[$compare_year]['Sub_Prog_Q4'] ?></td>
-                                                            <td><?= $years[$selected_year]['UoM_for_Sub_plan_KPI'] ?></td>
-                                                            <td><?= $years[$selected_year]['Sub_plan_KPI_Target'] ?></td>
-                                                            <td><?= $years[$selected_year]['Sub_Prog_Q1'] ?></td>
-                                                            <td><?= $years[$selected_year]['Sub_Prog_Q2'] ?></td>
-                                                            <td><?= $years[$selected_year]['Sub_Prog_Q3'] ?></td>
-                                                            <td><?= $years[$selected_year]['Sub_Prog_Q4'] ?></td>
-                                                            <td><?= $years[$selected_year]['Sub_Prog_Q1'] + $years[$selected_year]['Sub_Prog_Q2'] + $years[$selected_year]['Sub_Prog_Q3'] + $years[$selected_year]['Sub_Prog_Q4'] ?></td>
-                                                        </tr>
-                                                        <?php
-                                                    } else {
-                                                        // กรณีมีเฉพาะปีเดียว -> แสดงแยกบรรทัด
-                                                        foreach ([$compare_year, $selected_year] as $year) {
-                                                            if ($years[$year]) {
-                                                        ?>
-                                                                <tr>
-                                                                    <td><?= str_repeat("&nbsp;", 30) . $kpi_name ?></td>
-                                                                    <?php if ($year == $compare_year): ?>
-                                                                        <td><?= $years[$year]['UoM_for_Sub_plan_KPI'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_plan_KPI_Target'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q1'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q2'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q3'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q4'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q1'] + $years[$year]['Sub_Prog_Q2'] + $years[$year]['Sub_Prog_Q3'] + $years[$year]['Sub_Prog_Q4'] ?></td>
-                                                                        <td colspan="7">-</td>
-                                                                    <?php else: ?>
-                                                                        <td colspan="7">-</td>
-                                                                        <td><?= $years[$year]['UoM_for_Sub_plan_KPI'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_plan_KPI_Target'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q1'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q2'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q3'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q4'] ?></td>
-                                                                        <td><?= $years[$year]['Sub_Prog_Q1'] + $years[$year]['Sub_Prog_Q2'] + $years[$year]['Sub_Prog_Q3'] + $years[$year]['Sub_Prog_Q4'] ?></td>
-                                                                    <?php endif; ?>
-                                                                </tr>
-                                            <?php
+                                                return preg_replace('/\B(?=(\d{3})+(?!\d))/', ',', sprintf("%0.2f", (float) $number));
+                                            }
+
+                                            function removeLeadingNumbers($text)
+                                            {
+                                                // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
+                                                return preg_replace('/^[\d.]+\s*/', '', $text);
+                                            }
+
+                                            $previousType = "";
+                                            $previousSubType = "";
+                                            $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                            $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+                                            $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $scenario);
+                                            // ตรวจสอบว่า $results มีข้อมูลหรือไม่
+                                            if (isset($results) && is_array($results) && count($results) > 0) {
+                                                $summary = [];
+                                                $shownSubPlans = [];
+                                                foreach ($results as $row) {
+                                                    $Faculty = $row['Faculty'];
+                                                    $Plan = $row['Plan'];
+                                                    $Sub_Plan = $row['Sub_Plan'];
+                                                    $Project = $row['Project'];
+                                                    if (!isset($summary[$Faculty])) {
+                                                        $summary[$Faculty] = [
+                                                            'name' => str_replace('-', ':', $row['Alias_Default'] ?? ''),
+                                                            'plan' => [],
+                                                        ];
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan])) {
+                                                        $summary[$Faculty]['plan'][$Plan] = [
+                                                            'name' => $row['plan_name'],
+                                                            'subPlan' => [],
+                                                        ];
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan])) {
+                                                        $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan] = [
+                                                            'name' => $row['Sub_Plan'],
+                                                            'name1' => $row['sub_plan_name'],
+                                                            'Faculty' => $row['Faculty'],
+                                                            'Plan' => $row['Plan'],
+                                                            'Sub_Plan' => $row['Sub_Plan'],
+                                                            'ProjectID' => $row['Project'],
+                                                            'project' => [],
+                                                        ];
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project])) {
+                                                        $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project] = [
+                                                            'name' => $row['project_name'],
+                                                            'Faculty' => $row['Faculty'],
+                                                            'Plan' => $row['Plan'],
+                                                            'Sub_Plan' => $row['Sub_Plan'],
+                                                            'ProjectID' => $row['Project'],
+                                                            'kku' => [],
+                                                        ];
+                                                    }
+                                                }
+                                                foreach ($summary as $Faculty => $data1) {
+                                                    echo "<tr>";
+                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($data1['name'] ?? '') . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "<td style='text-align: center;>" . "-" . "</td>";
+                                                    echo "</tr>";
+                                                    foreach ($data1['plan'] as $Plan => $data2) {
+                                                        echo "<tr>";
+                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($data2['name'] ?? '') . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "-" . "</td>";
+
+                                                        echo "</tr>";
+
+                                                        foreach ($data2['subPlan'] as $Sub_Plan => $data3) {
+                                                            // ใช้ข้อมูลจาก $summary ไปดึงข้อมูลจาก $results2 ที่ตรงกัน
+                                                            $matchingResults2 = array_filter($results2, function ($result2) use ($data3) {
+                                                                return $result2['Faculty'] === $data3['Faculty'] && $result2['Plan'] === $data3['Plan'] && $result2['Sub_Plan'] === $data3['Sub_Plan'];
+                                                            });
+
+                                                            // นำข้อมูลที่ตรงกันไปเก็บใน $data3
+                                                            $data3['kpi_data1'] = $matchingResults2;
+
+                                                            // สร้างตัวแปรเพื่อเก็บผลรวมสำหรับฟิลด์ต่างๆ
+                                                            $Sub_plan_KPI_Target_1 = 0;
+                                                            $Sub_plan_KPI_Target_2 = 0;
+                                                            $total_Prog_Q1_2 = 0;
+                                                            $total_Prog_Q2_2 = 0;
+                                                            $total_Prog_Q3_2 = 0;
+                                                            $total_Prog_Q4_2 = 0;
+                                                            $total_Prog_Q1_1 = 0;
+                                                            $total_Prog_Q2_1 = 0;
+                                                            $total_Prog_Q3_1 = 0;
+                                                            $total_Prog_Q4_1 = 0;
+
+                                                            // คำนวณผลรวมจากข้อมูลที่ตรงกัน
+                                                            foreach ($data3['kpi_data1'] as $row2) {
+                                                                $Sub_plan_KPI_Target_1 += $row2['Sub_plan_KPI_Target_1'];
+                                                                $Sub_plan_KPI_Target_2 += $row2['Sub_plan_KPI_Target_2'];
+                                                                $total_Prog_Q1_2 += $row2['Prog_Q1_2'];
+                                                                $total_Prog_Q2_2 += $row2['Prog_Q2_2'];
+                                                                $total_Prog_Q3_2 += $row2['Prog_Q3_2'];
+                                                                $total_Prog_Q4_2 += $row2['Prog_Q4_2'];
+                                                                $total_Prog_Q1_1 += $row2['Prog_Q1_1'];
+                                                                $total_Prog_Q2_1 += $row2['Prog_Q2_1'];
+                                                                $total_Prog_Q3_1 += $row2['Prog_Q3_1'];
+                                                                $total_Prog_Q4_1 += $row2['Prog_Q4_1'];
+                                                            }
+
+                                                            // คำนวณผลรวมสำหรับ `total1` และ `total2`
+                                                            $total2 = $total_Prog_Q1_2 + $total_Prog_Q2_2 + $total_Prog_Q3_2 + $total_Prog_Q4_2;
+                                                            $total1 = $total_Prog_Q1_1 + $total_Prog_Q2_1 + $total_Prog_Q3_1 + $total_Prog_Q4_1;
+                                                            $subPlanName = str_replace('SP_', '', $data3['name'] ?? '');
+                                                            // แสดงข้อมูล Sub Plan
+                                                            echo "<tr>";
+                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($subPlanName) . " : " . htmlspecialchars($data3['name1'] ?? '') . "</td>";
+                                                            echo "<td>" . "</td>";
+                                                            echo "<td>" . formatNumber($Sub_plan_KPI_Target_2) . "</td>";
+                                                            echo "<td>" . formatNumber($total_Prog_Q1_2) . "</td>";
+                                                            echo "<td>" . formatNumber($total_Prog_Q2_2) . "</td>";
+                                                            echo "<td>" . formatNumber($total_Prog_Q3_2) . "</td>";
+                                                            echo "<td>" . formatNumber($total_Prog_Q4_2) . "</td>";
+                                                            echo "<td>" . formatNumber($total2) . "</td>";
+                                                            echo "<td>" . "</td>";
+                                                            echo "<td>" . formatNumber($Sub_plan_KPI_Target_1) . "</td>";
+                                                            echo "<td>" . formatNumber($total_Prog_Q1_1) . "</td>";
+                                                            echo "<td>" . formatNumber($total_Prog_Q2_1) . "</td>";
+                                                            echo "<td>" . formatNumber($total_Prog_Q3_1) . "</td>";
+                                                            echo "<td>" . formatNumber($total_Prog_Q4_1) . "</td>";
+                                                            echo "<td>" . formatNumber($total1) . "</td>";
+                                                            echo "</tr>";
+
+                                                            // แสดงข้อมูล KPI ของ Sub Plan
+                                                            if (!empty($data3['kpi_data1'])) {
+                                                                foreach ($data3['kpi_data1'] as $row2) {
+                                                                    $total2 = $row2['Prog_Q1_2'] + $row2['Prog_Q2_2'] + $row2['Prog_Q3_2'] + $row2['Prog_Q4_2'];
+                                                                    $total1 = $row2['Prog_Q1_1'] + $row2['Prog_Q2_1'] + $row2['Prog_Q3_1'] + $row2['Prog_Q4_1'];
+                                                                    echo "<tr>";
+                                                                    echo "<td>" . str_repeat("&nbsp;", 16) . htmlspecialchars($row2['Sub_plan_KPI_Name']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['UoM_for_Sub_plan_KPI']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Sub_plan_KPI_Target_1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Prog_Q1_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Prog_Q2_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Prog_Q3_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Prog_Q4_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($total2) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['UoM_for_Sub_plan_KPI']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Sub_plan_KPI_Target_2']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Prog_Q1_1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Prog_Q2_1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Prog_Q3_1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($row2['Prog_Q4_1']) . "</td>";
+                                                                    echo "<td>" . formatNumber($total1) . "</td>";
+                                                                    echo "</tr>";
+                                                                }
+                                                            } else {
+                                                                echo "<td  style='text-align:center;'>ไม่มีข้อมูล KPI</td>";
+                                                                echo "<td colspan='14' style='text-align:center;'> -</td>";
+                                                            }
+
+                                                            // แสดงข้อมูล Project และ KPI ของ Project
+                                                            foreach ($data3['project'] as $Project => &$data4) {
+                                                                // ค้นหาข้อมูลที่ตรงกันจาก $results3
+                                                                $matchingResults3 = array_filter($results3, function ($result3) use ($data4) {
+                                                                    return $result3['Faculty'] === $data4['Faculty'] && $result3['Project'] === $data4['ProjectID'];
+                                                                });
+
+                                                                // นำข้อมูลที่ตรงกันไปเก็บใน $data4
+                                                                $data4['kpi_data2'] = $matchingResults3;
+
+                                                                // สร้างตัวแปรเพื่อเก็บผลรวมสำหรับฟิลด์ต่างๆ
+                                                                $total_Proj_KPI_Target_1 = 0;
+                                                                $total_Proj_KPI_Target_2 = 0;
+                                                                $total_Prog_Q1_2 = 0;
+                                                                $total_Prog_Q2_2 = 0;
+                                                                $total_Prog_Q3_2 = 0;
+                                                                $total_Prog_Q4_2 = 0;
+                                                                $total_Prog_Q1_1 = 0;
+                                                                $total_Prog_Q2_1 = 0;
+                                                                $total_Prog_Q3_1 = 0;
+                                                                $total_Prog_Q4_1 = 0;
+
+                                                                // คำนวณผลรวมจากข้อมูลที่ตรงกัน
+                                                                foreach ($data4['kpi_data2'] as $row3) {
+                                                                    $total_Proj_KPI_Target_1 += $row3['Proj_KPI_Target_1'];
+                                                                    $total_Proj_KPI_Target_2 += $row3['Proj_KPI_Target_2'];
+                                                                    $total_Prog_Q1_2 += $row3['Prog_Q1_2'];
+                                                                    $total_Prog_Q2_2 += $row3['Prog_Q2_2'];
+                                                                    $total_Prog_Q3_2 += $row3['Prog_Q3_2'];
+                                                                    $total_Prog_Q4_2 += $row3['Prog_Q4_2'];
+                                                                    $total_Prog_Q1_1 += $row3['Prog_Q1_1'];
+                                                                    $total_Prog_Q2_1 += $row3['Prog_Q2_1'];
+                                                                    $total_Prog_Q3_1 += $row3['Prog_Q3_1'];
+                                                                    $total_Prog_Q4_1 += $row3['Prog_Q4_1'];
+                                                                }
+
+                                                                // คำนวณผลรวมสำหรับ `total1` และ `total2`
+                                                                $total2 = $total_Prog_Q1_2 + $total_Prog_Q2_2 + $total_Prog_Q3_2 + $total_Prog_Q4_2;
+                                                                $total1 = $total_Prog_Q1_1 + $total_Prog_Q2_1 + $total_Prog_Q3_1 + $total_Prog_Q4_1;
+
+                                                                // แสดงข้อมูล Project
+                                                                echo "<tr>";
+                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($data4['name'] ?? '') . "</td>";
+                                                                echo "<td>" . "</td>";
+                                                                echo "<td>" . formatNumber($total_Proj_KPI_Target_2) . "</td>";
+                                                                echo "<td>" . formatNumber($total_Prog_Q1_2) . "</td>";
+                                                                echo "<td>" . formatNumber($total_Prog_Q2_2) . "</td>";
+                                                                echo "<td>" . formatNumber($total_Prog_Q3_2) . "</td>";
+                                                                echo "<td>" . formatNumber($total_Prog_Q4_2) . "</td>";
+                                                                echo "<td>" . formatNumber($total2) . "</td>";
+                                                                echo "<td>" . "</td>";
+                                                                echo "<td>" . formatNumber($total_Proj_KPI_Target_1) . "</td>";
+                                                                echo "<td>" . formatNumber($total_Prog_Q1_1) . "</td>";
+                                                                echo "<td>" . formatNumber($total_Prog_Q2_1) . "</td>";
+                                                                echo "<td>" . formatNumber($total_Prog_Q3_1) . "</td>";
+                                                                echo "<td>" . formatNumber($total_Prog_Q4_1) . "</td>";
+                                                                echo "<td>" . formatNumber($total1) . "</td>";
+                                                                echo "</tr>";
+
+                                                                // แสดงข้อมูล KPI ของ Project
+                                                                if (!empty($data4['kpi_data2'])) {
+                                                                    foreach ($data4['kpi_data2'] as $row3) {
+                                                                        $total2 = $row3['Prog_Q1_2'] + $row3['Prog_Q2_2'] + $row3['Prog_Q3_2'] + $row3['Prog_Q4_2'];
+                                                                        $total1 = $row3['Prog_Q1_1'] + $row3['Prog_Q2_1'] + $row3['Prog_Q3_1'] + $row3['Prog_Q4_1'];
+                                                                        echo "<tr>";
+                                                                        echo "<td>" . str_repeat("&nbsp;", 24) . htmlspecialchars($row3['Proj_KPI_Name']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['UoM_for_Proj_KPI']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Proj_KPI_Target_1']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Prog_Q1_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Prog_Q2_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Prog_Q3_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Prog_Q4_2']) . "</td>";
+                                                                        echo "<td>" . formatNumber($total2) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['UoM_for_Proj_KPI']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Proj_KPI_Target_1']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Prog_Q1_1']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Prog_Q2_1']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Prog_Q3_1']) . "</td>";
+                                                                        echo "<td>" . formatNumber($row3['Prog_Q4_1']) . "</td>";
+                                                                        echo "<td>" . formatNumber($total1) . "</td>";
+                                                                        echo "</tr>";
+                                                                    }
+                                                                } else {
+                                                                    echo "<tr>";
+                                                                    echo "<td  style='text-align:center;'>ไม่มีข้อมูล KPI</td>";
+                                                                    echo "<td colspan='14' style='text-align:center;'>-</td>";
+                                                                    echo "</tr>";
+                                                                }
                                                             }
                                                         }
                                                     }
                                                 }
-                                            }
-
-                                            // แสดง Sub Plan KPI
-                                            displayKPI($grouped_kpi, $compare_year, $selected_year);
-
-                                            // แสดง Project KPI
-                                            displayKPI($grouped_project_kpi, $compare_year, $selected_year);
-                                            ?>
+                                            } else {
+                                                echo "<tr><td colspan='11' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                            } ?>
                                         </tbody>
 
                                     </table>
