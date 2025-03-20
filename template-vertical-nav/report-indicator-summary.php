@@ -367,7 +367,7 @@ function fetchYearsData($conn)
                                             var year = document.getElementById('year').value;
                                             var scenario = document.getElementById('scenario').value;
 
-                                            var baseUrl = "http://202.28.118.192:8081/kku-report/template-vertical-nav/report-indicator-summary.php";
+                                            var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-indicator-summary.php";
                                             var params = [];
 
                                             // เพิ่ม Faculty หากเลือก
