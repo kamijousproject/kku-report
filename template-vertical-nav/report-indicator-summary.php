@@ -634,19 +634,19 @@ function fetchYearsData($conn)
                                                             echo "<tr>";
                                                             echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($subPlanName) . " : " . htmlspecialchars($data3['name1'] ?? '') . "</td>";
                                                             echo "<td>" . "</td>";
-                                                            echo "<td>" . formatNumber($Sub_plan_KPI_Target_2) . "</td>";
-                                                            echo "<td>" . formatNumber($total_Prog_Q1_2) . "</td>";
-                                                            echo "<td>" . formatNumber($total_Prog_Q2_2) . "</td>";
-                                                            echo "<td>" . formatNumber($total_Prog_Q3_2) . "</td>";
-                                                            echo "<td>" . formatNumber($total_Prog_Q4_2) . "</td>";
-                                                            echo "<td>" . formatNumber($total2) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($Sub_plan_KPI_Target_2) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total_Prog_Q1_2) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total_Prog_Q2_2) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total_Prog_Q3_2) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total_Prog_Q4_2) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total2) . "</td>";
                                                             echo "<td>" . "</td>";
-                                                            echo "<td>" . formatNumber($Sub_plan_KPI_Target_1) . "</td>";
-                                                            echo "<td>" . formatNumber($total_Prog_Q1_1) . "</td>";
-                                                            echo "<td>" . formatNumber($total_Prog_Q2_1) . "</td>";
-                                                            echo "<td>" . formatNumber($total_Prog_Q3_1) . "</td>";
-                                                            echo "<td>" . formatNumber($total_Prog_Q4_1) . "</td>";
-                                                            echo "<td>" . formatNumber($total1) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($Sub_plan_KPI_Target_1) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total_Prog_Q1_1) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total_Prog_Q2_1) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total_Prog_Q3_1) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total_Prog_Q4_1) . "</td>";
+                                                            echo "<td>" . htmlspecialchars($total1) . "</td>";
                                                             echo "</tr>";
 
                                                             // แสดงข้อมูล KPI ของ Sub Plan
@@ -657,19 +657,19 @@ function fetchYearsData($conn)
                                                                     echo "<tr>";
                                                                     echo "<td>" . str_repeat("&nbsp;", 16) . htmlspecialchars($row2['Sub_plan_KPI_Name']) . "</td>";
                                                                     echo "<td>" . htmlspecialchars($row2['UoM_for_Sub_plan_KPI']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Sub_plan_KPI_Target_1']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Prog_Q1_2']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Prog_Q2_2']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Prog_Q3_2']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Prog_Q4_2']) . "</td>";
-                                                                    echo "<td>" . formatNumber($total2) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Sub_plan_KPI_Target_1']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Prog_Q1_2']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Prog_Q2_2']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Prog_Q3_2']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Prog_Q4_2']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($total2) . "</td>";
                                                                     echo "<td>" . htmlspecialchars($row2['UoM_for_Sub_plan_KPI']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Sub_plan_KPI_Target_2']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Prog_Q1_1']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Prog_Q2_1']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Prog_Q3_1']) . "</td>";
-                                                                    echo "<td>" . formatNumber($row2['Prog_Q4_1']) . "</td>";
-                                                                    echo "<td>" . formatNumber($total1) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Sub_plan_KPI_Target_2']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Prog_Q1_1']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Prog_Q2_1']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Prog_Q3_1']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($row2['Prog_Q4_1']) . "</td>";
+                                                                    echo "<td>" . htmlspecialchars($total1) . "</td>";
                                                                     echo "</tr>";
                                                                 }
                                                             } else {
@@ -721,19 +721,19 @@ function fetchYearsData($conn)
                                                                 echo "<tr>";
                                                                 echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($data4['name'] ?? '') . "</td>";
                                                                 echo "<td>" . "</td>";
-                                                                echo "<td>" . formatNumber($total_Proj_KPI_Target_2) . "</td>";
-                                                                echo "<td>" . formatNumber($total_Prog_Q1_2) . "</td>";
-                                                                echo "<td>" . formatNumber($total_Prog_Q2_2) . "</td>";
-                                                                echo "<td>" . formatNumber($total_Prog_Q3_2) . "</td>";
-                                                                echo "<td>" . formatNumber($total_Prog_Q4_2) . "</td>";
-                                                                echo "<td>" . formatNumber($total2) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Proj_KPI_Target_2) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Prog_Q1_2) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Prog_Q2_2) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Prog_Q3_2) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Prog_Q4_2) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total2) . "</td>";
                                                                 echo "<td>" . "</td>";
-                                                                echo "<td>" . formatNumber($total_Proj_KPI_Target_1) . "</td>";
-                                                                echo "<td>" . formatNumber($total_Prog_Q1_1) . "</td>";
-                                                                echo "<td>" . formatNumber($total_Prog_Q2_1) . "</td>";
-                                                                echo "<td>" . formatNumber($total_Prog_Q3_1) . "</td>";
-                                                                echo "<td>" . formatNumber($total_Prog_Q4_1) . "</td>";
-                                                                echo "<td>" . formatNumber($total1) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Proj_KPI_Target_1) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Prog_Q1_1) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Prog_Q2_1) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Prog_Q3_1) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total_Prog_Q4_1) . "</td>";
+                                                                echo "<td>" . htmlspecialchars($total1) . "</td>";
                                                                 echo "</tr>";
 
                                                                 // แสดงข้อมูล KPI ของ Project
@@ -744,19 +744,19 @@ function fetchYearsData($conn)
                                                                         echo "<tr>";
                                                                         echo "<td>" . str_repeat("&nbsp;", 24) . htmlspecialchars($row3['Proj_KPI_Name']) . "</td>";
                                                                         echo "<td>" . htmlspecialchars($row3['UoM_for_Proj_KPI']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Proj_KPI_Target_1']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Prog_Q1_2']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Prog_Q2_2']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Prog_Q3_2']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Prog_Q4_2']) . "</td>";
-                                                                        echo "<td>" . formatNumber($total2) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Proj_KPI_Target_1']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Prog_Q1_2']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Prog_Q2_2']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Prog_Q3_2']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Prog_Q4_2']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($total2) . "</td>";
                                                                         echo "<td>" . htmlspecialchars($row3['UoM_for_Proj_KPI']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Proj_KPI_Target_1']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Prog_Q1_1']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Prog_Q2_1']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Prog_Q3_1']) . "</td>";
-                                                                        echo "<td>" . formatNumber($row3['Prog_Q4_1']) . "</td>";
-                                                                        echo "<td>" . formatNumber($total1) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Proj_KPI_Target_1']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Prog_Q1_1']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Prog_Q2_1']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Prog_Q3_1']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($row3['Prog_Q4_1']) . "</td>";
+                                                                        echo "<td>" . htmlspecialchars($total1) . "</td>";
                                                                         echo "</tr>";
                                                                     }
                                                                 } else {
