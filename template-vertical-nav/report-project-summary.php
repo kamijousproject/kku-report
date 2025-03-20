@@ -444,44 +444,49 @@ ppp.pilar_name,
     )
     SELECT * FROM t2";
 
+    // เพิ่มเงื่อนไข WHERE และ ORDER BY
+    $whereConditions = [];
+    $params = [];
+
     if ($faculty) {
-        $query .= " WHERE Faculty = :faculty";
+        $whereConditions[] = "Faculty = :faculty";
+        $params[':faculty'] = $faculty;
     }
     if ($scenario) {
-        $query .= " AND Scenario = :scenario"; // กรองตาม Scenario ที่เลือก
+        $whereConditions[] = "Scenario = :scenario";
+        $params[':scenario'] = $scenario;
     }
     if ($Fund) {
-        $query .= " AND Fund = :Fund"; // กรองตาม Fund ที่เลือก
+        $whereConditions[] = "Fund = :Fund";
+        $params[':Fund'] = $Fund;
     }
     if ($selectedStrategicPlan) {
-        $query .= " AND Strategic_Plan_Cleaned = :selectedStrategicPlan"; // กรองตาม Fund ที่เลือก
+        $whereConditions[] = "Strategic_Plan_Cleaned = :selectedStrategicPlan";
+        $params[':selectedStrategicPlan'] = $selectedStrategicPlan;
     }
 
-    // Add the ORDER BY clause at the end of the query
-    $query .= " ORDER BY pilar_name ASC, Default_Faculty ASC, Faculty ASC, Plan ASC, Sub_Plan ASC, Project ASC";
-    // เตรียมคำสั่ง SQL
+    // เพิ่มเงื่อนไข WHERE ถ้ามี
+    if (!empty($whereConditions)) {
+        $query .= " WHERE " . implode(" AND ", $whereConditions);
+    }
 
+    // เพิ่ม ORDER BY
+    $query .= " ORDER BY pilar_name ASC, Default_Faculty ASC, Faculty ASC, Plan ASC, Sub_Plan ASC, Project ASC";
+
+    // เตรียมคำสั่ง SQL
     $stmt = $conn->prepare($query);
 
-
-    if ($faculty) {
-        $stmt->bindParam(':faculty', $faculty, PDO::PARAM_STR);
+    // ผูกค่าพารามิเตอร์
+    foreach ($params as $key => $value) {
+        $stmt->bindValue($key, $value);
     }
 
-    if ($scenario) {
-        $stmt->bindParam(':scenario', $scenario, PDO::PARAM_STR);
-    }
-    if ($Fund) {
-        $stmt->bindParam(':Fund', $Fund, PDO::PARAM_STR);
-    }
-    if ($selectedStrategicPlan) {
-        $stmt->bindParam(':selectedStrategicPlan', $selectedStrategicPlan, PDO::PARAM_STR);
-    }
-
+    // ประมวลผลคำสั่ง SQL
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 }
+
+
 
 $results = fetchBudgetData($conn, $faculty, $budget_year1, $scenario, $Fund, $selectedStrategicPlan);
 
