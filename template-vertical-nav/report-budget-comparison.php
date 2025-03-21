@@ -747,6 +747,15 @@ function fetchYearsData($conn)
                                             <tr>
                                                 <th colspan="18" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
+                                                        <?php
+                                                        echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
+                                                        ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="18" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
 
 
                                                         <?php
@@ -756,15 +765,7 @@ function fetchYearsData($conn)
                                                     </span>
                                                 </th>
                                             </tr>
-                                            <tr>
-                                                <th colspan="18" style='text-align: left;'>
-                                                    <span style="font-size: 16px;">
-                                                        <?php
-                                                        echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
-                                                        ?>
-                                                    </span>
-                                                </th>
-                                            </tr>
+
                                             <tr>
                                                 <th rowspan="3">รายการ</th>
                                                 <th rowspan="3" value="UOM">หน่วยนับของตัวชี้วัด (UOM)</th>
