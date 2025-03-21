@@ -368,6 +368,7 @@ AND ta.Plan = tm.Plan
 AND ta.Sub_Plan = tm.Sub_Plan
 AND ta.Project = tm.Project
 AND ta.account = tm.Account
+AND ta.Service = tm.Service
 WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
 GROUP BY 
 	 fta.Alias_Default,
