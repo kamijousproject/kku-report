@@ -91,7 +91,7 @@ $year = isset($_GET['year']) ? (int) $_GET['year'] : 2568; // Default to 2568 if
 $budget_year1 = $year;
 $budget_year2 = $year - 1;
 $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
-function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $scenario = null)
+function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $budget_year2 = null, $scenario = null)
 {
     $budget_year1 = $budget_year1 ?? 2568;
     $budget_year2 = $budget_year2 ?? 2567;
@@ -544,7 +544,7 @@ $stmt3 = $conn->prepare($query3);
 $stmt3->execute();
 $results3 = $stmt3->fetchAll(PDO::FETCH_ASSOC);
 
-$results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $scenario);
+$results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $scenario);
 
 function fetchFacultyData($conn)
 {
@@ -677,7 +677,7 @@ function fetchYearsData($conn)
                                         var year = document.getElementById('year').value;
                                         var scenario = document.getElementById('scenario').value;
 
-                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-budget-comparison.php";
+                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-budget-comparison.php";
                                         var params = [];
 
                                         // เพิ่ม Faculty หากเลือก
