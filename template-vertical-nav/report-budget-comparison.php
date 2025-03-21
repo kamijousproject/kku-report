@@ -94,8 +94,320 @@ $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
 function fetchBudgetData($conn, $selectedFaculty = null, $budget_year1 = null, $scenario = null)
 {
     $budget_year1 = $budget_year1 ?? 2568;
+    $budget_year2 = $budget_year2 ?? 2567;
+    $query = "WITH RECURSIVE account_hierarchy AS (
+    -- Anchor member: เริ่มจาก account ทุกตัว
+    SELECT 
+        a1.account,
+        a1.account AS account1, -- account สำหรับ level1
+        a1.alias_default AS level1,
+        a1.parent,
+        CAST(NULL AS CHAR(255)) AS account2, -- account สำหรับ level2
+        CAST(NULL AS CHAR(255)) AS level2,
+        CAST(NULL AS CHAR(255)) AS account3, -- account สำหรับ level3
+        CAST(NULL AS CHAR(255)) AS level3,
+        CAST(NULL AS CHAR(255)) AS account4, -- account สำหรับ level4
+        CAST(NULL AS CHAR(255)) AS level4,
+        CAST(NULL AS CHAR(255)) AS account5, -- account สำหรับ level5
+        CAST(NULL AS CHAR(255)) AS level5,
+        1 AS depth
+    FROM account a1
+    WHERE a1.parent IS NOT NULL
+    UNION ALL
+    -- Recursive member: หา parent ต่อไปเรื่อยๆ
+    SELECT 
+        ah.account,
+        ah.account1,
+        ah.level1,
+        a2.parent,
+        CASE WHEN ah.depth = 1 THEN a2.account ELSE ah.account2 END AS account2,
+        CASE WHEN ah.depth = 1 THEN a2.alias_default ELSE ah.level2 END AS level2,
+        CASE WHEN ah.depth = 2 THEN a2.account ELSE ah.account3 END AS account3,
+        CASE WHEN ah.depth = 2 THEN a2.alias_default ELSE ah.level3 END AS level3,
+        CASE WHEN ah.depth = 3 THEN a2.account ELSE ah.account4 END AS account4,
+        CASE WHEN ah.depth = 3 THEN a2.alias_default ELSE ah.level4 END AS level4,
+        CASE WHEN ah.depth = 4 THEN a2.account ELSE ah.account5 END AS account5,
+        CASE WHEN ah.depth = 4 THEN a2.alias_default ELSE ah.level5 END AS level5,
+        ah.depth + 1 AS depth
+    FROM account_hierarchy ah
+    JOIN account a2 
+        ON ah.parent = a2.account COLLATE UTF8MB4_GENERAL_CI
+    WHERE ah.parent IS NOT NULL
+    AND ah.depth < 5 -- จำกัดระดับสูงสุดที่ 5
+),
+-- หาความลึกสูงสุดสำหรับแต่ละ account
+hierarchy_with_max AS (
+    SELECT 
+        account,
+        account1 AS CurrentAccount,
+        level1 AS Current,
+        account2 AS ParentAccount,
+        level2 AS Parent,
+        account3 AS GrandparentAccount,
+        level3 AS Grandparent,
+        account4 AS GreatGrandparentAccount,
+        level4 AS GreatGrandparent,
+        account5 AS GreatGreatGrandparentAccount,
+        level5 AS GreatGreatGrandparent,
+        depth,
+        MAX(depth) OVER (PARTITION BY account) AS max_depth
+    FROM account_hierarchy
+)
+-- เลือกเฉพาะแถวที่ depth = max_depth สำหรับแต่ละ account
+,main AS (SELECT 
+    CurrentAccount,
+    Current,
+    ParentAccount,
+    Parent,
+    GrandparentAccount,
+    Grandparent,
+    GreatGrandparentAccount,
+    GreatGrandparent,
+    GreatGreatGrandparentAccount,
+    GreatGreatGrandparent,
+    depth AS TotalLevels
+FROM hierarchy_with_max
+WHERE depth = max_depth
+ORDER BY account)
+ 
+ , pilar_Name AS (
+ SELECT  DISTINCT 
+	 pki.Faculty,
+	 pki.Project,
+    REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') AS Strategic_Plan_Cleaned,
+    ppp.pilar_name 
+FROM budget_planning_project_kpi pki
+LEFT JOIN pilar ppp
+ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id)
 
-    $query = "";
+,totalAmount AS (
+SELECT 
+    tm.Faculty,  
+    tm.Plan, 
+    tm.Sub_Plan, 
+    tm.Project,      
+    tm.Account,
+    tm.kku_item_name,
+    tm.Reason,
+    tm.Service,
+    tm.Scenario,
+    SUM(CASE WHEN tm.Budget_Management_Year =  $budget_year1 AND tm.Fund = 'FN06'THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_Quantity_FN06_1,
+    SUM(CASE WHEN tm.Budget_Management_Year =  $budget_year1 AND tm.Fund = 'FN02'THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_Quantity_FN02_1,
+    SUM(CASE WHEN tm.Budget_Management_Year =  $budget_year1 AND tm.Fund = 'FN08'THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_Quantity_FN08_1,
+    SUM(CASE WHEN tm.Budget_Management_Year =  $budget_year2 AND tm.Fund = 'FN06'THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_Quantity_FN06_2,
+    SUM(CASE WHEN tm.Budget_Management_Year =  $budget_year2 AND tm.Fund = 'FN02'THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_Quantity_FN02_2,
+    SUM(CASE WHEN tm.Budget_Management_Year =  $budget_year2 AND tm.Fund = 'FN08'THEN tm.Total_Amount_Quantity ELSE 0 END) AS Total_Amount_Quantity_FN08_2
+FROM 
+    budget_planning_annual_budget_plan tm  
+GROUP BY  
+    tm.Faculty, 
+    tm.Plan, 
+    tm.Sub_Plan, 
+    tm.Project,      
+    tm.Account,
+    tm.kku_item_name,
+    tm.Reason,
+    tm.Service,
+    tm.Scenario
+),
+totalActual AS (
+SELECT 
+    ta.Faculty,
+    ta.Plan,
+    ta.Sub_plan,
+    ta.Project,   
+    ta.account,
+    ta.Service,
+    ta.Scenario,
+    SUM(CASE WHEN ta.`YEAR` =  $budget_year1 AND ta.Fund = 'FN06'THEN ta.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Allocated_Quantity_FN06_1,
+    SUM(CASE WHEN ta.`YEAR` =  $budget_year1 AND ta.Fund = 'FN02'THEN ta.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Allocated_Quantity_FN02_1,
+    SUM(CASE WHEN ta.`YEAR` =  $budget_year1 AND ta.Fund = 'FN08'THEN ta.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Allocated_Quantity_FN08_1,
+    SUM(CASE WHEN ta.`YEAR` =  $budget_year2 AND ta.Fund = 'FN06'THEN ta.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Allocated_Quantity_FN06_2,
+    SUM(CASE WHEN ta.`YEAR` =  $budget_year2 AND ta.Fund = 'FN02'THEN ta.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Allocated_Quantity_FN02_2,
+    SUM(CASE WHEN ta.`YEAR` =  $budget_year2 AND ta.Fund = 'FN08'THEN ta.Allocated_Total_Amount_Quantity ELSE 0 END) AS Total_Allocated_Quantity_FN08_2
+FROM 
+    budget_planning_allocated_annual_budget_plan ta  
+GROUP BY  
+    ta.Faculty,
+    ta.Plan,
+    ta.Sub_plan,
+    ta.Project,   
+    ta.account,
+    ta.Service,
+    ta.Scenario
+),
+t1 AS(
+SELECT
+ 	 fta.Alias_Default AS Default_Faculty,
+    tm.Faculty, 
+    tm.Plan,
+    ft.Alias_Default AS Faculty_name,
+    MAX(p.plan_name) AS plan_name,
+    (SELECT fc.Alias_Default 
+     FROM Faculty fc 
+     WHERE CAST(SUBSTRING(fc.Faculty, 2) AS UNSIGNED) = CAST(tm.Faculty AS UNSIGNED)
+     LIMIT 1) AS Faculty_Name_Main,
+    tm.Sub_Plan, 
+    sp.sub_plan_name,
+    tm.Project, 
+    pj.project_name,
+    tm.KKU_Item_Name,
+    tm.Account,
+    tm.Reason,
+    tm.Scenario,
+        CASE 
+        WHEN m.TotalLevels = 5 THEN m.GreatGrandparentAccount
+        WHEN m.TotalLevels = 4 THEN m.GrandparentAccount
+        WHEN m.TotalLevels = 3 THEN m.ParentAccount
+    END AS a1,
+
+    CASE 
+        WHEN m.TotalLevels = 5 THEN m.GrandparentAccount
+        WHEN m.TotalLevels = 4 THEN m.ParentAccount
+        WHEN m.TotalLevels = 3 THEN m.CurrentAccount
+    END AS a2,
+
+    COALESCE(
+        CASE  
+            WHEN m.TotalLevels = 5 THEN m.ParentAccount
+            WHEN m.TotalLevels = 4 THEN m.CurrentAccount
+            WHEN m.TotalLevels = 3 THEN NULL
+        END,
+        tm.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.Account
+    ) AS a3,
+
+    COALESCE(
+        CASE  
+            WHEN m.TotalLevels = 5 THEN m.CurrentAccount
+            WHEN m.TotalLevels = 4 THEN NULL
+            WHEN m.TotalLevels = 3 THEN NULL
+        END,
+        tm.Account -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.Account
+    ) AS a4,
+
+    CASE  
+        WHEN m.TotalLevels = 5 THEN COALESCE(m.GreatGrandparent, tm.KKU_Item_Name)
+        WHEN m.TotalLevels = 4 THEN COALESCE(m.Grandparent, tm.KKU_Item_Name)
+        WHEN m.TotalLevels = 3 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+    END AS Name_a1,
+
+    CASE 
+        WHEN (m.TotalLevels = 5 AND COALESCE(m.GreatGrandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name) 
+             OR (m.TotalLevels = 4 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name) 
+             OR (m.TotalLevels = 3 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+        THEN NULL
+        WHEN m.TotalLevels = 5 THEN COALESCE(m.Grandparent, tm.KKU_Item_Name)
+        WHEN m.TotalLevels = 4 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+        WHEN m.TotalLevels = 3 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+    END AS Name_a2,
+
+    COALESCE(
+        CASE  
+            WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                 OR (m.TotalLevels = 4 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                 OR (m.TotalLevels = 3 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+            THEN tm.KKU_Item_Name  -- เปลี่ยนจาก NULL เป็น tm.KKU_Item_Name
+            WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+            WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+        END,
+        tm.KKU_Item_Name -- หากผลลัพธ์เป็น NULL ให้ใช้ค่า tm.KKU_Item_Name
+    ) AS Name_a3,
+
+    CASE
+        WHEN (
+            COALESCE(
+                CASE  
+                    WHEN (m.TotalLevels = 5 AND COALESCE(m.Grandparent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                         OR (m.TotalLevels = 4 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                         OR (m.TotalLevels = 3 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                    THEN tm.KKU_Item_Name  
+                    WHEN m.TotalLevels = 5 THEN COALESCE(m.Parent, tm.KKU_Item_Name)
+                    WHEN m.TotalLevels = 4 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+                END,
+                tm.KKU_Item_Name
+            ) = tm.KKU_Item_Name
+        )
+        THEN NULL
+        ELSE COALESCE(
+            CASE  
+                WHEN (m.TotalLevels = 5 AND COALESCE(m.Parent, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                     OR (m.TotalLevels = 4 AND COALESCE(m.Current, tm.KKU_Item_Name) = tm.KKU_Item_Name)
+                THEN NULL
+                WHEN m.TotalLevels = 5 THEN COALESCE(m.Current, tm.KKU_Item_Name)
+            END,
+            tm.KKU_Item_Name
+        )
+    END AS Name_a4,
+    Total_Amount_Quantity_FN06_1 AS Amount_FN06_1,
+    Total_Amount_Quantity_FN02_1 AS Amount_FN02_1,
+    Total_Amount_Quantity_FN08_1 AS Amount_FN08_1,
+    Total_Amount_Quantity_FN06_2 AS Amount_FN06_2,
+    Total_Amount_Quantity_FN02_2 AS Amount_FN02_2,
+    Total_Amount_Quantity_FN08_2 AS Amount_FN08_2,
+    Total_Allocated_Quantity_FN06_1 AS Allocated_FN06_1,
+    Total_Allocated_Quantity_FN02_1 AS Allocated_FN02_1,
+    Total_Allocated_Quantity_FN08_1 AS Allocated_FN08_1,
+    Total_Allocated_Quantity_FN06_2 AS Allocated_FN06_2,
+    Total_Allocated_Quantity_FN02_2 AS Allocated_FN02_2,
+    Total_Allocated_Quantity_FN08_2 AS Allocated_FN08_2
+    
+FROM totalAmount tm 
+INNER JOIN Faculty ft 
+ON ft.Faculty = tm.Faculty 
+AND ft.parent LIKE 'Faculty%' 
+LEFT JOIN main m ON tm.Account = m.CurrentAccount
+LEFT JOIN Faculty fta
+ON ft.Parent = fta.Faculty
+LEFT JOIN sub_plan sp ON sp.sub_plan_id = tm.Sub_Plan
+LEFT JOIN project pj ON pj.project_id = tm.Project
+LEFT JOIN `account` ac ON ac.account COLLATE utf8mb4_general_ci = tm.Account COLLATE UTF8MB4_GENERAL_CI
+LEFT JOIN plan p ON p.plan_id = tm.Plan
+LEFT JOIN totalActual ta
+ON ta.Faculty = tm.Faculty
+AND ta.Plan = tm.Plan
+AND ta.Sub_Plan = tm.Sub_Plan
+AND ta.Project = tm.Project
+AND ta.account = tm.Account
+WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
+GROUP BY 
+	 fta.Alias_Default,
+    tm.Faculty, 
+    tm.Plan, 
+    ft.Alias_Default,
+    tm.Sub_Plan, 
+    sp.sub_plan_name,
+    tm.Project, 
+    pj.project_name, 
+    tm.KKU_Item_Name,
+    tm.Account,
+    tm.Scenario,
+    tm.Reason,
+    m.TotalLevels,
+    m.GreatGrandparentAccount,
+    m.GrandparentAccount,
+    m.ParentAccount,
+    m.GreatGrandparent,
+    m.Grandparent,
+    m.Parent,
+    m.Current,
+    Total_Amount_Quantity_FN06_1 ,
+    Total_Amount_Quantity_FN02_1 ,
+    Total_Amount_Quantity_FN08_1 ,
+    Total_Amount_Quantity_FN06_2 ,
+    Total_Amount_Quantity_FN02_2 ,
+    Total_Amount_Quantity_FN08_2 ,
+    Total_Allocated_Quantity_FN06_1 ,
+    Total_Allocated_Quantity_FN02_1 ,
+    Total_Allocated_Quantity_FN08_1 ,
+    Total_Allocated_Quantity_FN06_2 ,
+    Total_Allocated_Quantity_FN02_2 ,
+    Total_Allocated_Quantity_FN08_2 
+ 
+ORDER BY fta.Alias_Default asc, tm.Faculty ASC , tm.Plan ASC, tm.Sub_Plan ASC, tm.Project ASC, Name_a1 ASC,Name_a2 ASC,Name_a3 ASC,Name_a4 ASC,tm.Account ASC
+ 
+)
+
+SELECT * FROM t1";
 
     // Initialize an array to store conditions
     $conditions = [];
@@ -279,13 +591,13 @@ function fetchYearsData($conn)
             <div class="container">
                 <div class="row page-titles">
                     <div class="col p-0">
-                        <h4> รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</h4>
+                        <h4> รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน</h4>
                     </div>
                     <div class="col p-0">
                         <ol class="breadcrumb">
                             <li class="breadcrumb-item"><a href="javascript:void(0)">รายงาน</a></li>
                             <li class="breadcrumb-item active">
-                                รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</li>
+                                รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน</li>
                         </ol>
                     </div>
                 </div>
@@ -294,7 +606,7 @@ function fetchYearsData($conn)
                         <div class="card">
                             <div class="card-body">
                                 <div class="card-title">
-                                    <h4> รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม</h4>
+                                    <h4> รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน</h4>
                                 </div>
 
                                 <?php
@@ -397,11 +709,17 @@ function fetchYearsData($conn)
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
+                                            <tr>
+                                                <th colspan="18" style='text-align: left;'>
+                                                    รายงานสรุปรายการตัวชี้วัดแผน/ผลของแผนงานย่อย</th>
+                                            </tr>
                                             <?php
 
 
                                             // ตรวจสอบและกำหนดค่า $selectedFacultyName
                                             $selectedFacultyCode = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                            $selectedYear = isset($_GET['year']) && $_GET['year'] != '' ? (int) $_GET['year'] : '2568';
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
                                             $selectedFacultyName = 'แสดงทุกหน่วยงาน';
 
                                             if ($selectedFacultyCode) {
@@ -417,6 +735,18 @@ function fetchYearsData($conn)
                                             <tr>
                                                 <th colspan="18" style='text-align: left;'>
                                                     <span style="font-size: 16px;">
+                                                        <?php
+                                                        if ($selectedYear) {
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ " . ($selectedYear - 1) . " ถึง " . $selectedYear;
+                                                        } else {
+                                                            echo "ปีงบที่ต้องการเปรียบเทียบ: ไม่ได้เลือกปีงบประมาณ";
+                                                        }
+                                                        ?> </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
+                                                <th colspan="18" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
 
 
                                                         <?php
@@ -427,10 +757,19 @@ function fetchYearsData($conn)
                                                 </th>
                                             </tr>
                                             <tr>
+                                                <th colspan="18" style='text-align: left;'>
+                                                    <span style="font-size: 16px;">
+                                                        <?php
+                                                        echo "ประเภทงบประมาณ: " . (!empty($scenario) ? $scenario : "แสดงทุกประเภทงบประมาณ");
+                                                        ?>
+                                                    </span>
+                                                </th>
+                                            </tr>
+                                            <tr>
                                                 <th rowspan="3">รายการ</th>
                                                 <th rowspan="3" value="UOM">หน่วยนับของตัวชี้วัด (UOM)</th>
-                                                <th colspan="5">ปี 2567 (ปีปัจจุบัน)</th>
-                                                <th colspan="8">ปี 2568 (ปีที่ขอตั้งงบ)</th>
+                                                <th colspan="5">ปี <?= ($selectedYear - 1) ?></th>
+                                                <th colspan="8">ปี <?= ($selectedYear) ?></th>
                                                 <th colspan="2" rowspan="2">เพิ่ม/ลด</th>
                                                 <th rowspan="3" value="explain">คำชี้แจง</th>
                                             </tr>
@@ -470,17 +809,701 @@ function fetchYearsData($conn)
                                                 // ลบตัวเลขที่อยู่หน้าตัวหนังสือ
                                                 return preg_replace('/^[\d.]+\s*/', '', $text);
                                             }
-                                            $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : "";
-                                            $results = fetchBudgetData($conn, $selectedFaculty);
+                                            $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
+                                            $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
+                                            $budget_year2 = isset($_GET['year']) ? $_GET['year'] - 1 : null;
+                                            $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
+                                            $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $budget_year2, $scenario);
 
                                             // ตรวจสอบว่า $results มีข้อมูลหรือไม่
                                             
                                             if (isset($results) && is_array($results) && count($results) > 0) {
                                                 $summary = [];
 
+
                                                 // เรียงข้อมูลใน $results ให้เป็นแบบซ้อนกันตาม Faculty, Plan, Sub_Plan, Project, Type, SubType
                                                 foreach ($results as $row) {
+                                                    $Faculty = $row['Faculty'];
+                                                    $Plan = $row['Plan'];
+                                                    $Sub_Plan = $row['Sub_Plan'];
+                                                    $Project = $row['Project'];
+                                                    $Name_a1 = $row['Name_a1'];
+                                                    $Name_a2 = $row['Name_a2'];
+                                                    $Name_a3 = $row['Name_a3'];
+                                                    $Name_a4 = $row['Name_a4'];
+                                                    if (!isset($summary[$Faculty])) {
+                                                        $summary[$Faculty] = [
+                                                            'name' => $row['Faculty_name'],
+                                                            'Amount_FN06_1' => 0,
+                                                            'Amount_FN02_1' => 0,
+                                                            'Amount_FN08_1' => 0,
+                                                            'Amount_FN06_2' => 0,
+                                                            'Amount_FN02_2' => 0,
+                                                            'Amount_FN08_2' => 0,
+                                                            'Allocated_FN06_1' => 0,
+                                                            'Allocated_FN02_1' => 0,
+                                                            'Allocated_FN08_1' => 0,
+                                                            'Allocated_FN06_2' => 0,
+                                                            'Allocated_FN02_2' => 0,
+                                                            'Allocated_FN08_2' => 0,
+                                                            'plan' => [],
+                                                        ];
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan])) {
+                                                        $summary[$Faculty]['plan'][$Plan] = [
+                                                            'name' => $row['plan_name'],
+                                                            'Amount_FN06_1' => 0,
+                                                            'Amount_FN02_1' => 0,
+                                                            'Amount_FN08_1' => 0,
+                                                            'Amount_FN06_2' => 0,
+                                                            'Amount_FN02_2' => 0,
+                                                            'Amount_FN08_2' => 0,
+                                                            'Allocated_FN06_1' => 0,
+                                                            'Allocated_FN02_1' => 0,
+                                                            'Allocated_FN08_1' => 0,
+                                                            'Allocated_FN06_2' => 0,
+                                                            'Allocated_FN02_2' => 0,
+                                                            'Allocated_FN08_2' => 0,
+                                                            'subPlan' => [],
+                                                        ];
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan])) {
+                                                        $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan] = [
+                                                            'name' => $row['sub_plan_name'],
+                                                            'Faculty' => $row['Faculty'],
+                                                            'Plan' => $row['Plan'],
+                                                            'Sub_Plan' => $row['Sub_Plan'],
+                                                            'ProjectID' => $row['Project'],
+                                                            'Amount_FN06_1' => 0,
+                                                            'Amount_FN02_1' => 0,
+                                                            'Amount_FN08_1' => 0,
+                                                            'Amount_FN06_2' => 0,
+                                                            'Amount_FN02_2' => 0,
+                                                            'Amount_FN08_2' => 0,
+                                                            'Allocated_FN06_1' => 0,
+                                                            'Allocated_FN02_1' => 0,
+                                                            'Allocated_FN08_1' => 0,
+                                                            'Allocated_FN06_2' => 0,
+                                                            'Allocated_FN02_2' => 0,
+                                                            'Allocated_FN08_2' => 0,
+                                                            'project' => [],
+                                                        ];
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project])) {
+                                                        $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project] = [
+                                                            'name' => $row['project_name'],
+                                                            'Faculty' => $row['Faculty'],
+                                                            'Plan' => $row['Plan'],
+                                                            'Sub_Plan' => $row['Sub_Plan'],
+                                                            'ProjectID' => $row['Project'],
+                                                            'Amount_FN06_1' => 0,
+                                                            'Amount_FN02_1' => 0,
+                                                            'Amount_FN08_1' => 0,
+                                                            'Amount_FN06_2' => 0,
+                                                            'Amount_FN02_2' => 0,
+                                                            'Amount_FN08_2' => 0,
+                                                            'Allocated_FN06_1' => 0,
+                                                            'Allocated_FN02_1' => 0,
+                                                            'Allocated_FN08_1' => 0,
+                                                            'Allocated_FN06_2' => 0,
+                                                            'Allocated_FN02_2' => 0,
+                                                            'Allocated_FN08_2' => 0,
+                                                            'name_a1' => [],
+                                                        ];
+                                                    }
+                                                    $ItemName_a1 = (!empty($row['Name_a1']))
+                                                        ? "" . htmlspecialchars($row['a1']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a1']))
+                                                        : "" . htmlspecialchars($row['a1']) . "";
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1])) {
+                                                        $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1] = [
+                                                            'a1' => $row['a1'],
+                                                            'name' => $ItemName_a1,
+                                                            'Amount_FN06_1' => 0,
+                                                            'Amount_FN02_1' => 0,
+                                                            'Amount_FN08_1' => 0,
+                                                            'Amount_FN06_2' => 0,
+                                                            'Amount_FN02_2' => 0,
+                                                            'Amount_FN08_2' => 0,
+                                                            'Allocated_FN06_1' => 0,
+                                                            'Allocated_FN02_1' => 0,
+                                                            'Allocated_FN08_1' => 0,
+                                                            'Allocated_FN06_2' => 0,
+                                                            'Allocated_FN02_2' => 0,
+                                                            'Allocated_FN08_2' => 0,
+                                                            'Reason' => $row['Reason'],
+                                                            'name_a2' => [],
+                                                        ];
+                                                    }
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a2
+                                                    if (!empty($row['a2']) && !empty($row['Name_a2']) && $row['Name_a2'] != $row['KKU_Item_Name']) {
+                                                        $ItemName_a2 = htmlspecialchars($row['a2']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                    } elseif (!empty($row['a2']) && !empty($row['Name_a2'])) {
+                                                        $ItemName_a2 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['Name_a2']));
+                                                    } else {
+                                                        $ItemName_a2 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2])) {
+                                                        $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2] = [
+                                                            'a1' => $row['a1'],
+                                                            'a2' => $row['a2'],
+                                                            'name' => $ItemName_a2,
+                                                            'test' => $row['Name_a2'],
+                                                            'test2' => $row['Name_a3'],
+                                                            'Amount_FN06_1' => 0,
+                                                            'Amount_FN02_1' => 0,
+                                                            'Amount_FN08_1' => 0,
+                                                            'Amount_FN06_2' => 0,
+                                                            'Amount_FN02_2' => 0,
+                                                            'Amount_FN08_2' => 0,
+                                                            'Allocated_FN06_1' => 0,
+                                                            'Allocated_FN02_1' => 0,
+                                                            'Allocated_FN08_1' => 0,
+                                                            'Allocated_FN06_2' => 0,
+                                                            'Allocated_FN02_2' => 0,
+                                                            'Allocated_FN08_2' => 0,
+                                                            'Reason' => $row['Reason'],
+                                                            'name_a3' => [],
+                                                        ];
+                                                    }
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a3
+                                                    if (!empty($row['a3']) && !empty($row['Name_a3']) && $row['Name_a3'] != $row['KKU_Item_Name']) {
+                                                        $ItemName_a3 = htmlspecialchars($row['a3']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                    } elseif (!empty($row['a3']) && !empty($row['Name_a3'])) {
+                                                        $ItemName_a3 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['Name_a3']));
+                                                    } else {
+                                                        $ItemName_a3 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3])) {
+                                                        $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3] = [
+                                                            'a2' => $row['a2'],
+                                                            'a3' => $row['a3'],
+                                                            'name' => $ItemName_a3,
+                                                            'test' => $row['Name_a3'],
+                                                            'test2' => $row['Name_a4'],
+                                                            'Amount_FN06_1' => 0,
+                                                            'Amount_FN02_1' => 0,
+                                                            'Amount_FN08_1' => 0,
+                                                            'Amount_FN06_2' => 0,
+                                                            'Amount_FN02_2' => 0,
+                                                            'Amount_FN08_2' => 0,
+                                                            'Allocated_FN06_1' => 0,
+                                                            'Allocated_FN02_1' => 0,
+                                                            'Allocated_FN08_1' => 0,
+                                                            'Allocated_FN06_2' => 0,
+                                                            'Allocated_FN02_2' => 0,
+                                                            'Allocated_FN08_2' => 0,
+                                                            'Reason' => $row['Reason'],
+                                                            'name_a4' => [],
+                                                        ];
+                                                    }
+                                                    // ตรวจสอบและกำหนดค่าของ $ItemName_a4
+                                                    if (!empty($row['a4']) && !empty($row['Name_a4']) && $row['Name_a4'] != $row['KKU_Item_Name']) {
+                                                        $ItemName_a4 = htmlspecialchars($row['a4']) . " : " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                    } elseif (!empty($row['a4']) && !empty($row['Name_a4'])) {
+                                                        $ItemName_a4 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['Name_a4']));
+                                                    } else {
+                                                        $ItemName_a4 = "-" . " " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']));
+                                                    }
+                                                    if (!isset($summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4])) {
+                                                        $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4] = [
+                                                            'a3' => $row['a3'],
+                                                            'a4' => $row['a4'],
+                                                            'name' => $ItemName_a4,
+                                                            'test' => $row['Name_a4'],
+                                                            'test2' => $row['KKU_Item_Name'],
+                                                            'Amount_FN06_1' => 0,
+                                                            'Amount_FN02_1' => 0,
+                                                            'Amount_FN08_1' => 0,
+                                                            'Amount_FN06_2' => 0,
+                                                            'Amount_FN02_2' => 0,
+                                                            'Amount_FN08_2' => 0,
+                                                            'Allocated_FN06_1' => 0,
+                                                            'Allocated_FN02_1' => 0,
+                                                            'Allocated_FN08_1' => 0,
+                                                            'Allocated_FN06_2' => 0,
+                                                            'Allocated_FN02_2' => 0,
+                                                            'Allocated_FN08_2' => 0,
+                                                            'Reason' => $row['Reason'],
+                                                            'kku_items' => [],
+                                                        ];
+                                                    }
+                                                    //ผลรวมขึ้น Faculty
+                                                    $summary[$Faculty]['Amount_FN06_1'] += $row['Amount_FN06_1'];
+                                                    $summary[$Faculty]['Amount_FN02_1'] += $row['Amount_FN02_1'];
+                                                    $summary[$Faculty]['Amount_FN08_1'] += $row['Amount_FN08_1'];
+                                                    $summary[$Faculty]['Amount_FN06_2'] += $row['Amount_FN06_2'];
+                                                    $summary[$Faculty]['Amount_FN02_2'] += $row['Amount_FN02_2'];
+                                                    $summary[$Faculty]['Amount_FN08_2'] += $row['Amount_FN08_2'];
+                                                    $summary[$Faculty]['Allocated_FN06_1'] += $row['Allocated_FN06_1'];
+                                                    $summary[$Faculty]['Allocated_FN02_1'] += $row['Allocated_FN02_1'];
+                                                    $summary[$Faculty]['Allocated_FN08_1'] += $row['Allocated_FN08_1'];
+                                                    $summary[$Faculty]['Allocated_FN06_2'] += $row['Allocated_FN06_2'];
+                                                    $summary[$Faculty]['Allocated_FN02_2'] += $row['Allocated_FN02_2'];
+                                                    $summary[$Faculty]['Allocated_FN08_2'] += $row['Allocated_FN08_2'];
 
+                                                    //ผลรวมขึ้น Plan
+                                                    $summary[$Faculty]['plan'][$Plan]['Amount_FN06_1'] += $row['Amount_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Amount_FN02_1'] += $row['Amount_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Amount_FN08_1'] += $row['Amount_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Amount_FN06_2'] += $row['Amount_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Amount_FN02_2'] += $row['Amount_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Amount_FN08_2'] += $row['Amount_FN08_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Allocated_FN06_1'] += $row['Allocated_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Allocated_FN02_1'] += $row['Allocated_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Allocated_FN08_1'] += $row['Allocated_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Allocated_FN06_2'] += $row['Allocated_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Allocated_FN02_2'] += $row['Allocated_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['Allocated_FN08_2'] += $row['Allocated_FN08_2'];
+
+                                                    //ผลรวมขึ้น Sub_Plan
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Amount_FN06_1'] += $row['Amount_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Amount_FN02_1'] += $row['Amount_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Amount_FN08_1'] += $row['Amount_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Amount_FN06_2'] += $row['Amount_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Amount_FN02_2'] += $row['Amount_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Amount_FN08_2'] += $row['Amount_FN08_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Allocated_FN06_1'] += $row['Allocated_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Allocated_FN02_1'] += $row['Allocated_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Allocated_FN08_1'] += $row['Allocated_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Allocated_FN06_2'] += $row['Allocated_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Allocated_FN02_2'] += $row['Allocated_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['Allocated_FN08_2'] += $row['Allocated_FN08_2'];
+
+                                                    //ผลรวมขึ้น Project
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Amount_FN06_1'] += $row['Amount_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Amount_FN02_1'] += $row['Amount_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Amount_FN08_1'] += $row['Amount_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Amount_FN06_2'] += $row['Amount_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Amount_FN02_2'] += $row['Amount_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Amount_FN08_2'] += $row['Amount_FN08_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Allocated_FN06_1'] += $row['Allocated_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Allocated_FN02_1'] += $row['Allocated_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Allocated_FN08_1'] += $row['Allocated_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Allocated_FN06_2'] += $row['Allocated_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Allocated_FN02_2'] += $row['Allocated_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['Allocated_FN08_2'] += $row['Allocated_FN08_2'];
+
+                                                    //ผลรวมขึ้น Name_a1
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Amount_FN06_1'] += $row['Amount_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Amount_FN02_1'] += $row['Amount_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Amount_FN08_1'] += $row['Amount_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Amount_FN06_2'] += $row['Amount_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Amount_FN02_2'] += $row['Amount_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Amount_FN08_2'] += $row['Amount_FN08_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Allocated_FN06_1'] += $row['Allocated_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Allocated_FN02_1'] += $row['Allocated_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Allocated_FN08_1'] += $row['Allocated_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Allocated_FN06_2'] += $row['Allocated_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Allocated_FN02_2'] += $row['Allocated_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['Allocated_FN08_2'] += $row['Allocated_FN08_2'];
+
+                                                    //ผลรวมขึ้น Name_a2
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Amount_FN06_1'] += $row['Amount_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Amount_FN02_1'] += $row['Amount_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Amount_FN08_1'] += $row['Amount_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Amount_FN06_2'] += $row['Amount_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Amount_FN02_2'] += $row['Amount_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Amount_FN08_2'] += $row['Amount_FN08_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Allocated_FN06_1'] += $row['Allocated_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Allocated_FN02_1'] += $row['Allocated_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Allocated_FN08_1'] += $row['Allocated_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Allocated_FN06_2'] += $row['Allocated_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Allocated_FN02_2'] += $row['Allocated_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['Allocated_FN08_2'] += $row['Allocated_FN08_2'];
+
+                                                    //ผลรวมขึ้น Name_a3
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Amount_FN06_1'] += $row['Amount_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Amount_FN02_1'] += $row['Amount_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Amount_FN08_1'] += $row['Amount_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Amount_FN06_2'] += $row['Amount_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Amount_FN02_2'] += $row['Amount_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Amount_FN08_2'] += $row['Amount_FN08_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Allocated_FN06_1'] += $row['Allocated_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Allocated_FN02_1'] += $row['Allocated_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Allocated_FN08_1'] += $row['Allocated_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Allocated_FN06_2'] += $row['Allocated_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Allocated_FN02_2'] += $row['Allocated_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['Allocated_FN08_2'] += $row['Allocated_FN08_2'];
+
+                                                    //ผลรวมขึ้น Name_a4
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Amount_FN06_1'] += $row['Amount_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Amount_FN02_1'] += $row['Amount_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Amount_FN08_1'] += $row['Amount_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Amount_FN06_2'] += $row['Amount_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Amount_FN02_2'] += $row['Amount_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Amount_FN08_2'] += $row['Amount_FN08_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Allocated_FN06_1'] += $row['Allocated_FN06_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Allocated_FN02_1'] += $row['Allocated_FN02_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Allocated_FN08_1'] += $row['Allocated_FN08_1'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Allocated_FN06_2'] += $row['Allocated_FN06_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Allocated_FN02_2'] += $row['Allocated_FN02_2'];
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['Allocated_FN08_2'] += $row['Allocated_FN08_2'];
+                                                    $kkuItemName = (!empty($row['KKU_Item_Name']))
+                                                        ? "" . "-" . " " . htmlspecialchars(removeLeadingNumbers($row['KKU_Item_Name']))
+                                                        : "" . "";
+                                                    $summary[$Faculty]['plan'][$Plan]['subPlan'][$Sub_Plan]['project'][$Project]['name_a1'][$Name_a1]['name_a2'][$Name_a2]['name_a3'][$Name_a3]['name_a4'][$Name_a4]['kku_items'][] = [
+                                                        'name' => $kkuItemName,
+                                                        'a4' => $row['a4'],
+                                                        'a5' => $row['Account'],
+                                                        'Amount_FN06_1' => $row['Amount_FN06_1'],
+                                                        'Amount_FN02_1' => $row['Amount_FN02_1'],
+                                                        'Amount_FN08_1' => $row['Amount_FN08_1'],
+                                                        'Amount_FN06_2' => $row['Amount_FN06_2'],
+                                                        'Amount_FN02_2' => $row['Amount_FN02_2'],
+                                                        'Amount_FN08_2' => $row['Amount_FN08_2'],
+                                                        'Allocated_FN06_1' => $row['Allocated_FN06_1'],
+                                                        'Allocated_FN02_1' => $row['Allocated_FN02_1'],
+                                                        'Allocated_FN08_1' => $row['Allocated_FN08_1'],
+                                                        'Allocated_FN06_2' => $row['Allocated_FN06_2'],
+                                                        'Allocated_FN02_2' => $row['Allocated_FN02_2'],
+                                                        'Allocated_FN08_2' => $row['Allocated_FN08_2'],
+                                                        'Reason' => $row['Reason'],
+                                                        'test' => $row['KKU_Item_Name'],
+                                                    ];
+                                                }
+                                                foreach ($summary as $Faculty => $data1) {
+                                                    $facultyData = str_replace('-', ':', $data1['name']);
+                                                    $TotalAllocate1 = $data1['Allocated_FN06_1'] + $data1['Allocated_FN02_1'] + $data1['Allocated_FN08_1'];
+                                                    $TotalAllocate2 = $data1['Allocated_FN06_2'] + $data1['Allocated_FN02_2'] + $data1['Allocated_FN08_2'];
+                                                    $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                    $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+                                                    echo "<tr>";
+                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Allocated_FN06_2']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Allocated_FN02_2']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Allocated_FN08_2']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Amount_FN06_1']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Allocated_FN06_1']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Amount_FN02_1']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Allocated_FN02_1']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Amount_FN08_1']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($data1['Allocated_FN08_1']) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                    echo "</tr>";
+                                                    foreach ($data1['plan'] as $Plan => $data2) {
+                                                        $TotalAllocate1 = $data2['Allocated_FN06_1'] + $data2['Allocated_FN02_1'] + $data2['Allocated_FN08_1'];
+                                                        $TotalAllocate2 = $data2['Allocated_FN06_2'] + $data2['Allocated_FN02_2'] + $data2['Allocated_FN08_2'];
+                                                        $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                        $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+                                                        echo "<tr>";
+                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($data2['name']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Allocated_FN06_2']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Allocated_FN02_2']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Allocated_FN08_2']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Amount_FN06_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Allocated_FN06_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Amount_FN02_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Allocated_FN02_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Amount_FN08_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($data2['Allocated_FN08_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                        echo "</tr>";
+                                                        foreach ($data2['subPlan'] as $Sub_Plan => $data3) {
+                                                            // ใช้ข้อมูลจาก $summary ไปดึงข้อมูลจาก $results2 ที่ตรงกัน
+                                                            $matchingResults2 = array_filter($results2, function ($result2) use ($data3) {
+                                                                return $result2['Faculty'] === $data3['Faculty'] && $result2['Plan'] === $data3['Plan'] && $result2['Sub_Plan'] === $data3['Sub_Plan'];
+                                                            });
+
+                                                            // นำข้อมูลที่ตรงกันไปเก็บใน $data3
+                                                            $data3['kpi_data1'] = $matchingResults2;
+                                                            $subPlanName = str_replace('SP_', '', $Sub_Plan ?? '');
+                                                            $TotalAllocate1 = $data3['Allocated_FN06_1'] + $data3['Allocated_FN02_1'] + $data3['Allocated_FN08_1'];
+                                                            $TotalAllocate2 = $data3['Allocated_FN06_2'] + $data3['Allocated_FN02_2'] + $data3['Allocated_FN08_2'];
+                                                            $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                            $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+                                                            // แสดงข้อมูล Sub Plan
+                                                            echo "<tr>";
+                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($subPlanName) . " : " . htmlspecialchars($data3['name'] ?? '') . "</td>";
+                                                            echo "<td style='text-align: center;'>" . "</td>";
+                                                            echo "<td style='text-align: center;'>" . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Allocated_FN06_2']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Allocated_FN02_2']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Allocated_FN08_2']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Amount_FN06_1']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Allocated_FN06_1']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Amount_FN02_1']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Allocated_FN02_1']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Amount_FN08_1']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($data3['Allocated_FN08_1']) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                            echo "<td style='text-align: center;'>" . "</td>";
+                                                            echo "</tr>";
+                                                            // แสดงข้อมูล KPI ของ Sub Plan
+                                                            if (!empty($data3['kpi_data1'])) {
+                                                                foreach ($data3['kpi_data1'] as $row2) {
+                                                                    echo "<tr>";
+                                                                    echo "<td>" . str_repeat("&nbsp;", 16) . " - " . htmlspecialchars($row2['Sub_plan_KPI_Name']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . htmlspecialchars($row2['UoM_for_Sub_plan_KPI']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . htmlspecialchars($row2['Sub_plan_KPI_Target_2']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . htmlspecialchars($row2['Sub_plan_KPI_Target_1']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "</tr>";
+                                                                }
+                                                            } else {
+                                                                echo "<td  style='text-align:center;'>ไม่มีข้อมูล KPI</td>";
+                                                                echo "<td colspan='14' style='text-align:center;'> -</td>";
+                                                            }
+
+                                                            foreach ($data3['project'] as $Project => $data4) {
+                                                                // ค้นหาข้อมูลที่ตรงกันจาก $results3
+                                                                $matchingResults3 = array_filter($results3, function ($result3) use ($data4) {
+                                                                    return $result3['Faculty'] === $data4['Faculty'] && $result3['Project'] === $data4['ProjectID'];
+                                                                });
+
+                                                                // นำข้อมูลที่ตรงกันไปเก็บใน $data4
+                                                                $data4['kpi_data2'] = $matchingResults3;
+                                                                $TotalAllocate1 = $data4['Allocated_FN06_1'] + $data4['Allocated_FN02_1'] + $data4['Allocated_FN08_1'];
+                                                                $TotalAllocate2 = $data4['Allocated_FN06_2'] + $data4['Allocated_FN02_2'] + $data4['Allocated_FN08_2'];
+                                                                $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                                $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+                                                                echo "<tr>";
+                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 24) . htmlspecialchars($data4['name']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . "</td>";
+                                                                echo "<td style='text-align: center;'>" . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Allocated_FN06_2']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Allocated_FN02_2']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Allocated_FN08_2']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Amount_FN06_1']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Allocated_FN06_1']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Amount_FN02_1']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Allocated_FN02_1']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Amount_FN08_1']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($data4['Allocated_FN08_1']) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                                echo "<td style='text-align: center;'>" . "</td>";
+                                                                echo "</tr>";
+                                                                if (!empty($data4['kpi_data2'])) {
+                                                                    foreach ($data4['kpi_data2'] as $row3) {
+                                                                        echo "<tr>";
+                                                                        echo "<td>" . str_repeat("&nbsp;", 24) . " - " . htmlspecialchars($row3['Proj_KPI_Name']) . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . htmlspecialchars($row3['UoM_for_Proj_KPI']) . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . htmlspecialchars($row3['Proj_KPI_Target_2']) . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . htmlspecialchars($row3['Proj_KPI_Target_1']) . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                                        echo "</tr>";
+                                                                    }
+
+                                                                } else {
+                                                                    echo "<tr>";
+                                                                    echo "<td  style='text-align:center;'>ไม่มีข้อมูล KPI</td>";
+                                                                    echo "<td colspan='14' style='text-align:center;'>-</td>";
+                                                                    echo "</tr>";
+                                                                }
+                                                                foreach ($data4['name_a1'] as $Name_a1 => $data5) {
+                                                                    $TotalAllocate1 = $data5['Allocated_FN06_1'] + $data5['Allocated_FN02_1'] + $data5['Allocated_FN08_1'];
+                                                                    $TotalAllocate2 = $data5['Allocated_FN06_2'] + $data5['Allocated_FN02_2'] + $data5['Allocated_FN08_2'];
+                                                                    $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                                    $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+                                                                    echo "<tr>";
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 32) . htmlspecialchars($data5['name']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Allocated_FN06_2']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Allocated_FN02_2']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Allocated_FN08_2']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Amount_FN06_1']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Allocated_FN06_1']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Amount_FN02_1']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Allocated_FN02_1']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Amount_FN08_1']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($data5['Allocated_FN08_1']) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                                    echo "<td style='text-align: center;'>" . "</td>";
+                                                                    echo "</tr>";
+                                                                    if (isset($data5['name_a2']) && is_array($data5['name_a2'])) {
+                                                                        foreach ($data5['name_a2'] as $Name_a2 => $data6) {
+                                                                            if ($data6['test'] == null || $data6['test'] == '') {
+                                                                                continue;
+                                                                            }
+                                                                            $TotalAllocate1 = $data6['Allocated_FN06_1'] + $data6['Allocated_FN02_1'] + $data6['Allocated_FN08_1'];
+                                                                            $TotalAllocate2 = $data6['Allocated_FN06_2'] + $data6['Allocated_FN02_2'] + $data6['Allocated_FN08_2'];
+                                                                            $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                                            $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+
+                                                                            echo "<tr>";
+                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 40) . htmlspecialchars($data6['name']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Allocated_FN06_2']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Allocated_FN02_2']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Allocated_FN08_2']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Amount_FN06_1']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Allocated_FN06_1']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Amount_FN02_1']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Allocated_FN02_1']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Amount_FN08_1']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($data6['Allocated_FN08_1']) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                                            echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                                            if ($data6['test2'] == null || $data6['test2'] == '' || $data6['test'] == $data6['test2']) {
+                                                                                echo "<td style='text-align: center;'>" . (isset($data6['Reason']) && !empty($data6['Reason']) ? htmlspecialchars($data6['Reason']) : "") . "</td>";
+                                                                            } else {
+                                                                                echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                            }
+                                                                            echo "</tr>";
+                                                                            if (isset($data6['name_a3']) && is_array($data6['name_a3'])) {
+                                                                                foreach ($data6['name_a3'] as $Name_a3 => $data7) {
+                                                                                    if ($data7['test'] == null || $data7['test'] == '') {
+                                                                                        continue;
+                                                                                    }
+                                                                                    $TotalAllocate1 = $data7['Allocated_FN06_1'] + $data7['Allocated_FN02_1'] + $data7['Allocated_FN08_1'];
+                                                                                    $TotalAllocate2 = $data7['Allocated_FN06_2'] + $data7['Allocated_FN02_2'] + $data7['Allocated_FN08_2'];
+                                                                                    $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                                                    $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+
+                                                                                    echo "<tr>";
+                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 48) . htmlspecialchars($data7['name']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Allocated_FN06_2']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Allocated_FN02_2']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Allocated_FN08_2']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Amount_FN06_1']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Allocated_FN06_1']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Amount_FN02_1']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Allocated_FN02_1']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Amount_FN08_1']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data7['Allocated_FN08_1']) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                                                    echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                                                    if ($data7['test2'] == null || $data7['test2'] == '' || $data7['test'] == $data7['test2']) {
+                                                                                        echo "<td style='text-align: center;'>" . (isset($data7['Reason']) && !empty($data7['Reason']) ? htmlspecialchars($data7['Reason']) : "") . "</td>";
+                                                                                    } else {
+                                                                                        echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                    }
+                                                                                    echo "</tr>";
+                                                                                    if (isset($data7['name_a4']) && is_array($data7['name_a4'])) {
+                                                                                        foreach ($data7['name_a4'] as $Name_a3 => $data8) {
+                                                                                            if ($data8['test'] == null || $data8['test'] == '') {
+                                                                                                continue;
+                                                                                            }
+                                                                                            $TotalAllocate1 = $data8['Allocated_FN06_1'] + $data8['Allocated_FN02_1'] + $data8['Allocated_FN08_1'];
+                                                                                            $TotalAllocate2 = $data8['Allocated_FN06_2'] + $data8['Allocated_FN02_2'] + $data8['Allocated_FN08_2'];
+                                                                                            $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                                                            $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+
+                                                                                            echo "<tr>";
+                                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 56) . htmlspecialchars($data8['name']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Allocated_FN06_2']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Allocated_FN02_2']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Allocated_FN08_2']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Amount_FN06_1']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Allocated_FN06_1']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Amount_FN02_1']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Allocated_FN02_1']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Amount_FN08_1']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($data8['Allocated_FN08_1']) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                                                            echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                                                            if ($data8['test2'] == null || $data8['test2'] == '' || $data8['test'] == $data8['test2']) {
+                                                                                                echo "<td style='text-align: center;'>" . (isset($data8['Reason']) && !empty($data8['Reason']) ? htmlspecialchars($data8['Reason']) : "") . "</td>";
+                                                                                            } else {
+                                                                                                echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                            }
+                                                                                            echo "</tr>";
+                                                                                            if (isset($data8['kku_items']) && is_array($data8['kku_items'])) {
+                                                                                                foreach ($data8['kku_items'] as $data9) {
+                                                                                                    if ($data9['test'] == null || $data9['test'] == '') {
+                                                                                                        continue;
+                                                                                                    }
+                                                                                                    $TotalAllocate1 = $data9['Allocated_FN06_1'] + $data9['Allocated_FN02_1'] + $data9['Allocated_FN08_1'];
+                                                                                                    $TotalAllocate2 = $data9['Allocated_FN06_2'] + $data9['Allocated_FN02_2'] + $data9['Allocated_FN08_2'];
+                                                                                                    $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                                                                    $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+                                                                                                    echo "<tr>";
+                                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 64) . htmlspecialchars($data9['name']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                                    echo "<td style='text-align: center;' >" . " - " . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Allocated_FN06_2']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Allocated_FN02_2']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Allocated_FN08_2']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . " - " . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Amount_FN06_1']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Allocated_FN06_1']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Amount_FN02_1']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Allocated_FN02_1']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Amount_FN08_1']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($data9['Allocated_FN08_1']) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                                                                    echo "<td style='text-align: center;'>" . htmlentities($data9['Reason']) . "</td>";
+                                                                                                    echo "</tr>";
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             } else {
                                                 echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
@@ -572,7 +1595,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม.csv';
+            link.download = 'รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน.csv';
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
@@ -592,7 +1615,7 @@ function fetchYearsData($conn)
 
             // ตั้งค่าฟอนต์และข้อความ
             doc.setFontSize(12);
-            doc.text("รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม", 10, 500);
+            doc.text("รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน", 10, 500);
 
             // ใช้ autoTable สำหรับสร้างตาราง
             doc.autoTable({
@@ -617,7 +1640,7 @@ function fetchYearsData($conn)
             });
 
             // บันทึกไฟล์ PDF
-            doc.save('รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม.pdf');
+            doc.save('รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน.pdf');
         }
 
         function exportXLS() {
@@ -661,7 +1684,7 @@ function fetchYearsData($conn)
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = 'รายงานเปรียบเทียบงบประมาณที่ได้รับการจัดสรร/ผลการใช้งบประมาณในภาพรวม.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
+            link.download = 'รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน.xlsx'; // เปลี่ยนนามสกุลเป็น .xlsx
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);

@@ -806,7 +806,7 @@ function fetchScenariosData($conn)
                                                         'Total_Amount_2568_SUM' => 0,
                                                         'Difference_2568_2567' => 0,
                                                         'Percentage_2568_to_2567' => 0,
-                                                        'Name_a4' => [], // เก็บข้อมูลของ Sub_Plan
+                                                        'kku_items' => [], // เก็บข้อมูลของ Sub_Plan
                                                     ];
                                                 }
 
