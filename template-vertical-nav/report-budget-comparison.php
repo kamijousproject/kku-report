@@ -1161,6 +1161,73 @@ function fetchYearsData($conn)
                                                         'Reason' => $row['Reason'],
                                                         'test' => $row['KKU_Item_Name'],
                                                     ];
+                                                    $rows = $summary;
+                                                    // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
+                                                    $total_summary = [
+                                                        'Amount_FN06_1' => 0,
+                                                        'Amount_FN02_1' => 0,
+                                                        'Amount_FN08_1' => 0,
+                                                        'Amount_FN06_2' => 0,
+                                                        'Amount_FN02_2' => 0,
+                                                        'Amount_FN08_2' => 0,
+                                                        'Allocated_FN06_1' => 0,
+                                                        'Allocated_FN02_1' => 0,
+                                                        'Allocated_FN08_1' => 0,
+                                                        'Allocated_FN06_2' => 0,
+                                                        'Allocated_FN02_2' => 0,
+                                                        'Allocated_FN08_2' => 0,
+                                                    ];
+                                                    // แสดงผลรวมทั้งหมด
+                                                    //print_r($total_summary);
+                                                    // Assuming this is inside a loop where $row is updated (e.g., from a database query)
+                                                    foreach ($rows as $row) { // Replace $rows with your actual data source
+                                                        // รวมผลรวมทั้งหมดโดยไม่สนใจ Faculty
+                                                        $total_summary['Amount_FN06_1'] += (float) ($row['Amount_FN06_1'] ?? 0);
+                                                        $total_summary['Amount_FN02_1'] += (float) ($row['Amount_FN02_1'] ?? 0);
+                                                        $total_summary['Amount_FN08_1'] += (float) ($row['Amount_FN08_1'] ?? 0);
+
+                                                        $total_summary['Amount_FN06_2'] += (float) ($row['Amount_FN06_2'] ?? 0);
+                                                        $total_summary['Amount_FN02_2'] += (float) ($row['Amount_FN02_2'] ?? 0);
+                                                        $total_summary['Amount_FN08_2'] += (float) ($row['Amount_FN08_2'] ?? 0);
+
+                                                        $total_summary['Allocated_FN06_1'] += (float) ($row['Allocated_FN06_1'] ?? 0);
+                                                        $total_summary['Allocated_FN02_1'] += (float) ($row['Allocated_FN02_1'] ?? 0);
+                                                        $total_summary['Allocated_FN08_1'] += (float) ($row['Allocated_FN08_1'] ?? 0);
+
+                                                        $total_summary['Allocated_FN06_2'] += (float) ($row['Allocated_FN06_2'] ?? 0);
+                                                        $total_summary['Allocated_FN02_2'] += (float) ($row['Allocated_FN02_2'] ?? 0);
+                                                        $total_summary['Allocated_FN08_2'] += (float) ($row['Allocated_FN08_2'] ?? 0);
+                                                    }
+                                                }
+                                                if ($selectedFaculty == null) {
+                                                    if (isset($summary) && is_array($summary)) {
+                                                        $TotalAllocate1 = $total_summary['Allocated_FN06_1'] + $total_summary['Allocated_FN02_1'] + $total_summary['Allocated_FN08_1'];
+                                                        $TotalAllocate2 = $total_summary['Allocated_FN06_2'] + $total_summary['Allocated_FN02_2'] + $total_summary['Allocated_FN08_2'];
+                                                        $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
+                                                        $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
+                                                        echo "<tr>";
+                                                        echo "<td style='text-align: left;'>" . "รวมทั้งสิ้น" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Allocated_FN06_2']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Allocated_FN02_2']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Allocated_FN08_2']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate2) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Amount_FN06_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Allocated_FN06_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Amount_FN02_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Allocated_FN02_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Amount_FN08_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($total_summary['Allocated_FN08_1']) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                        echo "<td style='text-align: center;'>" . "</td>";
+                                                        echo "</tr>";
+                                                    } else {
+                                                        echo "<tr><td colspan='18' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
+                                                    }
                                                 }
                                                 foreach ($summary as $Faculty => $data1) {
                                                     $facultyData = str_replace('-', ':', $data1['name']);
@@ -1169,7 +1236,12 @@ function fetchYearsData($conn)
                                                     $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
                                                     $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
                                                     echo "<tr>";
-                                                    echo "<td style='text-align: left;'>" . htmlspecialchars($facultyData) . "</td>";
+                                                    if ($selectedFaculty == null) {
+                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($facultyData) . "</td>";
+                                                    } else {
+                                                        echo "<td style='text-align: left;'>" . "รวมทั้งสิ้น" . "</td>";
+                                                    }
+
                                                     echo "<td style='text-align: center;'>" . "</td>";
                                                     echo "<td style='text-align: center;'>" . "</td>";
                                                     echo "<td style='text-align: center;'>" . formatNumber($data1['Allocated_FN06_2']) . "</td>";
@@ -1186,6 +1258,7 @@ function fetchYearsData($conn)
                                                     echo "<td style='text-align: center;'>" . formatNumber($TotalAllocate1) . "</td>";
                                                     echo "<td style='text-align: center;'>" . formatNumber($deffAllocate) . "</td>";
                                                     echo "<td style='text-align: center;'>" . formatNumber($Percen) . "</td>";
+                                                    echo "<td style='text-align: center;'>" . "</td>";
                                                     echo "</tr>";
                                                     foreach ($data1['plan'] as $Plan => $data2) {
                                                         $TotalAllocate1 = $data2['Allocated_FN06_1'] + $data2['Allocated_FN02_1'] + $data2['Allocated_FN08_1'];
@@ -1193,7 +1266,12 @@ function fetchYearsData($conn)
                                                         $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
                                                         $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
                                                         echo "<tr>";
-                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($data2['name']) . "</td>";
+                                                        if ($selectedFaculty == null) {
+                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 16) . htmlspecialchars($data2['name']) . "</td>";
+                                                        } else {
+                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($data2['name']) . "</td>";
+                                                        }
+
                                                         echo "<td style='text-align: center;'>" . "</td>";
                                                         echo "<td style='text-align: center;'>" . "</td>";
                                                         echo "<td style='text-align: center;'>" . formatNumber($data2['Allocated_FN06_2']) . "</td>";
@@ -1227,7 +1305,12 @@ function fetchYearsData($conn)
                                                             $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
                                                             // แสดงข้อมูล Sub Plan
                                                             echo "<tr>";
-                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($subPlanName) . " : " . htmlspecialchars($data3['name'] ?? '') . "</td>";
+                                                            if ($selectedFaculty == null) {
+                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($subPlanName) . " : " . htmlspecialchars($data3['name'] ?? '') . "</td>";
+                                                            } else {
+                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($subPlanName) . " : " . htmlspecialchars($data3['name'] ?? '') . "</td>";
+                                                            }
+
                                                             echo "<td style='text-align: center;'>" . "</td>";
                                                             echo "<td style='text-align: center;'>" . "</td>";
                                                             echo "<td style='text-align: center;'>" . formatNumber($data3['Allocated_FN06_2']) . "</td>";
@@ -1250,7 +1333,12 @@ function fetchYearsData($conn)
                                                             if (!empty($data3['kpi_data1'])) {
                                                                 foreach ($data3['kpi_data1'] as $row2) {
                                                                     echo "<tr>";
-                                                                    echo "<td>" . str_repeat("&nbsp;", 16) . " - " . htmlspecialchars($row2['Sub_plan_KPI_Name']) . "</td>";
+                                                                    if ($selectedFaculty == null) {
+                                                                        echo "<td>" . str_repeat("&nbsp;", 24) . " - " . htmlspecialchars($row2['Sub_plan_KPI_Name']) . "</td>";
+                                                                    } else {
+                                                                        echo "<td>" . str_repeat("&nbsp;", 16) . " - " . htmlspecialchars($row2['Sub_plan_KPI_Name']) . "</td>";
+                                                                    }
+
                                                                     echo "<td style='text-align: center;'>" . htmlspecialchars($row2['UoM_for_Sub_plan_KPI']) . "</td>";
                                                                     echo "<td style='text-align: center;'>" . htmlspecialchars($row2['Sub_plan_KPI_Target_2']) . "</td>";
                                                                     echo "<td style='text-align: center;'>" . "</td>";
@@ -1288,7 +1376,12 @@ function fetchYearsData($conn)
                                                                 $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
                                                                 $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
                                                                 echo "<tr>";
-                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 24) . htmlspecialchars($data4['name']) . "</td>";
+                                                                if ($selectedFaculty == null) {
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 32) . htmlspecialchars($data4['name']) . "</td>";
+                                                                } else {
+                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 24) . htmlspecialchars($data4['name']) . "</td>";
+                                                                }
+
                                                                 echo "<td style='text-align: center;'>" . "</td>";
                                                                 echo "<td style='text-align: center;'>" . "</td>";
                                                                 echo "<td style='text-align: center;'>" . formatNumber($data4['Allocated_FN06_2']) . "</td>";
@@ -1310,7 +1403,11 @@ function fetchYearsData($conn)
                                                                 if (!empty($data4['kpi_data2'])) {
                                                                     foreach ($data4['kpi_data2'] as $row3) {
                                                                         echo "<tr>";
-                                                                        echo "<td>" . str_repeat("&nbsp;", 24) . " - " . htmlspecialchars($row3['Proj_KPI_Name']) . "</td>";
+                                                                        if ($selectedFaculty == null) {
+                                                                            echo "<td>" . str_repeat("&nbsp;", 32) . " - " . htmlspecialchars($row3['Proj_KPI_Name']) . "</td>";
+                                                                        } else {
+                                                                            echo "<td>" . str_repeat("&nbsp;", 24) . " - " . htmlspecialchars($row3['Proj_KPI_Name']) . "</td>";
+                                                                        }
                                                                         echo "<td style='text-align: center;'>" . htmlspecialchars($row3['UoM_for_Proj_KPI']) . "</td>";
                                                                         echo "<td style='text-align: center;'>" . htmlspecialchars($row3['Proj_KPI_Target_2']) . "</td>";
                                                                         echo "<td style='text-align: center;'>" . "</td>";
@@ -1343,7 +1440,11 @@ function fetchYearsData($conn)
                                                                     $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
                                                                     $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
                                                                     echo "<tr>";
-                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 32) . htmlspecialchars($data5['name']) . "</td>";
+                                                                    if ($selectedFaculty == null) {
+                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 40) . htmlspecialchars($data5['name']) . "</td>";
+                                                                    } else {
+                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 32) . htmlspecialchars($data5['name']) . "</td>";
+                                                                    }
                                                                     echo "<td style='text-align: center;'>" . "</td>";
                                                                     echo "<td style='text-align: center;'>" . "</td>";
                                                                     echo "<td style='text-align: center;'>" . formatNumber($data5['Allocated_FN06_2']) . "</td>";
@@ -1364,7 +1465,7 @@ function fetchYearsData($conn)
                                                                     echo "</tr>";
                                                                     if (isset($data5['name_a2']) && is_array($data5['name_a2'])) {
                                                                         foreach ($data5['name_a2'] as $Name_a2 => $data6) {
-                                                                            if ($data6['test'] == null || $data6['test'] == '') {
+                                                                            if ($data6['test'] == null || $data6['test'] == '' || $data5['name'] == $data6['name']) {
                                                                                 continue;
                                                                             }
                                                                             $TotalAllocate1 = $data6['Allocated_FN06_1'] + $data6['Allocated_FN02_1'] + $data6['Allocated_FN08_1'];
@@ -1373,7 +1474,12 @@ function fetchYearsData($conn)
                                                                             $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
 
                                                                             echo "<tr>";
-                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 40) . htmlspecialchars($data6['name']) . "</td>";
+                                                                            if ($selectedFaculty == null) {
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 48) . htmlspecialchars($data6['name']) . "</td>";
+                                                                            } else {
+                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 40) . htmlspecialchars($data6['name']) . "</td>";
+                                                                            }
+
                                                                             echo "<td style='text-align: center;'>" . "</td>";
                                                                             echo "<td style='text-align: center;'>" . "</td>";
                                                                             echo "<td style='text-align: center;'>" . formatNumber($data6['Allocated_FN06_2']) . "</td>";
@@ -1398,7 +1504,7 @@ function fetchYearsData($conn)
                                                                             echo "</tr>";
                                                                             if (isset($data6['name_a3']) && is_array($data6['name_a3'])) {
                                                                                 foreach ($data6['name_a3'] as $Name_a3 => $data7) {
-                                                                                    if ($data7['test'] == null || $data7['test'] == '') {
+                                                                                    if ($data7['test'] == null || $data7['test'] == '' || $data6['name'] == $data7['name']) {
                                                                                         continue;
                                                                                     }
                                                                                     $TotalAllocate1 = $data7['Allocated_FN06_1'] + $data7['Allocated_FN02_1'] + $data7['Allocated_FN08_1'];
@@ -1407,7 +1513,12 @@ function fetchYearsData($conn)
                                                                                     $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
 
                                                                                     echo "<tr>";
-                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 48) . htmlspecialchars($data7['name']) . "</td>";
+                                                                                    if ($selectedFaculty == null) {
+                                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 56) . htmlspecialchars($data7['name']) . "</td>";
+                                                                                    } else {
+                                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 48) . htmlspecialchars($data7['name']) . "</td>";
+                                                                                    }
+
                                                                                     echo "<td style='text-align: center;'>" . " - " . "</td>";
                                                                                     echo "<td style='text-align: center;'>" . " - " . "</td>";
                                                                                     echo "<td style='text-align: center;'>" . formatNumber($data7['Allocated_FN06_2']) . "</td>";
@@ -1432,7 +1543,7 @@ function fetchYearsData($conn)
                                                                                     echo "</tr>";
                                                                                     if (isset($data7['name_a4']) && is_array($data7['name_a4'])) {
                                                                                         foreach ($data7['name_a4'] as $Name_a3 => $data8) {
-                                                                                            if ($data8['test'] == null || $data8['test'] == '') {
+                                                                                            if ($data8['test'] == null || $data8['test'] == '' || $data7['name'] == $data8['name']) {
                                                                                                 continue;
                                                                                             }
                                                                                             $TotalAllocate1 = $data8['Allocated_FN06_1'] + $data8['Allocated_FN02_1'] + $data8['Allocated_FN08_1'];
@@ -1441,7 +1552,12 @@ function fetchYearsData($conn)
                                                                                             $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
 
                                                                                             echo "<tr>";
-                                                                                            echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 56) . htmlspecialchars($data8['name']) . "</td>";
+                                                                                            if ($selectedFaculty == null) {
+                                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 64) . htmlspecialchars($data8['name']) . "</td>";
+                                                                                            } else {
+                                                                                                echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 56) . htmlspecialchars($data8['name']) . "</td>";
+                                                                                            }
+
                                                                                             echo "<td style='text-align: center;'>" . " - " . "</td>";
                                                                                             echo "<td style='text-align: center;'>" . " - " . "</td>";
                                                                                             echo "<td style='text-align: center;'>" . formatNumber($data8['Allocated_FN06_2']) . "</td>";
@@ -1466,7 +1582,7 @@ function fetchYearsData($conn)
                                                                                             echo "</tr>";
                                                                                             if (isset($data8['kku_items']) && is_array($data8['kku_items'])) {
                                                                                                 foreach ($data8['kku_items'] as $data9) {
-                                                                                                    if ($data9['test'] == null || $data9['test'] == '') {
+                                                                                                    if ($data9['test'] == null || $data9['test'] == '' || $data8['name'] == $data9['name']) {
                                                                                                         continue;
                                                                                                     }
                                                                                                     $TotalAllocate1 = $data9['Allocated_FN06_1'] + $data9['Allocated_FN02_1'] + $data9['Allocated_FN08_1'];
@@ -1474,7 +1590,12 @@ function fetchYearsData($conn)
                                                                                                     $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
                                                                                                     $Percen = ($TotalAllocate1 != 0) ? ($deffAllocate / $TotalAllocate1) * 100 : 0;
                                                                                                     echo "<tr>";
-                                                                                                    echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 64) . htmlspecialchars($data9['name']) . "</td>";
+                                                                                                    if ($selectedFaculty == null) {
+                                                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 72) . htmlspecialchars($data9['name']) . "</td>";
+                                                                                                    } else {
+                                                                                                        echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 64) . htmlspecialchars($data9['name']) . "</td>";
+                                                                                                    }
+
                                                                                                     echo "<td style='text-align: center;'>" . " - " . "</td>";
                                                                                                     echo "<td style='text-align: center;' >" . " - " . "</td>";
                                                                                                     echo "<td style='text-align: center;'>" . formatNumber($data9['Allocated_FN06_2']) . "</td>";
