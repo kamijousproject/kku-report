@@ -712,7 +712,8 @@ function fetchYearsData($conn)
                                         <thead>
                                             <tr>
                                                 <th colspan="18" style='text-align: left;'>
-                                                    รายงานสรุปรายการตัวชี้วัดแผน/ผลของแผนงานย่อย</th>
+                                                    รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน
+                                                </th>
                                             </tr>
                                             <?php
 
@@ -1661,29 +1662,51 @@ function fetchYearsData($conn)
             const table = document.getElementById('reportTable');
             const csvRows = [];
 
-            // วนลูปทีละ <tr>
-            for (const row of table.rows) {
-                // เก็บบรรทัดย่อยของแต่ละเซลล์
+            // ฟังก์ชันช่วยเติมค่าซ้ำ
+            const repeatValue = (value, count) => Array(count).fill(value).join(',');
+
+            // เพิ่มชื่อรายงาน
+            csvRows.push(`"รายงานรายละเอียดตัวชี้วัดและงบประมาณรายจ่ายประจำปี จำแนกตามแผนงาน",,,,,,,,,,,,,,,,,,`);
+
+            // ดึงค่าคณะ/หน่วยงานจาก PHP
+            const selectedFacultyName = <?php echo json_encode($selectedFacultyName); ?>;
+            const facultyData = selectedFacultyName.replace(/-/g, ':');
+            csvRows.push(`"ส่วนงาน / หน่วยงาน: ${facultyData}",,,,,,,,,,,,,,,,,,`);
+
+            // ดึงค่าปีงบประมาณ
+            const selectedYear = <?php echo json_encode($selectedYear); ?>;
+            csvRows.push(`"ปีงบที่ต้องการเปรียบเทียบ: ${selectedYear - 1} ถึง ${selectedYear}",,,,,,,,,,,,,,,,,,`);
+
+            // ดึงค่าประเภทงบประมาณ
+            const scenario = <?php echo json_encode($scenario); ?>;
+            csvRows.push(`"ประเภทงบประมาณ: ${scenario ? scenario : "แสดงทุกประเภทงบประมาณ"}",,,,,,,,,,,,,,,,,,`);
+
+            // เพิ่มส่วนหัวของตาราง
+            csvRows.push(`"รายการ","หน่วยนับของตัวชี้วัด (UOM)","ปี ${selectedYear - 1}","","","","","ปี ${selectedYear}","","","","","","","","เพิ่ม/ลด","","คำชี้แจง"`);
+            csvRows.push(`"","","ปริมาณของตัวชี้วัด","เงินอุดหนุนจากรัฐ","เงินนอกงบประมาณ","เงินรายได้","รวม","ปริมาณของตัวชี้วัด","เงินอุดหนุนจากรัฐ (คำขอ)","เงินอุดหนุนจากรัฐ (จัดสรร)","เงินนอกงบประมาณ (คำขอ)","เงินนอกงบประมาณ (จัดสรร)","เงินรายได้ (คำขอ)","เงินรายได้ (จัดสรร)","รวม","จำนวน","ร้อยละ",""`);
+
+            // วนลูปเฉพาะ <tbody>
+            const tbody = table.querySelector("tbody");
+
+            for (const row of tbody.rows) {
                 const cellLines = [];
                 let maxSubLine = 1;
 
-                // วนลูปทีละเซลล์ <td>/<th>
+                // วนลูปแต่ละเซลล์
                 for (const cell of row.cells) {
                     let html = cell.innerHTML;
 
-                    // 1) แปลง &nbsp; ติดกันให้เป็น non-breaking space (\u00A0) ตามจำนวน
+                    // แปลง &nbsp; เป็น non-breaking space (\u00A0)
                     html = html.replace(/(&nbsp;)+/g, (match) => {
                         const count = match.match(/&nbsp;/g).length;
-                        return '\u00A0'.repeat(count); // ex. 3 &nbsp; → "\u00A0\u00A0\u00A0"
+                        return '\u00A0'.repeat(count);
                     });
 
-
-                    // 3) (ถ้าต้องการ) ลบ tag HTML อื่นออก
+                    // ลบแท็ก HTML ออก
                     html = html.replace(/<\/?[^>]+>/g, '');
 
-                    // 4) แยกเป็น array บรรทัดย่อย
+                    // แยกข้อความเป็นบรรทัด
                     const lines = html.split('\n').map(x => x.trimEnd());
-                    // ใช้ trimEnd() เฉพาะท้าย ไม่ trim ต้นเผื่อบางคนอยากเห็นช่องว่างนำหน้า
 
                     if (lines.length > maxSubLine) {
                         maxSubLine = lines.length;
@@ -1692,16 +1715,13 @@ function fetchYearsData($conn)
                     cellLines.push(lines);
                 }
 
-                // สร้าง sub-row ตามจำนวนบรรทัดย่อยสูงสุด
+                // เพิ่ม sub-row ตามจำนวนบรรทัดย่อยที่มากที่สุด
                 for (let i = 0; i < maxSubLine; i++) {
                     const rowData = [];
 
-                    // วนลูปแต่ละเซลล์
                     for (const lines of cellLines) {
-                        let text = lines[i] || ''; // ถ้าไม่มีบรรทัดที่ i ก็ว่าง
-                        // Escape double quotes
-                        text = text.replace(/"/g, '""');
-                        // ครอบด้วย ""
+                        let text = lines[i] || '';
+                        text = text.replace(/"/g, '""'); // Escape double quotes
                         text = `"${text}"`;
                         rowData.push(text);
                     }
@@ -1712,9 +1732,7 @@ function fetchYearsData($conn)
 
             // รวมเป็น CSV + BOM
             const csvContent = "\uFEFF" + csvRows.join("\n");
-            const blob = new Blob([csvContent], {
-                type: 'text/csv;charset=utf-8;'
-            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;

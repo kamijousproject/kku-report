@@ -566,7 +566,7 @@ function fetchScenariosData($conn)
                                         <thead>
                                             <tr>
                                                 <th colspan="11" style='text-align: left;'>
-                                                    รายงานรายการกันเงินงบประมาณเหลื่อมปีประเภทมีการสร้างหนี้แล้วประเภทที่ยังไม่มีหนี้
+                                                    รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ
                                                 </th>
                                             </tr>
                                             <?php
@@ -1199,20 +1199,26 @@ function fetchScenariosData($conn)
             const table = document.getElementById('reportTable');
             const csvRows = [];
 
-            // ฟังก์ชันช่วยเติมค่าซ้ำ
-            const repeatValue = (value, count) => Array(count).fill(value).join(',');
+            // ✅ หัวตาราง: รายงาน
+            csvRows.push(`"รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ",,,,,,,,,,`);
 
-            // เพิ่มชื่อรายงาน
-            csvRows.push(`"รายงานสรุปคำของบประมาณรายจ่าย จำแนกงบลงทุนและงบรายจ่ายประจำ",,,,,,,`);
+            // ✅ ค่าปีงบประมาณ
+            const selectedYear = <?php echo json_encode($selectedYear); ?>;
+            csvRows.push(`"ปีงบที่ต้องการเปรียบเทียบ ${selectedYear - 1} ถึง ${selectedYear}",,,,,,,,,,`);
 
-            // ดึงค่าคณะ/หน่วยงานจาก PHP
+            // ✅ ส่วนงาน / หน่วยงาน
             const selectedFacultyName = <?php echo json_encode($selectedFacultyName); ?>;
             const facultyData = selectedFacultyName.replace(/-/g, ':');
-            csvRows.push(`"ส่วนงาน / หน่วยงาน: ${facultyData}",,,,,,,`);
+            csvRows.push(`"ส่วนงาน / หน่วยงาน: ${facultyData}",,,,,,,,,,`);
 
-            // เพิ่มส่วนหัวของตาราง
-            csvRows.push(`"รายการ","ปี 2567 (ปีปัจจุบัน)","","","","ปี 2568(ปีที่ขอ)","","","","เพิ่ม/ลด "`);
-            csvRows.push(`"","เงินอุดหนุนจากรัฐ","เงินนอกงบประมาณ","เงินรายได้ ","รวม","เงินอุดหนุนจากรัฐ","เงินนอกงบประมาณ","เงินรายได้ ","รวม","จำนวน","ร้อยละ"`);
+            // ✅ ประเภทงบประมาณ
+            const scenario = <?php echo json_encode($scenario); ?>;
+            csvRows.push(`"ประเภทงบประมาณ: ${scenario ? scenario : "แสดงทุกประเภทงบประมาณ"}",,,,,,,,,,`);
+
+            // ✅ หัวคอลัมน์หลัก
+            csvRows.push(`"รายการ","ปี ${selectedYear - 1} (ปีที่ผ่านมา)","","","", "ปี ${selectedYear} (ปีปัจจุบัน)","","","", "เพิ่ม/ลด"`);
+            csvRows.push(`"","เงินอุดหนุนจากรัฐ","เงินนอกงบประมาณ","เงินรายได้","รวม", "เงินอุดหนุนจากรัฐ","เงินนอกงบประมาณ","เงินรายได้","รวม", "จำนวน","ร้อยละ"`);
+
 
             // วนลูปเฉพาะ <tbody>
             const tbody = table.querySelector("tbody");
