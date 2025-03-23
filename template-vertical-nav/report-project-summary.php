@@ -88,8 +88,8 @@ $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
 $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
 $faculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
 $Fund = isset($_GET['fund']) ? $_GET['fund'] : null;
-$selectedStrategicPlan = isset($_GET['Strategic_Plan_Cleaned']) ? $_GET['Strategic_Plan_Cleaned'] : null;
-function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $scenario = null, $Fund = null, $selectedStrategicPlan = null)
+
+function fetchBudgetData($conn, $faculty = null, $budget_year1 = null, $scenario = null, $Fund = null)
 {
     // ตรวจสอบว่า $budget_year1, $budget_year2, $budget_year3 ถูกตั้งค่าแล้วหรือไม่
     if ($budget_year1 === null) {
@@ -460,10 +460,7 @@ ppp.pilar_name,
         $whereConditions[] = "Fund = :Fund";
         $params[':Fund'] = $Fund;
     }
-    if ($selectedStrategicPlan) {
-        $whereConditions[] = "Strategic_Plan_Cleaned = :selectedStrategicPlan";
-        $params[':selectedStrategicPlan'] = $selectedStrategicPlan;
-    }
+
 
     // เพิ่มเงื่อนไข WHERE ถ้ามี
     if (!empty($whereConditions)) {
@@ -488,7 +485,7 @@ ppp.pilar_name,
 
 
 
-$results = fetchBudgetData($conn, $faculty, $budget_year1, $scenario, $Fund, $selectedStrategicPlan);
+$results = fetchBudgetData($conn, $faculty, $budget_year1, $scenario, $Fund);
 
 function fetchFacultyData($conn)
 {
@@ -627,24 +624,7 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                         </select>
                                     </div>
 
-                                    <!-- เลือกประเด็นยุทธศาสตร์ -->
-                                    <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="Strategic_Plan_Cleaned" class="label-faculty"
-                                            style="margin-right: 10px;">เลือกประเด็นยุทธศาสตร์</label>
-                                        <select name="Strategic_Plan_Cleaned" id="Strategic_Plan_Cleaned"
-                                            class="form-control"
-                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ประเด็นยุทธศาสตร์</option>
-                                            <?php
-                                            foreach ($Strategys as $Strategy) {
-                                                $StrategyName = htmlspecialchars($Strategy['pilar_name']);
-                                                $StrategyCode = htmlspecialchars($Strategy['Strategic_Plan_Cleaned']);
-                                                $selected = (isset($_GET['Strategic_Plan_Cleaned']) && $_GET['Strategic_Plan_Cleaned'] == $StrategyCode) ? 'selected' : '';
-                                                echo "<option value=\"$StrategyCode\" $selected>$StrategyName</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
+
 
                                     <!-- เลือกส่วนงาน/หน่วยงาน -->
                                     <div class="form-group" style="display: flex; align-items: center;">
@@ -711,10 +691,7 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                         if (scenario && scenario !== "") {
                                             params.push("scenario=" + encodeURIComponent(scenario));
                                         }
-                                        // เพิ่ม Strategic Plan หากเลือกและไม่เป็นค่าว่าง
-                                        if (strategicPlan && strategicPlan !== "") {
-                                            params.push("Strategic_Plan_Cleaned=" + encodeURIComponent(strategicPlan));
-                                        }
+
                                         // เพิ่ม Fund หากเลือกและไม่เป็นค่าว่าง
                                         if (fund && fund !== "") {
                                             params.push("fund=" + encodeURIComponent(fund));
@@ -867,10 +844,10 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                             $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : null;
                                             $budget_year1 = isset($_GET['year']) ? $_GET['year'] : null;
                                             $scenario = isset($_GET['scenario']) ? $_GET['scenario'] : null;
-                                            $selectedStrategicPlan = isset($_GET['Strategic_Plan_Cleaned']) ? $_GET['Strategic_Plan_Cleaned'] : null;
+
                                             $Fund = isset($_GET['fund']) ? $_GET['fund'] : null;
                                             try {
-                                                $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $scenario, $Fund, $selectedStrategicPlan);
+                                                $results = fetchBudgetData($conn, $selectedFaculty, $budget_year1, $scenario, $Fund);
                                                 if (isset($results) && is_array($results) && count($results) > 0) {
                                                     $summary = [];
 
