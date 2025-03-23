@@ -521,20 +521,6 @@ function fetchScenariosData($conn)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function fetchStrategy($conn)
-{
-    $query = "SELECT DISTINCT 
-
-    REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') AS Strategic_Plan_Cleaned,
-    ppp.pilar_name 
-FROM budget_planning_project_kpi pki
-LEFT JOIN pilar ppp
-ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
-    $stmt = $conn->prepare($query);
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
-
 ?>
 
 
@@ -578,7 +564,7 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                 $faculties = fetchFacultyData($conn);
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
                                 $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
-                                $Strategys = fetchStrategy($conn);
+                                
 
                                 // ข้อมูลแหล่งเงิน
                                 $fundOptions = [
@@ -673,7 +659,6 @@ ON REPLACE(pki.KKU_Strategic_Plan_LOV, '_', '') = ppp.pilar_id;";
                                         var faculty = document.getElementById('faculty').value;
                                         var year = document.getElementById('year').value;
                                         var scenario = document.getElementById('scenario').value;
-                                        var strategicPlan = document.getElementById('Strategic_Plan_Cleaned').value;
                                         var fund = document.getElementById('fund').value;
 
                                         var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-project-summary.php";
