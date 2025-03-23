@@ -610,7 +610,21 @@ function fetchScenariosData($conn)
                                         </select>
                                     </div>
 
-
+                                    <!-- เลือกแหล่งเงิน -->
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="fund" class="label-fund"
+                                            style="margin-right: 10px;">เลือกแหล่งเงิน</label>
+                                        <select name="fund" id="fund" class="form-control"
+                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก แหล่งเงิน</option>
+                                            <?php
+                                            foreach ($fundOptions as $value => $label) {
+                                                $selected = (isset($_GET['fund']) && $_GET['fund'] == $value) ? 'selected' : '';
+                                                echo "<option value=\"$value\" $selected>$label</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
 
                                     <!-- เลือกส่วนงาน/หน่วยงาน -->
                                     <div class="form-group" style="display: flex; align-items: center;">
@@ -630,21 +644,7 @@ function fetchScenariosData($conn)
                                         </select>
                                     </div>
 
-                                    <!-- เลือกแหล่งเงิน -->
-                                    <div class="form-group" style="display: flex; align-items: center;">
-                                        <label for="fund" class="label-fund"
-                                            style="margin-right: 10px;">เลือกแหล่งเงิน</label>
-                                        <select name="fund" id="fund" class="form-control"
-                                            style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก แหล่งเงิน</option>
-                                            <?php
-                                            foreach ($fundOptions as $value => $label) {
-                                                $selected = (isset($_GET['fund']) && $_GET['fund'] == $value) ? 'selected' : '';
-                                                echo "<option value=\"$value\" $selected>$label</option>";
-                                            }
-                                            ?>
-                                        </select>
-                                    </div>
+
 
                                     <!-- ปุ่มค้นหา -->
                                     <div class="form-group" style="display: flex; justify-content: center;">
