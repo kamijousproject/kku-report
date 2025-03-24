@@ -1206,7 +1206,7 @@ function fetchYearsData($conn)
                                                         $TotalAllocate1 = $total_summary['Allocated_FN06_1'] + $total_summary['Allocated_FN02_1'] + $total_summary['Allocated_FN08_1'];
                                                         $TotalAllocate2 = $total_summary['Allocated_FN06_2'] + $total_summary['Allocated_FN02_2'] + $total_summary['Allocated_FN08_2'];
                                                         $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                        $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                        $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
                                                         echo "<tr>";
                                                         echo "<td style='text-align: left;'>" . "รวมทั้งสิ้น" . "</td>";
                                                         echo "<td style='text-align: center;'>" . "</td>";
@@ -1236,7 +1236,7 @@ function fetchYearsData($conn)
                                                     $TotalAllocate1 = $data1['Allocated_FN06_1'] + $data1['Allocated_FN02_1'] + $data1['Allocated_FN08_1'];
                                                     $TotalAllocate2 = $data1['Allocated_FN06_2'] + $data1['Allocated_FN02_2'] + $data1['Allocated_FN08_2'];
                                                     $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                    $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                    $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
                                                     echo "<tr>";
                                                     if ($selectedFaculty == null) {
                                                         echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 8) . htmlspecialchars($facultyData) . "</td>";
@@ -1266,7 +1266,7 @@ function fetchYearsData($conn)
                                                         $TotalAllocate1 = $data2['Allocated_FN06_1'] + $data2['Allocated_FN02_1'] + $data2['Allocated_FN08_1'];
                                                         $TotalAllocate2 = $data2['Allocated_FN06_2'] + $data2['Allocated_FN02_2'] + $data2['Allocated_FN08_2'];
                                                         $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                        $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                        $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
                                                         echo "<tr>";
                                                         if ($selectedFaculty == null) {
                                                             echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 16) . htmlspecialchars($data2['name']) . "</td>";
@@ -1304,7 +1304,7 @@ function fetchYearsData($conn)
                                                             $TotalAllocate1 = $data3['Allocated_FN06_1'] + $data3['Allocated_FN02_1'] + $data3['Allocated_FN08_1'];
                                                             $TotalAllocate2 = $data3['Allocated_FN06_2'] + $data3['Allocated_FN02_2'] + $data3['Allocated_FN08_2'];
                                                             $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                            $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                            $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
                                                             // แสดงข้อมูล Sub Plan
                                                             echo "<tr>";
                                                             if ($selectedFaculty == null) {
@@ -1376,7 +1376,7 @@ function fetchYearsData($conn)
                                                                 $TotalAllocate1 = $data4['Allocated_FN06_1'] + $data4['Allocated_FN02_1'] + $data4['Allocated_FN08_1'];
                                                                 $TotalAllocate2 = $data4['Allocated_FN06_2'] + $data4['Allocated_FN02_2'] + $data4['Allocated_FN08_2'];
                                                                 $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                                $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                                $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
                                                                 echo "<tr>";
                                                                 if ($selectedFaculty == null) {
                                                                     echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 32) . htmlspecialchars($data4['name']) . "</td>";
@@ -1440,7 +1440,7 @@ function fetchYearsData($conn)
                                                                     $TotalAllocate1 = $data5['Allocated_FN06_1'] + $data5['Allocated_FN02_1'] + $data5['Allocated_FN08_1'];
                                                                     $TotalAllocate2 = $data5['Allocated_FN06_2'] + $data5['Allocated_FN02_2'] + $data5['Allocated_FN08_2'];
                                                                     $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                                    $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                                    $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
                                                                     echo "<tr>";
                                                                     if ($selectedFaculty == null) {
                                                                         echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 40) . htmlspecialchars($data5['name']) . "</td>";
@@ -1473,7 +1473,7 @@ function fetchYearsData($conn)
                                                                             $TotalAllocate1 = $data6['Allocated_FN06_1'] + $data6['Allocated_FN02_1'] + $data6['Allocated_FN08_1'];
                                                                             $TotalAllocate2 = $data6['Allocated_FN06_2'] + $data6['Allocated_FN02_2'] + $data6['Allocated_FN08_2'];
                                                                             $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                                            $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                                            $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
 
                                                                             echo "<tr>";
                                                                             if ($selectedFaculty == null) {
@@ -1512,7 +1512,7 @@ function fetchYearsData($conn)
                                                                                     $TotalAllocate1 = $data7['Allocated_FN06_1'] + $data7['Allocated_FN02_1'] + $data7['Allocated_FN08_1'];
                                                                                     $TotalAllocate2 = $data7['Allocated_FN06_2'] + $data7['Allocated_FN02_2'] + $data7['Allocated_FN08_2'];
                                                                                     $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                                                    $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                                                    $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
 
                                                                                     echo "<tr>";
                                                                                     if ($selectedFaculty == null) {
@@ -1551,7 +1551,7 @@ function fetchYearsData($conn)
                                                                                             $TotalAllocate1 = $data8['Allocated_FN06_1'] + $data8['Allocated_FN02_1'] + $data8['Allocated_FN08_1'];
                                                                                             $TotalAllocate2 = $data8['Allocated_FN06_2'] + $data8['Allocated_FN02_2'] + $data8['Allocated_FN08_2'];
                                                                                             $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                                                            $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                                                            $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
 
                                                                                             echo "<tr>";
                                                                                             if ($selectedFaculty == null) {
@@ -1590,7 +1590,7 @@ function fetchYearsData($conn)
                                                                                                     $TotalAllocate1 = $data9['Allocated_FN06_1'] + $data9['Allocated_FN02_1'] + $data9['Allocated_FN08_1'];
                                                                                                     $TotalAllocate2 = $data9['Allocated_FN06_2'] + $data9['Allocated_FN02_2'] + $data9['Allocated_FN08_2'];
                                                                                                     $deffAllocate = $TotalAllocate1 - $TotalAllocate2;
-                                                                                                    $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate1 * 100 : 0;
+                                                                                                    $Percen = ($TotalAllocate1 != 0) ? $deffAllocate / $TotalAllocate2 * 100 : 0;
                                                                                                     echo "<tr>";
                                                                                                     if ($selectedFaculty == null) {
                                                                                                         echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", times: 72) . htmlspecialchars($data9['name']) . "</td>";
