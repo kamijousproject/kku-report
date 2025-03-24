@@ -661,7 +661,7 @@ function fetchScenariosData($conn)
                                         var scenario = document.getElementById('scenario').value;
                                         var fund = document.getElementById('fund').value;
 
-                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-project-summary.php";
+                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-project-summary.php";
                                         var params = [];
 
                                         // เพิ่ม Faculty หากเลือก
@@ -1194,60 +1194,60 @@ function fetchScenariosData($conn)
                                                             }
                                                         }
                                                     }
-                                                    if ($selectedFaculty == null) {
-                                                        if (isset($summary) && is_array($summary)) {
-                                                            $total = $total_summary['Total_Amount_1_1']
-                                                                + $total_summary['Total_Amount_1_2']
-                                                                + $total_summary['Total_Amount_1_3']
-                                                                + $total_summary['Total_Amount_1_4']
-                                                                + $total_summary['Total_Amount_1_4_1']
-                                                                + $total_summary['Total_Amount_1_4_2']
-                                                                + $total_summary['Total_Amount_1_4_3']
-                                                                + $total_summary['Total_Amount_1_4_4']
-                                                                + $total_summary['Total_Amount_1_4_5']
-                                                                + $total_summary['Total_Amount_1_4_6']
-                                                                + $total_summary['Total_Amount_2_1']
-                                                                + $total_summary['Total_Amount_2_2']
-                                                                + $total_summary['Total_Amount_2_3']
-                                                                + $total_summary['Total_Amount_2_4']
-                                                                + $total_summary['Total_Amount_2_5']
-                                                                + $total_summary['Total_Amount_2_6']
-                                                                + $total_summary['Total_Amount_3_1']
-                                                                + $total_summary['Total_Amount_3_2']
-                                                                + $total_summary['Total_Amount_3_3']
-                                                                + $total_summary['Total_Amount_4']
-                                                                + $total_summary['Total_Amount_5']
-                                                            ;
-                                                            echo "<tr>";
-                                                            echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_1']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_2']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_3']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_1']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_2']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_3']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_4']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_5']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_6']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_7']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_1']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_2']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_3']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_4']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_5']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_2_6']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_3_1']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_3_2']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_3_3']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_4']) . "</td>";
-                                                            echo "<td>" . formatNumber($total_summary['Total_Amount_5']) . "</td>";
-                                                            echo "<td>" . formatNumber($total) . "</td>";
-                                                            echo "</tr>";
-                                                        } else {
-                                                            echo "<tr><td colspan='29' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
-                                                        }
+
+                                                    if (isset($summary) && is_array($summary)) {
+                                                        $total = $total_summary['Total_Amount_1_1']
+                                                            + $total_summary['Total_Amount_1_2']
+                                                            + $total_summary['Total_Amount_1_3']
+                                                            + $total_summary['Total_Amount_1_4']
+                                                            + $total_summary['Total_Amount_1_4_1']
+                                                            + $total_summary['Total_Amount_1_4_2']
+                                                            + $total_summary['Total_Amount_1_4_3']
+                                                            + $total_summary['Total_Amount_1_4_4']
+                                                            + $total_summary['Total_Amount_1_4_5']
+                                                            + $total_summary['Total_Amount_1_4_6']
+                                                            + $total_summary['Total_Amount_2_1']
+                                                            + $total_summary['Total_Amount_2_2']
+                                                            + $total_summary['Total_Amount_2_3']
+                                                            + $total_summary['Total_Amount_2_4']
+                                                            + $total_summary['Total_Amount_2_5']
+                                                            + $total_summary['Total_Amount_2_6']
+                                                            + $total_summary['Total_Amount_3_1']
+                                                            + $total_summary['Total_Amount_3_2']
+                                                            + $total_summary['Total_Amount_3_3']
+                                                            + $total_summary['Total_Amount_4']
+                                                            + $total_summary['Total_Amount_5']
+                                                        ;
+                                                        echo "<tr>";
+                                                        echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_1']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_3']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_4']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_1']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_3']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_4']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_5']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_6']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_1_4_7']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_2_1']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_2_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_2_3']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_2_4']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_2_5']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_2_6']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_3_1']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_3_2']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_3_3']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_4']) . "</td>";
+                                                        echo "<td>" . formatNumber($total_summary['Total_Amount_5']) . "</td>";
+                                                        echo "<td>" . formatNumber($total) . "</td>";
+                                                        echo "</tr>";
+                                                    } else {
+                                                        echo "<tr><td colspan='29' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
                                                     }
+
                                                     // แสดงผลลัพธ์ในรูปแบบตาราง
                                                     foreach ($summary as $pilar_name => $data1) {
                                                         $total = $data1['Total_Amount_1_1']
@@ -1276,7 +1276,8 @@ function fetchScenariosData($conn)
                                                         if ($selectedFaculty == null) {
                                                             echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($data1['name'] ?? '') . "</td>";
                                                         } else {
-                                                            echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
+
+                                                            echo "<td style='text-align: left;'>" . htmlspecialchars($data1['name'] ?? '') . "</td>";
                                                         }
                                                         echo "<td>" . formatNumber($data1['Total_Amount_1_1']) . "</td>";
                                                         echo "<td>" . formatNumber($data1['Total_Amount_1_2']) . "</td>";
