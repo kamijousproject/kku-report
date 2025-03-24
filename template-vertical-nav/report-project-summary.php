@@ -661,7 +661,7 @@ function fetchScenariosData($conn)
                                         var scenario = document.getElementById('scenario').value;
                                         var fund = document.getElementById('fund').value;
 
-                                        var baseUrl = "http://localhost/kku-report/template-vertical-nav/report-project-summary.php";
+                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-project-summary.php";
                                         var params = [];
 
                                         // เพิ่ม Faculty หากเลือก
