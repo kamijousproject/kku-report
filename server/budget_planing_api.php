@@ -1479,13 +1479,13 @@ shifted_hierarchy AS (
                 ,t2 AS (
                 SELECT Faculty,plan,sub_plan,project,fund,service,CASE 
 							        WHEN KKU_Item_Name IS NOT NULL AND KKU_Item_Name != '' 
-							        THEN CONCAT(account, ' : ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', ''))
+							        THEN CONCAT('- ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', ''))
 							        ELSE NULL 
 							    END AS kku_item_name,account,scenario 
                 FROM budget_planning_allocated_annual_budget_plan b
                 GROUP BY Faculty,plan,sub_plan,project,fund,service,CASE 
 							        WHEN KKU_Item_Name IS NOT NULL AND KKU_Item_Name != '' 
-							        THEN CONCAT(account, ' : ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', ''))
+							        THEN CONCAT('- ', REGEXP_REPLACE(KKU_Item_Name, '^[0-9]+(\\.[0-9]+)*[\\.\\s]+', ''))
 							        ELSE NULL 
 							    END,account,scenario )
                 ,t3 AS (
