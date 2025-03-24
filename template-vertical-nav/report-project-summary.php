@@ -1008,6 +1008,7 @@ function fetchScenariosData($conn)
                                                         $summary[$pilar_name]['Total_Amount_1_4_4'] += $row['Total_Amount_1_4_4'];
                                                         $summary[$pilar_name]['Total_Amount_1_4_5'] += $row['Total_Amount_1_4_5'];
                                                         $summary[$pilar_name]['Total_Amount_1_4_6'] += $row['Total_Amount_1_4_6'];
+                                                        $summary[$pilar_name]['Total_Amount_1_4_7'] += $row['Total_Amount_1_4_7'];
                                                         $summary[$pilar_name]['Total_Amount_2_1'] += $row['Total_Amount_2_1'];
                                                         $summary[$pilar_name]['Total_Amount_2_2'] += $row['Total_Amount_2_2'];
                                                         $summary[$pilar_name]['Total_Amount_2_3'] += $row['Total_Amount_2_3'];
@@ -1031,6 +1032,7 @@ function fetchScenariosData($conn)
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Total_Amount_1_4_4'] += $row['Total_Amount_1_4_4'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Total_Amount_1_4_5'] += $row['Total_Amount_1_4_5'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Total_Amount_1_4_6'] += $row['Total_Amount_1_4_6'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Total_Amount_1_4_7'] += $row['Total_Amount_1_4_7'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Total_Amount_2_1'] += $row['Total_Amount_2_1'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Total_Amount_2_2'] += $row['Total_Amount_2_2'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Total_Amount_2_3'] += $row['Total_Amount_2_3'];
@@ -1054,6 +1056,7 @@ function fetchScenariosData($conn)
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['Total_Amount_1_4_4'] += $row['Total_Amount_1_4_4'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['Total_Amount_1_4_5'] += $row['Total_Amount_1_4_5'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['Total_Amount_1_4_6'] += $row['Total_Amount_1_4_6'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['Total_Amount_1_4_7'] += $row['Total_Amount_1_4_7'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['Total_Amount_2_1'] += $row['Total_Amount_2_1'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['Total_Amount_2_2'] += $row['Total_Amount_2_2'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['Total_Amount_2_3'] += $row['Total_Amount_2_3'];
@@ -1077,6 +1080,7 @@ function fetchScenariosData($conn)
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['Total_Amount_1_4_4'] += $row['Total_Amount_1_4_4'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['Total_Amount_1_4_5'] += $row['Total_Amount_1_4_5'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['Total_Amount_1_4_6'] += $row['Total_Amount_1_4_6'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['Total_Amount_1_4_7'] += $row['Total_Amount_1_4_7'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['Total_Amount_2_1'] += $row['Total_Amount_2_1'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['Total_Amount_2_2'] += $row['Total_Amount_2_2'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['Total_Amount_2_3'] += $row['Total_Amount_2_3'];
@@ -1100,6 +1104,7 @@ function fetchScenariosData($conn)
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_1_4_4'] += $row['Total_Amount_1_4_4'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_1_4_5'] += $row['Total_Amount_1_4_5'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_1_4_6'] += $row['Total_Amount_1_4_6'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_1_4_7'] += $row['Total_Amount_1_4_7'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_2_1'] += $row['Total_Amount_2_1'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_2_2'] += $row['Total_Amount_2_2'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_2_3'] += $row['Total_Amount_2_3'];
@@ -1111,6 +1116,8 @@ function fetchScenariosData($conn)
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_3_3'] += $row['Total_Amount_3_3'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_4'] += $row['Total_Amount_4'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_5'] += $row['Total_Amount_5'];
+
+
                                                         // เก็บข้อมูลของ Project
                                                         if (!isset($summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project])) {
                                                             $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project] = [
@@ -1260,6 +1267,7 @@ function fetchScenariosData($conn)
                                                             + $data1['Total_Amount_1_4_4']
                                                             + $data1['Total_Amount_1_4_5']
                                                             + $data1['Total_Amount_1_4_6']
+                                                            + $data1['Total_Amount_1_4_7']
                                                             + $data1['Total_Amount_2_1']
                                                             + $data1['Total_Amount_2_2']
                                                             + $data1['Total_Amount_2_3']
@@ -1315,6 +1323,7 @@ function fetchScenariosData($conn)
                                                                 + $data2['Total_Amount_1_4_4']
                                                                 + $data2['Total_Amount_1_4_5']
                                                                 + $data2['Total_Amount_1_4_6']
+                                                                + $data2['Total_Amount_1_4_7']
                                                                 + $data2['Total_Amount_2_1']
                                                                 + $data2['Total_Amount_2_2']
                                                                 + $data2['Total_Amount_2_3']
@@ -1369,6 +1378,7 @@ function fetchScenariosData($conn)
                                                                     + $data3['Total_Amount_1_4_4']
                                                                     + $data3['Total_Amount_1_4_5']
                                                                     + $data3['Total_Amount_1_4_6']
+                                                                    + $data3['Total_Amount_1_4_7']
                                                                     + $data3['Total_Amount_2_1']
                                                                     + $data3['Total_Amount_2_2']
                                                                     + $data3['Total_Amount_2_3']
@@ -1423,6 +1433,7 @@ function fetchScenariosData($conn)
                                                                         + $data4['Total_Amount_1_4_4']
                                                                         + $data4['Total_Amount_1_4_5']
                                                                         + $data4['Total_Amount_1_4_6']
+                                                                        + $data4['Total_Amount_1_4_7']
                                                                         + $data4['Total_Amount_2_1']
                                                                         + $data4['Total_Amount_2_2']
                                                                         + $data4['Total_Amount_2_3']
@@ -1477,6 +1488,7 @@ function fetchScenariosData($conn)
                                                                             + $data5['Total_Amount_1_4_4']
                                                                             + $data5['Total_Amount_1_4_5']
                                                                             + $data5['Total_Amount_1_4_6']
+                                                                            + $data5['Total_Amount_1_4_7']
                                                                             + $data5['Total_Amount_2_1']
                                                                             + $data5['Total_Amount_2_2']
                                                                             + $data5['Total_Amount_2_3']
@@ -1532,6 +1544,7 @@ function fetchScenariosData($conn)
                                                                                 + $data6['Total_Amount_1_4_4']
                                                                                 + $data6['Total_Amount_1_4_5']
                                                                                 + $data6['Total_Amount_1_4_6']
+                                                                                + $data6['Total_Amount_1_4_7']
                                                                                 + $data6['Total_Amount_2_1']
                                                                                 + $data6['Total_Amount_2_2']
                                                                                 + $data6['Total_Amount_2_3']
