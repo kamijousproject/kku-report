@@ -1548,7 +1548,7 @@ shifted_hierarchy AS (
 					 FROM t8 t
 					 LEFT JOIN budget_planning_disbursement_budget_plan_anl_release b
 					 ON t.faculty=b.Faculty AND t.plan=b.plan
-					 AND t.fund=b.fund AND t.subplan=replace(b.sub_plan,'SP_','') AND t.project=b.project
+					 AND t.fund=replace(b.fund,'FN','') AND t.subplan=replace(b.sub_plan,'SP_','') AND t.project=b.project
 					 AND t.account=b.account AND t.service=replace(b.service,'SR_',''))
                 
                 SELECT * FROM t9 t
