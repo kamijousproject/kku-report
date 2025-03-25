@@ -213,6 +213,7 @@ GROUP BY
 t1 AS(
 SELECT
  	 fta.Alias_Default AS Default_Faculty,
+ 	 tm.Service,
     tm.Faculty, 
     tm.Plan,
     ft.Alias_Default AS Faculty_name,
@@ -329,7 +330,7 @@ LEFT JOIN plan p ON p.plan_id = tm.Plan
 WHERE ac.id > (SELECT MAX(id) FROM account WHERE parent = 'Expenses')
 
 GROUP BY 
-    
+     	 tm.Service,
 	 fta.Alias_Default,
     tm.Faculty, 
     tm.Plan, 
@@ -412,6 +413,7 @@ ppp.pilar_name,
    AND tt.Project =t.Project      
    AND tt.Account = t.Account
    AND tt.Fund = t.Fund
+   AND tt.Service = t.Service
    inner JOIN pilar_Name ppp 
    ON t.Faculty = ppp.Faculty
    AND t.Project = ppp.Project
