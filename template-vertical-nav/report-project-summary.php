@@ -583,7 +583,7 @@ function fetchScenariosData($conn)
                                             style="margin-right: 10px;">เลือกปีงบประมาณ</label>
                                         <select name="year" id="year" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ปีงบประมาณ</option>
+                                            <option value="">เลือก ทุกปีงบประมาณ</option>
                                             <?php
                                             foreach ($years as $year) {
                                                 $yearValue = htmlspecialchars($year['Budget_Management_Year']);
@@ -618,7 +618,7 @@ function fetchScenariosData($conn)
                                             style="margin-right: 10px;">เลือกแหล่งเงิน</label>
                                         <select name="fund" id="fund" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก แหล่งเงิน</option>
+                                            <option value="">เลือก ทุกแหล่งเงิน</option>
                                             <?php
                                             foreach ($fundOptions as $value => $label) {
                                                 $selected = (isset($_GET['fund']) && $_GET['fund'] == $value) ? 'selected' : '';
@@ -634,7 +634,7 @@ function fetchScenariosData($conn)
                                             style="margin-right: 10px;">เลือกส่วนงาน/หน่วยงาน</label>
                                         <select name="faculty" id="faculty" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                            <option value="">เลือก ส่วนงาน/หน่วยงาน</option>
+                                            <option value="">เลือก ทุกส่วนงาน และ หน่วยงาน</option>
                                             <?php
                                             foreach ($faculties as $faculty) {
                                                 $facultyName = htmlspecialchars($faculty['Faculty_Name']);
