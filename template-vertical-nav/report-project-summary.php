@@ -998,7 +998,35 @@ function fetchScenariosData($conn)
                                                                 'Project' => [],
                                                             ];
                                                         }
-
+                                                        // เก็บข้อมูลของ Project
+                                                        if (!isset($summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project])) {
+                                                            $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project] = [
+                                                                'name' => $row['project_name'],
+                                                                'Total_Amount_1_1' => 0,
+                                                                'Total_Amount_1_2' => 0,
+                                                                'Total_Amount_1_3' => 0,
+                                                                'Total_Amount_1_4' => 0,
+                                                                'Total_Amount_1_4_1' => 0,
+                                                                'Total_Amount_1_4_2' => 0,
+                                                                'Total_Amount_1_4_3' => 0,
+                                                                'Total_Amount_1_4_4' => 0,
+                                                                'Total_Amount_1_4_5' => 0,
+                                                                'Total_Amount_1_4_6' => 0,
+                                                                'Total_Amount_1_4_7' => 0,
+                                                                'Total_Amount_2_1' => 0,
+                                                                'Total_Amount_2_2' => 0,
+                                                                'Total_Amount_2_3' => 0,
+                                                                'Total_Amount_2_4' => 0,
+                                                                'Total_Amount_2_5' => 0,
+                                                                'Total_Amount_2_6' => 0,
+                                                                'Total_Amount_3_1' => 0,
+                                                                'Total_Amount_3_2' => 0,
+                                                                'Total_Amount_3_3' => 0,
+                                                                'Total_Amount_4' => 0,
+                                                                'Total_Amount_5' => 0,
+                                                                'kku_item' => [],
+                                                            ];
+                                                        }
                                                         // รวมข้อมูลของ pilar_name
                                                         $summary[$pilar_name]['Total_Amount_1_1'] += $row['Total_Amount_1_1'];
                                                         $summary[$pilar_name]['Total_Amount_1_2'] += $row['Total_Amount_1_2'];
@@ -1119,90 +1147,111 @@ function fetchScenariosData($conn)
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_4'] += $row['Total_Amount_4'];
                                                         $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Total_Amount_5'] += $row['Total_Amount_5'];
 
+                                                        // รวมข้อมูลของ Project
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_1'] += $row['Total_Amount_1_1'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_2'] += $row['Total_Amount_1_2'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_3'] += $row['Total_Amount_1_3'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_4'] += $row['Total_Amount_1_4'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_4_1'] += $row['Total_Amount_1_4_1'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_4_2'] += $row['Total_Amount_1_4_2'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_4_3'] += $row['Total_Amount_1_4_3'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_4_4'] += $row['Total_Amount_1_4_4'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_4_5'] += $row['Total_Amount_1_4_5'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_4_6'] += $row['Total_Amount_1_4_6'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_1_4_7'] += $row['Total_Amount_1_4_7'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_2_1'] += $row['Total_Amount_2_1'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_2_2'] += $row['Total_Amount_2_2'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_2_3'] += $row['Total_Amount_2_3'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_2_4'] += $row['Total_Amount_2_4'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_2_5'] += $row['Total_Amount_2_5'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_2_6'] += $row['Total_Amount_2_6'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_3_1'] += $row['Total_Amount_3_1'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_3_2'] += $row['Total_Amount_3_2'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_3_3'] += $row['Total_Amount_3_3'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_4'] += $row['Total_Amount_4'];
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['Total_Amount_5'] += $row['Total_Amount_5'];
 
-                                                        // เก็บข้อมูลของ Project
-                                                        if (!isset($summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project])) {
-                                                            $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project] = [
-                                                                'name' => $row['project_name'],
-                                                                'Total_Amount_1_1' => $row['Total_Amount_1_1'],
-                                                                'Total_Amount_1_2' => $row['Total_Amount_1_2'],
-                                                                'Total_Amount_1_3' => $row['Total_Amount_1_3'],
-                                                                'Total_Amount_1_4' => $row['Total_Amount_1_4'],
-                                                                'Total_Amount_1_4_1' => $row['Total_Amount_1_4_1'],
-                                                                'Total_Amount_1_4_2' => $row['Total_Amount_1_4_2'],
-                                                                'Total_Amount_1_4_3' => $row['Total_Amount_1_4_3'],
-                                                                'Total_Amount_1_4_4' => $row['Total_Amount_1_4_4'],
-                                                                'Total_Amount_1_4_5' => $row['Total_Amount_1_4_5'],
-                                                                'Total_Amount_1_4_6' => $row['Total_Amount_1_4_6'],
-                                                                'Total_Amount_1_4_7' => $row['Total_Amount_1_4_7'],
-                                                                'Total_Amount_2_1' => $row['Total_Amount_2_1'],
-                                                                'Total_Amount_2_2' => $row['Total_Amount_2_2'],
-                                                                'Total_Amount_2_3' => $row['Total_Amount_2_3'],
-                                                                'Total_Amount_2_4' => $row['Total_Amount_2_4'],
-                                                                'Total_Amount_2_5' => $row['Total_Amount_2_5'],
-                                                                'Total_Amount_2_6' => $row['Total_Amount_2_6'],
-                                                                'Total_Amount_3_1' => $row['Total_Amount_3_1'],
-                                                                'Total_Amount_3_2' => $row['Total_Amount_3_2'],
-                                                                'Total_Amount_3_3' => $row['Total_Amount_3_3'],
-                                                                'Total_Amount_4' => $row['Total_Amount_4'],
-                                                                'Total_Amount_5' => $row['Total_Amount_5'],
-                                                            ];
-                                                            $rows = $summary;
-                                                            // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
-                                                            $total_summary = [
-                                                                'Total_Amount_1_1' => 0,
-                                                                'Total_Amount_1_2' => 0,
-                                                                'Total_Amount_1_3' => 0,
-                                                                'Total_Amount_1_4' => 0,
-                                                                'Total_Amount_1_4_1' => 0,
-                                                                'Total_Amount_1_4_2' => 0,
-                                                                'Total_Amount_1_4_3' => 0,
-                                                                'Total_Amount_1_4_4' => 0,
-                                                                'Total_Amount_1_4_5' => 0,
-                                                                'Total_Amount_1_4_6' => 0,
-                                                                'Total_Amount_1_4_7' => 0,
-                                                                'Total_Amount_2_1' => 0,
-                                                                'Total_Amount_2_2' => 0,
-                                                                'Total_Amount_2_3' => 0,
-                                                                'Total_Amount_2_4' => 0,
-                                                                'Total_Amount_2_5' => 0,
-                                                                'Total_Amount_2_6' => 0,
-                                                                'Total_Amount_3_1' => 0,
-                                                                'Total_Amount_3_2' => 0,
-                                                                'Total_Amount_3_3' => 0,
-                                                                'Total_Amount_4' => 0,
-                                                                'Total_Amount_5' => 0,
-                                                            ];
-                                                            // แสดงผลรวมทั้งหมด
-                                                            //print_r($total_summary);
-                                                            // Assuming this is inside a loop where $row is updated (e.g., from a database query)
-                                                            foreach ($rows as $row) { // Replace $rows with your actual data source
-                                                                // รวมผลรวมทั้งหมดโดยไม่สนใจ Faculty
-                                                                $total_summary['Total_Amount_1_1'] += (float) ($row['Total_Amount_1_1'] ?? 0);
-                                                                $total_summary['Total_Amount_1_2'] += (float) ($row['Total_Amount_1_2'] ?? 0);
-                                                                $total_summary['Total_Amount_1_3'] += (float) ($row['Total_Amount_1_3'] ?? 0);
-                                                                $total_summary['Total_Amount_1_4'] += (float) ($row['Total_Amount_1_4'] ?? 0);
-                                                                $total_summary['Total_Amount_1_4_1'] += (float) ($row['Total_Amount_1_4_1'] ?? 0);
-                                                                $total_summary['Total_Amount_1_4_2'] += (float) ($row['Total_Amount_1_4_2'] ?? 0);
-                                                                $total_summary['Total_Amount_1_4_3'] += (float) ($row['Total_Amount_1_4_3'] ?? 0);
-                                                                $total_summary['Total_Amount_1_4_4'] += (float) ($row['Total_Amount_1_4_4'] ?? 0);
-                                                                $total_summary['Total_Amount_1_4_5'] += (float) ($row['Total_Amount_1_4_5'] ?? 0);
-                                                                $total_summary['Total_Amount_1_4_6'] += (float) ($row['Total_Amount_1_4_6'] ?? 0);
-                                                                $total_summary['Total_Amount_1_4_7'] += (float) ($row['Total_Amount_1_4_7'] ?? 0);
-                                                                $total_summary['Total_Amount_2_1'] += (float) ($row['Total_Amount_2_1'] ?? 0);
-                                                                $total_summary['Total_Amount_2_2'] += (float) ($row['Total_Amount_2_2'] ?? 0);
-                                                                $total_summary['Total_Amount_2_3'] += (float) ($row['Total_Amount_2_3'] ?? 0);
-                                                                $total_summary['Total_Amount_2_4'] += (float) ($row['Total_Amount_2_4'] ?? 0);
-                                                                $total_summary['Total_Amount_2_5'] += (float) ($row['Total_Amount_2_5'] ?? 0);
-                                                                $total_summary['Total_Amount_2_6'] += (float) ($row['Total_Amount_2_6'] ?? 0);
-                                                                $total_summary['Total_Amount_3_1'] += (float) ($row['Total_Amount_3_1'] ?? 0);
-                                                                $total_summary['Total_Amount_3_2'] += (float) ($row['Total_Amount_3_2'] ?? 0);
-                                                                $total_summary['Total_Amount_3_3'] += (float) ($row['Total_Amount_3_3'] ?? 0);
-                                                                $total_summary['Total_Amount_4'] += (float) ($row['Total_Amount_4'] ?? 0);
-                                                                $total_summary['Total_Amount_5'] += (float) ($row['Total_Amount_5'] ?? 0);
-                                                            }
+                                                        $summary[$pilar_name]['Default_Faculty'][$Default_Faculty]['Faculty'][$Faculty]['plan'][$Plan]['sub_plan'][$Sub_Plan]['Project'][$Project]['kku_item'][] = [
+                                                            'Total_Amount_1_1' => $row['Total_Amount_1_1'],
+                                                            'Total_Amount_1_2' => $row['Total_Amount_1_2'],
+                                                            'Total_Amount_1_3' => $row['Total_Amount_1_3'],
+                                                            'Total_Amount_1_4' => $row['Total_Amount_1_4'],
+                                                            'Total_Amount_1_4_1' => $row['Total_Amount_1_4_1'],
+                                                            'Total_Amount_1_4_2' => $row['Total_Amount_1_4_2'],
+                                                            'Total_Amount_1_4_3' => $row['Total_Amount_1_4_3'],
+                                                            'Total_Amount_1_4_4' => $row['Total_Amount_1_4_4'],
+                                                            'Total_Amount_1_4_5' => $row['Total_Amount_1_4_5'],
+                                                            'Total_Amount_1_4_6' => $row['Total_Amount_1_4_6'],
+                                                            'Total_Amount_1_4_7' => $row['Total_Amount_1_4_7'],
+                                                            'Total_Amount_2_1' => $row['Total_Amount_2_1'],
+                                                            'Total_Amount_2_2' => $row['Total_Amount_2_2'],
+                                                            'Total_Amount_2_3' => $row['Total_Amount_2_3'],
+                                                            'Total_Amount_2_4' => $row['Total_Amount_2_4'],
+                                                            'Total_Amount_2_5' => $row['Total_Amount_2_5'],
+                                                            'Total_Amount_2_6' => $row['Total_Amount_2_6'],
+                                                            'Total_Amount_3_1' => $row['Total_Amount_3_1'],
+                                                            'Total_Amount_3_2' => $row['Total_Amount_3_2'],
+                                                            'Total_Amount_3_3' => $row['Total_Amount_3_3'],
+                                                            'Total_Amount_4' => $row['Total_Amount_4'],
+                                                            'Total_Amount_5' => $row['Total_Amount_5'],
+                                                        ];
+
+                                                        $rows = $summary;
+                                                        // ตัวแปรสำหรับเก็บผลรวมทั้งหมด
+                                                        $total_summary = [
+                                                            'Total_Amount_1_1' => 0,
+                                                            'Total_Amount_1_2' => 0,
+                                                            'Total_Amount_1_3' => 0,
+                                                            'Total_Amount_1_4' => 0,
+                                                            'Total_Amount_1_4_1' => 0,
+                                                            'Total_Amount_1_4_2' => 0,
+                                                            'Total_Amount_1_4_3' => 0,
+                                                            'Total_Amount_1_4_4' => 0,
+                                                            'Total_Amount_1_4_5' => 0,
+                                                            'Total_Amount_1_4_6' => 0,
+                                                            'Total_Amount_1_4_7' => 0,
+                                                            'Total_Amount_2_1' => 0,
+                                                            'Total_Amount_2_2' => 0,
+                                                            'Total_Amount_2_3' => 0,
+                                                            'Total_Amount_2_4' => 0,
+                                                            'Total_Amount_2_5' => 0,
+                                                            'Total_Amount_2_6' => 0,
+                                                            'Total_Amount_3_1' => 0,
+                                                            'Total_Amount_3_2' => 0,
+                                                            'Total_Amount_3_3' => 0,
+                                                            'Total_Amount_4' => 0,
+                                                            'Total_Amount_5' => 0,
+                                                        ];
+                                                        // แสดงผลรวมทั้งหมด
+                                                        //print_r($total_summary);
+                                                        // Assuming this is inside a loop where $row is updated (e.g., from a database query)
+                                                        foreach ($rows as $row) { // Replace $rows with your actual data source
+                                                            // รวมผลรวมทั้งหมดโดยไม่สนใจ Faculty
+                                                            $total_summary['Total_Amount_1_1'] += (float) ($row['Total_Amount_1_1'] ?? 0);
+                                                            $total_summary['Total_Amount_1_2'] += (float) ($row['Total_Amount_1_2'] ?? 0);
+                                                            $total_summary['Total_Amount_1_3'] += (float) ($row['Total_Amount_1_3'] ?? 0);
+                                                            $total_summary['Total_Amount_1_4'] += (float) ($row['Total_Amount_1_4'] ?? 0);
+                                                            $total_summary['Total_Amount_1_4_1'] += (float) ($row['Total_Amount_1_4_1'] ?? 0);
+                                                            $total_summary['Total_Amount_1_4_2'] += (float) ($row['Total_Amount_1_4_2'] ?? 0);
+                                                            $total_summary['Total_Amount_1_4_3'] += (float) ($row['Total_Amount_1_4_3'] ?? 0);
+                                                            $total_summary['Total_Amount_1_4_4'] += (float) ($row['Total_Amount_1_4_4'] ?? 0);
+                                                            $total_summary['Total_Amount_1_4_5'] += (float) ($row['Total_Amount_1_4_5'] ?? 0);
+                                                            $total_summary['Total_Amount_1_4_6'] += (float) ($row['Total_Amount_1_4_6'] ?? 0);
+                                                            $total_summary['Total_Amount_1_4_7'] += (float) ($row['Total_Amount_1_4_7'] ?? 0);
+                                                            $total_summary['Total_Amount_2_1'] += (float) ($row['Total_Amount_2_1'] ?? 0);
+                                                            $total_summary['Total_Amount_2_2'] += (float) ($row['Total_Amount_2_2'] ?? 0);
+                                                            $total_summary['Total_Amount_2_3'] += (float) ($row['Total_Amount_2_3'] ?? 0);
+                                                            $total_summary['Total_Amount_2_4'] += (float) ($row['Total_Amount_2_4'] ?? 0);
+                                                            $total_summary['Total_Amount_2_5'] += (float) ($row['Total_Amount_2_5'] ?? 0);
+                                                            $total_summary['Total_Amount_2_6'] += (float) ($row['Total_Amount_2_6'] ?? 0);
+                                                            $total_summary['Total_Amount_3_1'] += (float) ($row['Total_Amount_3_1'] ?? 0);
+                                                            $total_summary['Total_Amount_3_2'] += (float) ($row['Total_Amount_3_2'] ?? 0);
+                                                            $total_summary['Total_Amount_3_3'] += (float) ($row['Total_Amount_3_3'] ?? 0);
+                                                            $total_summary['Total_Amount_4'] += (float) ($row['Total_Amount_4'] ?? 0);
+                                                            $total_summary['Total_Amount_5'] += (float) ($row['Total_Amount_5'] ?? 0);
                                                         }
                                                     }
+
 
                                                     if (isset($summary) && is_array($summary)) {
                                                         $total = $total_summary['Total_Amount_1_1']
