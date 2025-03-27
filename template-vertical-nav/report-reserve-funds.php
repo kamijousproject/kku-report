@@ -305,7 +305,7 @@
                                         <ul class="pagination">
                                             <?php if ($page > 1): ?>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page=1&year=<?= $selectedYearBE ?>">หน้าแรก</a>
+                                                    <a class="page-link" href="?page=1&year=<?= $selectedYearStr ?>">หน้าแรก</a>
                                                 </li>
                                                 <li class="page-item">
                                                     <a class="page-link" href="?page=<?= $page - 1 ?>&year=<?= $selectedYearStr ?>">ก่อนหน้า</a>
@@ -316,26 +316,22 @@
                                             $visiblePages = 5;
                                             $startPage = max(1, $page - $visiblePages);
                                             $endPage = min($totalPages, $page + $visiblePages);
-
                                             if ($startPage > 1) echo '<li class="page-item"><a class="page-link">...</a></li>';
-
-                                            for ($i = $startPage; $i <= $endPage; $i++):
-                                            ?>
+                                            for ($i = $startPage; $i <= $endPage; $i++): ?>
                                                 <li class="page-item <?= ($i == $page) ? 'active' : '' ?>">
-                                                    <a class="page-link" href="?page=<?= $i ?>&year=<?= $selectedYearBE ?>"><?= $i ?></a>
+                                                    <a class="page-link" href="?page=<?= $i ?>&year=<?= $selectedYearStr ?>"><?= $i ?></a>
                                                 </li>
                                             <?php endfor; ?>
-
                                             <?php if ($endPage < $totalPages): ?>
                                                 <li class="page-item"><a class="page-link">...</a></li>
                                             <?php endif; ?>
 
                                             <?php if ($page < $totalPages): ?>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page=<?= $page + 1 ?>&year=<?= $selectedYearBE ?>">ถัดไป</a>
+                                                    <a class="page-link" href="?page=<?= $page + 1 ?>&year=<?= $selectedYearStr ?>">ถัดไป</a>
                                                 </li>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page=<?= $totalPages ?>&year=<?= $selectedYearBE ?>">หน้าสุดท้าย</a>
+                                                    <a class="page-link" href="?page=<?= $totalPages ?>&year=<?= $selectedYearStr ?>">หน้าสุดท้าย</a>
                                                 </li>
                                             <?php endif; ?>
                                         </ul>
