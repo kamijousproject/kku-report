@@ -1,0 +1,26 @@
+Login successful
+Processing...
+Retrieving status...
+executeReportBurstingDefinition completed successfully
+
+Details: The bursting operation has completed successfully.
+
+Summary
+Bursting Definition: Bursting_EPM_Report_workforce_current_positions_allocation
+Artifact: /Library/EPM Report Workforce/EPM_Report_workforce_current_positions_allocation
+Status: Completed successfully
+Started: 3/26/25 4:09 PM
+Finished: 3/26/25 4:09 PM
+Bursting Dimension: None
+
+Details
+The Bursting operation has completed successfully.
+The total number of report executions: 1.
+Report generation details: 1 succeeded, 0 failed, 0 cancelled, 0 not started or not finished.
+The report distribution details: 1 succeeded, 0 failed, 0 content suppressed.
+
+
+
+
+Processing...
+deletefile completed successfully

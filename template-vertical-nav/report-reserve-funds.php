@@ -121,33 +121,28 @@
                                 $database = new Database();
                                 $conn = $database->connect();
 
-                                // กำหนดปีปัจจุบัน (ค.ศ.) และ 3 ปีย้อนหลัง
-                                $currentYearAD = date("Y");
-                                $years = [];
-                                for ($i = 0; $i < 4; $i++) {
-                                    $years[] = $currentYearAD - $i;
-                                }
+                                // ดึงปีที่มีในข้อมูลจาก account
+                                $yearQuery = "SELECT DISTINCT RIGHT(account, 4) AS yearBE FROM budget_planning_actual_2 ORDER BY yearBE DESC";
+                                $yearStmt = $conn->prepare($yearQuery);
+                                $yearStmt->execute();
+                                $years = $yearStmt->fetchAll(PDO::FETCH_COLUMN);
 
-                                // รับค่าปีที่เลือกจาก URL (แปลง พ.ศ. → ค.ศ.)
-                                $selectedYearBE = isset($_GET['year']) ? $_GET['year'] : ($currentYearAD + 543);
-                                $selectedYearAD = $selectedYearBE - 543; // แปลง พ.ศ. → ค.ศ.
+                                // รับค่าปีที่เลือกจาก URL (ใช้ พ.ศ. ตรงจาก account)
+                                $selectedYearStr = isset($_GET['year']) ? $_GET['year'] : ($years[0] ?? date("Y") + 543);
+                                $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : ''; // จาก dropdown ส่วนงาน
 
-                                $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : ''; // ค่าที่เลือกจาก dropdown ส่วนงาน
-
-                                // กำหนดค่าจำนวนแถวต่อหน้า
+                                // Pagination
                                 $limit = 10;
                                 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
                                 $offset = ($page - 1) * $limit;
 
-                                // Query นับจำนวนข้อมูลทั้งหมดตามปีและส่วนงาน
-                                $countQuery = "SELECT COUNT(*) as total FROM budget_planning_actual_2 
-                                    WHERE YEAR(timestamp) = :selectedYear";
+                                // Query นับจำนวนแถว
+                                $countQuery = "SELECT COUNT(*) as total FROM budget_planning_actual_2 WHERE RIGHT(account, 4) = :selectedYearStr";
                                 if ($selectedFaculty !== '') {
                                     $countQuery .= " AND SUBSTRING_INDEX(SUBSTRING_INDEX(account, '-', 2), '-', -1) = :faculty";
                                 }
-
                                 $countStmt = $conn->prepare($countQuery);
-                                $countStmt->bindParam(':selectedYear', $selectedYearAD, PDO::PARAM_INT);
+                                $countStmt->bindParam(':selectedYearStr', $selectedYearStr, PDO::PARAM_STR);
                                 if ($selectedFaculty !== '') {
                                     $countStmt->bindParam(':faculty', $selectedFaculty, PDO::PARAM_STR);
                                 }
@@ -155,7 +150,7 @@
                                 $totalRows = $countStmt->fetch(PDO::FETCH_ASSOC)['total'];
                                 $totalPages = ceil($totalRows / $limit);
 
-                                // Query ดึงข้อมูลจาก budget_planning_actual_2 ตามปีที่เลือก และกรองส่วนงาน
+                                // Query ข้อมูล
                                 $query = "SELECT 
                                             account, 
                                             account_description, 
@@ -168,14 +163,14 @@
                                             net_ending_balances_debit,
                                             net_ending_balances_credit
                                         FROM budget_planning_actual_2 
-                                        WHERE YEAR(timestamp) = :selectedYear";
+                                        WHERE RIGHT(account, 4) = :selectedYearStr AND account NOT LIKE '%-06-%'";
                                 if ($selectedFaculty !== '') {
                                     $query .= " AND SUBSTRING_INDEX(SUBSTRING_INDEX(account, '-', 2), '-', -1) = :faculty";
                                 }
                                 $query .= " LIMIT :limit OFFSET :offset";
 
                                 $stmt = $conn->prepare($query);
-                                $stmt->bindParam(':selectedYear', $selectedYearAD, PDO::PARAM_INT);
+                                $stmt->bindParam(':selectedYearStr', $selectedYearStr, PDO::PARAM_STR);
                                 if ($selectedFaculty !== '') {
                                     $stmt->bindParam(':faculty', $selectedFaculty, PDO::PARAM_STR);
                                 }
@@ -189,10 +184,10 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <label for="budgetYearSelect">ปีงบประมาณ:</label>
                                     <select id="budgetYearSelect" class="form-control" onchange="updateFilters()">
-                                        <?php foreach ($years as $yearAD): ?>
-                                            <?php $yearBE = $yearAD + 543; // แปลง ค.ศ. → พ.ศ. 
-                                            ?>
-                                            <option value="<?= $yearBE ?>" <?= ($yearBE == $selectedYearBE) ? 'selected' : '' ?>><?= $yearBE ?></option>
+                                        <?php foreach ($years as $yearBE): ?>
+                                            <option value="<?= $yearBE ?>" <?= ($yearBE == $selectedYearStr) ? 'selected' : '' ?>>
+                                                <?= $yearBE ?>
+                                            </option>
                                         <?php endforeach; ?>
                                     </select>
                                 </div>

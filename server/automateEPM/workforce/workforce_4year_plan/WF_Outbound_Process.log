@@ -1,0 +1,18 @@
+Login successful
+Processing...
+Retrieving status...
+EPMAT-1:The bursting definition Bursting_EPM_Report_workforce_4year_plan failed to run because - Incorrect folder path (Library/EPM Report Workforce/). Correct path need to start with (/Library).
+
+Processing...
+deletefile completed successfully
+Processing...
+Retrieving status...
+exportLibraryDocument completed successfully
+
+Details: 1. Document EPM_Report_workforce_4year_plan.xlsx exported successfully.
+ 
+Success. The export library document process was successfully completed.
+
+Processing...
+100% completed
+downloadfile completed successfully

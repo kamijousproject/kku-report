@@ -1,0 +1,274 @@
+﻿KKUPL01,Unnamed: 1,Unnamed: 2,Unnamed: 3,Unnamed: 4,With Period Beginning Balance,Unnamed: 6,Unnamed: 7,Unnamed: 8,Unnamed: 9,Unnamed: 10,Unnamed: 11,Unnamed: 12,Unnamed: 13,Unnamed: 14,Unnamed: 15,Unnamed: 16,Unnamed: 17,Unnamed: 18,Unnamed: 19,Unnamed: 20,Unnamed: 21,Unnamed: 22
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+Company,,,,,,มหาวิทยาลัยขอนแก่น,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+Balancing Segment,,,,,,1 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+ ,,,,,,,,,,,,,,,,,,,,,,
+Account Segment,,,,,,3201010100 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+,,,,,,,,,,,,,,,,,,,,,ทุนสำรองสะสม,
+,,,,,,,,,,,,,,,,,,,,,,
+1-01-00901-3201010100-02-0000-0000-000000-000000-0-2568,,,มหาวิทยาลัยขอนแก่น-สำนักงานอธิการบดี-อธิการบดี-บัญชีทุนสำรองสะสม \- สนง.อ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2568,,,,0,0,,0,0,,0,0,,0,0,0,,0,0,0
+,,,,,,,,,,,,,,,,,,,,,, 
+1-01-01001-3201010100-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-สำนักงานอธิการบดี-สำนักงานอธิการบดี-บัญชีทุนสำรองสะสม \- สนง.อ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,18047832.52,808099519.56,,0,790051687.04,,0,0,,0,0,18047832.52,,808099519.56,0,790051687.04
+,,,,,,,,,,,,,,,,,,,,,, 
+1-01-01001-3201010100-06-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-สำนักงานอธิการบดี-สำนักงานอธิการบดี-บัญชีทุนสำรองสะสม \- สนง.อ-งบประมาณเงินอุดหนุนจากรัฐ-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,348927,654675894.63,,0,654326967.63,,0,0,,0,0,348927,,654675894.63,0,654326967.63
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010100.0,,,,18396759.52,,1462775414.19,0.0,,1444378654.67,0.0,,0,0.0,,0,18396759.52,,1462775414.19,0,1444378654.67
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201010200 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-02-02001-3201010200-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะวิทยาศาสตร์-หน่วยงานภายใต้คณะวิทยาศาส-บัญชีทุนสำรองสะสม \- คณะวิ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,398324802.44,,0,398324802.44,,0,0,,0,0,0,,398324802.44,0,398324802.44
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010200.0,,,,0,,398324802.44,0.0,,398324802.44,0.0,,0,0.0,,0,0,,398324802.44,0,398324802.44
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201010300 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-03-03001-3201010300-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะเกษตรศาสตร์-หน่วยงานภายใต้คณะเกษตรศาส-บัญชีทุนสำรองสะสม \- คณะเก-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,126120163.69,,0,126120163.69,,0,0,,0,0,0,,126120163.69,0,126120163.69
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010300.0,,,,0,,126120163.69,0.0,,126120163.69,0.0,,0,0.0,,0,0,,126120163.69,0,126120163.69
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201010400 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-04-04001-3201010400-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะวิศวกรรมศาสตร์-หน่วยงานภายใต้คณะวิศวกรรม-บัญชีทุนสำรองสะสม \- คณะวิ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,193310683.08,,0,193310683.08,,0,0,,0,0,0,,193310683.08,0,193310683.08
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010400.0,,,,0,,193310683.08,0.0,,193310683.08,0.0,,0,0.0,,0,0,,193310683.08,0,193310683.08
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201010500 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-05-05001-3201010500-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะศึกษาศาสตร์-หน่วยงานภายใต้คณะศึกษาศาส-บัญชีทุนสำรองสะสม \- คณะศึ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,306254643.67,,0,306254643.67,,0,0,,0,0,0,,306254643.67,0,306254643.67
+,,,,,,,,,,,,,,,,,,,,,, 
+1-43-C5030-3201010500-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะศึกษาศาสตร์ \- โรงเรียน-โรงเรียนสาธิตมหาวิทยาลัยข-บัญชีทุนสำรองสะสม \- คณะศึ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,184277877.02,,0,184277877.02,,0,0,,0,0,0,,184277877.02,0,184277877.02
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010500.0,,,,0,,490532520.69000006,0.0,,490532520.69000006,0.0,,0,0.0,,0,0,,490532520.69000006,0,490532520.69000006
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201010600 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-06-06001-3201010600-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะพยาบาลศาสตร์-หน่วยงานภายใต้คณะพยาบาล-บัญชีทุนสำรองสะสม \- คณะพย-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,165005930.35,,0,165005930.35,,0,0,,0,0,0,,165005930.35,0,165005930.35
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010600.0,,,,0,,165005930.35,0.0,,165005930.35,0.0,,0,0.0,,0,0,,165005930.35,0,165005930.35
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201010700 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-07-07001-3201010700-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะแพทยศาสตร์-หน่วยงานภายใต้คณะแพทย์-บัญชีทุนสำรองสะสม \- คณะแพ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,11701976345.94,0,,11701976345.94,0,,0,0,,0,0,11701976345.94,,0,11701976345.94,0
+,,,,,,,,,,,,,,,,,,,,,, 
+1-07-07001-3201010700-06-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะแพทยศาสตร์-หน่วยงานภายใต้คณะแพทย์-บัญชีทุนสำรองสะสม \- คณะแพ-งบประมาณเงินอุดหนุนจากรัฐ-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,348817130,,0,348817130,,0,0,,0,0,0,,348817130,0,348817130
+,,,,,,,,,,,,,,,,,,,,,, 
+1-47-C7060-3201010700-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะแพทยศาสตร์ \- โรงพยาบาล-โรงพยาบาลศรีนครินทร์-บัญชีทุนสำรองสะสม \- คณะแพ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,14737165215.98,,0,14737165215.98,,0,0,,0,0,0,,14737165215.98,0,14737165215.98
+,,,,,,,,,,,,,,,,,,,,,, 
+1-47-C7060-3201010700-06-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะแพทยศาสตร์ \- โรงพยาบาล-โรงพยาบาลศรีนครินทร์-บัญชีทุนสำรองสะสม \- คณะแพ-งบประมาณเงินอุดหนุนจากรัฐ-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,348817130,0,,348817130,0,,0,0,,0,0,348817130,,0,348817130,0
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010700.0,,,,12050793475.94,,15085982345.98,0.0,,3035188870.039999,0.0,,0,0.0,,0,12050793475.94,,15085982345.98,0,3035188870.039999
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201010800 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-08-08001-3201010800-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะมนุษยศาสตร์และสังคมศาส-หน่วยงานภายใต้คณะมนุษยศาส-บัญชีทุนสำรองสะสม \- คณะมน-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,64285036.37,,0,64285036.37,,0,0,,0,0,0,,64285036.37,0,64285036.37
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010800.0,,,,0,,64285036.37,0.0,,64285036.37,0.0,,0,0.0,,0,0,,64285036.37,0,64285036.37
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201010900 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-09-09001-3201010900-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะเทคนิคการแพทย์-หน่วยงานภายใต้คณะเทคนิคกา-บัญชีทุนสำรองสะสม \- คณะเท-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,96180448.93,,0,96180448.93,,0,0,,0,0,0,,96180448.93,0,96180448.93
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201010900.0,,,,0,,96180448.93,0.0,,96180448.93,0.0,,0,0.0,,0,0,,96180448.93,0,96180448.93
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011000 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-10-10001-3201011000-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-บัณฑิตวิทยาลัย-หน่วยงานภายใต้บัณฑิตวิทยา-บัญชีทุนสำรองสะสม \- บัณฑิ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,18322820.17,,0,18322820.17,,0,0,,0,0,0,,18322820.17,0,18322820.17
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011000.0,,,,0,,18322820.17,0.0,,18322820.17,0.0,,0,0.0,,0,0,,18322820.17,0,18322820.17
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011100 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-11-11001-3201011100-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะสาธารณสุขศาสตร์-หน่วยงานภายใต้คณะสาธารณสุ-บัญชีทุนสำรองสะสม \- คณะสา-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,217993579.77,,0,217993579.77,,0,0,,0,0,0,,217993579.77,0,217993579.77
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011100.0,,,,0,,217993579.77,0.0,,217993579.77,0.0,,0,0.0,,0,0,,217993579.77,0,217993579.77
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011200 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-12-12001-3201011200-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-สำนักหอสมุด-หน่วยงานภายใต้สำนักหอสมุด-บัญชีทุนสำรองสะสม \- สำนัก-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,42226598.19,,0,42226598.19,,0,0,,0,0,0,,42226598.19,0,42226598.19
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011200.0,,,,0,,42226598.19,0.0,,42226598.19,0.0,,0,0.0,,0,0,,42226598.19,0,42226598.19
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011300 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-13-13001-3201011300-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะทันตแพทยศาสตร์-หน่วยงานภายใต้คณะทันตแพทย-บัญชีทุนสำรองสะสม \- คณะทั-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,902185404.31,0,,902185404.31,0,,0,0,,0,0,902185404.31,,0,902185404.31,0
+,,,,,,,,,,,,,,,,,,,,,, 
+1-50-C3026-3201011300-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะทันตแพทยศาสตร์ \- โรงพย-โรงพยาบาลทันตกรรม-บัญชีทุนสำรองสะสม \- คณะทั-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,1140352386.21,,0,1140352386.21,,0,0,,0,0,0,,1140352386.21,0,1140352386.21
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011300.0,,,,902185404.31,,1140352386.21,0.0,,238166981.9000001,0.0,,0,0.0,,0,902185404.31,,1140352386.21,0,238166981.9000001
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011400 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-15-15001-3201011400-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะเภสัชศาสตร์-หน่วยงานภายใต้คณะเภสัชศาส-บัญชีทุนสำรองสะสม \- คณะเภ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,114675132.78,,0,114675132.78,,0,0,,0,0,0,,114675132.78,0,114675132.78
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011400.0,,,,0,,114675132.78,0.0,,114675132.78,0.0,,0,0.0,,0,0,,114675132.78,0,114675132.78
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011500 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-16-16001-3201011500-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะเทคโนโลยี-หน่วยงานภายใต้คณะเทคโนโลย-บัญชีทุนสำรองสะสม \- คณะเท-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,46513573.36,,0,46513573.36,,0,0,,0,0,0,,46513573.36,0,46513573.36
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011500.0,,,,0,,46513573.36,0.0,,46513573.36,0.0,,0,0.0,,0,0,,46513573.36,0,46513573.36
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011600 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-17-17001-3201011600-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-สำนักเทคโนโลยีดิจิทัล-หน่วยงานภายใต้สำนักเทคโนโ-บัญชีทุนสำรองสะสม \- สำนัก-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,37387779.94,,0,37387779.94,,0,0,,0,0,0,,37387779.94,0,37387779.94
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011600.0,,,,0,,37387779.94,0.0,,37387779.94,0.0,,0,0.0,,0,0,,37387779.94,0,37387779.94
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011700 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-18-18001-3201011700-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะสัตวแพทยศาสตร์-หน่วยงานภายใต้คณะสัตวแพทย-บัญชีทุนสำรองสะสม \- คณะสั-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,64890302.94,,0,64890302.94,,0,0,,0,0,0,,64890302.94,0,64890302.94
+,,,,,,,,,,,,,,,,,,,,,, 
+1-40-C8021-3201011700-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะสัตวแพทยศาสตร์ \- โรงพย-โรงพยาบาลสัตว์-บัญชีทุนสำรองสะสม \- คณะสั-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,38060072.08,,0,38060072.08,,0,0,,0,0,0,,38060072.08,0,38060072.08
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011700.0,,,,0,,102950375.02,0.0,,102950375.02,0.0,,0,0.0,,0,0,,102950375.02,0,102950375.02
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011800 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-19-19001-3201011800-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะสถาปัตยกรรมศาสตร์-หน่วยงานภายใต้คณะสถาปัตยก-บัญชีทุนสำรองสะสม \- คณะสถ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,82488561.87,,0,82488561.87,,0,0,,0,0,0,,82488561.87,0,82488561.87
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011800.0,,,,0,,82488561.87,0.0,,82488561.87,0.0,,0,0.0,,0,0,,82488561.87,0,82488561.87
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201011900 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-20-20001-3201011900-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-สำนักบริการวิชาการ-หน่วยงานภายใต้สำนักบริการ-บัญชีทุนสำรองสะสม \-สำนักบ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,32178537.54,,0,32178537.54,,0,0,,0,0,0,,32178537.54,0,32178537.54
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201011900.0,,,,0,,32178537.54,0.0,,32178537.54,0.0,,0,0.0,,0,0,,32178537.54,0,32178537.54
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201012000 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-22-22001-3201012000-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะบริหารธุรกิจและการบัญช-หน่วยงานภายใต้คณะบริหารธุ-บัญชีทุนสำรองสะสม \- คณะบร-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,285448584.95,,0,285448584.95,,0,0,,0,0,0,,285448584.95,0,285448584.95
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201012000.0,,,,0,,285448584.95,0.0,,285448584.95,0.0,,0,0.0,,0,0,,285448584.95,0,285448584.95
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201012100 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-49-C7282-3201012100-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะแพทยศาสตร์ \- ศูนย์หัวใ-ศูนย์หัวใจสิริกิติ์ภาคตะว-บัญชีเงินทุนสำรองสะสม \- ศ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,1347041600.88,,0,1347041600.88,,0,0,,0,0,0,,1347041600.88,0,1347041600.88
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201012100.0,,,,0,,1347041600.88,0.0,,1347041600.88,0.0,,0,0.0,,0,0,,1347041600.88,0,1347041600.88
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201012200 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-24-24001-3201012200-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะศิลปกรรมศาสตร์-หน่วยงานภายใต้คณะศิลปกรรม-บัญชีเงินทุนสำรองสะสม \- ค-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,50521548.8,,0,50521548.8,,0,0,,0,0,0,,50521548.8,0,50521548.8
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201012200.0,,,,0,,50521548.8,0.0,,50521548.8,0.0,,0,0.0,,0,0,,50521548.8,0,50521548.8
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201012300 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-23-23001-3201012300-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-สำนักบริหารและพัฒนาวิชากา-หน่วยงานภายใต้สำนักบริหาร-บัญชีเงินทุนสำรองสะสม \- ส-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,186969612.2,,0,186969612.2,,0,0,,0,0,0,,186969612.2,0,186969612.2
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201012300.0,,,,0,,186969612.2,0.0,,186969612.2,0.0,,0,0.0,,0,0,,186969612.2,0,186969612.2
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201012400 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-28-28001-3201012400-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะสหวิทยาการ-หน่วยงานภายใต้คณะสหวิทยาก-บัญชีเงินทุนสำรองสะสม \- ค-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,89544794.57,,0,89544794.57,,0,0,,0,0,0,,89544794.57,0,89544794.57
+,,,,,,,,,,,,,,,,,,,,,, 
+1-28-28001-3201012400-06-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะสหวิทยาการ-หน่วยงานภายใต้คณะสหวิทยาก-บัญชีเงินทุนสำรองสะสม \- ค-งบประมาณเงินอุดหนุนจากรัฐ-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,1094461.87,0,,1094461.87,0,,0,0,,0,0,1094461.87,,0,1094461.87,0
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201012400.0,,,,1094461.87,,89544794.57,0.0,,88450332.69999999,0.0,,0,0.0,,0,1094461.87,,89544794.57,0,88450332.69999999
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201012500 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-27-27001-3201012500-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-คณะเศรษฐศาสตร์-หน่วยงานภายใต้คณะเศรษฐศาส-บัญชีเงินทุนสำรองสะสม\-คณะ-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,45619625.38,,0,45619625.38,,0,0,,0,0,0,,45619625.38,0,45619625.38
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201012500.0,,,,0,,45619625.38,0.0,,45619625.38,0.0,,0,0.0,,0,0,,45619625.38,0,45619625.38
+,,,,,,,,,,,,,,,,,,,,,, 
+Account Segment,,,,,,3201012600 ,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,Year Beginning Balances,,,Net Beginning Balances,,,Prior Periods,,,Period Activity,,Ending Balances,,,Net Ending Balances,
+Account,,,Account Description,,,,Debit,Credit,,Debit,Credit,,Debit,Credit,,Debit,Credit,Debit,,Credit,Debit,Credit
+1-29-29001-3201012600-02-0000-0000-000000-000000-0-2567,,,มหาวิทยาลัยขอนแก่น-วิทยาลัยการคอมพิวเตอร์-หน่วยงานภายใต้วิทยาลัยการ-บัญชีเงินทุนสำรองสะสม\-วิท-งบประมาณเงินรายได้-ค่าเริ่มต้น \- Default Val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-ค่าเริ่มต้น \- Default val-Global Consolidated Paren-Budget Period 2567,,,,0,86033926.93,,0,86033926.93,,0,0,,0,0,0,,86033926.93,0,86033926.93
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+Total for Account Segment,,3201012600.0,,,,0,,86033926.93,0.0,,86033926.93,0.0,,0,0.0,,0,0,,86033926.93,0,86033926.93
+,,,,,,,,,,,,,,,,,,,,,, 
+Total for Balancing Segment,,,,1.0,,12972470101.640001,,22008786384.279995,0.0,,9036316282.639994,0.0,,0,0.0,,0,12972470101.640001,,22008786384.279995,0,9036316282.639994
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+,Total for Company,,,,,12972470101.640001,,22008786384.279995,0.0,,9036316282.639994,0.0,,0,0.0,,0,12972470101.640001,,22008786384.279995,0,9036316282.639994
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+,Total for Report,,,,,12972470101.640001,,22008786384.279995,0.0,,9036316282.639994,0.0,,0,0.0,,0,12972470101.640001,,22008786384.279995,0,9036316282.639994
+,,,,,,,,,,,,,,,,,,,,,, 
+,,,,,,,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,,,,,,,
+End of Report,,,,,,,,,,,,,,,,,,,,,,
+ ,,,,,,,,,,,,,,,,,,,,,,
