@@ -26,11 +26,11 @@ df = pd.read_csv(file_path, skiprows=6, dtype={
                  'account_description': str})  # ข้าม header 6 แถวแรก
 
 # เลือกเฉพาะข้อมูลที่ต้องการเก็บ
-df_filtered = df.iloc[:, [0, 3, 13, 14, 16, 17, 18, 20]]
+df_filtered = df.iloc[:, [0, 3, 13, 14, 16, 17, 18, 20, 21, 22]]
 
 # เปลี่ยนชื่อคอลัมน์ให้ตรงกับ Database
 df_filtered.columns = ['account', 'account_description', 'prior_periods_debit', 'prior_periods_credit',
-                       'period_activity_debit', 'period_activity_credit', 'ending_balances_debit', 'ending_balances_credit']
+                       'period_activity_debit', 'period_activity_credit', 'ending_balances_debit', 'ending_balances_credit', 'net_ending_balances_debit', 'net_ending_balances_credit']
 
 # กรอกค่า NaN ด้วย 0
 df_filtered = df_filtered.fillna(0)
@@ -65,8 +65,8 @@ conn.commit()
 # เตรียมคำสั่ง SQL สำหรับ Insert ข้อมูล
 insert_query = """
 INSERT INTO budget_planning_actual_2 (account, account_description, prior_periods_debit, prior_periods_credit,
-                                      period_activity_debit, period_activity_credit, ending_balances_debit, ending_balances_credit)
-VALUES (%s, %s, %s, %s, %s, %s, %s, %s);
+                                      period_activity_debit, period_activity_credit, ending_balances_debit, ending_balances_credit, net_ending_balances_debit, net_ending_balances_credit)
+VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s);
 """
 
 # วนลูป insert ข้อมูลลงใน database
@@ -84,7 +84,7 @@ WHERE
 	account IN (
 		'0', '', 'Account Segment', 'Account',
 		'Total for Account Segment', 'End of Report',
-		'บัญชี', 'เซกเมนต์บัญชี', 'ยอดรวมของเซกเมนต์บัญชี', 'ยอดรวมสำหรับเซกเมนต์ยอดดุล', 'สิ้นสุดรายงาน'
+		'บัญชี', 'เซกเมนต์บัญชี', 'ยอดรวมของเซกเมนต์บัญชี', 'ยอดรวมสำหรับเซกเมนต์ยอดดุล', 'สิ้นสุดรายงาน', 'Total for Balancing Segment'
 	);
 """
 cursor.execute(delete_query)

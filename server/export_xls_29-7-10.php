@@ -30,8 +30,7 @@ function formatAccountData($conn, $account, $description)
 }
 
 // Query ดึงข้อมูล
-$query = "SELECT account, account_description, prior_periods_debit, prior_periods_credit, period_activity_debit, 
-          period_activity_credit, ending_balances_debit, ending_balances_credit FROM budget_planning_actual_2";
+$query = "SELECT account, account_description, net_ending_balances_debit, net_ending_balances_credit FROM budget_planning_actual_2";
 
 $stmt = $conn->prepare($query);
 $stmt->execute();
@@ -41,45 +40,36 @@ $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 header("Content-Type: application/vnd.ms-excel; charset=UTF-8");
 header("Content-Disposition: attachment; filename=รายงานสรุปบัญชีทุนสำรองสะสม.xls");
 
-// **เพิ่ม BOM เพื่อให้ Excel รองรับ UTF-8**
+// เพิ่ม BOM
 echo "\xEF\xBB\xBF";
 
-// **เพิ่มชื่อรายงาน**
+// แสดงหัวรายงาน
 echo "<table border='1'>";
-echo "<tr><th colspan='10' style='text-align:center;'>รายงานสรุปบัญชีทุนสำรองสะสม</th></tr>";
+echo "<tr><th colspan='3' style='text-align:center;'>รายงานสรุปบัญชีทุนสำรองสะสม</th></tr>";
+echo "<tr><td colspan='3'></td></tr>";
 
-// **เพิ่มบรรทัดว่างให้แยกหัวรายงานกับตาราง**
-echo "<tr><td colspan='10'></td></tr>";
-
-// **เพิ่มหัวตาราง**
+// หัวตารางแบบ 3 คอลัมน์
 echo "<tr>
         <th>รหัสบัญชี</th>
         <th>ชื่อบัญชี</th>
-        <th>รหัส GF</th>
-        <th>ชื่อบัญชี GF</th>
-        <th>ยอดยกมา (เดบิต)</th>
-        <th>ยอดยกมา (เครดิต)</th>
-        <th>ประจำงวด (เดบิต)</th>
-        <th>ประจำงวด (เครดิต)</th>
-        <th>ยอดยกไป (เดบิต)</th>
-        <th>ยอดยกไป (เครดิต)</th>
+        <th>ทุนสำรองสะสม</th>
       </tr>";
 
+// แสดงข้อมูล
 foreach ($data as $row) {
   list($formattedAccount, $formattedDescription) = formatAccountData($conn, $row['account'], $row['account_description']);
 
+  if ($row['net_ending_balances_debit'] == 0) {
+    $netBalance = '(' . $row['net_ending_balances_credit'] . ')';
+  } else {
+    $netBalance = $row['net_ending_balances_debit'];
+  }
+
   echo "<tr>
-            <td>{$formattedAccount}</td>
-            <td>{$formattedDescription}</td>
-            <td>-</td>
-            <td>-</td>
-            <td>{$row['prior_periods_debit']}</td>
-            <td>{$row['prior_periods_credit']}</td>
-            <td>{$row['period_activity_debit']}</td>
-            <td>{$row['period_activity_credit']}</td>
-            <td>{$row['ending_balances_debit']}</td>
-            <td>{$row['ending_balances_credit']}</td>
-          </tr>";
+          <td>{$formattedAccount}</td>
+          <td>{$formattedDescription}</td>
+          <td>{$netBalance}</td>
+        </tr>";
 }
 
 echo "</table>";

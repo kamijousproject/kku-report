@@ -30,8 +30,8 @@ function formatAccountData($conn, $account, $description)
 }
 
 // Query ดึงข้อมูล
-$query = "SELECT account, account_description, prior_periods_debit, prior_periods_credit, period_activity_debit, 
-          period_activity_credit, ending_balances_debit, ending_balances_credit FROM budget_planning_actual_2";
+$query = "SELECT account, account_description, net_ending_balances_debit, net_ending_balances_credit 
+          FROM budget_planning_actual_2";
 
 $stmt = $conn->prepare($query);
 $stmt->execute();
@@ -44,44 +44,35 @@ header('Content-Disposition: attachment; filename="รายงานสรุ�
 // สร้างไฟล์ CSV
 $output = fopen('php://output', 'w');
 
-// **เพิ่ม BOM เพื่อให้ Excel รองรับ UTF-8**
+// เพิ่ม BOM
 fputs($output, "\xEF\xBB\xBF");
 
-// **เพิ่มชื่อรายงานในแถวแรก**
+// หัวรายงาน
 fputcsv($output, ['รายงานสรุปบัญชีทุนสำรองสะสม']);
-
-// **เพิ่มบรรทัดว่างให้แยกหัวรายงานกับตาราง**
 fputcsv($output, []);
 
-// **เพิ่มหัวตาราง**
+// หัวตารางตามหน้า HTML
 fputcsv($output, [
     'รหัสบัญชี',
     'ชื่อบัญชี',
-    'รหัส GF',
-    'ชื่อบัญชี GF',
-    'ยอดยกมา (เดบิต)',
-    'ยอดยกมา (เครดิต)',
-    'ประจำงวด (เดบิต)',
-    'ประจำงวด (เครดิต)',
-    'ยอดยกไป (เดบิต)',
-    'ยอดยกไป (เครดิต)'
+    'ทุนสำรองสะสม'
 ]);
 
-// **เพิ่มข้อมูลลงใน CSV**
+// เพิ่มข้อมูล
 foreach ($data as $row) {
     list($formattedAccount, $formattedDescription) = formatAccountData($conn, $row['account'], $row['account_description']);
+
+    // เลือกแสดงยอดตาม logic
+    if ($row['net_ending_balances_debit'] == 0) {
+        $netBalance = '(' . $row['net_ending_balances_credit'] . ')';
+    } else {
+        $netBalance = $row['net_ending_balances_debit'];
+    }
 
     fputcsv($output, [
         $formattedAccount,
         $formattedDescription,
-        '-',
-        '-',
-        $row['prior_periods_debit'],
-        $row['prior_periods_credit'],
-        $row['period_activity_debit'],
-        $row['period_activity_credit'],
-        $row['ending_balances_debit'],
-        $row['ending_balances_credit']
+        $netBalance
     ]);
 }
 

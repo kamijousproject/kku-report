@@ -141,7 +141,7 @@
 
                                 // Query นับจำนวนข้อมูลทั้งหมดตามปีและส่วนงาน
                                 $countQuery = "SELECT COUNT(*) as total FROM budget_planning_actual_2 
-               WHERE YEAR(timestamp) = :selectedYear";
+                                    WHERE YEAR(timestamp) = :selectedYear";
                                 if ($selectedFaculty !== '') {
                                     $countQuery .= " AND SUBSTRING_INDEX(SUBSTRING_INDEX(account, '-', 2), '-', -1) = :faculty";
                                 }
@@ -164,7 +164,9 @@
                                             period_activity_debit, 
                                             period_activity_credit,
                                             ending_balances_debit, 
-                                            ending_balances_credit
+                                            ending_balances_credit,
+                                            net_ending_balances_debit,
+                                            net_ending_balances_credit
                                         FROM budget_planning_actual_2 
                                         WHERE YEAR(timestamp) = :selectedYear";
                                 if ($selectedFaculty !== '') {
@@ -185,7 +187,7 @@
 
                                 <!-- ส่วน Dropdown ปี (เป็น พ.ศ.) -->
                                 <div class="d-flex align-items-center gap-2">
-                                    <label for="budgetYearSelect">ปีบริหารงบประมาณ:</label>
+                                    <label for="budgetYearSelect">ปีงบประมาณ:</label>
                                     <select id="budgetYearSelect" class="form-control" onchange="updateFilters()">
                                         <?php foreach ($years as $yearAD): ?>
                                             <?php $yearBE = $yearAD + 543; // แปลง ค.ศ. → พ.ศ. 
@@ -199,8 +201,7 @@
                                 <div class="d-flex align-items-center gap-2">
                                     <label for="facultySelect">เลือกส่วนงาน:</label>
                                     <select id="facultySelect" class="form-control" onchange="updateFilters()">
-                                        <option value="">เลือก ส่วนงาน</option>
-                                        <option value="00" <?= ($selectedFaculty == '00') ? 'selected' : '' ?>>00 : มหาวิทยาลัยขอนแก่น</option>
+                                        <option value="">เลือกส่วนงาน ทั้งหมด</option>
                                         <option value="01" <?= ($selectedFaculty == '01') ? 'selected' : '' ?>>01 : สำนักงานอธิการบดี</option>
                                         <option value="02" <?= ($selectedFaculty == '02') ? 'selected' : '' ?>>02 : คณะวิทยาศาสตร์</option>
                                         <option value="03" <?= ($selectedFaculty == '03') ? 'selected' : '' ?>>03 : คณะเกษตรศาสตร์</option>
@@ -252,23 +253,13 @@
                                             <tr>
                                                 <th>รหัสบัญชี</th>
                                                 <th>ชื่อบัญชี</th>
-                                                <th>รหัส GF</th>
-                                                <th>ชื่อบัญชี GF</th>
-                                                <th colspan="2">ยอดยกมา</th>
-                                                <th colspan="2">ประจำงวด</th>
-                                                <th colspan="2">ยอดยกไป</th>
+                                                <th>ทุนสำรองสะสม</th>
+
                                             </tr>
                                             <tr>
                                                 <th></th>
                                                 <th></th>
                                                 <th></th>
-                                                <th></th>
-                                                <th>เดบิต</th>
-                                                <th>เครดิต</th>
-                                                <th>เดบิต</th>
-                                                <th>เครดิต</th>
-                                                <th>เดบิต</th>
-                                                <th>เครดิต</th>
                                             </tr>
                                         </thead>
                                         <tbody>
@@ -300,14 +291,15 @@
 
                                                     <td><?= $formattedAccount ?></td>
                                                     <td><?= $accountDescription . '-' . $facultyDes ?></td>
-                                                    <td>-</td>
-                                                    <td>-</td>
-                                                    <td><?= $row['prior_periods_debit'] ?></td>
-                                                    <td><?= $row['prior_periods_credit'] ?></td>
-                                                    <td><?= $row['period_activity_debit'] ?></td>
-                                                    <td><?= $row['period_activity_credit'] ?></td>
-                                                    <td><?= $row['ending_balances_debit'] ?></td>
-                                                    <td><?= $row['ending_balances_credit'] ?></td>
+                                                    <td>
+                                                        <?php
+                                                        if ($row['net_ending_balances_debit'] == 0) {
+                                                            echo '(' . $row['net_ending_balances_credit'] . ')';
+                                                        } else {
+                                                            echo $row['net_ending_balances_debit'];
+                                                        }
+                                                        ?>
+                                                    </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
