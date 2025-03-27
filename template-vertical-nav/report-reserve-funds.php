@@ -308,7 +308,7 @@
                                                     <a class="page-link" href="?page=1&year=<?= $selectedYearBE ?>">หน้าแรก</a>
                                                 </li>
                                                 <li class="page-item">
-                                                    <a class="page-link" href="?page=<?= $page - 1 ?>&year=<?= $selectedYearBE ?>">ก่อนหน้า</a>
+                                                    <a class="page-link" href="?page=<?= $page - 1 ?>&year=<?= $selectedYearStr ?>">ก่อนหน้า</a>
                                                 </li>
                                             <?php endif; ?>
 
