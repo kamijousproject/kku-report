@@ -4,6 +4,10 @@ include 'connectdb.php';
 $database = new Database();
 $conn = $database->connect();
 
+// รับค่าจาก query string
+$selectedYear = isset($_GET['year']) ? $_GET['year'] : '';
+$selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : '';
+
 // ฟังก์ชันจัดรูปแบบ account และชื่อบัญชี
 function formatAccountData($conn, $account, $description)
 {
@@ -29,11 +33,28 @@ function formatAccountData($conn, $account, $description)
     return [$formattedAccount, $accountDescription . '-' . $facultyDes];
 }
 
-// Query ดึงข้อมูล
+// สร้าง query มีเงื่อนไข
 $query = "SELECT account, account_description, net_ending_balances_debit, net_ending_balances_credit 
-          FROM budget_planning_actual_2";
+          FROM budget_planning_actual_2 
+          WHERE account LIKE '%-02-%'";
+
+if (!empty($selectedYear)) {
+    $query .= " AND RIGHT(account, 4) = :year";
+}
+
+if (!empty($selectedFaculty)) {
+    $query .= " AND SUBSTRING_INDEX(SUBSTRING_INDEX(account, '-', 2), '-', -1) = :faculty";
+}
 
 $stmt = $conn->prepare($query);
+
+if (!empty($selectedYear)) {
+    $stmt->bindParam(':year', $selectedYear, PDO::PARAM_STR);
+}
+if (!empty($selectedFaculty)) {
+    $stmt->bindParam(':faculty', $selectedFaculty, PDO::PARAM_STR);
+}
+
 $stmt->execute();
 $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -44,30 +65,23 @@ header('Content-Disposition: attachment; filename="รายงานสรุ�
 // สร้างไฟล์ CSV
 $output = fopen('php://output', 'w');
 
-// เพิ่ม BOM
+// เพิ่ม BOM สำหรับ UTF-8
 fputs($output, "\xEF\xBB\xBF");
 
 // หัวรายงาน
 fputcsv($output, ['รายงานสรุปบัญชีทุนสำรองสะสม']);
 fputcsv($output, []);
 
-// หัวตารางตามหน้า HTML
-fputcsv($output, [
-    'รหัสบัญชี',
-    'ชื่อบัญชี',
-    'ทุนสำรองสะสม'
-]);
+// หัวตาราง
+fputcsv($output, ['รหัสบัญชี', 'ชื่อบัญชี', 'ทุนสำรองสะสม']);
 
-// เพิ่มข้อมูล
+// เติมข้อมูลลงใน CSV
 foreach ($data as $row) {
     list($formattedAccount, $formattedDescription) = formatAccountData($conn, $row['account'], $row['account_description']);
 
-    // เลือกแสดงยอดตาม logic
-    if ($row['net_ending_balances_debit'] == 0) {
-        $netBalance = '(' . $row['net_ending_balances_credit'] . ')';
-    } else {
-        $netBalance = $row['net_ending_balances_debit'];
-    }
+    $netBalance = ($row['net_ending_balances_debit'] == 0)
+        ? '(' . $row['net_ending_balances_credit'] . ')'
+        : $row['net_ending_balances_debit'];
 
     fputcsv($output, [
         $formattedAccount,

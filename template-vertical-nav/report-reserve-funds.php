@@ -163,7 +163,7 @@
                                             net_ending_balances_debit,
                                             net_ending_balances_credit
                                         FROM budget_planning_actual_2 
-                                        WHERE RIGHT(account, 4) = :selectedYearStr AND account NOT LIKE '%-06-%'";
+                                        WHERE RIGHT(account, 4) = :selectedYearStr AND account LIKE '%-02-%'";
                                 if ($selectedFaculty !== '') {
                                     $query .= " AND SUBSTRING_INDEX(SUBSTRING_INDEX(account, '-', 2), '-', -1) = :faculty";
                                 }
@@ -344,13 +344,18 @@
                                         window.location.href = "?year=" + year;
                                     }
                                 </script>
-
-                                <!-- <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button> -->
-                                <button onclick="window.location.href='../server/export_csv_29-7-10.php'" class="btn btn-primary m-t-15">Export CSV</button>
+                                <!-- <button onclick="window.location.href='../server/export_csv_29-7-10.php'" class="btn btn-primary m-t-15">Export CSV</button>
                                 <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
-                                <!-- <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button> -->
-                                <button onclick="window.location.href='../server/export_xls_29-7-10.php'" class="btn btn-success m-t-15">Export XLS</button>
+                                <button onclick="window.location.href='../server/export_xls_29-7-10.php'" class="btn btn-success m-t-15">Export XLS</button> -->
 
+                                <!-- ปุ่ม Export CSV -->
+                                <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>
+
+                                <!-- ปุ่ม Export PDF -->
+                                <button onclick="exportPDF()" class="btn btn-danger m-t-15">Export PDF</button>
+
+                                <!-- ปุ่ม Export XLS -->
+                                <button onclick="exportXLS()" class="btn btn-success m-t-15">Export XLS</button>
                             </div>
                         </div>
 
@@ -370,6 +375,25 @@
     <script src="thsarabunnew-normal.js"></script> <!-- โหลดไฟล์ฟอนต์ที่แปลงเป็นตัวแปรแล้ว -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script> <!-- ✅ เพิ่ม SweetAlert2 -->
     <script>
+        function exportCSV() {
+            var year = document.getElementById("budgetYearSelect").value;
+            var faculty = document.getElementById("facultySelect").value;
+            var url = "../server/export_csv_29-7-10.php?year=" + year;
+            if (faculty !== "") {
+                url += "&faculty=" + faculty;
+            }
+            window.location.href = url;
+        }
+
+        function exportXLS() {
+            var year = document.getElementById("budgetYearSelect").value;
+            var faculty = document.getElementById("facultySelect").value;
+            var url = "../server/export_xls_29-7-10.php?year=" + year;
+            if (faculty !== "") {
+                url += "&faculty=" + faculty;
+            }
+            window.location.href = url;
+        }
         async function exportPDF() {
             const {
                 jsPDF
