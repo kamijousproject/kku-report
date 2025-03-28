@@ -566,7 +566,7 @@ function fetchScenariosData($conn)
                                 $faculties = fetchFacultyData($conn);
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
                                 $scenarios = fetchScenariosData($conn); // ดึงข้อมูล Scenario จากฐานข้อมูล
-                                
+
 
                                 // ข้อมูลแหล่งเงิน
                                 $fundOptions = [
@@ -645,12 +645,50 @@ function fetchScenariosData($conn)
                                             ?>
                                         </select>
                                     </div>
-
-
-
                                     <!-- ปุ่มค้นหา -->
-                                    <div class="form-group" style="display: flex; justify-content: center;">
-                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                        </div>
+                                        <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                        <!-- ปุ่ม -->
+                                        <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                        <script>
+                                            function runCmd() {
+                                                // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                                Swal.fire({
+                                                    title: 'กำลังอัปเดตข้อมูล',
+                                                    text: 'กรุณารอสักครู่...',
+                                                    allowOutsideClick: false,
+                                                    didOpen: () => {
+                                                        Swal.showLoading(); // แสดง loading spinner
+                                                    }
+                                                });
+
+                                                // เรียก PHP เพื่อรัน .cmd
+                                                fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                    .then(response => response.text())
+                                                    .then(result => {
+                                                        // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                        Swal.fire({
+                                                            title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                            html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                            icon: 'success'
+                                                        });
+                                                    })
+                                                    .catch(error => {
+                                                        Swal.fire({
+                                                            title: 'เกิดข้อผิดพลาด',
+                                                            text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                            icon: 'error'
+                                                        });
+                                                        console.error(error);
+                                                    });
+                                            }
+                                        </script>
                                     </div>
                                 </form>
 
@@ -1268,8 +1306,7 @@ function fetchScenariosData($conn)
                                                             + $total_summary['Total_Amount_3_2']
                                                             + $total_summary['Total_Amount_3_3']
                                                             + $total_summary['Total_Amount_4']
-                                                            + $total_summary['Total_Amount_5']
-                                                        ;
+                                                            + $total_summary['Total_Amount_5'];
                                                         echo "<tr>";
                                                         echo "<td style='text-align: left;'>" . 'รวมทั้งสิ้น' . "<br></td>";
                                                         echo "<td>" . formatNumber($total_summary['Total_Amount_1_1']) . "</td>";
@@ -1317,8 +1354,7 @@ function fetchScenariosData($conn)
                                                             + $data1['Total_Amount_3_2']
                                                             + $data1['Total_Amount_3_3']
                                                             + $data1['Total_Amount_4']
-                                                            + $data1['Total_Amount_5']
-                                                        ;
+                                                            + $data1['Total_Amount_5'];
                                                         echo "<tr>";
                                                         if ($selectedFaculty == null) {
                                                             echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 8) . htmlspecialchars($data1['name'] ?? '') . "</td>";
@@ -1367,8 +1403,7 @@ function fetchScenariosData($conn)
                                                                 + $data2['Total_Amount_3_2']
                                                                 + $data2['Total_Amount_3_3']
                                                                 + $data2['Total_Amount_4']
-                                                                + $data2['Total_Amount_5']
-                                                            ;
+                                                                + $data2['Total_Amount_5'];
                                                             echo "<tr>";
                                                             if ($selectedFaculty == null) {
                                                                 echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 16) . htmlspecialchars($data2['name'] ?? '') . "</td>";
@@ -1416,8 +1451,7 @@ function fetchScenariosData($conn)
                                                                     + $data3['Total_Amount_3_2']
                                                                     + $data3['Total_Amount_3_3']
                                                                     + $data3['Total_Amount_4']
-                                                                    + $data3['Total_Amount_5']
-                                                                ;
+                                                                    + $data3['Total_Amount_5'];
                                                                 echo "<tr>";
                                                                 if ($selectedFaculty == null) {
                                                                     echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 24) . htmlspecialchars($data3['name'] ?? '') . "</td>";
@@ -1465,8 +1499,7 @@ function fetchScenariosData($conn)
                                                                         + $data4['Total_Amount_3_2']
                                                                         + $data4['Total_Amount_3_3']
                                                                         + $data4['Total_Amount_4']
-                                                                        + $data4['Total_Amount_5']
-                                                                    ;
+                                                                        + $data4['Total_Amount_5'];
                                                                     echo "<tr>";
                                                                     if ($selectedFaculty == null) {
                                                                         echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 32) . htmlspecialchars($data4['name'] ?? '') . "</td>";
@@ -1514,8 +1547,7 @@ function fetchScenariosData($conn)
                                                                             + $data5['Total_Amount_3_2']
                                                                             + $data5['Total_Amount_3_3']
                                                                             + $data5['Total_Amount_4']
-                                                                            + $data5['Total_Amount_5']
-                                                                        ;
+                                                                            + $data5['Total_Amount_5'];
                                                                         echo "<tr>";
                                                                         if ($selectedFaculty == null) {
                                                                             echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 40) . htmlspecialchars($data5['name'] ?? '') . "</td>";
@@ -1564,8 +1596,7 @@ function fetchScenariosData($conn)
                                                                                 + $data6['Total_Amount_3_2']
                                                                                 + $data6['Total_Amount_3_3']
                                                                                 + $data6['Total_Amount_4']
-                                                                                + $data6['Total_Amount_5']
-                                                                            ;
+                                                                                + $data6['Total_Amount_5'];
                                                                             echo "<tr>";
                                                                             if ($selectedFaculty == null) {
                                                                                 echo "<td style='text-align: left;'>" . str_repeat("&nbsp;", 48) . htmlspecialchars($data6['name'] ?? '') . "</td>";
@@ -1617,8 +1648,6 @@ function fetchScenariosData($conn)
                                         // การส่งค่าของ selectedFaculty ไปยัง JavaScript
                                         var selectedFaculty = "<?php echo isset($selectedFaculty) ? htmlspecialchars($selectedFaculty, ENT_QUOTES, 'UTF-8') : ''; ?>";
                                         console.log('Selected Faculty: ', selectedFaculty);
-
-
                                     </script>
 
 
@@ -1639,7 +1668,6 @@ function fetchScenariosData($conn)
         </div>
     </div>
     <script>
-
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const csvRows = [];
@@ -1748,7 +1776,9 @@ function fetchScenariosData($conn)
 
             // รวมเป็น CSV + BOM
             const csvContent = "\uFEFF" + csvRows.join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -1804,7 +1834,10 @@ function fetchScenariosData($conn)
             const table = document.getElementById('reportTable');
 
             // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
-            const { theadRows, theadMerges } = parseThead(table.tHead);
+            const {
+                theadRows,
+                theadMerges
+            } = parseThead(table.tHead);
 
             // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
             const tbodyRows = parseTbody(table.tBodies[0]);
@@ -1832,7 +1865,9 @@ function fetchScenariosData($conn)
             });
 
             // สร้าง Blob + ดาวน์โหลด
-            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -1853,7 +1888,10 @@ function fetchScenariosData($conn)
             const theadMerges = [];
 
             if (!thead) {
-                return { theadRows, theadMerges };
+                return {
+                    theadRows,
+                    theadMerges
+                };
             }
 
             const skipMap = {};
@@ -1882,8 +1920,14 @@ function fetchScenariosData($conn)
 
                     if (rowspan > 1 || colspan > 1) {
                         theadMerges.push({
-                            s: { r: rowIndex, c: colIndex },
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {
@@ -1898,7 +1942,10 @@ function fetchScenariosData($conn)
                 theadRows.push(rowData);
             }
 
-            return { theadRows, theadMerges };
+            return {
+                theadRows,
+                theadMerges
+            };
         }
 
         /**
@@ -1953,16 +2000,19 @@ function fetchScenariosData($conn)
             const range = XLSX.utils.decode_range(ws['!ref']);
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                    const cell_address = XLSX.utils.encode_cell({
+                        r: R,
+                        c: C
+                    });
                     if (!ws[cell_address]) continue;
 
                     if (!ws[cell_address].s) ws[cell_address].s = {};
-                    ws[cell_address].s.alignment = { vertical: verticalAlign };
+                    ws[cell_address].s.alignment = {
+                        vertical: verticalAlign
+                    };
                 }
             }
         }
-
-
     </script>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>

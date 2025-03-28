@@ -61,8 +61,49 @@
                                         <option value="">เลือกส่วนงาน/หน่วยงาน</option>
                                     </select>
                                     <br />
-                                    <!-- Submit Button -->
-                                    <button id="submitBtn" class="btn btn-primary" disabled>Submit</button>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <button id="submitBtn" class="btn btn-primary" disabled>Submit</button>
+                                        </div>
+                                        <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                        <!-- ปุ่ม -->
+                                        <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+                                        <script>
+                                            function runCmd() {
+                                                // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                                Swal.fire({
+                                                    title: 'กำลังอัปเดตข้อมูล',
+                                                    text: 'กรุณารอสักครู่...',
+                                                    allowOutsideClick: false,
+                                                    didOpen: () => {
+                                                        Swal.showLoading(); // แสดง loading spinner
+                                                    }
+                                                });
+
+                                                // เรียก PHP เพื่อรัน .cmd
+                                                fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                    .then(response => response.text())
+                                                    .then(result => {
+                                                        // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                        Swal.fire({
+                                                            title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                            html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                            icon: 'success'
+                                                        });
+                                                    })
+                                                    .catch(error => {
+                                                        Swal.fire({
+                                                            title: 'เกิดข้อผิดพลาด',
+                                                            text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                            icon: 'error'
+                                                        });
+                                                        console.error(error);
+                                                    });
+                                            }
+                                        </script>
+                                    </div>
                                     <table id="reportTable" class="table table-bordered">
                                         <br>
                                         <br>
@@ -503,7 +544,7 @@
                 ["รายงานสรุปคำขอตั้งงบประมาณรายจ่ายประจำปี (สรุปประมาณการรายรับและประมาณการรายจ่าย)"], // แถวชื่อรายงาน
                 [""], // แถวเว้นว่างเพื่อความสวยงาม
                 ["ปีงบประมาณ: " + y, "", "", ""],
-                ["ประเภทงบประมาณ: "+ fund, "", "", ""],
+                ["ประเภทงบประมาณ: " + fund, "", "", ""],
                 ["ส่วนงาน/หน่วยงาน: " + f, "", "", ""],
                 [] // แถวว่างเป็นตัวแบ่ง
             ];

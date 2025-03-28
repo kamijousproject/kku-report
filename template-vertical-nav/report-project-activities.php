@@ -1,65 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-<style>     
-#main-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+<style>
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
 
 
-.container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
 
-.table-responsive {
-    flex-grow: 1;
-    overflow-y: auto; /* Scrollable content only inside table */
-    max-height: 60vh; /* Set a fixed height */
-    border: 1px solid #ccc;
-}
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    background: #f4f4f4;
-    z-index: 1000;
-}
+    thead tr:nth-child(1) th {
+        position: sticky;
+        top: 0;
+        background: #f4f4f4;
+        z-index: 1000;
+    }
 
-thead tr:nth-child(2) th {
-    position: sticky;
-    top: 44px; /* Adjust height based on previous row */
-    background: #f4f4f4;
-    z-index: 999;
-}
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 44px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
+    }
 
-thead tr:nth-child(3) th {
-    position: sticky;
-    top: 89px; /* Adjust height based on previous rows */
-    background: #f4f4f4;
-    z-index: 998;
-}
-.nowrap {
-    white-space: nowrap;
-}
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 89px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
+    }
+
+    .nowrap {
+        white-space: nowrap;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -93,19 +100,62 @@ thead tr:nth-child(3) th {
                                 </div>
                                 <label for="fyear">เลือกปีงบประมาณ:</label>
                                 <select name="fyear" id="fyear">
-                                <option value="">-- Select --</option>
-                                    
+                                    <option value="">-- Select --</option>
+
                                 </select>
-                                <br/>
+                                <br />
                                 <label for="scenario">ประเภทงบประมาณ:</label>
                                 <select name="scenario" id="scenario" disabled>
                                     <option value="">-- Select --</option>
                                 </select>
-                                <br/>
-                                <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()" disabled>
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
+                                <br />
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="category">เลือกส่วนงาน:</label>
+                                        <select name="category" id="category" onchange="fetchData()" disabled>
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
@@ -160,7 +210,7 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
         let all_data;
-        $(document).ready(function () {
+        $(document).ready(function() {
             $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
@@ -169,7 +219,7 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function(response) {
-                    all_data=response.bgp;
+                    all_data = response.bgp;
                     const fac = [...new Set(all_data.map(item => item.Budget_Management_Year))];
                     let dropdown = document.getElementById("fyear");
                     dropdown.innerHTML = '<option value="">-- Select --</option>';
@@ -187,42 +237,43 @@ thead tr:nth-child(3) th {
             });
 
         });
-        $('#fyear').change(function () {
+        $('#fyear').change(function() {
             let year = document.getElementById("fyear").value;
-            let y=all_data.filter(item=>item.Budget_Management_Year===parseInt(year));
+            let y = all_data.filter(item => item.Budget_Management_Year === parseInt(year));
             const scenario = [...new Set(y.map(item => item.Scenario))];
             let facDropdown = document.getElementById("scenario");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    scenario.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        facDropdown.appendChild(option);
-                    });   
+            facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+            scenario.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                facDropdown.appendChild(option);
+            });
             $('#scenario').prop('disabled', false);
         });
-        $('#scenario').change(function () {
+        $('#scenario').change(function() {
             let year = document.getElementById("fyear").value;
             let scenario = document.getElementById("scenario").value;
             let all_data2;
             if (scenario == "all") {
-                all_data2 = all_data.filter(item=>item.Budget_Management_Year===parseInt(year));
+                all_data2 = all_data.filter(item => item.Budget_Management_Year === parseInt(year));
             } else {
-                all_data2 = all_data.filter(item => item.Scenario === scenario && item.Budget_Management_Year===parseInt(year));
-            }         
-            
+                all_data2 = all_data.filter(item => item.Scenario === scenario && item.Budget_Management_Year === parseInt(year));
+            }
+
             console.log(all_data2);
             const fac = [...new Set(all_data2.map(item => item.pname))];
-                    let facDropdown = document.getElementById("category");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    fac.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        facDropdown.appendChild(option);
-                    });
+            let facDropdown = document.getElementById("category");
+            facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+            fac.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                facDropdown.appendChild(option);
+            });
             $('#category').prop('disabled', false);
         });
+
         function fetchData() {
             let category = document.getElementById("category").value;
             let scenario = document.getElementById("scenario").value;
@@ -230,41 +281,93 @@ thead tr:nth-child(3) th {
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า      
             let data;
-            
+
             data = all_data.filter(item => item.Budget_Management_Year === parseInt(year));
-                  
+
             if (scenario == "all") {
-               
+
             } else {
                 data = data.filter(item => item.Scenario === scenario);
-            }         
-            if(category=="all"){
-                
             }
-            else{
-                data= data.filter(item=>item.pname===category);
+            if (category == "all") {
+
+            } else {
+                data = data.filter(item => item.pname === category);
             }
             data.forEach((row, index) => {
                 const tr = document.createElement('tr');
 
-                const columns = [
-                    { key: 'Alias_Default', value: row.Alias_Default },
-                    { key: 'Plan_Name', value: row.plan_name ,nowrap: true},
-                    { key: 'Sub_Plan_Name', value: row.sub_plan_name,nowrap: true} ,
-                    { key: 'Project_Name', value: row.project_name },
-                    { key: 'Fund', value: row.Fund },
-                    { key: 'Total_Amount_Quantity', value: row.Total_Amount_Quantity },
-                    { key: 'Proj_KPI_Name', value: row.Proj_KPI_Name },
-                    { key: 'Proj_KPI_Target', value: row.Proj_KPI_Target },
-                    { key: 'UoM_for_Proj_KPI', value: row.UoM_for_Proj_KPI },
-                    { key: 'Objective', value: row.Objective },
-                    { key: 'Project_Output', value: row.Project_Output },
-                    { key: 'Project_Outcome', value: row.Project_Outcome },
-                    { key: 'Project_Impact', value: row.Project_Impact },
-                    { key: 'Pillar_Name', value: row.pillar_name ,nowrap: true},
-                    { key: 'OKR_Name', value: row.okr_name },
-                    { key: 'Principles_of_Good_Governance', value: row.Principles_of_good_governance },
-                    { key: 'SDGs', value: row.SDGs }
+                const columns = [{
+                        key: 'Alias_Default',
+                        value: row.Alias_Default
+                    },
+                    {
+                        key: 'Plan_Name',
+                        value: row.plan_name,
+                        nowrap: true
+                    },
+                    {
+                        key: 'Sub_Plan_Name',
+                        value: row.sub_plan_name,
+                        nowrap: true
+                    },
+                    {
+                        key: 'Project_Name',
+                        value: row.project_name
+                    },
+                    {
+                        key: 'Fund',
+                        value: row.Fund
+                    },
+                    {
+                        key: 'Total_Amount_Quantity',
+                        value: row.Total_Amount_Quantity
+                    },
+                    {
+                        key: 'Proj_KPI_Name',
+                        value: row.Proj_KPI_Name
+                    },
+                    {
+                        key: 'Proj_KPI_Target',
+                        value: row.Proj_KPI_Target
+                    },
+                    {
+                        key: 'UoM_for_Proj_KPI',
+                        value: row.UoM_for_Proj_KPI
+                    },
+                    {
+                        key: 'Objective',
+                        value: row.Objective
+                    },
+                    {
+                        key: 'Project_Output',
+                        value: row.Project_Output
+                    },
+                    {
+                        key: 'Project_Outcome',
+                        value: row.Project_Outcome
+                    },
+                    {
+                        key: 'Project_Impact',
+                        value: row.Project_Impact
+                    },
+                    {
+                        key: 'Pillar_Name',
+                        value: row.pillar_name,
+                        nowrap: true
+                    },
+                    {
+                        key: 'OKR_Name',
+                        value: row.okr_name
+                    },
+                    {
+                        key: 'Principles_of_Good_Governance',
+                        value: row.Principles_of_good_governance
+                    },
+                    {
+                        key: 'SDGs',
+                        value: row.SDGs
+                    }
                 ];
 
 
@@ -281,8 +384,9 @@ thead tr:nth-child(3) th {
                 tableBody.appendChild(tr);
 
             });
-                
+
         }
+
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
@@ -292,7 +396,7 @@ thead tr:nth-child(3) th {
                 `"ปีงบประมาณ: ${filters.fyear}"`,
                 `"ประเภทงบประมาณ: ${filters.scenario}"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
-                
+
             ];
             // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
             let maxCols = 0;
@@ -305,10 +409,14 @@ thead tr:nth-child(3) th {
             }
 
             // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(null));
 
             // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const row = table.rows[rowIndex];
@@ -346,11 +454,13 @@ thead tr:nth-child(3) th {
             }
 
             // แปลงข้อมูลเป็น CSV
-            const csvContent = "\uFEFF" + 
-        reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
-        '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
-        csvMatrix.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const csvContent = "\uFEFF" +
+                reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
+                '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
+                csvMatrix.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -360,6 +470,7 @@ thead tr:nth-child(3) th {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
         function getFilterValues() {
             return {
                 fyear: document.getElementById('fyear').options[document.getElementById('fyear').selectedIndex].text,
@@ -367,8 +478,11 @@ thead tr:nth-child(3) th {
                 department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
             };
         }
+
         function exportPDF() {
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
 
             // Add Thai font
@@ -377,7 +491,9 @@ thead tr:nth-child(3) th {
             doc.setFont("THSarabun");
             const filterValues = getFilterValues();
             doc.setFontSize(12);
-            doc.text("รายงานโครงการ/กิจกรรม", 150, 10,{ align: 'center' });
+            doc.text("รายงานโครงการ/กิจกรรม", 150, 10, {
+                align: 'center'
+            });
             doc.setFontSize(10);
             doc.text(`ปีงบประมาณ: ${filterValues.fyear}`, 15, 20);
             doc.text(`ประเภทงบประมาณ: ${filterValues.scenario}`, 150, 20);
@@ -402,15 +518,20 @@ thead tr:nth-child(3) th {
                     halign: 'center',
                     valign: 'middle'
                 },
-                
+
                 didParseCell: function(data) {
                     data.cell.styles.halign = 'center';
-                    
+
                     /* if (data.section === 'body' && data.column.index === 0) {
                         data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
                     } */
                 },
-                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                margin: {
+                    top: 15,
+                    right: 5,
+                    bottom: 10,
+                    left: 5
+                },
                 tableWidth: 'auto'
             });
             doc.save('รายงานโครงการ/กิจกรรม.pdf');
@@ -424,18 +545,53 @@ thead tr:nth-child(3) th {
 
             // สร้างข้อมูลสำหรับหัวรายงาน (4 แถวแรก)
             const headerRows = [
-                [{ v: "รายงานโครงการ/กิจกรรม", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
-                [
-                    { v: "ปีงบประมาณ:", s: { font: { bold: true } } },
-                    { v: filterValues.fyear }
+                [{
+                    v: "รายงานโครงการ/กิจกรรม",
+                    s: {
+                        font: {
+                            bold: true,
+                            sz: 14
+                        },
+                        alignment: {
+                            horizontal: "center"
+                        }
+                    }
+                }],
+                [{
+                        v: "ปีงบประมาณ:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.fyear
+                    }
                 ],
-                [
-                    { v: "ประเภทงบประมาณ:", s: { font: { bold: true } } },
-                    { v: filterValues.scenario }
+                [{
+                        v: "ประเภทงบประมาณ:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.scenario
+                    }
                 ],
-                [
-                    { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },
-                    { v: filterValues.department }
+                [{
+                        v: "ส่วนงาน/หน่วยงาน:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.department
+                    }
                 ],
                 [] // ว่างไว้ 1 แถว
             ];
@@ -446,7 +602,16 @@ thead tr:nth-child(3) th {
             const skipMap = {};
 
             // จัดการกับการรวมเซลล์ในส่วนหัวรายงาน
-            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 17 } }); // รวมเซลล์หัวรายงาน
+            merges.push({
+                s: {
+                    r: 0,
+                    c: 0
+                },
+                e: {
+                    r: 0,
+                    c: 17
+                }
+            }); // รวมเซลล์หัวรายงาน
 
             // ปรับ offset สำหรับตาราง (เพิ่มจำนวนแถวหัวรายงาน)
             const rowOffset = headerRows.length;
@@ -475,7 +640,9 @@ thead tr:nth-child(3) th {
                                 vertical: "top",
                                 horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
                             },
-                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                            font: isHeader ? {
+                                bold: true
+                            } : {} // **ทำให้ Header ตัวหนา**
                         }
                     };
 
@@ -484,8 +651,14 @@ thead tr:nth-child(3) th {
 
                     if (rowspan > 1 || colspan > 1) {
                         merges.push({
-                            s: { r: rowIndex + rowOffset, c: colIndex },
-                            e: { r: rowIndex + rowOffset + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex + rowOffset,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowOffset + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {
@@ -515,15 +688,29 @@ thead tr:nth-child(3) th {
             // กำหนดความกว้างของคอลัมน์
             const cols = [];
             // กำหนดความกว้างตามต้องการ
-            cols.push({ wch: 10 }); // ที่
-            cols.push({ wch: 30 }); // โครงการ/กิจกรรม
-            cols.push({ wch: 45 }); // ประเด็นยุทธศาสตร์
-            cols.push({ wch: 20 }); // OKR
-            cols.push({ wch: 35 }); // แผนงาน
-            cols.push({ wch: 35 }); // แผนงานย่อย
+            cols.push({
+                wch: 10
+            }); // ที่
+            cols.push({
+                wch: 30
+            }); // โครงการ/กิจกรรม
+            cols.push({
+                wch: 45
+            }); // ประเด็นยุทธศาสตร์
+            cols.push({
+                wch: 20
+            }); // OKR
+            cols.push({
+                wch: 35
+            }); // แผนงาน
+            cols.push({
+                wch: 35
+            }); // แผนงานย่อย
             // คอลัมน์ที่เหลือความกว้าง 15
             for (let i = 0; i < 10; i++) {
-                cols.push({ wch: 15 });
+                cols.push({
+                    wch: 15
+                });
             }
             ws['!cols'] = cols;
 

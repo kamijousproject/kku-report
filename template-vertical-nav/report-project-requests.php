@@ -1,70 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-<style>     
-#main-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+<style>
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
-/* .content-body {
+    /* .content-body {
     flex-grow: 1;
     overflow: hidden; 
     display: flex;
     flex-direction: column;
 } */
 
-.container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
 
-.table-responsive {
-    flex-grow: 1;
-    overflow-y: auto; /* Scrollable content only inside table */
-    max-height: 60vh; /* Set a fixed height */
-    border: 1px solid #ccc;
-}
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    background: #f4f4f4;
-    z-index: 1000;
-}
+    thead tr:nth-child(1) th {
+        position: sticky;
+        top: 0;
+        background: #f4f4f4;
+        z-index: 1000;
+    }
 
-thead tr:nth-child(2) th {
-    position: sticky;
-    top: 44px; /* Adjust height based on previous row */
-    background: #f4f4f4;
-    z-index: 999;
-}
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 44px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
+    }
 
-thead tr:nth-child(3) th {
-    position: sticky;
-    top: 89px; /* Adjust height based on previous rows */
-    background: #f4f4f4;
-    z-index: 998;
-}
-.nowrap {
-    white-space: nowrap;
-}
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 89px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
+    }
+
+    .nowrap {
+        white-space: nowrap;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -126,10 +133,51 @@ thead tr:nth-child(3) th {
                                         <option value="">เลือกส่วนงาน/หน่วยงาน</option>
                                     </select>
                                     <br />
-                                    <!-- Submit Button -->
-                                    <button id="submitBtn" disabled>Submit</button>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <button id="submitBtn" disabled>Submit</button>
+                                        </div>
+                                        <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                        <!-- ปุ่ม -->
+                                        <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                        <script>
+                                            function runCmd() {
+                                                // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                                Swal.fire({
+                                                    title: 'กำลังอัปเดตข้อมูล',
+                                                    text: 'กรุณารอสักครู่...',
+                                                    allowOutsideClick: false,
+                                                    didOpen: () => {
+                                                        Swal.showLoading(); // แสดง loading spinner
+                                                    }
+                                                });
+
+                                                // เรียก PHP เพื่อรัน .cmd
+                                                fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                    .then(response => response.text())
+                                                    .then(result => {
+                                                        // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                        Swal.fire({
+                                                            title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                            html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                            icon: 'success'
+                                                        });
+                                                    })
+                                                    .catch(error => {
+                                                        Swal.fire({
+                                                            title: 'เกิดข้อผิดพลาด',
+                                                            text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                            icon: 'error'
+                                                        });
+                                                        console.error(error);
+                                                    });
+                                            }
+                                        </script>
+                                    </div>
                                 </div>
-                                <br />
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
@@ -139,7 +187,7 @@ thead tr:nth-child(3) th {
                                                 <th rowspan="2">ประเด็นยุทธศาสตร์</th>
                                                 <th rowspan="2">OKR</th>
                                                 <th rowspan="2">แผนงาน (ผลผลิต)</th>
-                                                <th rowspan="2" nowrap>แผนงานย่อย<br/>(ผลผลิตย่อย/กิจกรรม)</th>
+                                                <th rowspan="2" nowrap>แผนงานย่อย<br />(ผลผลิตย่อย/กิจกรรม)</th>
                                                 <th colspan="5">งบประมาณ</th>
                                                 <th rowspan="2">รวมงบประมาณ</th>
                                                 <th colspan="4" nowrap>แผนการใช้จ่ายงบประมาณ</th>
@@ -181,7 +229,7 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
-        $(document).ready(function () {
+        $(document).ready(function() {
 
             $.ajax({
                 type: "POST",
@@ -190,7 +238,7 @@ thead tr:nth-child(3) th {
                     'command': 'get_fiscal_year'
                 },
                 dataType: "json",
-                success: function (response) {
+                success: function(response) {
 
                     response.bgp.forEach((row) => {
                         //console.log(row.y);
@@ -200,7 +248,7 @@ thead tr:nth-child(3) th {
             });
 
 
-            $('#dropdown1').change(function () {
+            $('#dropdown1').change(function() {
                 let year = $(this).val();
                 //console.log(year);
                 $('#dropdown2').html('<option value="">เลือกประเภทงบประมาณ</option>').prop('disabled', true);
@@ -216,24 +264,23 @@ thead tr:nth-child(3) th {
                         'fiscal_year': year
                     },
                     dataType: "json",
-                    success: function (response) {
+                    success: function(response) {
                         //console.log(response);
                         response.fac.forEach((row) => {
                             $('#dropdown2').append('<option value="' + row.scenario + '">' + row.scenario + '</option>').prop('disabled', false);
                         });
-                    }
-                    ,
-                    error: function (jqXHR, exception) {
+                    },
+                    error: function(jqXHR, exception) {
                         console.error("Error: " + exception);
                         responseError(jqXHR, exception);
                     }
                 });
             });
-            $('#dropdown5').change(function () {
+            $('#dropdown5').change(function() {
                 $('#dropdown1').prop('disabled', false);
             });
 
-            $('#dropdown2').change(function () {
+            $('#dropdown2').change(function() {
                 let year = $("#dropdown1").val();
                 let scenario = $("#dropdown2").val();
                 //console.log(year);               
@@ -250,21 +297,20 @@ thead tr:nth-child(3) th {
                         'scenario': scenario
                     },
                     dataType: "json",
-                    success: function (response) {
+                    success: function(response) {
                         //console.log(response);
                         response.fund.sort((a, b) => a - b);
                         response.fund.sort((a, b) => a - b).forEach((row) => {
                             $('#dropdown3').append('<option value="' + row.f + '">' + row.f + '</option>').prop('disabled', false);
                         });
-                    }
-                    ,
-                    error: function (jqXHR, exception) {
+                    },
+                    error: function(jqXHR, exception) {
                         console.error("Error: " + exception);
                         responseError(jqXHR, exception);
                     }
                 });
             });
-            $('#dropdown3').change(function () {
+            $('#dropdown3').change(function() {
                 let fund = $('#dropdown3').val();
                 var year = $('#dropdown1').val();
                 var scenario = $('#dropdown2').val();
@@ -282,22 +328,21 @@ thead tr:nth-child(3) th {
                         'scenario': scenario
                     },
                     dataType: "json",
-                    success: function (response) {
+                    success: function(response) {
                         console.log(response);
                         response.fac.forEach((row) => {
                             $('#dropdown4').append('<option value="' + row.faculty + '">' + row.faculty + '</option>').prop('disabled', false);
 
                         });
-                    }
-                    ,
-                    error: function (jqXHR, exception) {
+                    },
+                    error: function(jqXHR, exception) {
                         console.error("Error: " + exception);
                         responseError(jqXHR, exception);
                     }
                 });
             });
 
-            $('#dropdown4').change(function () {
+            $('#dropdown4').change(function() {
                 if ($(this).val()) {
                     $('#submitBtn').prop('disabled', false);
                 } else {
@@ -306,7 +351,7 @@ thead tr:nth-child(3) th {
             });
 
 
-            $('#submitBtn').click(function () {
+            $('#submitBtn').click(function() {
                 let year = $('#dropdown1').val();
                 let fund = $('#dropdown3').val();
                 let faculty = $('#dropdown4').val();
@@ -325,42 +370,89 @@ thead tr:nth-child(3) th {
                         'scenario': scenario
                     },
                     dataType: "json",
-                    success: function (response) {
+                    success: function(response) {
                         const tableBody = document.querySelector('#reportTable tbody');
                         tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
 
                         console.log(response.bgp);
                         response.bgp.forEach((row, index) => {
                             const tr = document.createElement('tr');
-                            var sumac=(parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4) + parseInt(row.a5));
-                            var sumq=(parseInt(row.q1) + parseInt(row.q2) + parseInt(row.q3) + parseInt(row.q4 || 0));
-                            const columns = [
-                                { key: 'No', value: index + 1 },
+                            var sumac = (parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4) + parseInt(row.a5));
+                            var sumq = (parseInt(row.q1) + parseInt(row.q2) + parseInt(row.q3) + parseInt(row.q4 || 0));
+                            const columns = [{
+                                    key: 'No',
+                                    value: index + 1
+                                },
                                 //{ key: 'Alias_Default', value: row.Alias_Default },
                                 //{ key: 'Faculty', value: row.faculty },
                                 //{ key: 'Project', value: row.project },
-                                { key: 'Project_Name', value: row.project_name },
-                                { key: 'KKU_Strategic_Plan_LOV', value: row.pillar_name },
-                                { key: 'OKRs_LOV', value: row.okr_name },
+                                {
+                                    key: 'Project_Name',
+                                    value: row.project_name
+                                },
+                                {
+                                    key: 'KKU_Strategic_Plan_LOV',
+                                    value: row.pillar_name
+                                },
+                                {
+                                    key: 'OKRs_LOV',
+                                    value: row.okr_name
+                                },
                                 //{ key: 'Fund', value: row.fund },
                                 //{ key: 'Plan', value: row.plan },
-                                { key: 'Plan_Name', value: row.plan_name },
+                                {
+                                    key: 'Plan_Name',
+                                    value: row.plan_name
+                                },
                                 //{ key: 'Sub_Plan', value: row.sub_plan },
-                                { key: 'Sub_Plan_Name', value: row.sub_plan_name },
+                                {
+                                    key: 'Sub_Plan_Name',
+                                    value: row.sub_plan_name
+                                },
 
 
                                 // ค่าใช้จ่ายแต่ละประเภท
-                                { key: 'Personnel_Expenses', value: parseInt(row.a1).toLocaleString() }, // ค่าใช้จ่ายบุคลากร
-                                { key: 'Operating_Expenses', value: parseInt(row.a2).toLocaleString() }, // ค่าใช้จ่ายดำเนินงาน
-                                { key: 'Investment_Expenses', value: parseInt(row.a3).toLocaleString() }, // ค่าใช้จ่ายลงทุน
-                                { key: 'Subsidy_Operating_Expenses', value: parseInt(row.a4).toLocaleString() }, // ค่าใช้จ่ายเงินอุดหนุนดำเนินงาน
-                                { key: 'Other_Expenses', value: parseInt(row.a5).toLocaleString() }, // ค่าใช้จ่ายอื่น
-                                { key: 'sum', value: sumac.toLocaleString() },
+                                {
+                                    key: 'Personnel_Expenses',
+                                    value: parseInt(row.a1).toLocaleString()
+                                }, // ค่าใช้จ่ายบุคลากร
+                                {
+                                    key: 'Operating_Expenses',
+                                    value: parseInt(row.a2).toLocaleString()
+                                }, // ค่าใช้จ่ายดำเนินงาน
+                                {
+                                    key: 'Investment_Expenses',
+                                    value: parseInt(row.a3).toLocaleString()
+                                }, // ค่าใช้จ่ายลงทุน
+                                {
+                                    key: 'Subsidy_Operating_Expenses',
+                                    value: parseInt(row.a4).toLocaleString()
+                                }, // ค่าใช้จ่ายเงินอุดหนุนดำเนินงาน
+                                {
+                                    key: 'Other_Expenses',
+                                    value: parseInt(row.a5).toLocaleString()
+                                }, // ค่าใช้จ่ายอื่น
+                                {
+                                    key: 'sum',
+                                    value: sumac.toLocaleString()
+                                },
                                 // แผนการใช้จ่ายรายไตรมาส
-                                { key: 'Q1_Spending_Plan', value: parseInt(row.q1).toLocaleString() },
-                                { key: 'Q2_Spending_Plan', value: parseInt(row.q2).toLocaleString() },
-                                { key: 'Q3_Spending_Plan', value: parseInt(row.q3).toLocaleString() },
-                                { key: 'Q4_Spending_Plan', value: (parseInt(row.q4|| 0)=== 0? (sumac - sumq): parseInt(row.q4 || 0) ).toLocaleString() }
+                                {
+                                    key: 'Q1_Spending_Plan',
+                                    value: parseInt(row.q1).toLocaleString()
+                                },
+                                {
+                                    key: 'Q2_Spending_Plan',
+                                    value: parseInt(row.q2).toLocaleString()
+                                },
+                                {
+                                    key: 'Q3_Spending_Plan',
+                                    value: parseInt(row.q3).toLocaleString()
+                                },
+                                {
+                                    key: 'Q4_Spending_Plan',
+                                    value: (parseInt(row.q4 || 0) === 0 ? (sumac - sumq) : parseInt(row.q4 || 0)).toLocaleString()
+                                }
                             ];
                             columns.forEach(col => {
                                 const td = document.createElement('td');
@@ -373,13 +465,14 @@ thead tr:nth-child(3) th {
 
                         });
                     },
-                    error: function (jqXHR, exception) {
+                    error: function(jqXHR, exception) {
                         console.error("Error: " + exception);
                         responseError(jqXHR, exception);
                     }
                 });
             });
         });
+
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
@@ -392,7 +485,7 @@ thead tr:nth-child(3) th {
                 `"ประเภทงบประมาณ: ${filters.budgetType}"`,
                 `"แหล่งเงิน: ${filters.fundSource}"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
-                
+
             ];
             // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
             let maxCols = 0;
@@ -405,10 +498,14 @@ thead tr:nth-child(3) th {
             }
 
             // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(null));
 
             // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const row = table.rows[rowIndex];
@@ -446,11 +543,13 @@ thead tr:nth-child(3) th {
             }
 
             // แปลงข้อมูลเป็น CSV
-            const csvContent = "\uFEFF" + 
-        reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
-        '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
-        csvMatrix.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const csvContent = "\uFEFF" +
+                reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
+                '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
+                csvMatrix.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -460,6 +559,7 @@ thead tr:nth-child(3) th {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
         function getFilterValues() {
             return {
                 year: document.getElementById('dropdown1').options[document.getElementById('dropdown1').selectedIndex].text,
@@ -469,8 +569,11 @@ thead tr:nth-child(3) th {
                 fyear: document.getElementById('dropdown5').options[document.getElementById('dropdown5').selectedIndex].text,
             };
         }
+
         function exportPDF() {
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
 
             // Add Thai font
@@ -482,7 +585,9 @@ thead tr:nth-child(3) th {
 
             // เพิ่มหัวรายงาน
             doc.setFontSize(16);
-            doc.text("รายงานสรุปคำขอรายโครงการ", 150, 10, { align: 'center' });
+            doc.text("รายงานสรุปคำขอรายโครงการ", 150, 10, {
+                align: 'center'
+            });
 
             // เพิ่มข้อมูลจาก dropdown
             doc.setFontSize(10);
@@ -513,14 +618,21 @@ thead tr:nth-child(3) th {
                     valign: 'middle'
                 },
                 columnStyles: {
-                    0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
+                    0: {
+                        halign: 'left'
+                    }, // คอลัมน์แรกให้ชิดซ้าย
                 },
-                didParseCell: function (data) {
+                didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index === 0) {
                         data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
                     }
                 },
-                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                margin: {
+                    top: 15,
+                    right: 5,
+                    bottom: 10,
+                    left: 5
+                },
                 tableWidth: 'auto'
             });
             doc.save('รายงานสรุปคำขอรายโครงการ.pdf');
@@ -536,22 +648,75 @@ thead tr:nth-child(3) th {
 
             // สร้างข้อมูลสำหรับหัวรายงาน (4 แถวแรก)
             const headerRows = [
-                [{ v: "รายงานสรุปคำขอรายโครงการ", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
-                [
-                    { v: "ปีงบประมาณ:", s: { font: { bold: true } } },
-                    { v: filterValues.fyear },
-                    { v: "ปีบริหารงบประมาณ:", s: { font: { bold: true } } },
-                    { v: filterValues.year }
+                [{
+                    v: "รายงานสรุปคำขอรายโครงการ",
+                    s: {
+                        font: {
+                            bold: true,
+                            sz: 14
+                        },
+                        alignment: {
+                            horizontal: "center"
+                        }
+                    }
+                }],
+                [{
+                        v: "ปีงบประมาณ:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.fyear
+                    },
+                    {
+                        v: "ปีบริหารงบประมาณ:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.year
+                    }
                 ],
-                [
-                    { v: "ประเภทงบประมาณ:", s: { font: { bold: true } } },
-                    { v: filterValues.budgetType }
+                [{
+                        v: "ประเภทงบประมาณ:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.budgetType
+                    }
                 ],
-                [
-                    { v: "แหล่งเงิน:", s: { font: { bold: true } } },
-                    { v: filterValues.fundSource },
-                    { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },
-                    { v: filterValues.department }
+                [{
+                        v: "แหล่งเงิน:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.fundSource
+                    },
+                    {
+                        v: "ส่วนงาน/หน่วยงาน:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.department
+                    }
                 ],
                 [] // ว่างไว้ 1 แถว
             ];
@@ -562,7 +727,16 @@ thead tr:nth-child(3) th {
             const skipMap = {};
 
             // จัดการกับการรวมเซลล์ในส่วนหัวรายงาน
-            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 15 } }); // รวมเซลล์หัวรายงาน
+            merges.push({
+                s: {
+                    r: 0,
+                    c: 0
+                },
+                e: {
+                    r: 0,
+                    c: 15
+                }
+            }); // รวมเซลล์หัวรายงาน
 
             // ปรับ offset สำหรับตาราง (เพิ่มจำนวนแถวหัวรายงาน)
             const rowOffset = headerRows.length;
@@ -591,7 +765,9 @@ thead tr:nth-child(3) th {
                                 vertical: "top",
                                 horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
                             },
-                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                            font: isHeader ? {
+                                bold: true
+                            } : {} // **ทำให้ Header ตัวหนา**
                         }
                     };
 
@@ -600,8 +776,14 @@ thead tr:nth-child(3) th {
 
                     if (rowspan > 1 || colspan > 1) {
                         merges.push({
-                            s: { r: rowIndex + rowOffset, c: colIndex },
-                            e: { r: rowIndex + rowOffset + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex + rowOffset,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowOffset + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {
@@ -631,15 +813,29 @@ thead tr:nth-child(3) th {
             // กำหนดความกว้างของคอลัมน์
             const cols = [];
             // กำหนดความกว้างตามต้องการ
-            cols.push({ wch: 10 }); // ที่
-            cols.push({ wch: 30 }); // โครงการ/กิจกรรม
-            cols.push({ wch: 45 }); // ประเด็นยุทธศาสตร์
-            cols.push({ wch: 20 }); // OKR
-            cols.push({ wch: 35 }); // แผนงาน
-            cols.push({ wch: 35 }); // แผนงานย่อย
+            cols.push({
+                wch: 10
+            }); // ที่
+            cols.push({
+                wch: 30
+            }); // โครงการ/กิจกรรม
+            cols.push({
+                wch: 45
+            }); // ประเด็นยุทธศาสตร์
+            cols.push({
+                wch: 20
+            }); // OKR
+            cols.push({
+                wch: 35
+            }); // แผนงาน
+            cols.push({
+                wch: 35
+            }); // แผนงานย่อย
             // คอลัมน์ที่เหลือความกว้าง 15
             for (let i = 0; i < 10; i++) {
-                cols.push({ wch: 15 });
+                cols.push({
+                    wch: 15
+                });
             }
             ws['!cols'] = cols;
 

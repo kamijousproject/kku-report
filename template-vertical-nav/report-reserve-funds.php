@@ -229,7 +229,6 @@
                                         <option value="30" <?= ($selectedFaculty == '30') ? 'selected' : '' ?>>30 : คณะนิติศาสตร์</option>
                                     </select>
                                 </div>
-                                <br>
                                 <script>
                                     function updateFilters() {
                                         var year = document.getElementById("budgetYearSelect").value;
@@ -241,7 +240,47 @@
                                         window.location.href = queryString;
                                     }
                                 </script>
-                                <br>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>

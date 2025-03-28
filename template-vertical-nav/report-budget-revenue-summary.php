@@ -1,70 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-<style>     
-#main-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+<style>
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
 
 
-.container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
 
-.table-responsive {
-    flex-grow: 1;
-    overflow-y: auto; /* Scrollable content only inside table */
-    max-height: 60vh; /* Set a fixed height */
-    border: 1px solid #ccc;
-}
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-th {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: center;
-    vertical-align: top;
-}
- td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    background: #f4f4f4;
-    z-index: 1000;
-}
+    th {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: center;
+        vertical-align: top;
+    }
 
-thead tr:nth-child(2) th {
-    position: sticky;
-    top: 44px; /* Adjust height based on previous row */
-    background: #f4f4f4;
-    z-index: 999;
-}
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-thead tr:nth-child(3) th {
-    position: sticky;
-    top: 89px; /* Adjust height based on previous rows */
-    background: #f4f4f4;
-    z-index: 998;
-}
-.nowrap {
-    white-space: nowrap;
-}
+    thead tr:nth-child(1) th {
+        position: sticky;
+        top: 0;
+        background: #f4f4f4;
+        z-index: 1000;
+    }
+
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 44px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
+    }
+
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 89px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
+    }
+
+    .nowrap {
+        white-space: nowrap;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -97,40 +105,83 @@ thead tr:nth-child(3) th {
                                     <h4>รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ</h4>
                                 </div>
                                 <label for="fyear">ปีงบประมาณ:</label>
-                                <select name="fyear" id="fyear" >
-                                    <option value="">-- Select --</option>    
+                                <select name="fyear" id="fyear">
+                                    <option value="">-- Select --</option>
                                 </select>
-                                <br/>
+                                <br />
                                 <label for="scenario">ประเภทงบประมาณ:</label>
                                 <select name="scenario" id="scenario" disabled>
                                     <option value="">-- Select --</option>
                                 </select>
-                                <br/>
-                                <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()" disabled>
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
+                                <br />
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="category">เลือกส่วนงาน:</label>
+                                        <select name="category" id="category" onchange="fetchData()" disabled>
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
-                                            
+
                                             <tr>
                                                 <th style="vertical-align: top;">ที่</th>
                                                 <th style="vertical-align: top;">ส่วนงาน/หน่วยงาน</th>
-                                                <th style="vertical-align: top;"nowrap>1.เงินอุดหนุนจากรัฐ</th>
-                                                <th style="vertical-align: top;"nowrap>2.เงินและทรัพย์สิน<br/>ซึ่งมีผู้บริจาค<br/>ให้แก่มหาวิทยาลัย</th>
-                                                <th style="vertical-align: top;"nowrap>3.เงินกองทุนที่รัฐบาล<br/>หรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้<br/>หรือผลประโยชน์จากกองทุน</th>
-                                                <th style="vertical-align: top;"nowrap>4.ค่าธรรมเนียม ค่าบำรุง<br/>ค่าตอบแทน เบี้ยปรับ <br/>และค่าบริการต่างๆของมหาวิทยาลัย</th>
-                                                <th style="vertical-align: top;"nowrap>5.รายได้หรือผลประโยชน์<br/>ที่ได้จากการลงทุนหรือการร่วมลงทุน<br/>จากทรัพย์สินของมหาวิทยาลัย</th>
-                                                <th style="vertical-align: top;"nowrap>6.รายได้หรือผลประโยชน์<br/>ที่ได้จากการใช้ทรัพย์สินหรือจัดทำ<br/>เพื่อเป็นที่ราชพัสดุหรือทรัพย์สิน<br/>ของมหาวิทยาลัยปกครองดูแล<br/>ใช้หรือจัดทำประโยชน์</th>
-                                                <th style="vertical-align: top;"nowrap>7.เงินอุดหนุนจากหน่วยงานภายนอก<br/>เงินทุนอุดหนุนการวิจัยหรือ<br/>การบริการวิชาการที่ได้รับจาก<br/>หน่วยงานของรัฐ</th>
-                                                <th style="vertical-align: top;"nowrap>8.เงินและผลประโยชน์ที่ได้รับ<br/>จากการบริการวิชาการ การวิจัย<br/>และนำทรัพย์สินทางปัญญาไปทำประโยชน์</th>
-                                                <th style="vertical-align: top;"nowrap>9.รายได้ผลประโยชน์อื่นๆ</th>
-                                                <th style="vertical-align: top;"nowrap>รวมทั้งหมด</th>
+                                                <th style="vertical-align: top;" nowrap>1.เงินอุดหนุนจากรัฐ</th>
+                                                <th style="vertical-align: top;" nowrap>2.เงินและทรัพย์สิน<br />ซึ่งมีผู้บริจาค<br />ให้แก่มหาวิทยาลัย</th>
+                                                <th style="vertical-align: top;" nowrap>3.เงินกองทุนที่รัฐบาล<br />หรือมหาวิทยาลัยจัดตั้งขึ้นและรายได้<br />หรือผลประโยชน์จากกองทุน</th>
+                                                <th style="vertical-align: top;" nowrap>4.ค่าธรรมเนียม ค่าบำรุง<br />ค่าตอบแทน เบี้ยปรับ <br />และค่าบริการต่างๆของมหาวิทยาลัย</th>
+                                                <th style="vertical-align: top;" nowrap>5.รายได้หรือผลประโยชน์<br />ที่ได้จากการลงทุนหรือการร่วมลงทุน<br />จากทรัพย์สินของมหาวิทยาลัย</th>
+                                                <th style="vertical-align: top;" nowrap>6.รายได้หรือผลประโยชน์<br />ที่ได้จากการใช้ทรัพย์สินหรือจัดทำ<br />เพื่อเป็นที่ราชพัสดุหรือทรัพย์สิน<br />ของมหาวิทยาลัยปกครองดูแล<br />ใช้หรือจัดทำประโยชน์</th>
+                                                <th style="vertical-align: top;" nowrap>7.เงินอุดหนุนจากหน่วยงานภายนอก<br />เงินทุนอุดหนุนการวิจัยหรือ<br />การบริการวิชาการที่ได้รับจาก<br />หน่วยงานของรัฐ</th>
+                                                <th style="vertical-align: top;" nowrap>8.เงินและผลประโยชน์ที่ได้รับ<br />จากการบริการวิชาการ การวิจัย<br />และนำทรัพย์สินทางปัญญาไปทำประโยชน์</th>
+                                                <th style="vertical-align: top;" nowrap>9.รายได้ผลประโยชน์อื่นๆ</th>
+                                                <th style="vertical-align: top;" nowrap>รวมทั้งหมด</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            
+
                                         </tbody>
                                         <tfoot>
 
@@ -159,7 +210,7 @@ thead tr:nth-child(3) th {
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <script>
         let all_data;
-        $(document).ready(function () {
+        $(document).ready(function() {
             $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
@@ -168,7 +219,7 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function(response) {
-                    all_data=response.bgp;
+                    all_data = response.bgp;
                     console.log(all_data);
                     const year = [...new Set(all_data.map(item => item.Budget_Management_Year))];
                     let dropdown = document.getElementById("fyear");
@@ -186,41 +237,42 @@ thead tr:nth-child(3) th {
                 }
             });
         });
-        $('#fyear').change(function () {
+        $('#fyear').change(function() {
             let year = document.getElementById("fyear").value;
-            let y=all_data.filter(item=>item.Budget_Management_Year===parseInt(year));
+            let y = all_data.filter(item => item.Budget_Management_Year === parseInt(year));
             const scenario = [...new Set(y.map(item => item.scenario))];
             let facDropdown = document.getElementById("scenario");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    scenario.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        facDropdown.appendChild(option);
-                    });   
+            facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+            scenario.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                facDropdown.appendChild(option);
+            });
             $('#scenario').prop('disabled', false);
         });
-        $('#scenario').change(function () {
+        $('#scenario').change(function() {
             let year = document.getElementById("fyear").value;
             let scenario = document.getElementById("scenario").value;
             let all_data2;
             if (scenario == "all") {
-                all_data2 = all_data.filter(item=>item.Budget_Management_Year===parseInt(year));
+                all_data2 = all_data.filter(item => item.Budget_Management_Year === parseInt(year));
             } else {
-                all_data2 = all_data.filter(item=>item.scenario===scenario && item.Budget_Management_Year===parseInt(year));
-            }     
+                all_data2 = all_data.filter(item => item.scenario === scenario && item.Budget_Management_Year === parseInt(year));
+            }
             //console.log(all_data2);
             const fac = [...new Set(all_data2.map(item => item.pname))];
-                    let facDropdown = document.getElementById("category");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    fac.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        facDropdown.appendChild(option);
-                    });
+            let facDropdown = document.getElementById("category");
+            facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+            fac.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                facDropdown.appendChild(option);
+            });
             $('#category').prop('disabled', false);
         });
+
         function fetchData() {
             let year = document.getElementById("fyear").value;
             let category = document.getElementById("category").value;
@@ -233,32 +285,66 @@ thead tr:nth-child(3) th {
                 //data = all_data;
             } else {
                 data = data.filter(item => item.scenario === scenario);
-            }         
-            if(category=="all"){
-                //data=all_data;
             }
-            else{
-                data= data.filter(item=>item.pname===category);
+            if (category == "all") {
+                //data=all_data;
+            } else {
+                data = data.filter(item => item.pname === category);
             }
             console.log(data);
             data.forEach((row, index) => {
                 const tr = document.createElement('tr');
-                var total = parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4)
-                    + parseInt(row.a5) + parseInt(row.a6) + parseInt(row.a7) + parseInt(row.a8) +
+                var total = parseInt(row.a1) + parseInt(row.a2) + parseInt(row.a3) + parseInt(row.a4) +
+                    parseInt(row.a5) + parseInt(row.a6) + parseInt(row.a7) + parseInt(row.a8) +
                     parseInt(row.a9);
-                const columns = [
-                    { key: 'No', value: index + 1 },
-                    { key: 'fac', value: row.Alias_Default },
-                    { key: 'a1', value: parseInt(row.a1).toLocaleString() },
-                    { key: 'a2', value: parseInt(row.a2).toLocaleString() },
-                    { key: 'a3', value: parseInt(row.a3).toLocaleString() },
-                    { key: 'a4', value: parseInt(row.a4).toLocaleString() },
-                    { key: 'a5', value: parseInt(row.a5).toLocaleString() },
-                    { key: 'a6', value: parseInt(row.a6).toLocaleString() },
-                    { key: 'a7', value: parseInt(row.a7).toLocaleString() },
-                    { key: 'a8', value: parseInt(row.a8).toLocaleString() },
-                    { key: 'a9', value: parseInt(row.a9).toLocaleString() },
-                    { key: 'total', value: total.toLocaleString() },
+                const columns = [{
+                        key: 'No',
+                        value: index + 1
+                    },
+                    {
+                        key: 'fac',
+                        value: row.Alias_Default
+                    },
+                    {
+                        key: 'a1',
+                        value: parseInt(row.a1).toLocaleString()
+                    },
+                    {
+                        key: 'a2',
+                        value: parseInt(row.a2).toLocaleString()
+                    },
+                    {
+                        key: 'a3',
+                        value: parseInt(row.a3).toLocaleString()
+                    },
+                    {
+                        key: 'a4',
+                        value: parseInt(row.a4).toLocaleString()
+                    },
+                    {
+                        key: 'a5',
+                        value: parseInt(row.a5).toLocaleString()
+                    },
+                    {
+                        key: 'a6',
+                        value: parseInt(row.a6).toLocaleString()
+                    },
+                    {
+                        key: 'a7',
+                        value: parseInt(row.a7).toLocaleString()
+                    },
+                    {
+                        key: 'a8',
+                        value: parseInt(row.a8).toLocaleString()
+                    },
+                    {
+                        key: 'a9',
+                        value: parseInt(row.a9).toLocaleString()
+                    },
+                    {
+                        key: 'total',
+                        value: total.toLocaleString()
+                    },
                 ];
 
                 columns.forEach(col => {
@@ -270,8 +356,9 @@ thead tr:nth-child(3) th {
 
             });
             calculateSum();
-        
+
         }
+
         function calculateSum() {
             const table = document.querySelector('table');
             const rows = table.querySelectorAll('tbody tr');
@@ -303,9 +390,10 @@ thead tr:nth-child(3) th {
                 footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
             });
 
-            footer.innerHTML='';
+            footer.innerHTML = '';
             footer.append(footerRow);
         }
+
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
@@ -315,7 +403,7 @@ thead tr:nth-child(3) th {
                 `"ปีงบประมาณ: ${filters.fyear}"`,
                 `"ประเภทงบประมาณ: ${filters.scenario}"`,
                 `"ส่วนงาน/หน่วยงาน: ${filters.department}"`
-                
+
             ];
             // คำนวณจำนวนคอลัมน์สูงสุดที่เกิดจากการ merge (colspan)
             let maxCols = 0;
@@ -328,10 +416,14 @@ thead tr:nth-child(3) th {
             }
 
             // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(null));
 
             // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const row = table.rows[rowIndex];
@@ -369,11 +461,13 @@ thead tr:nth-child(3) th {
             }
 
             // แปลงข้อมูลเป็น CSV
-            const csvContent = "\uFEFF" + 
-        reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
-        '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
-        csvMatrix.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const csvContent = "\uFEFF" +
+                reportHeader.join('\n') + '\n' + // เพิ่มส่วนหัวจาก dropdowns
+                '\n' + // บรรทัดว่างแยกส่วนหัวกับข้อมูล
+                csvMatrix.map(row => row.join(',')).join('\n');
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -383,6 +477,7 @@ thead tr:nth-child(3) th {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
+
         function getFilterValues() {
             return {
                 fyear: document.getElementById('fyear').options[document.getElementById('fyear').selectedIndex].text,
@@ -390,8 +485,11 @@ thead tr:nth-child(3) th {
                 department: document.getElementById('category').options[document.getElementById('category').selectedIndex].text
             };
         }
+
         function exportPDF() {
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
 
             // Add Thai font
@@ -400,7 +498,9 @@ thead tr:nth-child(3) th {
             doc.setFont("THSarabun");
             const filterValues = getFilterValues();
             doc.setFontSize(12);
-            doc.text("รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", 150, 10,{ align: 'center' });
+            doc.text("รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", 150, 10, {
+                align: 'center'
+            });
             doc.setFontSize(10);
             doc.text(`ปีงบประมาณ: ${filterValues.fyear}`, 15, 20);
             doc.text(`ประเภทงบประมาณ: ${filterValues.scenario}`, 150, 20);
@@ -426,31 +526,60 @@ thead tr:nth-child(3) th {
                     valign: 'middle'
                 },
                 columnStyles: {
-                    0: { cellWidth: 8 },  // ที่
-                    1: { cellWidth: 21 }, // ส่วนงาน/หน่วยงาน
+                    0: {
+                        cellWidth: 8
+                    }, // ที่
+                    1: {
+                        cellWidth: 21
+                    }, // ส่วนงาน/หน่วยงาน
                     // ข้าราชการ
-                    2: { cellWidth: 20 },  // วิชาการ
-                    3: { cellWidth: 25 },  // สนับสนุน
-                    4: { cellWidth: 25 },  // รวม
+                    2: {
+                        cellWidth: 20
+                    }, // วิชาการ
+                    3: {
+                        cellWidth: 25
+                    }, // สนับสนุน
+                    4: {
+                        cellWidth: 25
+                    }, // รวม
                     // ลูกจ้างประจำ
-                    5: { cellWidth: 25 },  // สนับสนุน
+                    5: {
+                        cellWidth: 25
+                    }, // สนับสนุน
                     // พนักงานมหาวิทยาลัยงบประมาณแผ่นดิน
-                    6: { cellWidth: 36 },  // บริหาร
-                    7: { cellWidth: 36},  // วิชาการ-คนครอง
-                    8: { cellWidth: 30 },  // วิชาการ-อัตราว่าง
-                    9: { cellWidth: 25 },  // วิชาการ-อัตราว่าง
-                    10: { cellWidth: 20 },  // วิชาการ-อัตราว่าง
-                    11: { cellWidth: 15 },  // วิชาการ-อัตราว่าง
-                    
+                    6: {
+                        cellWidth: 36
+                    }, // บริหาร
+                    7: {
+                        cellWidth: 36
+                    }, // วิชาการ-คนครอง
+                    8: {
+                        cellWidth: 30
+                    }, // วิชาการ-อัตราว่าง
+                    9: {
+                        cellWidth: 25
+                    }, // วิชาการ-อัตราว่าง
+                    10: {
+                        cellWidth: 20
+                    }, // วิชาการ-อัตราว่าง
+                    11: {
+                        cellWidth: 15
+                    }, // วิชาการ-อัตราว่าง
+
                 },
                 didParseCell: function(data) {
                     data.cell.styles.halign = 'center';
-                    
+
                     /* if (data.section === 'body' && data.column.index === 0) {
                         data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
                     } */
                 },
-                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                margin: {
+                    top: 15,
+                    right: 5,
+                    bottom: 10,
+                    left: 5
+                },
                 tableWidth: 'auto'
             });
             doc.save('รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ.pdf');
@@ -464,18 +593,53 @@ thead tr:nth-child(3) th {
 
             // สร้างข้อมูลสำหรับหัวรายงาน (4 แถวแรก)
             const headerRows = [
-                [{ v: "รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ", s: { font: { bold: true, sz: 14 }, alignment: { horizontal: "center" } } }],
-                [
-                    { v: "ปีงบประมาณ:", s: { font: { bold: true } } },
-                    { v: filterValues.fyear }
+                [{
+                    v: "รายงานสรุปงบประมาณรายรับ จำแนกตามประเภทรายรับ",
+                    s: {
+                        font: {
+                            bold: true,
+                            sz: 14
+                        },
+                        alignment: {
+                            horizontal: "center"
+                        }
+                    }
+                }],
+                [{
+                        v: "ปีงบประมาณ:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.fyear
+                    }
                 ],
-                [
-                    { v: "ประเภทงบประมาณ:", s: { font: { bold: true } } },
-                    { v: filterValues.scenario }
+                [{
+                        v: "ประเภทงบประมาณ:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.scenario
+                    }
                 ],
-                [
-                    { v: "ส่วนงาน/หน่วยงาน:", s: { font: { bold: true } } },
-                    { v: filterValues.department }
+                [{
+                        v: "ส่วนงาน/หน่วยงาน:",
+                        s: {
+                            font: {
+                                bold: true
+                            }
+                        }
+                    },
+                    {
+                        v: filterValues.department
+                    }
                 ],
                 [] // ว่างไว้ 1 แถว
             ];
@@ -486,7 +650,16 @@ thead tr:nth-child(3) th {
             const skipMap = {};
 
             // จัดการกับการรวมเซลล์ในส่วนหัวรายงาน
-            merges.push({ s: { r: 0, c: 0 }, e: { r: 0, c: 11 } }); // รวมเซลล์หัวรายงาน
+            merges.push({
+                s: {
+                    r: 0,
+                    c: 0
+                },
+                e: {
+                    r: 0,
+                    c: 11
+                }
+            }); // รวมเซลล์หัวรายงาน
 
             // ปรับ offset สำหรับตาราง (เพิ่มจำนวนแถวหัวรายงาน)
             const rowOffset = headerRows.length;
@@ -515,7 +688,9 @@ thead tr:nth-child(3) th {
                                 vertical: "top",
                                 horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
                             },
-                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                            font: isHeader ? {
+                                bold: true
+                            } : {} // **ทำให้ Header ตัวหนา**
                         }
                     };
 
@@ -524,8 +699,14 @@ thead tr:nth-child(3) th {
 
                     if (rowspan > 1 || colspan > 1) {
                         merges.push({
-                            s: { r: rowIndex + rowOffset, c: colIndex },
-                            e: { r: rowIndex + rowOffset + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex + rowOffset,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowOffset + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {
@@ -555,15 +736,29 @@ thead tr:nth-child(3) th {
             // กำหนดความกว้างของคอลัมน์
             const cols = [];
             // กำหนดความกว้างตามต้องการ
-            cols.push({ wch: 10 }); // ที่
-            cols.push({ wch: 30 }); // โครงการ/กิจกรรม
-            cols.push({ wch: 45 }); // ประเด็นยุทธศาสตร์
-            cols.push({ wch: 20 }); // OKR
-            cols.push({ wch: 35 }); // แผนงาน
-            cols.push({ wch: 35 }); // แผนงานย่อย
+            cols.push({
+                wch: 10
+            }); // ที่
+            cols.push({
+                wch: 30
+            }); // โครงการ/กิจกรรม
+            cols.push({
+                wch: 45
+            }); // ประเด็นยุทธศาสตร์
+            cols.push({
+                wch: 20
+            }); // OKR
+            cols.push({
+                wch: 35
+            }); // แผนงาน
+            cols.push({
+                wch: 35
+            }); // แผนงานย่อย
             // คอลัมน์ที่เหลือความกว้าง 15
             for (let i = 0; i < 10; i++) {
-                cols.push({ wch: 15 });
+                cols.push({
+                    wch: 15
+                });
             }
             ws['!cols'] = cols;
 

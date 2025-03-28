@@ -109,18 +109,59 @@
                                     <option value="">-- Select --</option>
                                     <option value="2568">2568</option>
                                 </select>
-                                <br/>
+                                <br />
                                 <label for="scenario">เลือกประเภทงบประมาณ:</label>
                                 <select name="scenario" id="scenario" disabled>
                                     <option value="">-- Loading Scenarios --</option>
                                 </select>
-                                <br/>
-                                <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()" disabled>
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
-                                <br/>
-                                
+                                <br />
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="category">เลือกส่วนงาน:</label>
+                                        <select name="category" id="category" onchange="fetchData()" disabled>
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover">
                                         <thead>
@@ -139,7 +180,7 @@
 
                                                 <th colspan="2">เงินอุดหนุนจากรัฐ</th>
                                                 <th colspan="2">เงินนอกงบประมาณ</th>
-                                                <th colspan="2">เงินรายได้</th>                                                
+                                                <th colspan="2">เงินรายได้</th>
                                                 <th colspan="2">รวม</th>
 
                                                 <th rowspan="2">เงินอุดหนุนจากรัฐ</th>
@@ -199,7 +240,7 @@
     <script>
         let all_data;
         let all_data2;
-        $(document).ready(function () {
+        $(document).ready(function() {
             $.ajax({
                 type: "POST",
                 url: "../server/budget_planing_api.php",
@@ -207,7 +248,7 @@
                     'command': 'kku_bgp_budget-spending-status'
                 },
                 dataType: "json",
-                success: function (response) {
+                success: function(response) {
                     all_data = response.bgp;
 
                     // เติมข้อมูลใน select ส่วนงาน
@@ -221,7 +262,7 @@
                         categoryDropdown.appendChild(option);
                     }); */
                 },
-                error: function (jqXHR, exception) {
+                error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
@@ -233,7 +274,7 @@
                     'command': 'kku_bgp_budget-spending-status2'
                 },
                 dataType: "json",
-                success: function (response) {
+                success: function(response) {
                     all_data2 = response.bgp;
 
                     // เติมข้อมูลใน select ส่วนงาน
@@ -247,49 +288,50 @@
                         categoryDropdown.appendChild(option);
                     }); */
                 },
-                error: function (jqXHR, exception) {
+                error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
                     responseError(jqXHR, exception);
                 }
             });
         });
-        $('#fyear').change(function () {
+        $('#fyear').change(function() {
             const scenario = [...new Set(all_data.map(item => item.scenario))];
             let facDropdown = document.getElementById("scenario");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    scenario.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        facDropdown.appendChild(option);
-                    });   
+            facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+            scenario.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                facDropdown.appendChild(option);
+            });
             $('#scenario').prop('disabled', false);
         });
-        $('#scenario').change(function () {
+        $('#scenario').change(function() {
             let scenario = document.getElementById("scenario").value;
             let data;
             if (scenario == "all") {
                 data = all_data;
             } else {
-                data = all_data.filter(item=>item.scenario===scenario);
+                data = all_data.filter(item => item.scenario === scenario);
             }
             //let all_data2 = all_data.filter(item=>item.scenario===scenario);
             //console.log(all_data2);
             const fac = [...new Set(data.map(item => item.pname))];
-                    let facDropdown = document.getElementById("category");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    fac.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        facDropdown.appendChild(option);
-                    });
+            let facDropdown = document.getElementById("category");
+            facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+            fac.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                facDropdown.appendChild(option);
+            });
             $('#category').prop('disabled', false);
         });
+
         function fetchData() {
             let year = document.getElementById("fyear").value;
-            let y1=(parseInt(year)-1).toString();
-            let y2=(parseInt(year)-2).toString();
+            let y1 = (parseInt(year) - 1).toString();
+            let y2 = (parseInt(year) - 2).toString();
             let category = document.getElementById("category").value;
             let scenario = document.getElementById("scenario").value;
             const tableBody = document.querySelector('#reportTable tbody');
@@ -320,107 +362,8 @@
                     return isNaN(number) ? 0 : number;
                 };
                 const sums = data2.reduce((acc, item) => {
-                const year = item.Budget_Management_Year; // Get the year from each item
-    
-                // Initialize the year object if it doesn't exist
-                if (!acc[year]) {
-                    acc[year] = {
-                        t06: 0,
-                        t02: 0,
-                        t08: 0,
-                        e06: 0,
-                        e02: 0,
-                        e08: 0
-                    };
-                }
-                
-                // Add the parsed values to the corresponding year
-                acc[year].t06 += parseValue(item.t06);
-                acc[year].t02 += parseValue(item.t02);
-                acc[year].t08 += parseValue(item.t08);
-                acc[year].e06 += parseValue(item.e06);
-                acc[year].e02 += parseValue(item.e02);
-                acc[year].e08 += parseValue(item.e08);
-                
-                return acc;
-            }, {});
-            //let n1 =all_data2.filter(item=>item.FISCAL_YEAR===year);
-            let n2 =all_data2.filter(item=>item.FISCAL_YEAR===y1);
-            let n3 =all_data2.filter(item=>item.FISCAL_YEAR===y2);
-            
-            const sumsn2 = n2.reduce((acc, item) => {
-                return {
-                    n06: acc.n06 + parseValue(item.n06),
-                    n08: acc.n08 + parseValue(item.n08),
-                    n02: acc.n02 + parseValue(item.n02),
-                };
-            }, {
-                n06: 0,
-                n08: 0,
-                n02: 0
-            });
-            const sumsn3 = n3.reduce((acc, item) => {
-                return {
-                    n06: acc.n06 + parseValue(item.n06),
-                    n08: acc.n08 + parseValue(item.n08),
-                    n02: acc.n02 + parseValue(item.n02),
-                    
-                };
-            }, {
-                n06: 0,
-                n08: 0,
-                n02: 0
-                
-            });
-
-            console.log(sumsn3);
-                var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
-                var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
-                var sumn2 =  parseInt(sumsn3 ? sumsn3.n06:0) + parseInt(sumsn3 ? sumsn3.n08:0) + parseInt(sumsn3 ? sumsn3.n02:0);
-                var sumn1 = parseInt(sumsn2 ? sumsn2.n06:0) + parseInt(sumsn2 ? sumsn2.n08:0) + parseInt(sumsn2 ? sumsn2.n02:0);
-
-                str1 = '<tr><td style="text-align:center;" nowrap>รวมทั้งสิ้น</td>';
-                str2 = '<td>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString()  + '</td>';
-                str3 = '<td>' + ((sums[y2] ?(sums[y2].e06): 0)+parseInt(sumsn3 ? sumsn3.n06:0) ).toLocaleString()  + '</td>';
-                str4 = '<td>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString()  + '</td>';
-                str5 = '<td>' + ((sums[y2] ?(sums[y2].e08): 0)+parseInt(sumsn3 ? sumsn3.n08:0) ).toLocaleString()  + '</td>';
-                str6 = '<td>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString()  + '</td>';
-                str7 = '<td>' + ((sums[y2] ?(sums[y2].e02): 0)+parseInt(sumsn3 ? sumsn3.n02:0) ).toLocaleString()  + '</td>';
-                str8 = '<td>'+sumy2.toLocaleString()+'</td>';
-                str9 = '<td>'+(sumacy2+sumn2).toLocaleString()+'</td>';
-                str10 = '<td>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString() + '</td>';
-                str11 = '<td>' + ((sums[y1] ?(sums[y1].e06): 0)+parseInt(sumsn2 ? sumsn2.n06:0) ).toLocaleString()  + '</td>';
-                str12 = '<td>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString() + '</td>';
-                str13 = '<td>' + ((sums[y1] ?(sums[y1].e08): 0 )+parseInt(sumsn2 ? sumsn2.n08:0) ).toLocaleString() + '</td>';
-                str14 = '<td>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString() + '</td>';
-                str15 = '<td>' + ((sums[y1] ?(sums[y1].e02): 0 )+parseInt(sumsn2 ? sumsn2.n02:0) ).toLocaleString() + '</td>';
-                str16 = '<td>'+sumy1.toLocaleString()+'</td>';
-                str17 = '<td>'+(sumacy1+sumn1).toLocaleString()+'</td>';
-                str18 = '<td>' + sums[year].t06.toLocaleString() + '</td>';
-                str19 = '<td>' + sums[year].t02.toLocaleString() + '</td>';
-                str20 = '<td>' + sums[year].t08.toLocaleString() + '</td>';
-                str21 = '<td>' + sum.toLocaleString() + '</td>';
-                str22 = '<td>' + (sum-(sumacy1+sumn1)).toLocaleString() + '</td>';
-                str23 = '<td>'+((sumacy1+sumn1) === 0 ? '100%' :parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') +'%</td></tr>';
-                html += str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8 + str9 + str10 + str11 + str12 + str13 + str14 + str15 +
-                    str16 + str17 + str18 + str19 + str20 + str21 + str22 + str23;
-            }
-             
-            f1.forEach((row1) => {
-                let n2 =all_data2.filter(item=>item.FISCAL_YEAR===y1 && item.Alias_Default===row1);
-                let n3 =all_data2.filter(item=>item.FISCAL_YEAR===y2 && item.Alias_Default===row1);
-                const f = data2.filter(item => item.Alias_Default === row1);
-                const parseValue = (value) => {
-                    if (!value || typeof value !== 'string') return 0;
-                    const number = parseFloat(value.replace(/,/g, ''));
-                    return isNaN(number) ? 0 : number;
-                };
-                const sums = f.reduce((acc, item) => {
                     const year = item.Budget_Management_Year; // Get the year from each item
-        
+
                     // Initialize the year object if it doesn't exist
                     if (!acc[year]) {
                         acc[year] = {
@@ -432,7 +375,7 @@
                             e08: 0
                         };
                     }
-                    
+
                     // Add the parsed values to the corresponding year
                     acc[year].t06 += parseValue(item.t06);
                     acc[year].t02 += parseValue(item.t02);
@@ -440,7 +383,106 @@
                     acc[year].e06 += parseValue(item.e06);
                     acc[year].e02 += parseValue(item.e02);
                     acc[year].e08 += parseValue(item.e08);
-                    
+
+                    return acc;
+                }, {});
+                //let n1 =all_data2.filter(item=>item.FISCAL_YEAR===year);
+                let n2 = all_data2.filter(item => item.FISCAL_YEAR === y1);
+                let n3 = all_data2.filter(item => item.FISCAL_YEAR === y2);
+
+                const sumsn2 = n2.reduce((acc, item) => {
+                    return {
+                        n06: acc.n06 + parseValue(item.n06),
+                        n08: acc.n08 + parseValue(item.n08),
+                        n02: acc.n02 + parseValue(item.n02),
+                    };
+                }, {
+                    n06: 0,
+                    n08: 0,
+                    n02: 0
+                });
+                const sumsn3 = n3.reduce((acc, item) => {
+                    return {
+                        n06: acc.n06 + parseValue(item.n06),
+                        n08: acc.n08 + parseValue(item.n08),
+                        n02: acc.n02 + parseValue(item.n02),
+
+                    };
+                }, {
+                    n06: 0,
+                    n08: 0,
+                    n02: 0
+
+                });
+
+                console.log(sumsn3);
+                var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
+                var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
+                let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
+                var sumn2 = parseInt(sumsn3 ? sumsn3.n06 : 0) + parseInt(sumsn3 ? sumsn3.n08 : 0) + parseInt(sumsn3 ? sumsn3.n02 : 0);
+                var sumn1 = parseInt(sumsn2 ? sumsn2.n06 : 0) + parseInt(sumsn2 ? sumsn2.n08 : 0) + parseInt(sumsn2 ? sumsn2.n02 : 0);
+
+                str1 = '<tr><td style="text-align:center;" nowrap>รวมทั้งสิ้น</td>';
+                str2 = '<td>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString() + '</td>';
+                str3 = '<td>' + ((sums[y2] ? (sums[y2].e06) : 0) + parseInt(sumsn3 ? sumsn3.n06 : 0)).toLocaleString() + '</td>';
+                str4 = '<td>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString() + '</td>';
+                str5 = '<td>' + ((sums[y2] ? (sums[y2].e08) : 0) + parseInt(sumsn3 ? sumsn3.n08 : 0)).toLocaleString() + '</td>';
+                str6 = '<td>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString() + '</td>';
+                str7 = '<td>' + ((sums[y2] ? (sums[y2].e02) : 0) + parseInt(sumsn3 ? sumsn3.n02 : 0)).toLocaleString() + '</td>';
+                str8 = '<td>' + sumy2.toLocaleString() + '</td>';
+                str9 = '<td>' + (sumacy2 + sumn2).toLocaleString() + '</td>';
+                str10 = '<td>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString() + '</td>';
+                str11 = '<td>' + ((sums[y1] ? (sums[y1].e06) : 0) + parseInt(sumsn2 ? sumsn2.n06 : 0)).toLocaleString() + '</td>';
+                str12 = '<td>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString() + '</td>';
+                str13 = '<td>' + ((sums[y1] ? (sums[y1].e08) : 0) + parseInt(sumsn2 ? sumsn2.n08 : 0)).toLocaleString() + '</td>';
+                str14 = '<td>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString() + '</td>';
+                str15 = '<td>' + ((sums[y1] ? (sums[y1].e02) : 0) + parseInt(sumsn2 ? sumsn2.n02 : 0)).toLocaleString() + '</td>';
+                str16 = '<td>' + sumy1.toLocaleString() + '</td>';
+                str17 = '<td>' + (sumacy1 + sumn1).toLocaleString() + '</td>';
+                str18 = '<td>' + sums[year].t06.toLocaleString() + '</td>';
+                str19 = '<td>' + sums[year].t02.toLocaleString() + '</td>';
+                str20 = '<td>' + sums[year].t08.toLocaleString() + '</td>';
+                str21 = '<td>' + sum.toLocaleString() + '</td>';
+                str22 = '<td>' + (sum - (sumacy1 + sumn1)).toLocaleString() + '</td>';
+                str23 = '<td>' + ((sumacy1 + sumn1) === 0 ? '100%' : parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%</td></tr>';
+                html += str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8 + str9 + str10 + str11 + str12 + str13 + str14 + str15 +
+                    str16 + str17 + str18 + str19 + str20 + str21 + str22 + str23;
+            }
+
+            f1.forEach((row1) => {
+                let n2 = all_data2.filter(item => item.FISCAL_YEAR === y1 && item.Alias_Default === row1);
+                let n3 = all_data2.filter(item => item.FISCAL_YEAR === y2 && item.Alias_Default === row1);
+                const f = data2.filter(item => item.Alias_Default === row1);
+                const parseValue = (value) => {
+                    if (!value || typeof value !== 'string') return 0;
+                    const number = parseFloat(value.replace(/,/g, ''));
+                    return isNaN(number) ? 0 : number;
+                };
+                const sums = f.reduce((acc, item) => {
+                    const year = item.Budget_Management_Year; // Get the year from each item
+
+                    // Initialize the year object if it doesn't exist
+                    if (!acc[year]) {
+                        acc[year] = {
+                            t06: 0,
+                            t02: 0,
+                            t08: 0,
+                            e06: 0,
+                            e02: 0,
+                            e08: 0
+                        };
+                    }
+
+                    // Add the parsed values to the corresponding year
+                    acc[year].t06 += parseValue(item.t06);
+                    acc[year].t02 += parseValue(item.t02);
+                    acc[year].t08 += parseValue(item.t08);
+                    acc[year].e06 += parseValue(item.e06);
+                    acc[year].e02 += parseValue(item.e02);
+                    acc[year].e08 += parseValue(item.e08);
+
                     return acc;
                 }, {});
                 const sumsn2 = n2.reduce((acc, item) => {
@@ -459,44 +501,44 @@
                         n06: acc.n06 + parseValue(item.n06),
                         n08: acc.n08 + parseValue(item.n08),
                         n02: acc.n02 + parseValue(item.n02),
-                        
+
                     };
                 }, {
                     n06: 0,
                     n08: 0,
                     n02: 0
-                    
+
                 });
-                var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                 var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
-                var sumn2 =  parseInt(sumsn3 ? sumsn3.n06:0) + parseInt(sumsn3 ? sumsn3.n08:0) + parseInt(sumsn3 ? sumsn3.n02:0);
-                var sumn1 = parseInt(sumsn2 ? sumsn2.n06:0) + parseInt(sumsn2 ? sumsn2.n08:0) + parseInt(sumsn2 ? sumsn2.n02:0);
+                let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
+                var sumn2 = parseInt(sumsn3 ? sumsn3.n06 : 0) + parseInt(sumsn3 ? sumsn3.n08 : 0) + parseInt(sumsn3 ? sumsn3.n02 : 0);
+                var sumn1 = parseInt(sumsn2 ? sumsn2.n06 : 0) + parseInt(sumsn2 ? sumsn2.n08 : 0) + parseInt(sumsn2 ? sumsn2.n02 : 0);
                 str1 = '<tr><td style="text-align:left;" nowrap>' + row1;
-                str2 = '<td>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                str3 = '<td>' + ((sums[y2] ?(sums[y2].e06): 0)+parseInt(sumsn3 ? sumsn3.n06:0) ).toLocaleString();
-                str4 = '<td>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                str5 = '<td>' + ((sums[y2] ?(sums[y2].e08): 0)+parseInt(sumsn3 ? sumsn3.n08:0) ).toLocaleString();
-                str6 = '<td>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                str7 = '<td>' + ((sums[y2] ?(sums[y2].e02): 0)+parseInt(sumsn3 ? sumsn3.n02:0) ).toLocaleString();
-                str8 = '<td>'+sumy2.toLocaleString();
-                str9 = '<td>'+(sumacy2+sumn2).toLocaleString();
-                str10 = '<td>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                str11 = '<td>' + ((sums[y1] ?(sums[y1].e06): 0)+parseInt(sumsn2 ? sumsn2.n06:0) ).toLocaleString();
-                str12 = '<td>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                str13 = '<td>' + ((sums[y1] ?(sums[y1].e08): 0 )+parseInt(sumsn2 ? sumsn2.n08:0) ).toLocaleString();
-                str14 = '<td>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                str15 = '<td>' + ((sums[y1] ?(sums[y1].e02): 0 )+parseInt(sumsn2 ? sumsn2.n02:0) ).toLocaleString();
-                str16 = '<td>'+sumy1.toLocaleString();
-                str17 = '<td>'+(sumacy1+sumn1).toLocaleString();
+                str2 = '<td>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                str3 = '<td>' + ((sums[y2] ? (sums[y2].e06) : 0) + parseInt(sumsn3 ? sumsn3.n06 : 0)).toLocaleString();
+                str4 = '<td>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                str5 = '<td>' + ((sums[y2] ? (sums[y2].e08) : 0) + parseInt(sumsn3 ? sumsn3.n08 : 0)).toLocaleString();
+                str6 = '<td>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                str7 = '<td>' + ((sums[y2] ? (sums[y2].e02) : 0) + parseInt(sumsn3 ? sumsn3.n02 : 0)).toLocaleString();
+                str8 = '<td>' + sumy2.toLocaleString();
+                str9 = '<td>' + (sumacy2 + sumn2).toLocaleString();
+                str10 = '<td>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                str11 = '<td>' + ((sums[y1] ? (sums[y1].e06) : 0) + parseInt(sumsn2 ? sumsn2.n06 : 0)).toLocaleString();
+                str12 = '<td>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                str13 = '<td>' + ((sums[y1] ? (sums[y1].e08) : 0) + parseInt(sumsn2 ? sumsn2.n08 : 0)).toLocaleString();
+                str14 = '<td>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                str15 = '<td>' + ((sums[y1] ? (sums[y1].e02) : 0) + parseInt(sumsn2 ? sumsn2.n02 : 0)).toLocaleString();
+                str16 = '<td>' + sumy1.toLocaleString();
+                str17 = '<td>' + (sumacy1 + sumn1).toLocaleString();
                 str18 = '<td>' + sums[year].t06.toLocaleString();
                 str19 = '<td>' + sums[year].t02.toLocaleString();
                 str20 = '<td>' + sums[year].t08.toLocaleString();
                 str21 = '<td>' + sum.toLocaleString();
-                str22 = '<td>' + (sum-(sumacy1+sumn1)).toLocaleString();
-                str23 = '<td>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                str22 = '<td>' + (sum - (sumacy1 + sumn1)).toLocaleString();
+                str23 = '<td>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                 f2.forEach((row2) => {
                     const pi = data2.filter(item => item.pillar_name === row2 && item.Alias_Default === row1);
                     const parseValue = (value) => {
@@ -505,7 +547,7 @@
                     };
                     const sums = pi.reduce((acc, item) => {
                         const year = item.Budget_Management_Year; // Get the year from each item
-            
+
                         // Initialize the year object if it doesn't exist
                         if (!acc[year]) {
                             acc[year] = {
@@ -517,7 +559,7 @@
                                 e08: 0
                             };
                         }
-                        
+
                         // Add the parsed values to the corresponding year
                         acc[year].t06 += parseValue(item.t06);
                         acc[year].t02 += parseValue(item.t02);
@@ -525,38 +567,38 @@
                         acc[year].e06 += parseValue(item.e06);
                         acc[year].e02 += parseValue(item.e02);
                         acc[year].e08 += parseValue(item.e08);
-                        
+
                         return acc;
                     }, {});
                     if (pi.length > 0) {
-                        var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                        var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                        var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                        var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                         var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                        let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                        let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                        let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                        let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                         str1 += '<br/>' + '&nbsp;'.repeat(8) + row2;
-                        str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                        str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                        str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                        str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                        str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                        str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                        str8 += '<br/>'+sumy2.toLocaleString();
-                        str9 += '<br/>'+sumacy2.toLocaleString();
-                        str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                        str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                        str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                        str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                        str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                        str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                        str16 += '<br/>'+sumy1.toLocaleString();
-                        str17 += '<br/>'+sumacy1.toLocaleString();
+                        str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                        str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                        str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                        str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                        str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                        str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                        str8 += '<br/>' + sumy2.toLocaleString();
+                        str9 += '<br/>' + sumacy2.toLocaleString();
+                        str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                        str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                        str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                        str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                        str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                        str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                        str16 += '<br/>' + sumy1.toLocaleString();
+                        str17 += '<br/>' + sumacy1.toLocaleString();
                         str18 += '<br/>' + sums[year].t06.toLocaleString();
                         str19 += '<br/>' + sums[year].t02.toLocaleString();
                         str20 += '<br/>' + sums[year].t08.toLocaleString();
                         str21 += '<br/>' + sum.toLocaleString();
-                        str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                        str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                        str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                        str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                     }
                     account.forEach((row6) => {
                         const ac = pi.filter(item => item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -566,7 +608,7 @@
                         };
                         const sums = ac.reduce((acc, item) => {
                             const year = item.Budget_Management_Year; // Get the year from each item
-                
+
                             // Initialize the year object if it doesn't exist
                             if (!acc[year]) {
                                 acc[year] = {
@@ -578,7 +620,7 @@
                                     e08: 0
                                 };
                             }
-                            
+
                             // Add the parsed values to the corresponding year
                             acc[year].t06 += parseValue(item.t06);
                             acc[year].t02 += parseValue(item.t02);
@@ -586,38 +628,38 @@
                             acc[year].e06 += parseValue(item.e06);
                             acc[year].e02 += parseValue(item.e02);
                             acc[year].e08 += parseValue(item.e08);
-                            
+
                             return acc;
                         }, {});
                         if (ac.length > 0) {
-                            var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                            var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                            var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                            var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                             var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                            let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                            let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                            let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                            let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                             str1 += '<br/>' + '&nbsp;'.repeat(16) + row6;
-                            str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                            str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                            str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                            str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                            str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                            str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                            str8 += '<br/>'+sumy2.toLocaleString();
-                            str9 += '<br/>'+sumacy2.toLocaleString();
-                            str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                            str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                            str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                            str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                            str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                            str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                            str16 += '<br/>'+sumy1.toLocaleString();
-                            str17 += '<br/>'+sumacy1.toLocaleString();
+                            str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                            str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                            str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                            str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                            str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                            str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                            str8 += '<br/>' + sumy2.toLocaleString();
+                            str9 += '<br/>' + sumacy2.toLocaleString();
+                            str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                            str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                            str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                            str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                            str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                            str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                            str16 += '<br/>' + sumy1.toLocaleString();
+                            str17 += '<br/>' + sumacy1.toLocaleString();
                             str18 += '<br/>' + sums[year].t06.toLocaleString();
                             str19 += '<br/>' + sums[year].t02.toLocaleString();
                             str20 += '<br/>' + sums[year].t08.toLocaleString();
                             str21 += '<br/>' + sum.toLocaleString();
-                            str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                            str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                            str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                         }
                         sub_account.forEach((row7) => {
                             const sa = ac.filter(item => item.level4 === row7 && item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -628,7 +670,7 @@
                             };
                             const sums = sa.reduce((acc, item) => {
                                 const year = item.Budget_Management_Year; // Get the year from each item
-                    
+
                                 // Initialize the year object if it doesn't exist
                                 if (!acc[year]) {
                                     acc[year] = {
@@ -640,7 +682,7 @@
                                         e08: 0
                                     };
                                 }
-                                
+
                                 // Add the parsed values to the corresponding year
                                 acc[year].t06 += parseValue(item.t06);
                                 acc[year].t02 += parseValue(item.t02);
@@ -648,38 +690,38 @@
                                 acc[year].e06 += parseValue(item.e06);
                                 acc[year].e02 += parseValue(item.e02);
                                 acc[year].e08 += parseValue(item.e08);
-                                
+
                                 return acc;
                             }, {});
                             if (sa.length > 0) {
-                                var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                                var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                                var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                                var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                                 var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                                let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                                let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                                let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                                let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                                 str1 += '<br/>' + '&nbsp;'.repeat(24) + row7;
-                                str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                                str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                                str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                                str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                                str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                                str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                                str8 += '<br/>'+sumy2.toLocaleString();
-                                str9 += '<br/>'+sumacy2.toLocaleString();
-                                str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                                str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                                str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                                str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                                str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                                str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                                str16 += '<br/>'+sumy1.toLocaleString();
-                                str17 += '<br/>'+sumacy1.toLocaleString();
+                                str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                                str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                                str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                                str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                                str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                                str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                                str8 += '<br/>' + sumy2.toLocaleString();
+                                str9 += '<br/>' + sumacy2.toLocaleString();
+                                str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                                str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                                str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                                str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                                str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                                str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                                str16 += '<br/>' + sumy1.toLocaleString();
+                                str17 += '<br/>' + sumacy1.toLocaleString();
                                 str18 += '<br/>' + sums[year].t06.toLocaleString();
                                 str19 += '<br/>' + sums[year].t02.toLocaleString();
                                 str20 += '<br/>' + sums[year].t08.toLocaleString();
                                 str21 += '<br/>' + sum.toLocaleString();
-                                str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                                str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                             }
                             accname.forEach((row8) => {
                                 const sa2 = sa.filter(item => item.level3 === row8 && item.level4 === row7 && item.level5 === row6 && item.pillar_name === row2 && item.Alias_Default === row1);
@@ -689,7 +731,7 @@
                                 };
                                 const sums = sa2.reduce((acc, item) => {
                                     const year = item.Budget_Management_Year; // Get the year from each item
-                        
+
                                     // Initialize the year object if it doesn't exist
                                     if (!acc[year]) {
                                         acc[year] = {
@@ -701,7 +743,7 @@
                                             e08: 0
                                         };
                                     }
-                                    
+
                                     // Add the parsed values to the corresponding year
                                     acc[year].t06 += parseValue(item.t06);
                                     acc[year].t02 += parseValue(item.t02);
@@ -709,51 +751,51 @@
                                     acc[year].e06 += parseValue(item.e06);
                                     acc[year].e02 += parseValue(item.e02);
                                     acc[year].e08 += parseValue(item.e08);
-                                    
+
                                     return acc;
                                 }, {});
                                 if (sa2.length > 0 && row8 != null) {
-                                    var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                                    var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                                    var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                                    var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                                     var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                                    let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                                    let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                                    let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                                    let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                                     str1 += '<br/>' + '&nbsp;'.repeat(32) + row8;
-                                    str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                                    str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                                    str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                                    str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                                    str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                                    str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                                    str8 += '<br/>'+sumy2.toLocaleString();
-                                    str9 += '<br/>'+sumacy2.toLocaleString();
-                                    str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                                    str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                                    str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                                    str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                                    str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                                    str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                                    str16 += '<br/>'+sumy1.toLocaleString();
-                                    str17 += '<br/>'+sumacy1.toLocaleString();
+                                    str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                                    str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                                    str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                                    str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                                    str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                                    str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                                    str8 += '<br/>' + sumy2.toLocaleString();
+                                    str9 += '<br/>' + sumacy2.toLocaleString();
+                                    str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                                    str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                                    str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                                    str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                                    str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                                    str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                                    str16 += '<br/>' + sumy1.toLocaleString();
+                                    str17 += '<br/>' + sumacy1.toLocaleString();
                                     str18 += '<br/>' + sums[year].t06.toLocaleString();
                                     str19 += '<br/>' + sums[year].t02.toLocaleString();
                                     str20 += '<br/>' + sums[year].t08.toLocaleString();
                                     str21 += '<br/>' + sum.toLocaleString();
-                                    str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                    str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                                    str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                 }
                                 if (sa2.length > 0 && row8 == null) {
                                     const item_name = [...new Set(sa2.map(item => item.KKU_Item_Name2))];
-                                    
+
                                     item_name.forEach((row8_null) => {
-                                        let all_item= sa2.filter(item=>item.KKU_Item_Name2===row8_null);
+                                        let all_item = sa2.filter(item => item.KKU_Item_Name2 === row8_null);
                                         const parseValue = (value) => {
                                             const number = parseFloat(value.replace(/,/g, ''));
                                             return isNaN(number) ? 0 : number;
                                         };
                                         const sums = all_item.reduce((acc, item) => {
                                             const year = item.Budget_Management_Year; // Get the year from each item
-                                
+
                                             // Initialize the year object if it doesn't exist
                                             if (!acc[year]) {
                                                 acc[year] = {
@@ -765,7 +807,7 @@
                                                     e08: 0
                                                 };
                                             }
-                                            
+
                                             // Add the parsed values to the corresponding year
                                             acc[year].t06 += parseValue(item.t06);
                                             acc[year].t02 += parseValue(item.t02);
@@ -773,38 +815,38 @@
                                             acc[year].e06 += parseValue(item.e06);
                                             acc[year].e02 += parseValue(item.e02);
                                             acc[year].e08 += parseValue(item.e08);
-                                            
+
                                             return acc;
                                         }, {});
-                                        if (row8_null != "" && row8_null !=null) {
-                                            var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                                            var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                                        if (row8_null != "" && row8_null != null) {
+                                            var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                                            var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                                             var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                                            let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                                            let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                                            let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                                            let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                                             str1 += '<br/>' + '&nbsp;'.repeat(32) + row8_null;
-                                            str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                                            str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                                            str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                                            str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                                            str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                                            str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                                            str8 += '<br/>'+sumy2.toLocaleString();
-                                            str9 += '<br/>'+sumacy2.toLocaleString();
-                                            str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                                            str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                                            str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                                            str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                                            str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                                            str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                                            str16 += '<br/>'+sumy1.toLocaleString();
-                                            str17 += '<br/>'+sumacy1.toLocaleString();
+                                            str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                                            str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                                            str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                                            str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                                            str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                                            str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                                            str8 += '<br/>' + sumy2.toLocaleString();
+                                            str9 += '<br/>' + sumacy2.toLocaleString();
+                                            str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                                            str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                                            str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                                            str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                                            str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                                            str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                                            str16 += '<br/>' + sumy1.toLocaleString();
+                                            str17 += '<br/>' + sumacy1.toLocaleString();
                                             str18 += '<br/>' + sums[year].t06.toLocaleString();
                                             str19 += '<br/>' + sums[year].t02.toLocaleString();
                                             str20 += '<br/>' + sums[year].t08.toLocaleString();
                                             str21 += '<br/>' + sum.toLocaleString();
-                                            str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                            str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                                            str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                         }
                                     });
                                 }
@@ -816,7 +858,7 @@
                                     };
                                     const sums = l2.reduce((acc, item) => {
                                         const year = item.Budget_Management_Year; // Get the year from each item
-                            
+
                                         // Initialize the year object if it doesn't exist
                                         if (!acc[year]) {
                                             acc[year] = {
@@ -828,7 +870,7 @@
                                                 e08: 0
                                             };
                                         }
-                                        
+
                                         // Add the parsed values to the corresponding year
                                         acc[year].t06 += parseValue(item.t06);
                                         acc[year].t02 += parseValue(item.t02);
@@ -836,45 +878,45 @@
                                         acc[year].e06 += parseValue(item.e06);
                                         acc[year].e02 += parseValue(item.e02);
                                         acc[year].e08 += parseValue(item.e08);
-                                        
+
                                         return acc;
                                     }, {});
                                     if (l2.length > 0 && row9 != null) {
-                                        var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                                        var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                                        var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                                        var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                                         var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                                        let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                                        let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                                        let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                                        let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                                         str1 += '<br/>' + '&nbsp;'.repeat(40) + row9;
-                                        str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                                        str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                                        str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                                        str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                                        str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                                        str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                                        str8 += '<br/>'+sumy2.toLocaleString();
-                                        str9 += '<br/>'+sumacy2.toLocaleString();
-                                        str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                                        str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                                        str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                                        str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                                        str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                                        str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                                        str16 += '<br/>'+sumy1.toLocaleString();
-                                        str17 += '<br/>'+sumacy1.toLocaleString();
+                                        str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                                        str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                                        str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                                        str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                                        str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                                        str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                                        str8 += '<br/>' + sumy2.toLocaleString();
+                                        str9 += '<br/>' + sumacy2.toLocaleString();
+                                        str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                                        str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                                        str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                                        str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                                        str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                                        str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                                        str16 += '<br/>' + sumy1.toLocaleString();
+                                        str17 += '<br/>' + sumacy1.toLocaleString();
                                         str18 += '<br/>' + sums[year].t06.toLocaleString();
                                         str19 += '<br/>' + sums[year].t02.toLocaleString();
                                         str20 += '<br/>' + sums[year].t08.toLocaleString();
                                         str21 += '<br/>' + sum.toLocaleString();
-                                        str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                        str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                        str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                                        str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                     }
                                     if (l2.length > 0 && row9 == null && row8 != null) {
-                                        
+
                                         const item_name = [...new Set(l2.map(item => item.KKU_Item_Name2))];
                                         //console.log(item_name);
                                         item_name.forEach((row9_null) => {
-                                            let all_item= l2.filter(item=>item.KKU_Item_Name2===row9_null);
+                                            let all_item = l2.filter(item => item.KKU_Item_Name2 === row9_null);
                                             //console.log(all_item);
                                             const parseValue = (value) => {
                                                 const number = parseFloat(value.replace(/,/g, ''));
@@ -882,7 +924,7 @@
                                             };
                                             const sums = all_item.reduce((acc, item) => {
                                                 const year = item.Budget_Management_Year; // Get the year from each item
-                                    
+
                                                 // Initialize the year object if it doesn't exist
                                                 if (!acc[year]) {
                                                     acc[year] = {
@@ -894,7 +936,7 @@
                                                         e08: 0
                                                     };
                                                 }
-                                                
+
                                                 // Add the parsed values to the corresponding year
                                                 acc[year].t06 += parseValue(item.t06);
                                                 acc[year].t02 += parseValue(item.t02);
@@ -902,38 +944,38 @@
                                                 acc[year].e06 += parseValue(item.e06);
                                                 acc[year].e02 += parseValue(item.e02);
                                                 acc[year].e08 += parseValue(item.e08);
-                                                
+
                                                 return acc;
                                             }, {});
-                                            if (row9_null != "" && row9_null !=null) {
-                                                var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                                                var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                                            if (row9_null != "" && row9_null != null) {
+                                                var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                                                var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                                                 var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                                                let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                                                let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                                                let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                                                let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                                                 str1 += '<br/>' + '&nbsp;'.repeat(40) + row9_null;
-                                                str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                                                str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                                                str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                                                str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                                                str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                                                str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                                                str8 += '<br/>'+sumy2.toLocaleString();
-                                                str9 += '<br/>'+sumacy2.toLocaleString();
-                                                str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                                                str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                                                str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                                                str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                                                str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                                                str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                                                str16 += '<br/>'+sumy1.toLocaleString();
-                                                str17 += '<br/>'+sumacy1.toLocaleString();
+                                                str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                                                str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                                                str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                                                str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                                                str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                                                str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                                                str8 += '<br/>' + sumy2.toLocaleString();
+                                                str9 += '<br/>' + sumacy2.toLocaleString();
+                                                str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                                                str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                                                str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                                                str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                                                str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                                                str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                                                str16 += '<br/>' + sumy1.toLocaleString();
+                                                str17 += '<br/>' + sumacy1.toLocaleString();
                                                 str18 += '<br/>' + sums[year].t06.toLocaleString();
                                                 str19 += '<br/>' + sums[year].t02.toLocaleString();
                                                 str20 += '<br/>' + sums[year].t08.toLocaleString();
                                                 str21 += '<br/>' + sum.toLocaleString();
-                                                str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                                str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                                str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                                                str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                             }
                                         });
                                     }
@@ -945,7 +987,7 @@
                                         };
                                         const sums = l1.reduce((acc, item) => {
                                             const year = item.Budget_Management_Year; // Get the year from each item
-                                
+
                                             // Initialize the year object if it doesn't exist
                                             if (!acc[year]) {
                                                 acc[year] = {
@@ -957,7 +999,7 @@
                                                     e08: 0
                                                 };
                                             }
-                                            
+
                                             // Add the parsed values to the corresponding year
                                             acc[year].t06 += parseValue(item.t06);
                                             acc[year].t02 += parseValue(item.t02);
@@ -965,48 +1007,48 @@
                                             acc[year].e06 += parseValue(item.e06);
                                             acc[year].e02 += parseValue(item.e02);
                                             acc[year].e08 += parseValue(item.e08);
-                                            
+
                                             return acc;
                                         }, {});
                                         if (l1.length > 0 && row10 != null) {
-                                            var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                                            var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                                            var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                                            var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                                             var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                                            let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                                            let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                                            let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                                            let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                                             str1 += '<br/>' + '&nbsp;'.repeat(48) + row10;
-                                            str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                                            str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                                            str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                                            str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                                            str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                                            str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                                            str8 += '<br/>'+sumy2.toLocaleString();
-                                            str9 += '<br/>'+sumacy2.toLocaleString();
-                                            str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                                            str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                                            str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                                            str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                                            str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                                            str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                                            str16 += '<br/>'+sumy1.toLocaleString();
-                                            str17 += '<br/>'+sumacy1.toLocaleString();
+                                            str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                                            str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                                            str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                                            str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                                            str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                                            str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                                            str8 += '<br/>' + sumy2.toLocaleString();
+                                            str9 += '<br/>' + sumacy2.toLocaleString();
+                                            str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                                            str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                                            str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                                            str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                                            str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                                            str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                                            str16 += '<br/>' + sumy1.toLocaleString();
+                                            str17 += '<br/>' + sumacy1.toLocaleString();
                                             str18 += '<br/>' + sums[year].t06.toLocaleString();
                                             str19 += '<br/>' + sums[year].t02.toLocaleString();
                                             str20 += '<br/>' + sums[year].t08.toLocaleString();
                                             str21 += '<br/>' + sum.toLocaleString();
-                                            str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                            str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                            str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                                            str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                             const item_name = [...new Set(l1.map(item => item.KKU_Item_Name2))];
                                             item_name.forEach((row10_item) => {
-                                                let all_item= l1.filter(item=>item.KKU_Item_Name2===row10_item);
+                                                let all_item = l1.filter(item => item.KKU_Item_Name2 === row10_item);
                                                 const parseValue = (value) => {
                                                     const number = parseFloat(value.replace(/,/g, ''));
                                                     return isNaN(number) ? 0 : number;
                                                 };
                                                 const sums = all_item.reduce((acc, item) => {
                                                     const year = item.Budget_Management_Year; // Get the year from each item
-                                        
+
                                                     // Initialize the year object if it doesn't exist
                                                     if (!acc[year]) {
                                                         acc[year] = {
@@ -1018,7 +1060,7 @@
                                                             e08: 0
                                                         };
                                                     }
-                                                    
+
                                                     // Add the parsed values to the corresponding year
                                                     acc[year].t06 += parseValue(item.t06);
                                                     acc[year].t02 += parseValue(item.t02);
@@ -1026,52 +1068,52 @@
                                                     acc[year].e06 += parseValue(item.e06);
                                                     acc[year].e02 += parseValue(item.e02);
                                                     acc[year].e08 += parseValue(item.e08);
-                                                    
+
                                                     return acc;
                                                 }, {});
                                                 if (row10_item != "" && row10_item != null) {
-                                                    var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                                                    var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                                                    var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                                                    var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                                                     var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                                                    let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                                                    let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                                                    let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                                                    let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                                                     str1 += '<br/>' + '&nbsp;'.repeat(48) + row10_item;
-                                                    str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                                                    str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                                                    str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                                                    str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                                                    str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                                                    str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                                                    str8 += '<br/>'+sumy2.toLocaleString();
-                                                    str9 += '<br/>'+sumacy2.toLocaleString();
-                                                    str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                                                    str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                                                    str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                                                    str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                                                    str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                                                    str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                                                    str16 += '<br/>'+sumy1.toLocaleString();
-                                                    str17 += '<br/>'+sumacy1.toLocaleString();
+                                                    str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                                                    str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                                                    str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                                                    str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                                                    str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                                                    str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                                                    str8 += '<br/>' + sumy2.toLocaleString();
+                                                    str9 += '<br/>' + sumacy2.toLocaleString();
+                                                    str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                                                    str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                                                    str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                                                    str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                                                    str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                                                    str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                                                    str16 += '<br/>' + sumy1.toLocaleString();
+                                                    str17 += '<br/>' + sumacy1.toLocaleString();
                                                     str18 += '<br/>' + sums[year].t06.toLocaleString();
                                                     str19 += '<br/>' + sums[year].t02.toLocaleString();
                                                     str20 += '<br/>' + sums[year].t08.toLocaleString();
                                                     str21 += '<br/>' + sum.toLocaleString();
-                                                    str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                                    str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                                                    str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                                 }
                                             });
                                         }
                                         if (l1.length > 0 && row9 != null && row10 == null) {
                                             const item_name = [...new Set(l1.map(item => item.KKU_Item_Name2))];
                                             item_name.forEach((row10_null) => {
-                                                let all_item= l1.filter(item=>item.KKU_Item_Name2===row10_null);
+                                                let all_item = l1.filter(item => item.KKU_Item_Name2 === row10_null);
                                                 const parseValue = (value) => {
                                                     const number = parseFloat(value.replace(/,/g, ''));
                                                     return isNaN(number) ? 0 : number;
                                                 };
                                                 const sums = all_item.reduce((acc, item) => {
                                                     const year = item.Budget_Management_Year; // Get the year from each item
-                                        
+
                                                     // Initialize the year object if it doesn't exist
                                                     if (!acc[year]) {
                                                         acc[year] = {
@@ -1083,7 +1125,7 @@
                                                             e08: 0
                                                         };
                                                     }
-                                                    
+
                                                     // Add the parsed values to the corresponding year
                                                     acc[year].t06 += parseValue(item.t06);
                                                     acc[year].t02 += parseValue(item.t02);
@@ -1091,38 +1133,38 @@
                                                     acc[year].e06 += parseValue(item.e06);
                                                     acc[year].e02 += parseValue(item.e02);
                                                     acc[year].e08 += parseValue(item.e08);
-                                                    
+
                                                     return acc;
                                                 }, {});
                                                 if (row10_null != "" && row10_null != null) {
-                                                    var sumy2 = sums[y2] ?(sums[y2].t06||0) + (sums[y2].t08||0) + (sums[y2].t02||0): 0;
-                                                    var sumy1 = sums[y1] ?((sums[y1].t06||0) + (sums[y1].t08||0) + (sums[y1].t02||0)): 0;
+                                                    var sumy2 = sums[y2] ? (sums[y2].t06 || 0) + (sums[y2].t08 || 0) + (sums[y2].t02 || 0) : 0;
+                                                    var sumy1 = sums[y1] ? ((sums[y1].t06 || 0) + (sums[y1].t08 || 0) + (sums[y1].t02 || 0)) : 0;
                                                     var sum = sums[year].t06 + sums[year].t08 + sums[year].t02;
-                                                    let sumacy1=sums[y1] ?((sums[y1].e06||0) + (sums[y1].e08||0) + (sums[y1].e02||0)): 0;
-                                                    let sumacy2=sums[y2] ?(sums[y2].e06||0) + (sums[y2].e08||0) + (sums[y2].e02||0): 0;
+                                                    let sumacy1 = sums[y1] ? ((sums[y1].e06 || 0) + (sums[y1].e08 || 0) + (sums[y1].e02 || 0)) : 0;
+                                                    let sumacy2 = sums[y2] ? (sums[y2].e06 || 0) + (sums[y2].e08 || 0) + (sums[y2].e02 || 0) : 0;
                                                     str1 += '<br/>' + '&nbsp;'.repeat(48) + row10_null;
-                                                    str2 += '<br/>' + (sums[y2] ?(sums[y2].t06): 0).toLocaleString();
-                                                    str3 += '<br/>' + (sums[y2] ?(sums[y2].e06): 0).toLocaleString();
-                                                    str4 += '<br/>' + (sums[y2] ?(sums[y2].t08): 0).toLocaleString();
-                                                    str5 += '<br/>' + (sums[y2] ?(sums[y2].e08): 0).toLocaleString();
-                                                    str6 += '<br/>' + (sums[y2] ?(sums[y2].t02): 0).toLocaleString();
-                                                    str7 += '<br/>' + (sums[y2] ?(sums[y2].e02): 0).toLocaleString();
-                                                    str8 += '<br/>'+sumy2.toLocaleString();
-                                                    str9 += '<br/>'+sumacy2.toLocaleString();
-                                                    str10 += '<br/>' + (sums[y1] ?(sums[y1].t06): 0).toLocaleString();
-                                                    str11 += '<br/>' + (sums[y1] ?(sums[y1].e06): 0).toLocaleString();
-                                                    str12 += '<br/>' + (sums[y1] ?(sums[y1].t08): 0 ).toLocaleString();
-                                                    str13 += '<br/>' + (sums[y1] ?(sums[y1].e08): 0 ).toLocaleString();
-                                                    str14 += '<br/>' + (sums[y1] ?(sums[y1].t02): 0 ).toLocaleString();
-                                                    str15 += '<br/>' + (sums[y1] ?(sums[y1].e02): 0 ).toLocaleString();
-                                                    str16 += '<br/>'+sumy1.toLocaleString();
-                                                    str17 += '<br/>'+sumacy1.toLocaleString();
+                                                    str2 += '<br/>' + (sums[y2] ? (sums[y2].t06) : 0).toLocaleString();
+                                                    str3 += '<br/>' + (sums[y2] ? (sums[y2].e06) : 0).toLocaleString();
+                                                    str4 += '<br/>' + (sums[y2] ? (sums[y2].t08) : 0).toLocaleString();
+                                                    str5 += '<br/>' + (sums[y2] ? (sums[y2].e08) : 0).toLocaleString();
+                                                    str6 += '<br/>' + (sums[y2] ? (sums[y2].t02) : 0).toLocaleString();
+                                                    str7 += '<br/>' + (sums[y2] ? (sums[y2].e02) : 0).toLocaleString();
+                                                    str8 += '<br/>' + sumy2.toLocaleString();
+                                                    str9 += '<br/>' + sumacy2.toLocaleString();
+                                                    str10 += '<br/>' + (sums[y1] ? (sums[y1].t06) : 0).toLocaleString();
+                                                    str11 += '<br/>' + (sums[y1] ? (sums[y1].e06) : 0).toLocaleString();
+                                                    str12 += '<br/>' + (sums[y1] ? (sums[y1].t08) : 0).toLocaleString();
+                                                    str13 += '<br/>' + (sums[y1] ? (sums[y1].e08) : 0).toLocaleString();
+                                                    str14 += '<br/>' + (sums[y1] ? (sums[y1].t02) : 0).toLocaleString();
+                                                    str15 += '<br/>' + (sums[y1] ? (sums[y1].e02) : 0).toLocaleString();
+                                                    str16 += '<br/>' + sumy1.toLocaleString();
+                                                    str17 += '<br/>' + sumacy1.toLocaleString();
                                                     str18 += '<br/>' + sums[year].t06.toLocaleString();
                                                     str19 += '<br/>' + sums[year].t02.toLocaleString();
                                                     str20 += '<br/>' + sums[year].t08.toLocaleString();
                                                     str21 += '<br/>' + sum.toLocaleString();
-                                                    str22 += '<br/>' + (sum-sumacy1).toLocaleString();
-                                                    str23 += '<br/>'+((sumacy1+sumn1) === 0 ? '100%' :(parseFloat((((sum-(sumacy1+sumn1))*100)/(sumacy1+sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
+                                                    str22 += '<br/>' + (sum - sumacy1).toLocaleString();
+                                                    str23 += '<br/>' + ((sumacy1 + sumn1) === 0 ? '100%' : (parseFloat((((sum - (sumacy1 + sumn1)) * 100) / (sumacy1 + sumn1))).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') + '%');
                                                 }
                                             });
                                         }
@@ -1138,31 +1180,31 @@
                     });
                     //});      
                 });
-                var sumy2 =  parseInt(sumsn3 ? sumsn3.n06:0) + parseInt(sumsn3 ? sumsn3.n08:0) + parseInt(sumsn3 ? sumsn3.n02:0);
-                var sumy1 = parseInt(sumsn2 ? sumsn2.n06:0) + parseInt(sumsn2 ? sumsn2.n08:0) + parseInt(sumsn2 ? sumsn2.n02:0);
+                var sumy2 = parseInt(sumsn3 ? sumsn3.n06 : 0) + parseInt(sumsn3 ? sumsn3.n08 : 0) + parseInt(sumsn3 ? sumsn3.n02 : 0);
+                var sumy1 = parseInt(sumsn2 ? sumsn2.n06 : 0) + parseInt(sumsn2 ? sumsn2.n08 : 0) + parseInt(sumsn2 ? sumsn2.n02 : 0);
 
                 str1 += '<br/>' + "ไม่สอดคล้องกับยุทธศาสตร์ ไม่สอดคล้องพันธกิจ";
                 str2 += '<br/>' + (0).toLocaleString();
-                str3 += '<br/>' + parseInt(sumsn3 ? sumsn3.n06:0).toLocaleString();
-                str4 += '<br/>' + ( 0).toLocaleString();
-                str5 += '<br/>' + parseInt(sumsn3 ? sumsn3.n08:0).toLocaleString();
+                str3 += '<br/>' + parseInt(sumsn3 ? sumsn3.n06 : 0).toLocaleString();
+                str4 += '<br/>' + (0).toLocaleString();
+                str5 += '<br/>' + parseInt(sumsn3 ? sumsn3.n08 : 0).toLocaleString();
                 str6 += '<br/>' + (0).toLocaleString();
-                str7 += '<br/>' + parseInt(sumsn3 ? sumsn3.n02:0).toLocaleString();
-                str8 += '<br/>'+(0).toLocaleString();
-                str9 += '<br/>'+sumy2.toLocaleString();
+                str7 += '<br/>' + parseInt(sumsn3 ? sumsn3.n02 : 0).toLocaleString();
+                str8 += '<br/>' + (0).toLocaleString();
+                str9 += '<br/>' + sumy2.toLocaleString();
                 str10 += '<br/>' + (0).toLocaleString();
-                str11 += '<br/>' + parseInt(sumsn2 ? sumsn2.n06:0).toLocaleString();
-                str12 += '<br/>' + ( 0 ).toLocaleString();
-                str13 += '<br/>' + parseInt(sumsn2 ? sumsn2.n08:0).toLocaleString();
-                str14 += '<br/>' + (0 ).toLocaleString();
-                str15 += '<br/>' + parseInt(sumsn2 ? sumsn2.n02:0).toLocaleString();
-                str16 += '<br/>'+(0).toLocaleString();
-                str17 += '<br/>'+sumy1.toLocaleString();
+                str11 += '<br/>' + parseInt(sumsn2 ? sumsn2.n06 : 0).toLocaleString();
+                str12 += '<br/>' + (0).toLocaleString();
+                str13 += '<br/>' + parseInt(sumsn2 ? sumsn2.n08 : 0).toLocaleString();
+                str14 += '<br/>' + (0).toLocaleString();
+                str15 += '<br/>' + parseInt(sumsn2 ? sumsn2.n02 : 0).toLocaleString();
+                str16 += '<br/>' + (0).toLocaleString();
+                str17 += '<br/>' + sumy1.toLocaleString();
                 str18 += '<br/>' + (0).toLocaleString();
                 str19 += '<br/>' + (0).toLocaleString();
                 str20 += '<br/>' + (0).toLocaleString();
                 str21 += '<br/>' + (0).toLocaleString();
-                str22 += '<br/>' + (sumy1 === 0 ?0:(-sumy1)).toLocaleString();
+                str22 += '<br/>' + (sumy1 === 0 ? 0 : (-sumy1)).toLocaleString();
                 str23 += '<br/>0%';
 
                 str1 += '</td>';
@@ -1191,7 +1233,7 @@
 
                 html += str1 + str2 + str3 + str4 + str5 + str6 + str7 + str8 + str9 + str10 + str11 + str12 + str13 + str14 + str15 +
                     str16 + str17 + str18 + str19 + str20 + str21 + str22 + str23;
-            }); 
+            });
             tableBody.innerHTML = html;
 
         }
@@ -1551,7 +1593,7 @@
                     showHead: 'everyPage',
                     tableLineWidth: 0, // กำหนดเป็น 0 เพื่อลบเส้นขอบตาราง
                     // ลบการกำหนดสีเส้นขอบเนื่องจากไม่จำเป็น
-                    didDrawCell: function (data) {
+                    didDrawCell: function(data) {
                         // ปรับความสูงของเซลล์หัวตาราง
                         if (data.section === 'head') {
                             const cell = data.cell;
@@ -1561,7 +1603,7 @@
                             }
                         }
                     },
-                    didParseCell: function (data) {
+                    didParseCell: function(data) {
                         // จัดการกับการตั้งค่า align ของเซลล์
                         if (data.section === 'head') {
                             const style = data.cell.raw.getAttribute('style');

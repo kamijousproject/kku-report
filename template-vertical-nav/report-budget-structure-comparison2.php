@@ -123,23 +123,64 @@
                                 <div class="form-group">
                                     <label for="fiscal-year">เลือกปีงบประมาณ:</label>
                                     <select name="fiscal-year" id="fiscal-year">
-                                    <option value="">-- Select --</option>
-                                        
+                                        <option value="">-- Select --</option>
+
                                     </select>
                                 </div>
-                                <br/>
+                                <br />
                                 <div class="form-group">
                                     <label for="scenario">ประเภทงบประมาณ:</label>
                                     <select name="scenario" id="scenario" disabled>
-                                    <option value="">-- Select --</option>
+                                        <option value="">-- Select --</option>
                                     </select>
                                 </div>
-                                <br/>
-                                <div class="form-group">
-                                    <label for="category">เลือกส่วนงาน:</label>
-                                    <select name="category" id="category" onchange="fetchData()" disabled>
-                                        <option value="">-- Loading Categories --</option>
-                                    </select>
+                                <br />
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="form-group">
+                                        <label for="category">เลือกส่วนงาน:</label>
+                                        <select name="category" id="category" onchange="fetchData()" disabled>
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
                                 </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered table-hover text-center">
@@ -225,7 +266,7 @@
                         option.value = category;
                         option.textContent = category;
                         facDropdown.appendChild(option);
-                    });   
+                    });
                 },
                 error: function(jqXHR, exception) {
                     console.error("Error: " + exception);
@@ -233,41 +274,42 @@
                 }
             });
         });
-        $('#fiscal-year').change(function () {
-            
+        $('#fiscal-year').change(function() {
+
             const scenario = [...new Set(all_data.map(item => item.Scenario))];
             let facDropdown = document.getElementById("scenario");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    scenario.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        facDropdown.appendChild(option);
-                    });   
+            facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+            scenario.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                facDropdown.appendChild(option);
+            });
             $('#scenario').prop('disabled', false);
-            
+
         });
-        $('#scenario').change(function () {
+        $('#scenario').change(function() {
             let year = document.getElementById("fiscal-year").value;
             let scenario = document.getElementById("scenario").value;
             let all_data2;
             if (scenario == "all") {
-                all_data2 = all_data.filter(item=>item.year2===year);
+                all_data2 = all_data.filter(item => item.year2 === year);
             } else {
-                all_data2 = all_data.filter(item => item.Scenario === scenario && item.year2===year);
-            }         
+                all_data2 = all_data.filter(item => item.Scenario === scenario && item.year2 === year);
+            }
             console.log(year);
             const fac = [...new Set(all_data2.map(item => item.f1))];
-                    let facDropdown = document.getElementById("category");
-                    facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
-                    fac.forEach(category => {
-                        let option = document.createElement("option");
-                        option.value = category;
-                        option.textContent = category;
-                        facDropdown.appendChild(option);
-                    });
+            let facDropdown = document.getElementById("category");
+            facDropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
+            fac.forEach(category => {
+                let option = document.createElement("option");
+                option.value = category;
+                option.textContent = category;
+                facDropdown.appendChild(option);
+            });
             $('#category').prop('disabled', false);
         });
+
         function fetchData() {
             let year = document.getElementById("fiscal-year").value;
             let category = document.getElementById("category").value;
@@ -280,7 +322,7 @@
                 //data = all_data;
             } else {
                 data = data.filter(item => item.Scenario === scenario);
-            }         
+            }
             if (category == "all") {
                 //data = all_data;
             } else {

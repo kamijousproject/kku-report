@@ -409,120 +409,154 @@ function fetchScenariosData($conn)
                                 <div class="card-title">
                                     <h4>รายงานสรุปคำขอตามส่วนงาน/หน่วยงานและแหล่งงบประมาณ</h4>
                                 </div>
-                                <div class="row">
+                                <?php
+                                $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
+                                $scenarios = fetchScenariosData($conn);
+                                $faculties = fetchFacultyData($conn);
+                                ?>
 
-                                    <?php
-                                    $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
-                                    $scenarios = fetchScenariosData($conn);
-                                    $faculties = fetchFacultyData($conn);
-                                    ?>
+                                <form method="GET" action="" onsubmit="return validateForm()">
 
-                                    <form method="GET" action="" onsubmit="return validateForm()">
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="year" class="label-year"
+                                            style="margin-right: 10px;">เลือกปีงบประมาณ</label>
+                                        <select name="year" id="year" class="form-control"
+                                            style="width: 100%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ปีงบประมาณ</option>
+                                            <?php
+                                            // แสดงปีที่ดึงมาจากฟังก์ชัน fetchYearsData
+                                            foreach ($years as $year) {
+                                                $yearValue = htmlspecialchars($year['Budget_Management_Year']); // ใช้ Budget_Management_Year เพื่อแสดงปี
+                                                $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
+                                                echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
 
-                                        <div class="form-group" style="display: flex; align-items: center;">
-                                            <label for="year" class="label-year"
-                                                style="margin-right: 10px;">เลือกปีงบประมาณ</label>
-                                            <select name="year" id="year" class="form-control"
-                                                style="width: 100%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                                <option value="">เลือก ปีงบประมาณ</option>
-                                                <?php
-                                                // แสดงปีที่ดึงมาจากฟังก์ชัน fetchYearsData
-                                                foreach ($years as $year) {
-                                                    $yearValue = htmlspecialchars($year['Budget_Management_Year']); // ใช้ Budget_Management_Year เพื่อแสดงปี
-                                                    $selected = (isset($_GET['year']) && $_GET['year'] == $yearValue) ? 'selected' : '';
-                                                    echo "<option value=\"$yearValue\" $selected>$yearValue</option>";
-                                                }
-                                                ?>
-                                            </select>
-                                        </div>
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="scenario" class="label-scenario"
+                                            style="margin-right: 10px;">เลือก
+                                            ประเภทงบประมาณ</label>
+                                        <select name="scenario" id="scenario" class="form-control"
+                                            style="width: 100%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุก ประเภทงบประมาณ</option>
+                                            <?php
+                                            foreach ($scenarios as $scenario) {
+                                                $scenarioName = htmlspecialchars($scenario['Scenario']);
+                                                $scenarioCode = htmlspecialchars($scenario['Scenario']);
+                                                $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
+                                                echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
 
-                                        <div class="form-group" style="display: flex; align-items: center;">
-                                            <label for="scenario" class="label-scenario"
-                                                style="margin-right: 10px;">เลือก
-                                                ประเภทงบประมาณ</label>
-                                            <select name="scenario" id="scenario" class="form-control"
-                                                style="width: 100%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                                <option value="">เลือก ทุก ประเภทงบประมาณ</option>
-                                                <?php
-                                                foreach ($scenarios as $scenario) {
-                                                    $scenarioName = htmlspecialchars($scenario['Scenario']);
-                                                    $scenarioCode = htmlspecialchars($scenario['Scenario']);
-                                                    $selected = (isset($_GET['scenario']) && $_GET['scenario'] == $scenarioCode) ? 'selected' : '';
-                                                    echo "<option value=\"$scenarioCode\" $selected>$scenarioName</option>";
-                                                }
-                                                ?>
-                                            </select>
-                                        </div>
-
-                                        <div class="form-group" style="display: flex; align-items: center;">
-                                            <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
-                                                ส่วนงาน/หน่วยงาน</label>
-                                            <select name="faculty" id="faculty" class="form-control"
-                                                style="width: 100%; height: 40px; font-size: 16px; margin-right: 10px;">
-                                                <option value="">เลือก ทุกส่วนงาน</option>
-                                                <?php
-                                                foreach ($faculties as $faculty) {
-                                                    $facultyName = htmlspecialchars($faculty['Faculty_Name']);
-                                                    $facultyCode = htmlspecialchars($faculty['Faculty']);
-                                                    $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
-                                                    echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
-                                                }
-                                                ?>
-                                            </select>
-                                        </div>
-                                        <div class="form-group" style="display: flex; justify-content: center;">
+                                    <div class="form-group" style="display: flex; align-items: center;">
+                                        <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
+                                            ส่วนงาน/หน่วยงาน</label>
+                                        <select name="faculty" id="faculty" class="form-control"
+                                            style="width: 100%; height: 40px; font-size: 16px; margin-right: 10px;">
+                                            <option value="">เลือก ทุกส่วนงาน</option>
+                                            <?php
+                                            foreach ($faculties as $faculty) {
+                                                $facultyName = htmlspecialchars($faculty['Faculty_Name']);
+                                                $facultyCode = htmlspecialchars($faculty['Faculty']);
+                                                $selected = (isset($_GET['faculty']) && $_GET['faculty'] == $facultyCode) ? 'selected' : '';
+                                                echo "<option value=\"$facultyCode\" $selected>$facultyName</option>";
+                                            }
+                                            ?>
+                                        </select>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
                                             <button type="submit" class="btn btn-primary">ค้นหา</button>
                                         </div>
+                                        <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
+                                        <!-- ปุ่ม -->
+                                        <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
 
-                                    </form>
+                                        <script>
+                                            function runCmd() {
+                                                // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                                Swal.fire({
+                                                    title: 'กำลังอัปเดตข้อมูล',
+                                                    text: 'กรุณารอสักครู่...',
+                                                    allowOutsideClick: false,
+                                                    didOpen: () => {
+                                                        Swal.showLoading(); // แสดง loading spinner
+                                                    }
+                                                });
 
-                                    <script>
-                                        function validateForm(event) {
-                                            event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
-
-                                            var faculty = document.getElementById('faculty').value;
-                                            var year = document.getElementById('year').value;
-                                            var scenario = document.getElementById('scenario').value;
-
-                                            var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-budget-requests.php";
-                                            var params = [];
-
-                                            // เพิ่ม Faculty หากเลือก
-                                            if (faculty) {
-                                                params.push("faculty=" + encodeURIComponent(faculty));
+                                                // เรียก PHP เพื่อรัน .cmd
+                                                fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                    .then(response => response.text())
+                                                    .then(result => {
+                                                        // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                        Swal.fire({
+                                                            title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                            html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                            icon: 'success'
+                                                        });
+                                                    })
+                                                    .catch(error => {
+                                                        Swal.fire({
+                                                            title: 'เกิดข้อผิดพลาด',
+                                                            text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                            icon: 'error'
+                                                        });
+                                                        console.error(error);
+                                                    });
                                             }
-                                            // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
-                                            if (year && year !== "") {
-                                                params.push("year=" + encodeURIComponent(year));
-                                            }
-                                            // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
-                                            if (scenario && scenario !== "") {
-                                                params.push("scenario=" + encodeURIComponent(scenario));
-                                            }
+                                        </script>
+                                    </div>
+                                </form>
 
-                                            // ตรวจสอบพารามิเตอร์ที่สร้าง
-                                            console.log("Params:", params);
+                                <script>
+                                    function validateForm(event) {
+                                        event.preventDefault(); // ป้องกันการส่งฟอร์มแบบปกติ
 
-                                            // ถ้าไม่มีการเลือกอะไรเลย
-                                            if (params.length === 0) {
-                                                window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
-                                            } else {
-                                                // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
-                                                window.location.href = baseUrl + "?" + params.join("&");
-                                            }
+                                        var faculty = document.getElementById('faculty').value;
+                                        var year = document.getElementById('year').value;
+                                        var scenario = document.getElementById('scenario').value;
+
+                                        var baseUrl = "http://202.28.118.192:8081/template-vertical-nav/report-budget-requests.php";
+                                        var params = [];
+
+                                        // เพิ่ม Faculty หากเลือก
+                                        if (faculty) {
+                                            params.push("faculty=" + encodeURIComponent(faculty));
                                         }
-                                    </script>
+                                        // เพิ่ม Year หากเลือกและไม่เป็นค่าว่าง
+                                        if (year && year !== "") {
+                                            params.push("year=" + encodeURIComponent(year));
+                                        }
+                                        // เพิ่ม Scenario หากเลือกและไม่เป็นค่าว่าง
+                                        if (scenario && scenario !== "") {
+                                            params.push("scenario=" + encodeURIComponent(scenario));
+                                        }
 
-                                    <script>
-                                        // ส่งค่าจาก PHP ไปยัง JavaScript
-                                        const budgetYear1 = <?php echo json_encode($budget_year1); ?>;
-                                        // แสดงค่าของ budget_year ในคอนโซล
-                                        console.log('Budget Year 1:', budgetYear1);
-                                    </script>
+                                        // ตรวจสอบพารามิเตอร์ที่สร้าง
+                                        console.log("Params:", params);
 
+                                        // ถ้าไม่มีการเลือกอะไรเลย
+                                        if (params.length === 0) {
+                                            window.location.href = baseUrl; // ถ้าไม่มีการเลือกใดๆ จะเปลี่ยน URL ไปที่ base URL
+                                        } else {
+                                            // ถ้ามีการเลือกค่า จะเพิ่มพารามิเตอร์ที่เลือกไปใน URL
+                                            window.location.href = baseUrl + "?" + params.join("&");
+                                        }
+                                    }
+                                </script>
 
-                                </div>
+                                <script>
+                                    // ส่งค่าจาก PHP ไปยัง JavaScript
+                                    const budgetYear1 = <?php echo json_encode($budget_year1); ?>;
+                                    // แสดงค่าของ budget_year ในคอนโซล
+                                    console.log('Budget Year 1:', budgetYear1);
+                                </script>
                                 <br>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
@@ -777,7 +811,6 @@ function fetchScenariosData($conn)
                                                         $total_summary['Total_FN02'] += (float) ($row['Total_FN02'] ?? 0);
                                                         $total_summary['Total_FN08'] += (float) ($row['Total_FN08'] ?? 0);
                                                     }
-
                                                 }
 
 
@@ -877,7 +910,6 @@ function fetchScenariosData($conn)
                                                         }
                                                     }
                                                 }
-
                                             } else {
                                                 echo "<tr><td colspan='9' style='color: red; font-weight: bold; font-size: 18px;'>ไม่มีข้อมูล</td></tr>";
                                             }

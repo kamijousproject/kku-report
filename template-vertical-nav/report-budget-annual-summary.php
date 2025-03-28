@@ -299,6 +299,7 @@ function fetchFacultyData($conn)
                                 <?php
                                 $faculties = fetchFacultyData($conn);
                                 ?>
+
                                 <form method="GET" action="" onsubmit="return validateForm()">
                                     <div class="form-group" style="display: flex; align-items: center;">
                                         <label for="faculty" class="label-faculty" style="margin-right: 10px;">เลือก
@@ -318,9 +319,50 @@ function fetchFacultyData($conn)
                                         </select>
                                     </div>
 
-                                    <!-- ปุ่มค้นหาที่อยู่ด้านล่างฟอร์ม -->
-                                    <div class="form-group" style="display: flex; justify-content: center;">
-                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                        </div>
+                                        <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                        <!-- ปุ่ม -->
+                                        <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                        <script>
+                                            function runCmd() {
+                                                // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                                Swal.fire({
+                                                    title: 'กำลังอัปเดตข้อมูล',
+                                                    text: 'กรุณารอสักครู่...',
+                                                    allowOutsideClick: false,
+                                                    didOpen: () => {
+                                                        Swal.showLoading(); // แสดง loading spinner
+                                                    }
+                                                });
+
+                                                // เรียก PHP เพื่อรัน .cmd
+                                                fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                    .then(response => response.text())
+                                                    .then(result => {
+                                                        // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                        Swal.fire({
+                                                            title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                            html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                            icon: 'success'
+                                                        });
+                                                    })
+                                                    .catch(error => {
+                                                        Swal.fire({
+                                                            title: 'เกิดข้อผิดพลาด',
+                                                            text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                            icon: 'error'
+                                                        });
+                                                        console.error(error);
+                                                    });
+                                            }
+                                        </script>
                                     </div>
                                 </form>
                                 <script>
@@ -905,10 +947,8 @@ function fetchFacultyData($conn)
 
                                                                     echo "</tr>";
                                                                     foreach ($type['kku_items'] as $kkuItem) {
-
                                                                     }
                                                                 }
-
                                                             }
                                                         }
                                                     }
@@ -922,7 +962,8 @@ function fetchFacultyData($conn)
                                         <script>
                                             // การส่งค่าของ selectedFaculty ไปยัง JavaScript
                                             var selectedFaculty = "<?php echo isset($selectedFaculty) ? htmlspecialchars($selectedFaculty, ENT_QUOTES, 'UTF-8') : ''; ?>";
-                                            console.log('Selected Faculty: ', selectedFaculty);</script>
+                                            console.log('Selected Faculty: ', selectedFaculty);
+                                        </script>
                                     </table>
                                 </div>
                                 <button onclick="exportCSV()" class="btn btn-primary m-t-15">Export CSV</button>

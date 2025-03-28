@@ -211,6 +211,47 @@ $totalPages = ceil($totalRows / $limit);
                                 <div class="card-title">
                                     <h4>รายงานข้อมูลกรอบอัตรากำลัง</h4>
                                 </div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-bordered">
                                         <thead>
@@ -311,9 +352,11 @@ $totalPages = ceil($totalRows / $limit);
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php $index = 1; // กำหนดตัวแปรลำดับเริ่มต้น ?>
+                                            <?php $index = 1; // กำหนดตัวแปรลำดับเริ่มต้น 
+                                            ?>
                                             <?php foreach ($data as $row): ?>
-                                                <?php if (!empty($row['WORKERS_NAME_SURNAME'])): // ตรวจสอบว่ามีชื่อก่อนแสดง ?>
+                                                <?php if (!empty($row['WORKERS_NAME_SURNAME'])): // ตรวจสอบว่ามีชื่อก่อนแสดง 
+                                                ?>
                                                     <tr>
                                                         <td><?php echo $index++; ?></td> <!-- เพิ่มลำดับที่ -->
                                                         <td><?php echo $row['WORKERS_NAME_SURNAME']; ?></td>
@@ -516,7 +559,9 @@ $totalPages = ceil($totalRows / $limit);
         }
 
         function exportPDF() {
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
             const doc = new jsPDF('landscape'); // แนวนอนทำให้ตารางกว้างขึ้น
 
             // โหลดฟอนต์ภาษาไทย
@@ -574,8 +619,17 @@ $totalPages = ceil($totalRows / $limit);
                         lineWidth: 0.5,
                         fontStyle: 'bold',
                     },
-                    margin: { top: 30, left: 5, right: 5, bottom: 20 },
-                    columnStyles: Object.assign({}, ...slicedHeaders.map((_, index) => ({ [index]: { cellWidth: 'auto' } }))) // ขนาดคอลัมน์อัตโนมัติ
+                    margin: {
+                        top: 30,
+                        left: 5,
+                        right: 5,
+                        bottom: 20
+                    },
+                    columnStyles: Object.assign({}, ...slicedHeaders.map((_, index) => ({
+                        [index]: {
+                            cellWidth: 'auto'
+                        }
+                    }))) // ขนาดคอลัมน์อัตโนมัติ
                 });
 
                 // **เพิ่มหมายเลขหน้า**

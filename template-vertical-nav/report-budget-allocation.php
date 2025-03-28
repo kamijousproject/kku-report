@@ -357,7 +357,6 @@ SELECT * FROM t1";
     ]);
 
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 }
 
 
@@ -444,7 +443,7 @@ function fetchScenariosData($conn)
                                 $faculties = fetchFacultyData($conn);  // ดึงข้อมูล Faculty
                                 $years = fetchYearsData($conn);  // ดึงข้อมูลปีจากฐานข้อมูล
                                 $scenarios = fetchScenariosData($conn);  // ดึงข้อมูล Scenario
-                                
+
                                 // ตรวจสอบค่าที่ส่งมาจากฟอร์ม
                                 $selectedFaculty = isset($_GET['faculty']) ? $_GET['faculty'] : '';
                                 $selectedScenario = isset($_GET['scenario']) ? $_GET['scenario'] : '';
@@ -482,7 +481,7 @@ function fetchScenariosData($conn)
                                             <?php
                                             // ตรวจสอบค่าที่ส่งมาจากฟอร์ม หรือจาก GET หรือ POST
                                             $selectedScenario1 = isset($_GET['dropdown2']) ? $_GET['dropdown2'] : ''; // กำหนดค่า $selectedScenario1 ตามที่ส่งมาจากฟอร์ม
-                                            
+
                                             // เรียกฟังก์ชัน fetchScenariosData เพื่อดึงข้อมูลจากฐานข้อมูล
                                             $budgetTypes = fetchScenariosData($conn);
 
@@ -521,19 +520,60 @@ function fetchScenariosData($conn)
                                         <select name="scenario" id="scenario" class="form-control"
                                             style="width: 40%; height: 40px; font-size: 16px; margin-right: 10px;">
                                             <option value="Scenario1" <?php if ($selectedScenario == 'Scenario1')
-                                                echo 'selected'; ?>>จัดสรรงวดที่ 1</option>
+                                                                            echo 'selected'; ?>>จัดสรรงวดที่ 1</option>
                                             <option value="Scenario2" <?php if ($selectedScenario == 'Scenario2')
-                                                echo 'selected'; ?>>จัดสรรงวดที่ 2</option>
+                                                                            echo 'selected'; ?>>จัดสรรงวดที่ 2</option>
                                             <option value="Scenario3" <?php if ($selectedScenario == 'Scenario3')
-                                                echo 'selected'; ?>>จัดสรรงวดที่ 3</option>
+                                                                            echo 'selected'; ?>>จัดสรรงวดที่ 3</option>
                                             <option value="Scenario4" <?php if ($selectedScenario == 'Scenario4')
-                                                echo 'selected'; ?>>จัดสรรงวดที่ 4</option>
+                                                                            echo 'selected'; ?>>จัดสรรงวดที่ 4</option>
                                         </select>
                                     </div>
 
                                     <!-- ปุ่มค้นหา -->
-                                    <div class="form-group" style="display: flex; justify-content: center;">
-                                        <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <button type="submit" class="btn btn-primary">ค้นหา</button>
+                                        </div>
+                                        <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                        <!-- ปุ่ม -->
+                                        <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                        <script>
+                                            function runCmd() {
+                                                // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                                Swal.fire({
+                                                    title: 'กำลังอัปเดตข้อมูล',
+                                                    text: 'กรุณารอสักครู่...',
+                                                    allowOutsideClick: false,
+                                                    didOpen: () => {
+                                                        Swal.showLoading(); // แสดง loading spinner
+                                                    }
+                                                });
+
+                                                // เรียก PHP เพื่อรัน .cmd
+                                                fetch('/kku-report/server/automateEPM/budget_planning/run_cmd_budget_planning.php')
+                                                    .then(response => response.text())
+                                                    .then(result => {
+                                                        // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                        Swal.fire({
+                                                            title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                            html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                            icon: 'success'
+                                                        });
+                                                    })
+                                                    .catch(error => {
+                                                        Swal.fire({
+                                                            title: 'เกิดข้อผิดพลาด',
+                                                            text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                            icon: 'error'
+                                                        });
+                                                        console.error(error);
+                                                    });
+                                            }
+                                        </script>
                                     </div>
                                 </form>
 
@@ -574,7 +614,7 @@ function fetchScenariosData($conn)
                                     }
                                 </script>
                                 <script>
-                                    document.addEventListener("DOMContentLoaded", function () {
+                                    document.addEventListener("DOMContentLoaded", function() {
                                         console.log("Script Loaded");
 
                                         // ดึงค่า scenario จาก URL (หลังจากกดแสดงข้อมูล)
@@ -587,7 +627,6 @@ function fetchScenariosData($conn)
                                             console.log("ไม่มีค่า scenario ใน URL");
                                         }
                                     });
-
                                 </script>
 
                                 <div class="card-title" style="margin-top:20px;">
@@ -1492,8 +1531,6 @@ function fetchScenariosData($conn)
         </div>
     </div>
     <script>
-
-
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const csvRows = [];
@@ -1582,7 +1619,9 @@ function fetchScenariosData($conn)
 
             // รวมเป็น CSV + BOM
             const csvContent = "\uFEFF" + csvRows.join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -1638,7 +1677,10 @@ function fetchScenariosData($conn)
             const table = document.getElementById('reportTable');
 
             // ============ ส่วนที่ 1: ประมวลผล THEAD (รองรับ Merge) ============
-            const { theadRows, theadMerges } = parseThead(table.tHead);
+            const {
+                theadRows,
+                theadMerges
+            } = parseThead(table.tHead);
 
             // ============ ส่วนที่ 2: ประมวลผล TBODY (แตก <br/>, ไม่ merge) ============
             const tbodyRows = parseTbody(table.tBodies[0]);
@@ -1646,7 +1688,7 @@ function fetchScenariosData($conn)
             // รวม rows ทั้งหมด: thead + tbody
             const allRows = [...theadRows, ...tbodyRows];
 
-            console.log(allRows);  // ตรวจสอบข้อมูล
+            console.log(allRows); // ตรวจสอบข้อมูล
 
             // สร้าง Workbook + Worksheet
             const wb = XLSX.utils.book_new();
@@ -1665,12 +1707,14 @@ function fetchScenariosData($conn)
 
             // เขียนไฟล์เป็น .xlsx
             const excelBuffer = XLSX.write(wb, {
-                bookType: 'xlsx',  // เลือกชนิดของไฟล์
-                type: 'array'      // ส่งออกเป็น array
+                bookType: 'xlsx', // เลือกชนิดของไฟล์
+                type: 'array' // ส่งออกเป็น array
             });
 
             // สร้าง Blob + ดาวน์โหลด
-            const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+            const blob = new Blob([excelBuffer], {
+                type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -1692,7 +1736,10 @@ function fetchScenariosData($conn)
             const theadMerges = [];
 
             if (!thead) {
-                return { theadRows, theadMerges };
+                return {
+                    theadRows,
+                    theadMerges
+                };
             }
 
             const skipMap = {};
@@ -1721,8 +1768,14 @@ function fetchScenariosData($conn)
 
                     if (rowspan > 1 || colspan > 1) {
                         theadMerges.push({
-                            s: { r: rowIndex, c: colIndex },
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {
@@ -1737,7 +1790,10 @@ function fetchScenariosData($conn)
                 theadRows.push(rowData);
             }
 
-            return { theadRows, theadMerges };
+            return {
+                theadRows,
+                theadMerges
+            };
         }
 
         /**
@@ -1792,16 +1848,19 @@ function fetchScenariosData($conn)
             const range = XLSX.utils.decode_range(ws['!ref']);
             for (let R = range.s.r; R <= range.e.r; ++R) {
                 for (let C = range.s.c; C <= range.e.c; ++C) {
-                    const cell_address = XLSX.utils.encode_cell({ r: R, c: C });
+                    const cell_address = XLSX.utils.encode_cell({
+                        r: R,
+                        c: C
+                    });
                     if (!ws[cell_address]) continue;
 
                     if (!ws[cell_address].s) ws[cell_address].s = {};
-                    ws[cell_address].s.alignment = { vertical: verticalAlign };
+                    ws[cell_address].s.alignment = {
+                        vertical: verticalAlign
+                    };
                 }
             }
         }
-
-
     </script>
 
 
