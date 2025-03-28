@@ -3,19 +3,22 @@
 <?php include('../component/header.php'); ?>
 <style>
     .table-responsive {
-    border: 1px solid #ccc;
-}
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+        border: 1px solid #ccc;
+    }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -47,18 +50,61 @@ th, td {
                                 <div class="card-title">
                                     <h4>รายงานสรุปคำขออนุมัติกรอบอัตรากำลัง ประจำปีงบประมาณ แยกตามประเภทบุคลากร</h4>
                                 </div>
-                                <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category">
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
-                                <br/>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="category">เลือกส่วนงาน:</label>
+                                        <select name="category" id="category">
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/workforce/run_cmd_workforce.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
+                                <br />
                                 <label for="dropdown2">ปีงบประมาณ:</label>
                                 <select name="dropdown2" id="dropdown2" disabled>
                                     <option value="">-- Loading Categories --</option>
                                 </select>
-                                <br/>
+                                <br />
                                 <button id="submitBtn" disabled>Submit</button>
-                                <br/><br/>
+                                <br /><br />
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -72,7 +118,7 @@ th, td {
                                                 <th>ส่วนงาน / หน่วยงาน</th>
                                                 <th colspan="3" style="background-color: white;" id="faculty"></th>
                                             </tr>
-                                            
+
                                             <!-- แถวที่ 4 -->
                                             <tr>
                                                 <th>ประเภทบุคลากร</th>
@@ -184,7 +230,7 @@ th, td {
         let data_current;
         let data_new;
         $(document).ready(function() {
-            
+
             $.ajax({
                 type: "POST",
                 url: "../server/workforce_api.php",
@@ -193,7 +239,7 @@ th, td {
                 },
                 dataType: "json",
                 success: function(response) {
-                    data_current=response.wf;
+                    data_current = response.wf;
                     //console.log(data_current);
                     $.ajax({
                         type: "POST",
@@ -203,10 +249,10 @@ th, td {
                         },
                         dataType: "json",
                         success: function(response) {
-                            data_new=response.wf;
+                            data_new = response.wf;
                             //console.log(data_current);
                             //console.log(data_new);
-                            let union=[...new Set([...data_current, ...data_new])];
+                            let union = [...new Set([...data_current, ...data_new])];
                             const type = [...new Set(union.map(item => item.pname))];
                             type.sort();
                             let dropdown = document.getElementById("category");
@@ -229,7 +275,7 @@ th, td {
                     responseError(jqXHR, exception);
                 }
             });
-            
+
         });
         $('#category').change(function() {
             $('#dropdown2').html('').prop('disabled', true);
@@ -249,235 +295,206 @@ th, td {
             let resultDiv = document.getElementById("result");
             var categoryDropdown = document.getElementById("category");
             var categoryText = categoryDropdown.options[categoryDropdown.selectedIndex].text;
-            document.getElementById("faculty").textContent=categoryText;
+            document.getElementById("faculty").textContent = categoryText;
 
             var fyear = document.getElementById("dropdown2");
             var categoryText = fyear.options[fyear.selectedIndex].text;
-            document.getElementById("fiscal_year").textContent=categoryText;
-            var Sumresearch=0;
-            var Sumacademic=0;
-            var Sumsupport=0;
-            var SumshortTerm=0;
-            var Sumemp1=0;
-            var Sumemp3=0;
-            var Sumtype1=0;
-            var research=0;  
-            var academic=0;
-            var support=0;
-            var shortTerm=0;
-            var emp1=0; 
-            var emp3=0;
-            var type1=0;
-            
+            document.getElementById("fiscal_year").textContent = categoryText;
+            var Sumresearch = 0;
+            var Sumacademic = 0;
+            var Sumsupport = 0;
+            var SumshortTerm = 0;
+            var Sumemp1 = 0;
+            var Sumemp3 = 0;
+            var Sumtype1 = 0;
+            var research = 0;
+            var academic = 0;
+            var support = 0;
+            var shortTerm = 0;
+            var emp1 = 0;
+            var emp3 = 0;
+            var type1 = 0;
 
-            var research2=0;
-            var support2=0;
-            var emp2=0;
-            var type2=0;
-            var Sumtype2=0;
-            var Sumemp2=0;
-            var Sumsupport2=0;
-            var Sumresearch2=0;
-            var cur=data_current.filter(item=>item.pname===category);
+
+            var research2 = 0;
+            var support2 = 0;
+            var emp2 = 0;
+            var type2 = 0;
+            var Sumtype2 = 0;
+            var Sumemp2 = 0;
+            var Sumsupport2 = 0;
+            var Sumresearch2 = 0;
+            var cur = data_current.filter(item => item.pname === category);
             cur.forEach((row, index) => {
-                if(row.Personnel_Type=="พนักงานมหาวิทยาลัยงบประมาณเงินรายได้")
-                {
-                    
-                    if(row.All_PositionTypes=="วิชาการ")
-                    {
+                if (row.Personnel_Type == "พนักงานมหาวิทยาลัยงบประมาณเงินรายได้") {
+
+                    if (row.All_PositionTypes == "วิชาการ") {
                         //academic+=1;
                         //Sumacademic+=1;
                     }
-                    if(row.All_PositionTypes=="วิจัย")
-                    {
+                    if (row.All_PositionTypes == "วิจัย") {
                         //research+=1;
                         //Sumresearch+=1;
                     }
-                    if(row.All_PositionTypes=="สนับสนุน")
-                    {
+                    if (row.All_PositionTypes == "สนับสนุน") {
                         //support+=1;
                         //Sumsupport+=1;
                     }
-                    if(row.Position=="อาจารย์" && row.All_PositionTypes=="วิชาการ" && row.Employment_Type=="ลูกจ้างชั่วคราว")
-                    {
-                        shortTerm+=1;
-                        SumshortTerm+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                    if (row.Position == "อาจารย์" && row.All_PositionTypes == "วิชาการ" && row.Employment_Type == "ลูกจ้างชั่วคราว") {
+                        shortTerm += 1;
+                        SumshortTerm += 1;
+                        type1 += 1;
+                        Sumtype1 += 1;
                     }
-                    if(row.Employment_Type=="ลูกจ้างชาวต่างประเทศ")
-                    {
-                        emp1+=1;
-                        Sumemp1+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                    if (row.Employment_Type == "ลูกจ้างชาวต่างประเทศ") {
+                        emp1 += 1;
+                        Sumemp1 += 1;
+                        type1 += 1;
+                        Sumtype1 += 1;
                     }
-                    if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
-                    {
-                        emp2+=1;
-                        Sumemp2+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                    if (row.Employment_Type == "ผู้เกษียณอายุราชการ") {
+                        emp2 += 1;
+                        Sumemp2 += 1;
+                        type1 += 1;
+                        Sumtype1 += 1;
                     }
-                    if(row.Employment_Type=="จ้างที่ปรึกษา")
-                    {
-                        emp3+=1;
-                        Sumemp3+=1;
-                        type1+=1;
-                        Sumtype1+=1;
+                    if (row.Employment_Type == "จ้างที่ปรึกษา") {
+                        emp3 += 1;
+                        Sumemp3 += 1;
+                        type1 += 1;
+                        Sumtype1 += 1;
                     }
-                }
-                else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
-                {
-                    
-                    if(row.All_PositionTypes=="วิจัย")
-                    {
-                        research2+=1;
-                        Sumresearch2+=1;
-                        type2+=1;
-                        Sumtype2+=1;
+                } else if (row.Personnel_Type == "ลูกจ้างของมหาวิทยาลัย") {
+
+                    if (row.All_PositionTypes == "วิจัย") {
+                        research2 += 1;
+                        Sumresearch2 += 1;
+                        type2 += 1;
+                        Sumtype2 += 1;
                     }
-                    if(row.All_PositionTypes=="สนับสนุน")
-                    {
-                        support2+=1;
-                        Sumsupport2+=1;
-                        type2+=1;
-                        Sumtype2+=1;
+                    if (row.All_PositionTypes == "สนับสนุน") {
+                        support2 += 1;
+                        Sumsupport2 += 1;
+                        type2 += 1;
+                        Sumtype2 += 1;
                     }
-                }
-                else{}
+                } else {}
             });
-            var sum_type12=type1+type2;
+            var sum_type12 = type1 + type2;
             console.log(sum_type12);
-            document.getElementById("research1").innerText="-";
-            document.getElementById("research2").innerText=research2;
-            document.getElementById("academic1").innerText="-";
-            document.getElementById("support1").innerText="-";
-            document.getElementById("support2").innerText=support2;
-            document.getElementById("period").innerText=shortTerm;
-            document.getElementById("emp1").innerText=emp1;
-            document.getElementById("emp2").innerText=emp2;
-            document.getElementById("emp3").innerText=emp3;
-            document.getElementById("type1").innerText=type1;
-            document.getElementById("type2").innerText=type2;
-            document.getElementById("sum_type12").innerText=sum_type12;
-           
-            
-            var research=0;
-            var research2=0;
-            var academic=0;
-            var support=0;
-            var support2=0;
-            var shortTerm=0;
-            var emp1=0;
-            var emp2=0;
-            var emp3=0;
-            var type1=0;
-            var type2=0;
-            var d_new=data_new.filter(item=>item.pname===category);
+            document.getElementById("research1").innerText = "-";
+            document.getElementById("research2").innerText = research2;
+            document.getElementById("academic1").innerText = "-";
+            document.getElementById("support1").innerText = "-";
+            document.getElementById("support2").innerText = support2;
+            document.getElementById("period").innerText = shortTerm;
+            document.getElementById("emp1").innerText = emp1;
+            document.getElementById("emp2").innerText = emp2;
+            document.getElementById("emp3").innerText = emp3;
+            document.getElementById("type1").innerText = type1;
+            document.getElementById("type2").innerText = type2;
+            document.getElementById("sum_type12").innerText = sum_type12;
+
+
+            var research = 0;
+            var research2 = 0;
+            var academic = 0;
+            var support = 0;
+            var support2 = 0;
+            var shortTerm = 0;
+            var emp1 = 0;
+            var emp2 = 0;
+            var emp3 = 0;
+            var type1 = 0;
+            var type2 = 0;
+            var d_new = data_new.filter(item => item.pname === category);
             d_new.forEach((row, index) => {
-                if(row.Personnel_Type.includes("เงินรายได้"))
-                {
-                    if(row.Employment_Type=="ผู้ปฏิบัติงานในมหาวิทยาลัย" || row.Employment_Type=="จ้างที่ปรึกษา")
-                    {
-                        emp3+=parseInt(row.Requested_HC_unit);
-                        Sumemp3+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                if (row.Personnel_Type.includes("เงินรายได้")) {
+                    if (row.Employment_Type == "ผู้ปฏิบัติงานในมหาวิทยาลัย" || row.Employment_Type == "จ้างที่ปรึกษา") {
+                        emp3 += parseInt(row.Requested_HC_unit);
+                        Sumemp3 += parseInt(row.Requested_HC_unit);
+                        type1 += parseInt(row.Requested_HC_unit);
+                        Sumtype1 += parseInt(row.Requested_HC_unit);
                         console.log(type1);
-                    }
-                    else if(row.Employment_Type=="ผู้เกษียณอายุราชการ")
-                    {
-                        emp2+=parseInt(row.Requested_HC_unit);
-                        Sumemp2+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
-                    }
-                    else if(row.Employment_Type.includes("ชาวต่างประเทศ"))
-                    {
-                        emp1+=parseInt(row.Requested_HC_unit);
-                        Sumemp1+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                    } else if (row.Employment_Type == "ผู้เกษียณอายุราชการ") {
+                        emp2 += parseInt(row.Requested_HC_unit);
+                        Sumemp2 += parseInt(row.Requested_HC_unit);
+                        type1 += parseInt(row.Requested_HC_unit);
+                        Sumtype1 += parseInt(row.Requested_HC_unit);
+                    } else if (row.Employment_Type.includes("ชาวต่างประเทศ")) {
+                        emp1 += parseInt(row.Requested_HC_unit);
+                        Sumemp1 += parseInt(row.Requested_HC_unit);
+                        type1 += parseInt(row.Requested_HC_unit);
+                        Sumtype1 += parseInt(row.Requested_HC_unit);
                     }
                     /* if(row.Contract_Type=="สัญญาระยะสั้น")
                     {
                         //shortTerm+=1;
                         //SumshortTerm+=1;
                     } */
-                    else if(row.All_PositionTypes=="วิชาการ")
-                    {
-                        academic+=parseInt(row.Requested_HC_unit);
-                        Sumacademic+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                    else if (row.All_PositionTypes == "วิชาการ") {
+                        academic += parseInt(row.Requested_HC_unit);
+                        Sumacademic += parseInt(row.Requested_HC_unit);
+                        type1 += parseInt(row.Requested_HC_unit);
+                        Sumtype1 += parseInt(row.Requested_HC_unit);
+                    } else if (row.All_PositionTypes == "วิจัย") {
+                        research += parseInt(row.Requested_HC_unit);
+                        Sumresearch += parseInt(row.Requested_HC_unit);
+                        type1 += parseInt(row.Requested_HC_unit);
+                        Sumtype1 += parseInt(row.Requested_HC_unit);
+                    } else if (row.All_PositionTypes == "สนับสนุน") {
+                        support += parseInt(row.Requested_HC_unit);
+                        Sumsupport += parseInt(row.Requested_HC_unit);
+                        type1 += parseInt(row.Requested_HC_unit);
+                        Sumtype1 += parseInt(row.Requested_HC_unit);
+                    } else {}
+
+
+
+                } else if (row.Personnel_Type == "ลูกจ้างของมหาวิทยาลัย") {
+
+                    if (row.All_PositionTypes == "วิจัย") {
+                        research2 += parseInt(row.Requested_HC_unit);
+                        Sumresearch2 += parseInt(row.Requested_HC_unit);
+                        type2 += parseInt(row.Requested_HC_unit);
+                        Sumtype2 += parseInt(row.Requested_HC_unit);
                     }
-                    else if(row.All_PositionTypes=="วิจัย")
-                    {
-                        research+=parseInt(row.Requested_HC_unit);
-                        Sumresearch+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
+                    if (row.All_PositionTypes == "สนับสนุน") {
+                        support2 += parseInt(row.Requested_HC_unit);
+                        Sumsupport2 += parseInt(row.Requested_HC_unit);
+                        type2 += parseInt(row.Requested_HC_unit);
+                        Sumtype2 += parseInt(row.Requested_HC_unit);
                     }
-                    else if(row.All_PositionTypes=="สนับสนุน")
-                    {
-                        support+=parseInt(row.Requested_HC_unit);
-                        Sumsupport+=parseInt(row.Requested_HC_unit);
-                        type1+=parseInt(row.Requested_HC_unit);
-                        Sumtype1+=parseInt(row.Requested_HC_unit);
-                    }
-                    else{}
-                    
-                    
-                    
-                }
-                else if(row.Personnel_Type=="ลูกจ้างของมหาวิทยาลัย")
-                {
-                    
-                    if(row.All_PositionTypes=="วิจัย")
-                    {
-                        research2+=parseInt(row.Requested_HC_unit);
-                        Sumresearch2+=parseInt(row.Requested_HC_unit);
-                        type2+=parseInt(row.Requested_HC_unit);
-                        Sumtype2+=parseInt(row.Requested_HC_unit);
-                    }
-                    if(row.All_PositionTypes=="สนับสนุน")
-                    {
-                        support2+=parseInt(row.Requested_HC_unit);
-                        Sumsupport2+=parseInt(row.Requested_HC_unit);
-                        type2+=parseInt(row.Requested_HC_unit);
-                        Sumtype2+=parseInt(row.Requested_HC_unit);
-                    }
-                }
-                else{}
+                } else {}
             });
-            var sum_type12_new=type1+type2;
-            document.getElementById("research1_new").innerText=research;
-            document.getElementById("research2_new").innerText=research2;
-            document.getElementById("academic1_new").innerText=academic;
-            document.getElementById("support1_new").innerText=support;
-            document.getElementById("support2_new").innerText=support2;
-            document.getElementById("period_new").innerText="-";
-            document.getElementById("emp1_new").innerText=emp1;
-            document.getElementById("emp2_new").innerText=emp2;
-            document.getElementById("emp3_new").innerText=emp3;
-            document.getElementById("type1_new").innerText=type1;
-            document.getElementById("type2_new").innerText=type2;
-            document.getElementById("sum_type12_new").innerText=sum_type12_new;
-                
-            document.getElementById("research1_sum").innerText=Sumresearch;
-            document.getElementById("research2_sum").innerText=Sumresearch2;
-            document.getElementById("academic1_sum").innerText=Sumacademic;
-            document.getElementById("support1_sum").innerText=Sumsupport;
-            document.getElementById("support2_sum").innerText=Sumsupport2;
-            document.getElementById("period_sum").innerText=SumshortTerm;
-            document.getElementById("emp1_sum").innerText=Sumemp1;
-            document.getElementById("emp2_sum").innerText=Sumemp2;
-            document.getElementById("emp3_sum").innerText=Sumemp3;
-            document.getElementById("type1_sum").innerText=Sumtype1;
-            document.getElementById("type2_sum").innerText=Sumtype2;
-            document.getElementById("sum_type12_sum").innerText=Sumtype1+Sumtype2;
+            var sum_type12_new = type1 + type2;
+            document.getElementById("research1_new").innerText = research;
+            document.getElementById("research2_new").innerText = research2;
+            document.getElementById("academic1_new").innerText = academic;
+            document.getElementById("support1_new").innerText = support;
+            document.getElementById("support2_new").innerText = support2;
+            document.getElementById("period_new").innerText = "-";
+            document.getElementById("emp1_new").innerText = emp1;
+            document.getElementById("emp2_new").innerText = emp2;
+            document.getElementById("emp3_new").innerText = emp3;
+            document.getElementById("type1_new").innerText = type1;
+            document.getElementById("type2_new").innerText = type2;
+            document.getElementById("sum_type12_new").innerText = sum_type12_new;
+
+            document.getElementById("research1_sum").innerText = Sumresearch;
+            document.getElementById("research2_sum").innerText = Sumresearch2;
+            document.getElementById("academic1_sum").innerText = Sumacademic;
+            document.getElementById("support1_sum").innerText = Sumsupport;
+            document.getElementById("support2_sum").innerText = Sumsupport2;
+            document.getElementById("period_sum").innerText = SumshortTerm;
+            document.getElementById("emp1_sum").innerText = Sumemp1;
+            document.getElementById("emp2_sum").innerText = Sumemp2;
+            document.getElementById("emp3_sum").innerText = Sumemp3;
+            document.getElementById("type1_sum").innerText = Sumtype1;
+            document.getElementById("type2_sum").innerText = Sumtype2;
+            document.getElementById("sum_type12_sum").innerText = Sumtype1 + Sumtype2;
         });
+
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const csvRows = [];
@@ -535,7 +552,9 @@ th, td {
 
             // รวมเป็น CSV + BOM
             const csvContent = "\uFEFF" + csvRows.join("\n");
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -547,47 +566,56 @@ th, td {
         }
 
         function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'mm', 'a4');
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
 
-    // Add Thai font
-    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
-    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-    doc.setFont("THSarabun");
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
 
-    doc.autoTable({
-        html: '#reportTable',
-        startY: 20,
-        theme: 'grid',
-        styles: {
-            font: "THSarabun",
-            fontSize: 7,
-            cellPadding: 1,
-            lineWidth: 0.1,
-            lineColor: [0, 0, 0],
-            minCellHeight: 5
-        },
-        headStyles: {
-            fillColor: [220, 230, 241],
-            textColor: [0, 0, 0],
-            fontSize: 7,
-            fontStyle: 'bold',
-            halign: 'center',
-            valign: 'middle'
-        },
-        columnStyles: {
-            0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
-        },
-        didParseCell: function(data) {
-            if (data.section === 'body' && data.column.index === 0) {
-                data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
-            }
-        },
-        margin: { top: 15, right: 5, bottom: 10, left: 5 },
-        tableWidth: 'auto'
-    });
-    doc.save('รายงานสรุปคำขออนุมัติกรอบอัตรากำลัง ประจำปีงบประมาณ แยกตามประเภทบุคลากร.pdf');
-}
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 20,
+                theme: 'grid',
+                styles: {
+                    font: "THSarabun",
+                    fontSize: 7,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 5
+                },
+                headStyles: {
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 7,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: {
+                        halign: 'left'
+                    }, // คอลัมน์แรกให้ชิดซ้าย
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 0) {
+                        data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
+                    }
+                },
+                margin: {
+                    top: 15,
+                    right: 5,
+                    bottom: 10,
+                    left: 5
+                },
+                tableWidth: 'auto'
+            });
+            doc.save('รายงานสรุปคำขออนุมัติกรอบอัตรากำลัง ประจำปีงบประมาณ แยกตามประเภทบุคลากร.pdf');
+        }
 
 
 
@@ -622,7 +650,9 @@ th, td {
                                 vertical: "top",
                                 horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
                             },
-                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                            font: isHeader ? {
+                                bold: true
+                            } : {} // **ทำให้ Header ตัวหนา**
                         }
                     };
 
@@ -631,8 +661,14 @@ th, td {
 
                     if (rowspan > 1 || colspan > 1) {
                         merges.push({
-                            s: { r: rowIndex, c: colIndex },
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {

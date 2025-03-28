@@ -1,68 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-<style>     
-#main-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+<style>
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
-.content-body {
-    flex-grow: 1;
-    overflow: hidden; /* Prevent body scrolling */
-    display: flex;
-    flex-direction: column;
-}
+    .content-body {
+        flex-grow: 1;
+        overflow: hidden;
+        /* Prevent body scrolling */
+        display: flex;
+        flex-direction: column;
+    }
 
-.container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
 
-.table-responsive {
-    flex-grow: 1;
-    overflow-y: auto; /* Scrollable content only inside table */
-    max-height: 60vh; /* Set a fixed height */
-    border: 1px solid #ccc;
-}
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    background: #f4f4f4;
-    z-index: 1000;
-}
+    thead tr:nth-child(1) th {
+        position: sticky;
+        top: 0;
+        background: #f4f4f4;
+        z-index: 1000;
+    }
 
-thead tr:nth-child(2) th {
-    position: sticky;
-    top: 45px; /* Adjust height based on previous row */
-    background: #f4f4f4;
-    z-index: 999;
-}
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 45px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
+    }
 
-thead tr:nth-child(3) th {
-    position: sticky;
-    top: 105px; /* Adjust height based on previous rows */
-    background: #f4f4f4;
-    z-index: 998;
-}
-
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 105px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -94,58 +100,101 @@ thead tr:nth-child(3) th {
                                 <div class="card-title">
                                     <h4>รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน</h4>
                                 </div>
-                                <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()">
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="category">เลือกส่วนงาน:</label>
+                                        <select name="category" id="category" onchange="fetchData()">
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/workforce/run_cmd_workforce.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th rowspan="2">ที่</th>
-                                            <th rowspan="2">ส่วนงาน</th>
-                                            <th colspan="2">ประเภทบริหาร</th>
-                                            <th colspan="6">ประเภทวิชาการ</th>
-                                            <th colspan="2">ประเภทวิจัย</th>
-                                            <th colspan="14">ประเภทสนับสนุน</th>
-                                            <th rowspan="2" nowrap>รวมกรอบอัตรา<br/>พึงมีทั้งหมด</th>
-                                        </tr>
-                                        <tr>
-                                            <!-- ประเภทบริหาร -->
-                                            <th>อัตราปัจจุบัน</th>
-                                            <th>กรอบที่พึงมี</th>
-                                            <!-- ประเภทวิชาการ -->
-                                            <th>อัตราปัจจุบัน</th>
-                                            <th nowrap>กรอบพึงมีวิชาการ<br/>ตามแผน 2563-2566</th>
-                                            <th>เกณฑ์ FTES</th>
-                                            <th nowrap>เกณฑ์ภาระ<br/>งานวิจัย</th>
-                                            <th nowrap>เกณฑ์ภาระงาน<br/>บริการวิชาการ</th>
-                                            <th>รวมวิชาการ</th>
-                                            <!-- ประเภทวิจัย -->
-                                            <th nowrap>เกณฑ์ภาระ<br/>งานวิจัย</th>
-                                            <th>รวมวิจัย</th>
-                                            <!-- ประเภทสนับสนุน -->
-                                            <th>Healthcare Services</th>
-                                            <th>Student and Faculty Services</th>
-                                            <th>Technical and Research services</th>
-                                            <th>Internationalization</th>
-                                            <th>Human Resources</th>
-                                            <th>Administration</th>
-                                            <th>Legal, Compliance and Protection</th>
-                                            <th>Strategic Management</th>
-                                            <th>Information Technology</th>
-                                            <th>Infrastructure and Facility Services</th>
-                                            <th>Communication and Relation Management</th>
-                                            <th>Cultural Affair</th>
-                                            <th>Financial Services</th>
-                                            <th>รวมประเภทสนับสนุน</th>
-                                        </tr>
-                                    </thead>
+                                        <thead>
+                                            <tr>
+                                                <th rowspan="2">ที่</th>
+                                                <th rowspan="2">ส่วนงาน</th>
+                                                <th colspan="2">ประเภทบริหาร</th>
+                                                <th colspan="6">ประเภทวิชาการ</th>
+                                                <th colspan="2">ประเภทวิจัย</th>
+                                                <th colspan="14">ประเภทสนับสนุน</th>
+                                                <th rowspan="2" nowrap>รวมกรอบอัตรา<br />พึงมีทั้งหมด</th>
+                                            </tr>
+                                            <tr>
+                                                <!-- ประเภทบริหาร -->
+                                                <th>อัตราปัจจุบัน</th>
+                                                <th>กรอบที่พึงมี</th>
+                                                <!-- ประเภทวิชาการ -->
+                                                <th>อัตราปัจจุบัน</th>
+                                                <th nowrap>กรอบพึงมีวิชาการ<br />ตามแผน 2563-2566</th>
+                                                <th>เกณฑ์ FTES</th>
+                                                <th nowrap>เกณฑ์ภาระ<br />งานวิจัย</th>
+                                                <th nowrap>เกณฑ์ภาระงาน<br />บริการวิชาการ</th>
+                                                <th>รวมวิชาการ</th>
+                                                <!-- ประเภทวิจัย -->
+                                                <th nowrap>เกณฑ์ภาระ<br />งานวิจัย</th>
+                                                <th>รวมวิจัย</th>
+                                                <!-- ประเภทสนับสนุน -->
+                                                <th>Healthcare Services</th>
+                                                <th>Student and Faculty Services</th>
+                                                <th>Technical and Research services</th>
+                                                <th>Internationalization</th>
+                                                <th>Human Resources</th>
+                                                <th>Administration</th>
+                                                <th>Legal, Compliance and Protection</th>
+                                                <th>Strategic Management</th>
+                                                <th>Information Technology</th>
+                                                <th>Infrastructure and Facility Services</th>
+                                                <th>Communication and Relation Management</th>
+                                                <th>Cultural Affair</th>
+                                                <th>Financial Services</th>
+                                                <th>รวมประเภทสนับสนุน</th>
+                                            </tr>
+                                        </thead>
                                         <tbody>
-                                            
+
                                         </tbody>
                                         <tfoot>
-                                            
+
                                         </tfoot>
                                     </table>
                                 </div>
@@ -179,7 +228,7 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function(response) {
-                    data_current=response.wf;
+                    data_current = response.wf;
                     //console.log(data_current);
                     $.ajax({
                         type: "POST",
@@ -189,7 +238,7 @@ thead tr:nth-child(3) th {
                         },
                         dataType: "json",
                         success: function(response) {
-                            all_data=response.wf;
+                            all_data = response.wf;
                             //console.log(data_current);
                             //console.log(data_new);                           
                             const fac = [...new Set(all_data.map(item => item.pname))];
@@ -213,7 +262,7 @@ thead tr:nth-child(3) th {
                     responseError(jqXHR, exception);
                 }
             });
-            
+
         });
 
         function fetchData() {
@@ -221,118 +270,198 @@ thead tr:nth-child(3) th {
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
             let data;
-            if(category=="all"){
-                data=all_data;
+            if (category == "all") {
+                data = all_data;
+            } else {
+                data = all_data.filter(item => item.pname === category);
             }
-            else{
-                data= all_data.filter(item=>item.pname===category);
-            }
-            data.forEach((row, index) => {                   
+            data.forEach((row, index) => {
                 const tr = document.createElement('tr');
 
-                const columns = [
-                        { key: 'No', value: index+1 },
-                        { key: 'Alias_Default', value: row.Alias_Default  },
-                        
-                        { key: 'Actual_type1', value: row.Actual_type1||0 },
-                        { key: 'wf_type1', value: row.wf_type1 ||0},
-                        
-                        { key: 'Actual_type2', value: row.Actual_type2 ||0},
-                        { key: 'wf_plan', value: "" ||0},
-                        { key: 'sum_FTES', value: row.sum_FTES ||0},
-                        
-                        { key: 'sum_RWC', value: row.sum_RWC ||0},
-                        { key: 'sum_WCAS', value: row.sum_WCAS ||0},
-                        
-                        { key: 'total_type2', value:  parseInt(row.sum_FTES||0) +parseInt(row.sum_RWC||0) +parseInt(row.sum_WCAS||0) },
-                        { key: 'sum_RWC2', value: row.sum_RWC2 ||0},
-                        
-                        { key: 'sum_RWC2', value: row.sum_RWC2 ||0},
+                const columns = [{
+                        key: 'No',
+                        value: index + 1
+                    },
+                    {
+                        key: 'Alias_Default',
+                        value: row.Alias_Default
+                    },
 
-                        { key: 'j1', value: (row.j1 ||0).toLocaleString()},        
-                        { key: 'j2', value: (row.j2 ||0).toLocaleString()},
-                        { key: 'j3', value: (row.j3 ||0).toLocaleString()},
-                        { key: 'j4', value: (row.j4||0).toLocaleString()},
-                        { key: 'j5', value: (row.j5 ||0).toLocaleString()},
-                        { key: 'j6', value: (row.j6 ||0).toLocaleString()},
-                        { key: 'j7', value: (row.j7 ||0).toLocaleString()},
-                        { key: 'j8', value: (row.j8||0).toLocaleString()},
-                        { key: 'j9', value: (row.j9 ||0).toLocaleString()},
-                        { key: 'j10', value: (row.j10 ||0).toLocaleString()},
-                        { key: 'j11', value: (row.j11 ||0).toLocaleString()},
-                        { key: 'j12', value: (row.j12 ||0).toLocaleString()},        
-                        { key: 'j13', value: (row.j13 ||0).toLocaleString()},
-                        { key: 'j14', value: (parseInt(row.j1 ||0) + 
-                                                parseInt(row.j2 ||0) + 
-                                                parseInt(row.j3 ||0) + 
-                                                parseInt(row.j4 ||0) + 
-                                                parseInt(row.j5 ||0) + 
-                                                parseInt(row.j6 ||0) + 
-                                                parseInt(row.j7 ||0) + 
-                                                parseInt(row.j8 ||0) + 
-                                                parseInt(row.j9 ||0) + 
-                                                parseInt(row.j10 ||0) + 
-                                                parseInt(row.j11 ||0) + 
-                                                parseInt(row.j12 ||0) + 
-                                                parseInt(row.j13 ||0)).toLocaleString() },
-                        { key: 'j15', value: ((row.wf_type1 ||0)+(row.sum_FTES ||0)+(row.sum_RWC ||0)
-                            +(row.sum_WCAS ||0)+(row.sum_RWC2||0)+parseInt(row.j1 ||0) + 
-                                                parseInt(row.j2 ||0) + 
-                                                parseInt(row.j3 ||0) + 
-                                                parseInt(row.j4 ||0) + 
-                                                parseInt(row.j5 ||0) + 
-                                                parseInt(row.j6 ||0) + 
-                                                parseInt(row.j7 ||0) + 
-                                                parseInt(row.j8 ||0) + 
-                                                parseInt(row.j9 ||0) + 
-                                                parseInt(row.j10 ||0) + 
-                                                parseInt(row.j11 ||0) + 
-                                                parseInt(row.j12 ||0) + 
-                                                parseInt(row.j13 ||0)).toLocaleString()},
-                    ];
+                    {
+                        key: 'Actual_type1',
+                        value: row.Actual_type1 || 0
+                    },
+                    {
+                        key: 'wf_type1',
+                        value: row.wf_type1 || 0
+                    },
+
+                    {
+                        key: 'Actual_type2',
+                        value: row.Actual_type2 || 0
+                    },
+                    {
+                        key: 'wf_plan',
+                        value: "" || 0
+                    },
+                    {
+                        key: 'sum_FTES',
+                        value: row.sum_FTES || 0
+                    },
+
+                    {
+                        key: 'sum_RWC',
+                        value: row.sum_RWC || 0
+                    },
+                    {
+                        key: 'sum_WCAS',
+                        value: row.sum_WCAS || 0
+                    },
+
+                    {
+                        key: 'total_type2',
+                        value: parseInt(row.sum_FTES || 0) + parseInt(row.sum_RWC || 0) + parseInt(row.sum_WCAS || 0)
+                    },
+                    {
+                        key: 'sum_RWC2',
+                        value: row.sum_RWC2 || 0
+                    },
+
+                    {
+                        key: 'sum_RWC2',
+                        value: row.sum_RWC2 || 0
+                    },
+
+                    {
+                        key: 'j1',
+                        value: (row.j1 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j2',
+                        value: (row.j2 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j3',
+                        value: (row.j3 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j4',
+                        value: (row.j4 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j5',
+                        value: (row.j5 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j6',
+                        value: (row.j6 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j7',
+                        value: (row.j7 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j8',
+                        value: (row.j8 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j9',
+                        value: (row.j9 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j10',
+                        value: (row.j10 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j11',
+                        value: (row.j11 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j12',
+                        value: (row.j12 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j13',
+                        value: (row.j13 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'j14',
+                        value: (parseInt(row.j1 || 0) +
+                            parseInt(row.j2 || 0) +
+                            parseInt(row.j3 || 0) +
+                            parseInt(row.j4 || 0) +
+                            parseInt(row.j5 || 0) +
+                            parseInt(row.j6 || 0) +
+                            parseInt(row.j7 || 0) +
+                            parseInt(row.j8 || 0) +
+                            parseInt(row.j9 || 0) +
+                            parseInt(row.j10 || 0) +
+                            parseInt(row.j11 || 0) +
+                            parseInt(row.j12 || 0) +
+                            parseInt(row.j13 || 0)).toLocaleString()
+                    },
+                    {
+                        key: 'j15',
+                        value: ((row.wf_type1 || 0) + (row.sum_FTES || 0) + (row.sum_RWC || 0) +
+                            (row.sum_WCAS || 0) + (row.sum_RWC2 || 0) + parseInt(row.j1 || 0) +
+                            parseInt(row.j2 || 0) +
+                            parseInt(row.j3 || 0) +
+                            parseInt(row.j4 || 0) +
+                            parseInt(row.j5 || 0) +
+                            parseInt(row.j6 || 0) +
+                            parseInt(row.j7 || 0) +
+                            parseInt(row.j8 || 0) +
+                            parseInt(row.j9 || 0) +
+                            parseInt(row.j10 || 0) +
+                            parseInt(row.j11 || 0) +
+                            parseInt(row.j12 || 0) +
+                            parseInt(row.j13 || 0)).toLocaleString()
+                    },
+                ];
 
                 columns.forEach(col => {
                     const td = document.createElement('td');
                     td.textContent = col.value;
                     tr.appendChild(td);
                 });
-                tableBody.appendChild(tr);     
+                tableBody.appendChild(tr);
             });
             calculateSum();
 
         }
+
         function calculateSum() {
-        const table = document.querySelector('table');
-        const rows = table.querySelectorAll('tbody tr');
-        const footer = table.querySelector('tfoot');
-        const columns = rows[0].querySelectorAll('td').length;
+            const table = document.querySelector('table');
+            const rows = table.querySelectorAll('tbody tr');
+            const footer = table.querySelector('tfoot');
+            const columns = rows[0].querySelectorAll('td').length;
 
-        // สร้างแถว footer
-        let footerRow = document.createElement('tr');
-        footerRow.innerHTML = '<td colspan="2">รวม</td>';
+            // สร้างแถว footer
+            let footerRow = document.createElement('tr');
+            footerRow.innerHTML = '<td colspan="2">รวม</td>';
 
-        // เริ่มต้นผลรวมแต่ละคอลัมน์
-        let sums = new Array(columns - 2).fill(0); 
+            // เริ่มต้นผลรวมแต่ละคอลัมน์
+            let sums = new Array(columns - 2).fill(0);
 
-        // คำนวณผลรวม
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            cells.forEach((cell, index) => {
-            const value = parseFloat(cell.textContent.replace(/,/g, '')) || 0;
-            if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
-                sums[index - 2] += parseFloat(value) || 0;
-            }
+            // คำนวณผลรวม
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    const value = parseFloat(cell.textContent.replace(/,/g, '')) || 0;
+                    if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
+                        sums[index - 2] += parseFloat(value) || 0;
+                    }
+                });
             });
-        });
 
-        // เพิ่มผลรวมลงใน footer
-        sums.forEach(sum => {
-            footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
-        });
+            // เพิ่มผลรวมลงใน footer
+            sums.forEach(sum => {
+                footerRow.innerHTML += `<td>${sum.toLocaleString()}</td>`;
+            });
 
-        // เพิ่มแถว footer ลงในตาราง
-        footer.innerHTML='';
-        footer.append(footerRow);
+            // เพิ่มแถว footer ลงในตาราง
+            footer.innerHTML = '';
+            footer.append(footerRow);
         }
 
         function exportCSV() {
@@ -350,10 +479,14 @@ thead tr:nth-child(3) th {
             }
 
             // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(null));
 
             // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const row = table.rows[rowIndex];
@@ -392,7 +525,9 @@ thead tr:nth-child(3) th {
 
             // แปลงข้อมูลเป็น CSV
             const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -404,81 +539,169 @@ thead tr:nth-child(3) th {
         }
 
         function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'mm', 'a4');
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
 
-    // Add Thai font
-    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
-    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-    doc.setFont("THSarabun");
-    doc.setFontSize(12);
-    doc.text('รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน', 14, 10);
-    doc.autoTable({
-        html: '#reportTable',
-        startY: 15,
-        theme: 'grid',
-        styles: {
-            font: "THSarabun",
-            fontSize: 7, 
-            cellPadding: 1, 
-            lineWidth: 0.1,
-            lineColor: [0, 0, 0],
-            minCellHeight: 6
-        },
-        headStyles: {
-            fillColor: [220, 230, 241],
-            textColor: [0, 0, 0],
-            fontSize: 7,
-            fontStyle: 'bold',
-            halign: 'center',
-            valign: 'middle'
-        },
-        columnStyles: {
-            0: { cellWidth: 8, halign: 'center' }, // คอลัมน์ "ที่"
-            1: { cellWidth: 30, halign: 'left' }, // ส่วนงาน
-            2: { cellWidth: 10, halign: 'center' }, // ประเภทบริหาร (อัตราปัจจุบัน)
-            3: { cellWidth: 10, halign: 'center' }, // ประเภทบริหาร (กรอบที่พึงมี)
-            4: { cellWidth: 10, halign: 'center' }, // วิชาการ (อัตราปัจจุบัน)
-            5: { cellWidth: 10, halign: 'center' }, // วิชาการ (แผน 2563-2566)
-            6: { cellWidth: 10, halign: 'center' }, // FTES
-            7: { cellWidth: 10, halign: 'center' }, // ภาระงานวิจัย
-            8: { cellWidth: 10, halign: 'center' }, // ภาระงานบริการวิชาการ
-            9: { cellWidth: 10, halign: 'center' }, // รวมวิชาการ
-            10: { cellWidth: 10, halign: 'center' }, // เกณฑ์ภาระงานวิจัย
-            11: { cellWidth: 10, halign: 'center' }, // รวมวิจัย
-            12: { cellWidth: 10, halign: 'center' }, // Healthcare Services
-            13: { cellWidth: 10, halign: 'center' }, // Student and Faculty Services
-            14: { cellWidth: 10, halign: 'center' }, // Technical and Research services
-            15: { cellWidth: 10, halign: 'center' }, // Internationalization
-            16: { cellWidth: 10, halign: 'center' }, // Human Resources
-            17: { cellWidth: 10, halign: 'center' }, // Administration
-            18: { cellWidth: 10, halign: 'center' }, // Legal, Compliance and Protection
-            19: { cellWidth: 10, halign: 'center' }, // Strategic Management
-            20: { cellWidth: 10, halign: 'center' }, // Information Technology
-            21: { cellWidth: 10, halign: 'center' }, // Infrastructure and Facility Services
-            22: { cellWidth: 10, halign: 'center' }, // Communication and Relation Management
-            23: { cellWidth: 10, halign: 'center' }, // Cultural Affair
-            24: { cellWidth: 10, halign: 'center' }, // Financial Services
-            25: { cellWidth: 10, halign: 'center' }, // รวมประเภทสนับสนุน
-            26: { cellWidth: 10, halign: 'center' }, // รวมทั้งหมด
-        },
-        didParseCell: function(data) {
-            if (data.section === 'body') {
-                if (data.column.index === 1) {
-                    data.cell.styles.halign = 'left'; // จัดข้อความของ "ส่วนงาน" ให้อยู่ชิดซ้าย
-                } else {
-                    data.cell.styles.halign = 'center'; // ข้อความอื่นให้อยู่กึ่งกลาง
-                }
-            }
-        },
-        margin: { top: 15, right: 10, bottom: 10, left: 5 },
-        tableWidth: 'auto' // ปรับตารางให้อยู่ในขนาดของ A4
-    });
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
+            doc.setFontSize(12);
+            doc.text('รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน', 14, 10);
+            doc.autoTable({
+                html: '#reportTable',
+                startY: 15,
+                theme: 'grid',
+                styles: {
+                    font: "THSarabun",
+                    fontSize: 7,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 6
+                },
+                headStyles: {
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 7,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: {
+                        cellWidth: 8,
+                        halign: 'center'
+                    }, // คอลัมน์ "ที่"
+                    1: {
+                        cellWidth: 30,
+                        halign: 'left'
+                    }, // ส่วนงาน
+                    2: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // ประเภทบริหาร (อัตราปัจจุบัน)
+                    3: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // ประเภทบริหาร (กรอบที่พึงมี)
+                    4: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // วิชาการ (อัตราปัจจุบัน)
+                    5: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // วิชาการ (แผน 2563-2566)
+                    6: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // FTES
+                    7: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // ภาระงานวิจัย
+                    8: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // ภาระงานบริการวิชาการ
+                    9: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // รวมวิชาการ
+                    10: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // เกณฑ์ภาระงานวิจัย
+                    11: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // รวมวิจัย
+                    12: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Healthcare Services
+                    13: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Student and Faculty Services
+                    14: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Technical and Research services
+                    15: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Internationalization
+                    16: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Human Resources
+                    17: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Administration
+                    18: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Legal, Compliance and Protection
+                    19: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Strategic Management
+                    20: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Information Technology
+                    21: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Infrastructure and Facility Services
+                    22: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Communication and Relation Management
+                    23: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Cultural Affair
+                    24: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // Financial Services
+                    25: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // รวมประเภทสนับสนุน
+                    26: {
+                        cellWidth: 10,
+                        halign: 'center'
+                    }, // รวมทั้งหมด
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body') {
+                        if (data.column.index === 1) {
+                            data.cell.styles.halign = 'left'; // จัดข้อความของ "ส่วนงาน" ให้อยู่ชิดซ้าย
+                        } else {
+                            data.cell.styles.halign = 'center'; // ข้อความอื่นให้อยู่กึ่งกลาง
+                        }
+                    }
+                },
+                margin: {
+                    top: 15,
+                    right: 10,
+                    bottom: 10,
+                    left: 5
+                },
+                tableWidth: 'auto' // ปรับตารางให้อยู่ในขนาดของ A4
+            });
 
-    doc.save('รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน.pdf');
-}
+            doc.save('รายงานกรอบอัตรากำลัง 4 ปี แยกตามประเภท และภาระงาน.pdf');
+        }
 
-function exportXLS() {
+        function exportXLS() {
             const table = document.getElementById('reportTable');
 
             const rows = [];
@@ -509,7 +732,9 @@ function exportXLS() {
                                 vertical: "top",
                                 horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
                             },
-                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                            font: isHeader ? {
+                                bold: true
+                            } : {} // **ทำให้ Header ตัวหนา**
                         }
                     };
 
@@ -518,8 +743,14 @@ function exportXLS() {
 
                     if (rowspan > 1 || colspan > 1) {
                         merges.push({
-                            s: { r: rowIndex, c: colIndex },
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {

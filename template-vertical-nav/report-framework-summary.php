@@ -1,68 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-<style>     
-#main-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+<style>
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
-.content-body {
-    flex-grow: 1;
-    overflow: hidden; /* Prevent body scrolling */
-    display: flex;
-    flex-direction: column;
-}
+    .content-body {
+        flex-grow: 1;
+        overflow: hidden;
+        /* Prevent body scrolling */
+        display: flex;
+        flex-direction: column;
+    }
 
-.container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
 
-.table-responsive {
-    flex-grow: 1;
-    overflow-y: auto; /* Scrollable content only inside table */
-    max-height: 60vh; /* Set a fixed height */
-    border: 1px solid #ccc;
-}
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    background: #f4f4f4;
-    z-index: 1000;
-}
+    thead tr:nth-child(1) th {
+        position: sticky;
+        top: 0;
+        background: #f4f4f4;
+        z-index: 1000;
+    }
 
-thead tr:nth-child(2) th {
-    position: sticky;
-    top: 45px; /* Adjust height based on previous row */
-    background: #f4f4f4;
-    z-index: 999;
-}
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 45px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
+    }
 
-thead tr:nth-child(3) th {
-    position: sticky;
-    top: 105px; /* Adjust height based on previous rows */
-    background: #f4f4f4;
-    z-index: 998;
-}
-
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 105px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -94,67 +100,110 @@ thead tr:nth-child(3) th {
                                 <div class="card-title">
                                     <h4>รายงานสรุปแผนกรอบอัตรากำลัง 4 ปีแยกตามประเภท</h4>
                                 </div>
-                                <label for="dropdown1">เลือกส่วนงาน:</label>
-                                <select name="dropdown1" id="dropdown1">
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
-                                <br/>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="dropdown1">เลือกส่วนงาน:</label>
+                                        <select name="dropdown1" id="dropdown1">
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/workforce/run_cmd_workforce.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
+                                <br />
                                 <label for="dropdown2">ปีเริ่มต้น - ปีสิ้นสุด:</label>
                                 <select name="dropdown2" id="dropdown2" disabled>
                                     <option value="">-- Loading Categories --</option>
                                 </select>
-                                <br/>
-                                
+                                <br />
+
                                 <!-- Submit Button -->
                                 <button id="submitBtn" disabled>Submit</button>
-                                <br/><br/>
+                                <br /><br />
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th rowspan="2">ที่</th>
-                                            <th rowspan="2">ส่วนงาน</th>
-                                            <th colspan="6">ประเภทบริหาร</th>
-                                            <th colspan="6">ประเภทวิชาการ</th>
-                                            <th colspan="6">ประเภทวิจัย</th>
-                                            <th colspan="6">ประเภทสนับสนุน</th>
-                                        </tr>
-                                        <tr>
-                                            <!-- ประเภทบริหาร -->
-                                            <th>อัตราปัจจุบัน</th>
-                                            <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
-                                            <th>ปี 2567 (ปีที่ 1)</th>
-                                            <th>ปี 2568 (ปีที่ 2)</th>
-                                            <th>ปี 2569 (ปีที่ 3)</th>
-                                            <th>ปี 2570 (ปีที่ 4)</th>
-                                            <!-- ประเภทวิชาการ -->
-                                            <th>อัตราปัจจุบัน</th>
-                                            <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
-                                            <th>ปี 2567 (ปีที่ 1)</th>
-                                            <th>ปี 2568 (ปีที่ 2)</th>
-                                            <th>ปี 2569 (ปีที่ 3)</th>
-                                            <th>ปี 2570 (ปีที่ 4)</th>
-                                            <!-- ประเภทวิจัย -->
-                                            <th>อัตราปัจจุบัน</th>
-                                            <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
-                                            <th>ปี 2567 (ปีที่ 1)</th>
-                                            <th>ปี 2568 (ปีที่ 2)</th>
-                                            <th>ปี 2569 (ปีที่ 3)</th>
-                                            <th>ปี 2570 (ปีที่ 4)</th>
-                                            <!-- ประเภทสนับสนุน -->
-                                            <th>อัตราปัจจุบัน</th>
-                                            <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
-                                            <th>ปี 2567 (ปีที่ 1)</th>
-                                            <th>ปี 2568 (ปีที่ 2)</th>
-                                            <th>ปี 2569 (ปีที่ 3)</th>
-                                            <th>ปี 2570 (ปีที่ 4)</th>
-                                        </tr>
-                                    </thead>
+                                        <thead>
+                                            <tr>
+                                                <th rowspan="2">ที่</th>
+                                                <th rowspan="2">ส่วนงาน</th>
+                                                <th colspan="6">ประเภทบริหาร</th>
+                                                <th colspan="6">ประเภทวิชาการ</th>
+                                                <th colspan="6">ประเภทวิจัย</th>
+                                                <th colspan="6">ประเภทสนับสนุน</th>
+                                            </tr>
+                                            <tr>
+                                                <!-- ประเภทบริหาร -->
+                                                <th>อัตราปัจจุบัน</th>
+                                                <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
+                                                <th>ปี 2567 (ปีที่ 1)</th>
+                                                <th>ปี 2568 (ปีที่ 2)</th>
+                                                <th>ปี 2569 (ปีที่ 3)</th>
+                                                <th>ปี 2570 (ปีที่ 4)</th>
+                                                <!-- ประเภทวิชาการ -->
+                                                <th>อัตราปัจจุบัน</th>
+                                                <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
+                                                <th>ปี 2567 (ปีที่ 1)</th>
+                                                <th>ปี 2568 (ปีที่ 2)</th>
+                                                <th>ปี 2569 (ปีที่ 3)</th>
+                                                <th>ปี 2570 (ปีที่ 4)</th>
+                                                <!-- ประเภทวิจัย -->
+                                                <th>อัตราปัจจุบัน</th>
+                                                <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
+                                                <th>ปี 2567 (ปีที่ 1)</th>
+                                                <th>ปี 2568 (ปีที่ 2)</th>
+                                                <th>ปี 2569 (ปีที่ 3)</th>
+                                                <th>ปี 2570 (ปีที่ 4)</th>
+                                                <!-- ประเภทสนับสนุน -->
+                                                <th>อัตราปัจจุบัน</th>
+                                                <th>กรอบที่พึงมีตามแผน 4 ปีเดิม</th>
+                                                <th>ปี 2567 (ปีที่ 1)</th>
+                                                <th>ปี 2568 (ปีที่ 2)</th>
+                                                <th>ปี 2569 (ปีที่ 3)</th>
+                                                <th>ปี 2570 (ปีที่ 4)</th>
+                                            </tr>
+                                        </thead>
                                         <tbody>
-                                            
+
                                         </tbody>
                                         <tfoot>
-                                            
+
                                         </tfoot>
                                     </table>
                                 </div>
@@ -189,7 +238,7 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function(response) {
-                    all_data=response.wf;                                             
+                    all_data = response.wf;
                     const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("dropdown1");
                     dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
@@ -205,7 +254,7 @@ thead tr:nth-child(3) th {
                     responseError(jqXHR, exception);
                 }
             });
-            
+
         });
         $('#dropdown1').change(function() {
             $('#dropdown2').html('<option value="">เลือกปีเริ่มต้น - ปีสิ้นสุด</option>').prop('disabled', true);
@@ -213,109 +262,187 @@ thead tr:nth-child(3) th {
 
             $('#dropdown2').append('<option value="all">2567 - 2570</option>').prop('disabled', false);
         });
-        
+
         $('#dropdown2').change(function() {
-                if ($(this).val()) {
-                    $('#submitBtn').prop('disabled', false);
-                } else {
-                    $('#submitBtn').prop('disabled', true);
-                }
-            });
+            if ($(this).val()) {
+                $('#submitBtn').prop('disabled', false);
+            } else {
+                $('#submitBtn').prop('disabled', true);
+            }
+        });
         $('#submitBtn').click(function() {
             let category = document.getElementById("dropdown1").value;
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-            if(category=="all"){
-                data=all_data
+            if (category == "all") {
+                data = all_data
+            } else {
+                data = all_data.filter(item => item.pname === category);
             }
-            else{
-                data= all_data.filter(item=>item.pname===category);
-            }
-             
-            data.forEach((row, index) => {                   
+
+            data.forEach((row, index) => {
                 const tr = document.createElement('tr');
 
-                const columns = [
-                        { key: 'No', value: index+1 },
-                        { key: 'Alias_Default', value: row.Alias_Default },
-                        
-                        { key: 'Actual_type1', value: (row.Actual_type1||0).toLocaleString() },
-                        { key: 'wf1', value: 0},
-                        { key: 'wf_type1_y1', value: (row.wf_type1_y1||0).toLocaleString() },
-                        { key: 'wf_type1_y2', value: (row.wf_type1_y2||0).toLocaleString() },
-                        { key: 'wf_type1_y3', value: (row.wf_type1_y3||0).toLocaleString() },
-                        { key: 'wf_type1_y4', value: (row.wf_type1_y4||0).toLocaleString() },
-                        
-                        
-                        
-                        
-                        { key: 'Actual_type2', value: (row.Actual_type2||0).toLocaleString() },
-                        { key: 'wf2', value:0},
-                        { key: 'wf_type2_y1', value: (row.wf_type2_y1||0).toLocaleString() },
-                        { key: 'wf_type2_y2', value: (row.wf_type2_y2||0).toLocaleString() },
-                        { key: 'wf_type2_y3', value: (row.wf_type2_y3||0).toLocaleString() },
-                        { key: 'wf_type2_y4', value: (row.wf_type2_y4||0).toLocaleString() },
-                        
-                        
+                const columns = [{
+                        key: 'No',
+                        value: index + 1
+                    },
+                    {
+                        key: 'Alias_Default',
+                        value: row.Alias_Default
+                    },
 
-                        { key: 'Actual_type3', value: (row.Actual_type3||0).toLocaleString() },
-                        { key: 'wf3', value: 0},
-                        
-                        { key: 'wf_type3_y1', value: (row.wf_type3_y1||0).toLocaleString() },
-                        { key: 'wf_type3_y2', value: (row.wf_type3_y2||0).toLocaleString() },
-                        { key: 'wf_type3_y3', value: (row.wf_type3_y3||0).toLocaleString() },
-                        { key: 'wf_type3_y4', value: (row.wf_type3_y4||0).toLocaleString() },
-                        
+                    {
+                        key: 'Actual_type1',
+                        value: (row.Actual_type1 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf1',
+                        value: 0
+                    },
+                    {
+                        key: 'wf_type1_y1',
+                        value: (row.wf_type1_y1 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type1_y2',
+                        value: (row.wf_type1_y2 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type1_y3',
+                        value: (row.wf_type1_y3 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type1_y4',
+                        value: (row.wf_type1_y4 || 0).toLocaleString()
+                    },
 
-                        { key: 'Actual_type4', value: (row.Actual_type4||0).toLocaleString() },
-                        { key: 'wf4', value: 0},
-                        { key: 'wf_type4_y1', value: (row.wf_type4_y1||0).toLocaleString() },
-                        { key: 'wf_type4_y2', value: (row.wf_type4_y2||0).toLocaleString() },
-                        { key: 'wf_type4_y3', value: (row.wf_type4_y3||0).toLocaleString() },
-                        { key: 'wf_type4_y4', value: (row.wf_type4_y4||0).toLocaleString() },
-                    ];
+
+
+
+                    {
+                        key: 'Actual_type2',
+                        value: (row.Actual_type2 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf2',
+                        value: 0
+                    },
+                    {
+                        key: 'wf_type2_y1',
+                        value: (row.wf_type2_y1 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type2_y2',
+                        value: (row.wf_type2_y2 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type2_y3',
+                        value: (row.wf_type2_y3 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type2_y4',
+                        value: (row.wf_type2_y4 || 0).toLocaleString()
+                    },
+
+
+
+                    {
+                        key: 'Actual_type3',
+                        value: (row.Actual_type3 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf3',
+                        value: 0
+                    },
+
+                    {
+                        key: 'wf_type3_y1',
+                        value: (row.wf_type3_y1 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type3_y2',
+                        value: (row.wf_type3_y2 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type3_y3',
+                        value: (row.wf_type3_y3 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type3_y4',
+                        value: (row.wf_type3_y4 || 0).toLocaleString()
+                    },
+
+
+                    {
+                        key: 'Actual_type4',
+                        value: (row.Actual_type4 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf4',
+                        value: 0
+                    },
+                    {
+                        key: 'wf_type4_y1',
+                        value: (row.wf_type4_y1 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type4_y2',
+                        value: (row.wf_type4_y2 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type4_y3',
+                        value: (row.wf_type4_y3 || 0).toLocaleString()
+                    },
+                    {
+                        key: 'wf_type4_y4',
+                        value: (row.wf_type4_y4 || 0).toLocaleString()
+                    },
+                ];
 
                 columns.forEach(col => {
                     const td = document.createElement('td');
                     td.textContent = col.value;
                     tr.appendChild(td);
                 });
-                tableBody.appendChild(tr);     
+                tableBody.appendChild(tr);
             });
             calculateSum();
-                
+
         });
+
         function calculateSum() {
-        const table = document.querySelector('table');
-        const rows = table.querySelectorAll('tbody tr');
-        const footer = table.querySelector('tfoot');
-        const columns = rows[0].querySelectorAll('td').length;
+            const table = document.querySelector('table');
+            const rows = table.querySelectorAll('tbody tr');
+            const footer = table.querySelector('tfoot');
+            const columns = rows[0].querySelectorAll('td').length;
 
-        // สร้างแถว footer
-        let footerRow = document.createElement('tr');
-        footerRow.innerHTML = '<td colspan="2">รวม</td>';
+            // สร้างแถว footer
+            let footerRow = document.createElement('tr');
+            footerRow.innerHTML = '<td colspan="2">รวม</td>';
 
-        // เริ่มต้นผลรวมแต่ละคอลัมน์
-        let sums = new Array(columns - 2).fill(0); 
+            // เริ่มต้นผลรวมแต่ละคอลัมน์
+            let sums = new Array(columns - 2).fill(0);
 
-        // คำนวณผลรวม
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            cells.forEach((cell, index) => {
-            if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
-                sums[index - 2] += parseFloat(cell.textContent) || 0;
-            }
+            // คำนวณผลรวม
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                cells.forEach((cell, index) => {
+                    if (index >= 2) { // "ส่วนงาน/หน่วยงาน"               
+                        sums[index - 2] += parseFloat(cell.textContent) || 0;
+                    }
+                });
             });
-        });
 
-        // เพิ่มผลรวมลงใน footer
-        sums.forEach(sum => {
-            footerRow.innerHTML += `<td>${sum}</td>`;
-        });
+            // เพิ่มผลรวมลงใน footer
+            sums.forEach(sum => {
+                footerRow.innerHTML += `<td>${sum}</td>`;
+            });
 
-        footer.innerHTML='';
-        footer.append(footerRow);
+            footer.innerHTML = '';
+            footer.append(footerRow);
         }
+
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
@@ -331,10 +458,14 @@ thead tr:nth-child(3) th {
             }
 
             // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(null));
 
             // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const row = table.rows[rowIndex];
@@ -373,7 +504,9 @@ thead tr:nth-child(3) th {
 
             // แปลงข้อมูลเป็น CSV
             const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -385,7 +518,9 @@ thead tr:nth-child(3) th {
         }
 
         function exportPDF() {
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4');
 
             // Add Thai font
@@ -415,14 +550,21 @@ thead tr:nth-child(3) th {
                     valign: 'middle'
                 },
                 columnStyles: {
-                    0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
+                    0: {
+                        halign: 'left'
+                    }, // คอลัมน์แรกให้ชิดซ้าย
                 },
                 didParseCell: function(data) {
                     if (data.section === 'body' && data.column.index === 0) {
                         data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
                     }
                 },
-                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                margin: {
+                    top: 15,
+                    right: 5,
+                    bottom: 10,
+                    left: 5
+                },
                 tableWidth: 'auto'
             });
             doc.save('รายงานสรุปแผนกรอบอัตรากำลัง 4 ปีแยกตามประเภท.pdf');
@@ -448,7 +590,7 @@ thead tr:nth-child(3) th {
                 for (let cellIndex = 0; cellIndex < tr.cells.length; cellIndex++) {
                     // ข้ามเซลล์ที่อยู่ในพื้นที่ merge แล้ว
                     while (skipMap[`${rowIndex},${colIndex}`]) {
-                        rowData.push(""); 
+                        rowData.push("");
                         colIndex++;
                     }
 
@@ -458,7 +600,7 @@ thead tr:nth-child(3) th {
 
                     // ใส่ข้อมูลลงใน Array
                     rowData[colIndex] = cellText;
-                    
+
                     // ตรวจสอบ colSpan / rowSpan
                     const rowspan = cell.rowSpan || 1;
                     const colspan = cell.colSpan || 1;
@@ -467,8 +609,14 @@ thead tr:nth-child(3) th {
                     if (rowspan > 1 || colspan > 1) {
                         // สร้าง object merge ตามรูปแบบ SheetJS
                         const mergeRef = {
-                            s: { r: rowIndex, c: colIndex },                 // จุดเริ่ม (start)
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 } // จุดจบ (end)
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            }, // จุดเริ่ม (start)
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            } // จุดจบ (end)
                         };
 
                         // เก็บลง merges (รูปแบบเก่าคือ ws['!merges'] = [])

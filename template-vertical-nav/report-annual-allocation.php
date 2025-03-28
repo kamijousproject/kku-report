@@ -1,63 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-<style>     
-#main-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+<style>
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
 
 
-.container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
 
-.table-responsive {
-    flex-grow: 1;
-    overflow-y: auto; /* Scrollable content only inside table */
-    max-height: 60vh; /* Set a fixed height */
-    border: 1px solid #ccc;
-}
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    background: #f4f4f4;
-    z-index: 1000;
-}
+    thead tr:nth-child(1) th {
+        position: sticky;
+        top: 0;
+        background: #f4f4f4;
+        z-index: 1000;
+    }
 
-thead tr:nth-child(2) th {
-    position: sticky;
-    top: 45px; /* Adjust height based on previous row */
-    background: #f4f4f4;
-    z-index: 999;
-}
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 45px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
+    }
 
-thead tr:nth-child(3) th {
-    position: sticky;
-    top: 105px; /* Adjust height based on previous rows */
-    background: #f4f4f4;
-    z-index: 998;
-}
-
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 105px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -88,52 +93,95 @@ thead tr:nth-child(3) th {
                             <div class="card-body">
                                 <div class="card-title">
                                     <h4>รายงานการจัดสรรกรอบอัตรากำลัง ประจำปีงบประมาณ</h4>
-                                    
+
                                 </div>
-                                <label for="dropdown1">ประเภทการจัดสรร:</label>
-                                <select name="dropdown1" id="dropdown1" >
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
-                                <br/>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="dropdown1">ประเภทการจัดสรร:</label>
+                                        <select name="dropdown1" id="dropdown1">
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/workforce/run_cmd_workforce.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
+                                <br />
                                 <label for="dropdown2">เลือกส่วนงาน:</label>
-                                <select name="dropdown2" id="dropdown2"  disabled>
+                                <select name="dropdown2" id="dropdown2" disabled>
                                     <option value="">-- Loading Categories --</option>
                                 </select>
-                                <br/>
-                                    <!-- Submit Button -->
-                                    <button id="submitBtn" disabled>Submit</button>
-                                <br/><br/>
+                                <br />
+                                <!-- Submit Button -->
+                                <button id="submitBtn" class="btn btn-primary" disabled>ค้นหา</button>
+                                <br /><br />
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
                                             <tr>
                                                 <th nowrap>ลำดับที่</th>
-                                                <th nowrap>ประเภท<br/>การจัดสรร</th>
+                                                <th nowrap>ประเภท<br />การจัดสรร</th>
                                                 <th>ส่วนงาน</th>
                                                 <th>หน่วยงาน</th>
                                                 <th nowrap>ชื่อ - นามสกุล</th>
                                                 <th>ประเภทบุคลากร</th>
                                                 <th>ประเภทการจ้าง</th>
-                                                <th nowrap>เลขประจำ<br/>ตำแหน่ง</th>
+                                                <th nowrap>เลขประจำ<br />ตำแหน่ง</th>
                                                 <th>ชื่อตำแหน่ง</th>
                                                 <th>จำนวนจัดสรร</th>
                                                 <th>Job Family</th>
                                                 <th>ประเภทตำแหน่ง</th>
                                                 <th>กลุ่มบุคลากร</th>
                                                 <th>ประเภทสัญญา</th>
-                                                <th nowrap>ระยะเวลา<br/>สัญญา</th>
-                                                <th nowrap>คุณวุฒิ<br/>ของตำแหน่ง</th>
+                                                <th nowrap>ระยะเวลา<br />สัญญา</th>
+                                                <th nowrap>คุณวุฒิ<br />ของตำแหน่ง</th>
                                                 <th>เงินเดือน</th>
                                                 <th>แหล่งงบประมาณ</th>
-                                                <th nowrap>งบประมาณ<br/>แผ่นดิน</th>
-                                                <th nowrap>งบประมาณ<br/>เงินรายได้คณะ</th>
-                                                <th nowrap>งบประมาณ<br/>เงินรายได้ สนอ</th>
-                                                <th nowrap>สถานที่<br/>ปฏิบัติงาน</th>
-                                                <th nowrap>ระยะเวลา<br/>การจ้าง</th>
+                                                <th nowrap>งบประมาณ<br />แผ่นดิน</th>
+                                                <th nowrap>งบประมาณ<br />เงินรายได้คณะ</th>
+                                                <th nowrap>งบประมาณ<br />เงินรายได้ สนอ</th>
+                                                <th nowrap>สถานที่<br />ปฏิบัติงาน</th>
+                                                <th nowrap>ระยะเวลา<br />การจ้าง</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -168,25 +216,25 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function(response) {
-                    all_data=response.wf;
+                    all_data = response.wf;
                     const type = [...new Set(response.wf.map(item => item.TYPE))];
-                    type.forEach((row) =>{
+                    type.forEach((row) => {
                         //console.log(row.y);
-                        $('#dropdown1').append('<option value="'+row+'">'+row+'</option>');
-                    });   
+                        $('#dropdown1').append('<option value="' + row + '">' + row + '</option>');
+                    });
                 }
             });
             $('#dropdown1').change(function() {
                 let type = $(this).val();
                 //console.log(year);
-                $('#dropdown2').html('<option value="">-- Loading Categories --</option>').prop('disabled', true)               
+                $('#dropdown2').html('<option value="">-- Loading Categories --</option>').prop('disabled', true)
                 $('#submitBtn').prop('disabled', true);
-                var d1=all_data.filter(item=>item.TYPE===type);
+                var d1 = all_data.filter(item => item.TYPE === type);
                 const fac = [...new Set(d1.map(item => item.parent_name))];
-                fac.forEach((row) =>{
-                    $('#dropdown2').append('<option value="'+row+'">'+row+'</option>').prop('disabled', false);                   
-                });   
-                    
+                fac.forEach((row) => {
+                    $('#dropdown2').append('<option value="' + row + '">' + row + '</option>').prop('disabled', false);
+                });
+
             });
             $('#dropdown2').change(function() {
                 if ($(this).val()) {
@@ -202,34 +250,102 @@ thead tr:nth-child(3) th {
                 let fac = $("#dropdown2").val();
                 const tableBody = document.querySelector('#reportTable tbody');
                 tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
-                var data=all_data.filter(item=>item.TYPE===type && item.parent_name===fac);
-                data.forEach((row, index) => {                   
+                var data = all_data.filter(item => item.TYPE === type && item.parent_name === fac);
+                data.forEach((row, index) => {
                     const tr = document.createElement('tr');
 
-                    const columns = [
-                        { key: 'No', value: index+1 },
-                        { key: 'TYPE', value: row.TYPE },
-                        { key: 'parent_name', value: row.parent_name },
-                        { key: 'fac', value: row.fac },      
-                        { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname2 },                                                            
-                        { key: 'Personnel_Type', value: row.Personnel_Type },                              
-                        { key: 'Employment_Type', value: row.Employment_Type2 }, 
-                        { key: 'Position_Number', value: row.Position_Number2 }, 
-                        { key: 'POSITION', value: row.POSITION },
-                        { key: 'num', value: row.num },
-                        { key: 'Job_Family', value: row.Job_Family2 },   
-                        { key: 'All_PositionTypes', value: row.All_PositionTypes },
-                        { key: 'Personnel_Group', value: row.Personnel_Group2 },
-                        { key: 'Contract_Type', value: row.Contract_Type2 }, 
-                        { key: 'period', value: row.Contract_Period_Short_Term },                             
-                        { key: 'Position_Qualifications', value: row.Position_Qualifications2 },    
-                        { key: 'Salary_rate', value: (parseFloat(row.Salary_rate|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
-                        { key: 'Fund_FT', value: row.Fund_FT },
-                        { key: 'Govt_Fund', value: (parseFloat(row.Govt_Fund|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
-                        { key: 'Division_Revenue', value: (parseFloat(row.Division_Revenue|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },
-                        { key: 'OOP_Central_Revenue', value: (parseFloat(row.OOP_Central_Revenue|| 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,') },                          
-                        { key: 'Location_Code', value: row.Location_Code2 },
-                        { key: 'Contract_Period_Short_Term', value: row.Hiring_Start_End_Date2 },                                                                       
+                    const columns = [{
+                            key: 'No',
+                            value: index + 1
+                        },
+                        {
+                            key: 'TYPE',
+                            value: row.TYPE
+                        },
+                        {
+                            key: 'parent_name',
+                            value: row.parent_name
+                        },
+                        {
+                            key: 'fac',
+                            value: row.fac
+                        },
+                        {
+                            key: 'Workers_Name_Surname',
+                            value: row.Workers_Name_Surname2
+                        },
+                        {
+                            key: 'Personnel_Type',
+                            value: row.Personnel_Type
+                        },
+                        {
+                            key: 'Employment_Type',
+                            value: row.Employment_Type2
+                        },
+                        {
+                            key: 'Position_Number',
+                            value: row.Position_Number2
+                        },
+                        {
+                            key: 'POSITION',
+                            value: row.POSITION
+                        },
+                        {
+                            key: 'num',
+                            value: row.num
+                        },
+                        {
+                            key: 'Job_Family',
+                            value: row.Job_Family2
+                        },
+                        {
+                            key: 'All_PositionTypes',
+                            value: row.All_PositionTypes
+                        },
+                        {
+                            key: 'Personnel_Group',
+                            value: row.Personnel_Group2
+                        },
+                        {
+                            key: 'Contract_Type',
+                            value: row.Contract_Type2
+                        },
+                        {
+                            key: 'period',
+                            value: row.Contract_Period_Short_Term
+                        },
+                        {
+                            key: 'Position_Qualifications',
+                            value: row.Position_Qualifications2
+                        },
+                        {
+                            key: 'Salary_rate',
+                            value: (parseFloat(row.Salary_rate || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+                        },
+                        {
+                            key: 'Fund_FT',
+                            value: row.Fund_FT
+                        },
+                        {
+                            key: 'Govt_Fund',
+                            value: (parseFloat(row.Govt_Fund || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+                        },
+                        {
+                            key: 'Division_Revenue',
+                            value: (parseFloat(row.Division_Revenue || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+                        },
+                        {
+                            key: 'OOP_Central_Revenue',
+                            value: (parseFloat(row.OOP_Central_Revenue || 0).toFixed(2)).replace(/\d(?=(\d{3})+\.)/g, '$&,')
+                        },
+                        {
+                            key: 'Location_Code',
+                            value: row.Location_Code2
+                        },
+                        {
+                            key: 'Contract_Period_Short_Term',
+                            value: row.Hiring_Start_End_Date2
+                        },
                     ];
 
                     columns.forEach(col => {
@@ -237,12 +353,12 @@ thead tr:nth-child(3) th {
                         td.textContent = col.value;
                         tr.appendChild(td);
                     });
-                    tableBody.appendChild(tr);     
+                    tableBody.appendChild(tr);
                 });
             });
         });
 
-        
+
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
@@ -258,10 +374,14 @@ thead tr:nth-child(3) th {
             }
 
             // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(null));
 
             // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const row = table.rows[rowIndex];
@@ -300,7 +420,9 @@ thead tr:nth-child(3) th {
 
             // แปลงข้อมูลเป็น CSV
             const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -312,10 +434,12 @@ thead tr:nth-child(3) th {
         }
 
         function exportPDF() {
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
             // Using A3 landscape to fit all columns
             const doc = new jsPDF('l', 'mm', 'a4');
-            
+
             // Add Thai font
             doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
             doc.addFont("THSarabun.ttf", "THSarabun", "normal");
@@ -329,7 +453,12 @@ thead tr:nth-child(3) th {
                 styles: {
                     font: "THSarabun",
                     fontSize: 7,
-                    cellPadding: { top: 1, right: 1, bottom: 1, left: 1 },
+                    cellPadding: {
+                        top: 1,
+                        right: 1,
+                        bottom: 1,
+                        left: 1
+                    },
                     lineWidth: 0.1,
                     lineColor: [0, 0, 0],
                     minCellHeight: 5
@@ -345,38 +474,84 @@ thead tr:nth-child(3) th {
                 },
                 // Column widths optimized for retirement report
                 columnStyles: {
-                    0: { cellWidth: 8 },  // ที่
-                    1: { cellWidth: 13 }, // ส่วนงาน/หน่วยงาน
-                    2: { cellWidth: 20 }, // ชื่อตำแหน่ง
-                    3: { cellWidth: 20 }, // ประเภทตำแหน่ง
-                    4: { cellWidth: 15 }, // Job Family
+                    0: {
+                        cellWidth: 8
+                    }, // ที่
+                    1: {
+                        cellWidth: 13
+                    }, // ส่วนงาน/หน่วยงาน
+                    2: {
+                        cellWidth: 20
+                    }, // ชื่อตำแหน่ง
+                    3: {
+                        cellWidth: 20
+                    }, // ประเภทตำแหน่ง
+                    4: {
+                        cellWidth: 15
+                    }, // Job Family
                     // ปีงบประมาณ พ.ศ. 2567
-                    5: { cellWidth: 15 },  // ข้าราชการ
-                    6: { cellWidth: 12},  // พนง.มข. แผ่นดิน
-                    7: { cellWidth: 12 },  // พนง.มข. รายได้
-                    8: { cellWidth: 12 },  // ลูกจ้างประจำ
-                    9: { cellWidth: 10 },  // ลูกจ้างของ มข.
-                    10: { cellWidth: 15 }, // รวม
+                    5: {
+                        cellWidth: 15
+                    }, // ข้าราชการ
+                    6: {
+                        cellWidth: 12
+                    }, // พนง.มข. แผ่นดิน
+                    7: {
+                        cellWidth: 12
+                    }, // พนง.มข. รายได้
+                    8: {
+                        cellWidth: 12
+                    }, // ลูกจ้างประจำ
+                    9: {
+                        cellWidth: 10
+                    }, // ลูกจ้างของ มข.
+                    10: {
+                        cellWidth: 15
+                    }, // รวม
                     // ปีงบประมาณ พ.ศ. 2568
-                    11: { cellWidth: 12 }, // ข้าราชการ
-                    12: { cellWidth: 12 }, // พนง.มข. แผ่นดิน
-                    13: { cellWidth: 12 }, // พนง.มข. รายได้
-                    14: { cellWidth: 12 }, // ลูกจ้างประจำ
-                    15: { cellWidth: 12 }, // ลูกจ้างของ มข.
-                    16: { cellWidth: 10 }, // รวม
+                    11: {
+                        cellWidth: 12
+                    }, // ข้าราชการ
+                    12: {
+                        cellWidth: 12
+                    }, // พนง.มข. แผ่นดิน
+                    13: {
+                        cellWidth: 12
+                    }, // พนง.มข. รายได้
+                    14: {
+                        cellWidth: 12
+                    }, // ลูกจ้างประจำ
+                    15: {
+                        cellWidth: 12
+                    }, // ลูกจ้างของ มข.
+                    16: {
+                        cellWidth: 10
+                    }, // รวม
                     // ปีงบประมาณ พ.ศ. 2569
-                    17: { cellWidth: 12 }, // ข้าราชการ
-                    18: { cellWidth: 10 }, // พนง.มข. แผ่นดิน
-                    19: { cellWidth: 10 }, // พนง.มข. รายได้
-                    20: { cellWidth: 10 }, // ลูกจ้างประจำ
-                    21: { cellWidth: 11 }, // ลูกจ้างของ มข.
-                    22: { cellWidth: 11}, // รวม
+                    17: {
+                        cellWidth: 12
+                    }, // ข้าราชการ
+                    18: {
+                        cellWidth: 10
+                    }, // พนง.มข. แผ่นดิน
+                    19: {
+                        cellWidth: 10
+                    }, // พนง.มข. รายได้
+                    20: {
+                        cellWidth: 10
+                    }, // ลูกจ้างประจำ
+                    21: {
+                        cellWidth: 11
+                    }, // ลูกจ้างของ มข.
+                    22: {
+                        cellWidth: 11
+                    }, // รวม
                 },
                 didDrawPage: function(data) {
                     // Add header
                     doc.setFontSize(14);
                     doc.text('รายงานการจัดสรรกรอบอัตรากำลัง ประจำปีงบประมาณ', 20, 10);
-                    
+
                     // Add footer with page number
                     doc.setFontSize(10);
                     /* doc.text(
@@ -385,7 +560,7 @@ thead tr:nth-child(3) th {
                         doc.internal.pageSize.height - 10,
                         { align: 'right' }
                     ); */
-                    
+
                     // Add current date
                     const today = new Date();
                     const dateStr = today.toLocaleDateString('th-TH', {
@@ -402,13 +577,13 @@ thead tr:nth-child(3) th {
                         data.cell.styles.halign = 'center';
                         data.cell.styles.valign = 'middle';
                         data.cell.styles.lineBreak = true;
-                        
+
                         // Properly handle <br> tags in header cells
                         if (typeof data.cell.raw === 'string' && data.cell.raw.includes('<br>')) {
                             data.cell.text = data.cell.raw.replace(/<br>/g, '\n');
                         }
                     }
-                    
+
                     // Handle body cells
                     if (data.section === 'body') {
                         // First column (ID) - center align
@@ -424,7 +599,7 @@ thead tr:nth-child(3) th {
                             data.cell.styles.halign = 'center';
                         }
                     }
-                    
+
                     // Footer row
                     if (data.section === 'foot') {
                         data.cell.styles.fontStyle = 'bold';
@@ -445,14 +620,19 @@ thead tr:nth-child(3) th {
                         if (typeof data.cell.text === 'string') {
                             data.cell.text = data.cell.text.replace(/<br\s*\/?>/gi, '\n');
                         } else if (Array.isArray(data.cell.text)) {
-                            data.cell.text = data.cell.text.map(line => 
+                            data.cell.text = data.cell.text.map(line =>
                                 typeof line === 'string' ? line.replace(/<br\s*\/?>/gi, '\n') : line
                             );
                         }
                     }
                 },
                 // Use fitted margins
-                margin: { top: 15, right: 5, bottom: 10, left: 5 },
+                margin: {
+                    top: 15,
+                    right: 5,
+                    bottom: 10,
+                    left: 5
+                },
                 // Automatically calculate table width
                 tableWidth: 'auto'
             });
@@ -493,7 +673,9 @@ thead tr:nth-child(3) th {
                                 vertical: "top",
                                 horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
                             },
-                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                            font: isHeader ? {
+                                bold: true
+                            } : {} // **ทำให้ Header ตัวหนา**
                         }
                     };
 
@@ -502,8 +684,14 @@ thead tr:nth-child(3) th {
 
                     if (rowspan > 1 || colspan > 1) {
                         merges.push({
-                            s: { r: rowIndex, c: colIndex },
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {

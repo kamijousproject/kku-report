@@ -2,68 +2,74 @@
 <html lang="en">
 <?php include('../component/header.php'); ?>
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<style>     
-#main-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+<style>
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
-.content-body {
-    flex-grow: 1;
-    overflow: hidden; /* Prevent body scrolling */
-    display: flex;
-    flex-direction: column;
-}
+    .content-body {
+        flex-grow: 1;
+        overflow: hidden;
+        /* Prevent body scrolling */
+        display: flex;
+        flex-direction: column;
+    }
 
-.container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
 
-.table-responsive {
-    flex-grow: 1;
-    overflow-y: auto; /* Scrollable content only inside table */
-    max-height: 60vh; /* Set a fixed height */
-    border: 1px solid #ccc;
-}
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    background: #f4f4f4;
-    z-index: 1000;
-}
+    thead tr:nth-child(1) th {
+        position: sticky;
+        top: 0;
+        background: #f4f4f4;
+        z-index: 1000;
+    }
 
-thead tr:nth-child(2) th {
-    position: sticky;
-    top: 45px; /* Adjust height based on previous row */
-    background: #f4f4f4;
-    z-index: 999;
-}
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 45px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
+    }
 
-thead tr:nth-child(3) th {
-    position: sticky;
-    top: 105px; /* Adjust height based on previous rows */
-    background: #f4f4f4;
-    z-index: 998;
-}
-
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 105px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -95,10 +101,53 @@ thead tr:nth-child(3) th {
                                 <div class="card-title">
                                     <h4>รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง</h4>
                                 </div>
-                                <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()">
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="category">เลือกส่วนงาน:</label>
+                                        <select name="category" id="category" onchange="fetchData()">
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()" style="margin-bottom: 10px;">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/workforce/run_cmd_workforce.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -113,7 +162,7 @@ thead tr:nth-child(3) th {
                                             </tr>
                                         </thead>
                                         <tbody id="table-body">
-                                            
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -153,7 +202,7 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function(response) {
-                    all_data=response.wf;                        
+                    all_data = response.wf;
                     const fac = [...new Set(all_data.map(item => item.Alias_Default))];
                     let dropdown = document.getElementById("category");
                     dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
@@ -170,10 +219,11 @@ thead tr:nth-child(3) th {
                 }
             });
         }
+
         function fetchData() {
             let category = document.getElementById("category").value;
             //let resultDiv = document.getElementById("result");
-      
+
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // Clear old data
 
@@ -182,11 +232,10 @@ thead tr:nth-child(3) th {
             let aliasRowSpan = {};
             let nameRowSpan = {};
             let data;
-            if(category=="all"){
-                data=all_data;
-            }
-            else{
-                data= all_data.filter(item=>item.Alias_Default===category);
+            if (category == "all") {
+                data = all_data;
+            } else {
+                data = all_data.filter(item => item.Alias_Default === category);
             }
             // **Step 1: Calculate Rowspan Counts Before Rendering**
             data.forEach(row => {
@@ -200,7 +249,7 @@ thead tr:nth-child(3) th {
                 if (!nameRowSpan[aliasKey]) {
                     nameRowSpan[aliasKey] = {}; // สร้าง object ว่างสำหรับ fac
                 }
-                
+
                 // Count occurrences for Name (Column 3), but only within the same Alias_Default
                 if (!nameRowSpan[nameKey]) {
                     nameRowSpan[aliasKey][nameKey] = all_data.filter(r => r.Alias_Default === aliasKey && r.code === nameKey).length;
@@ -208,11 +257,11 @@ thead tr:nth-child(3) th {
             });
             console.log(nameRowSpan);
             // **Step 2: Generate Table Rows**
-            data.forEach((row, index) => {                   
+            data.forEach((row, index) => {
                 const tr = document.createElement('tr');
-                var sym = parseInt(row.count_person) > parseInt(row.wf) 
-                    ? "+" + (parseInt(row.count_person) - parseInt(row.wf)) 
-                    : "-" + Math.abs(parseInt(row.count_person) - parseInt(row.wf));
+                var sym = parseInt(row.count_person) > parseInt(row.wf) ?
+                    "+" + (parseInt(row.count_person) - parseInt(row.wf)) :
+                    "-" + Math.abs(parseInt(row.count_person) - parseInt(row.wf));
 
                 let currentAlias = row.Alias_Default;
                 let currentName = row.code;
@@ -259,7 +308,7 @@ thead tr:nth-child(3) th {
                 tableBody.appendChild(tr);
             });
         }
-        
+
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
@@ -275,10 +324,14 @@ thead tr:nth-child(3) th {
             }
 
             // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(null));
 
             // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const row = table.rows[rowIndex];
@@ -317,7 +370,9 @@ thead tr:nth-child(3) th {
 
             // แปลงข้อมูลเป็น CSV
             const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -327,26 +382,26 @@ thead tr:nth-child(3) th {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
-    
-    function prepareTableData() {
+
+        function prepareTableData() {
             const table = document.getElementById('reportTable');
             const headers = [];
             const body = [];
-            
+
             // ดึงข้อมูลส่วนหัวตาราง
             const headerRow = table.querySelector('thead tr');
             headerRow.querySelectorAll('th').forEach(th => {
                 headers.push(th.textContent.trim());
             });
-            
+
             // ดึงข้อมูลและจัดการกับ rowspan/colspan
             const rows = table.querySelectorAll('tbody tr');
             let rowspanTracker = {};
-            
+
             rows.forEach((row, rowIndex) => {
                 const rowData = [];
                 let dataIndex = 0;
-                
+
                 // เพิ่มเซลล์ที่มี rowspan จากแถวก่อนหน้า
                 for (let i = 0; i < headers.length; i++) {
                     if (rowspanTracker[i] && rowspanTracker[i].count > 0) {
@@ -359,23 +414,23 @@ thead tr:nth-child(3) th {
                         dataIndex++;
                     }
                 }
-                
+
                 // ประมวลผลเซลล์ในแถวปัจจุบัน
                 row.querySelectorAll('td').forEach((cell, cellIndex) => {
                     // หาตำแหน่งที่ถูกต้องโดยพิจารณา rowspan
                     while (rowData[dataIndex] !== undefined) {
                         dataIndex++;
                     }
-                    
+
                     const rowspan = parseInt(cell.getAttribute('rowspan')) || 1;
                     const colspan = parseInt(cell.getAttribute('colspan')) || 1;
-                    
+
                     rowData[dataIndex] = {
                         content: cell.textContent.trim(),
                         rowSpan: rowspan,
                         colSpan: colspan
                     };
-                    
+
                     // ติดตาม rowspan สำหรับแถวต่อไป
                     if (rowspan > 1) {
                         rowspanTracker[dataIndex] = {
@@ -383,130 +438,143 @@ thead tr:nth-child(3) th {
                             count: rowspan - 1
                         };
                     }
-                    
+
                     dataIndex += colspan;
                 });
-                
+
                 body.push(rowData);
             });
-            
-            return { headers, body };
+
+            return {
+                headers,
+                body
+            };
         }
 
         // ฟังก์ชันสร้าง PDF ด้วย jsPDF และ AutoTable
         function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'mm', 'a4');
+            const {
+                jsPDF
+            } = window.jspdf;
+            const doc = new jsPDF('l', 'mm', 'a4');
 
-    // Add Thai font
-    doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
-    doc.addFont("THSarabun.ttf", "THSarabun", "normal");
-    doc.setFont("THSarabun");
-    doc.setFontSize(12);
-    doc.text('รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง', 14, 10);
-    // ก่อนสร้างตาราง เราต้องแปลงข้อมูลจากตาราง HTML
-    const tableElement = document.getElementById('reportTable');
-    const tableRows = Array.from(tableElement.querySelectorAll('tr'));
-    
-    // สร้างข้อมูลสำหรับ autoTable โดยรวมค่า rowspan ด้วย
-    const tableData = [];
-    const tableHeaders = [];
-    
-    // ดึงข้อมูลหัวตาราง
-    const headerCells = tableRows[0].querySelectorAll('th');
-    headerCells.forEach(cell => {
-        tableHeaders.push(cell.textContent.trim());
-    });
-    
-    // สร้างอาร์เรย์เก็บข้อมูลการรวมแถว (rowspan)
-    let spanningCells = {}; // เก็บข้อมูล cell ที่มีการรวมแถว
-    
-    // แปลงข้อมูลแถวให้เป็นรูปแบบที่ autoTable รองรับ
-    for (let i = 1; i < tableRows.length; i++) { // เริ่มที่ 1 เพื่อข้ามหัวตาราง
-        const row = tableRows[i];
-        const cells = row.querySelectorAll('td');
-        const rowData = {};
-        
-        let cellIndex = 0;
-        for (let j = 0; j < headerCells.length; j++) {
-            // ตรวจสอบว่ามี cell ที่ถูก span มาจากแถวก่อนหน้าหรือไม่
-            if (spanningCells[j] && spanningCells[j].rowsLeft > 0) {
-                rowData[tableHeaders[j]] = spanningCells[j].content;
-                spanningCells[j].rowsLeft--;
-                continue;
-            }
-            
-            // ถ้าไม่มี cell ที่ถูก span มา ให้ใช้ cell ปัจจุบัน
-            const cell = cells[cellIndex++];
-            if (!cell) continue; // กรณีไม่มี cell นี้ให้ข้าม
-            
-            const content = cell.textContent.trim();
-            rowData[tableHeaders[j]] = content;
-            
-            // บันทึกข้อมูล rowspan หากมี
-            if (cell.hasAttribute('rowspan')) {
-                const rowSpan = parseInt(cell.getAttribute('rowspan'));
-                if (rowSpan > 1) {
-                    spanningCells[j] = {
-                        content: content,
-                        rowsLeft: rowSpan - 1
-                    };
+            // Add Thai font
+            doc.addFileToVFS("THSarabun.ttf", thsarabunnew_webfont_normal);
+            doc.addFont("THSarabun.ttf", "THSarabun", "normal");
+            doc.setFont("THSarabun");
+            doc.setFontSize(12);
+            doc.text('รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง', 14, 10);
+            // ก่อนสร้างตาราง เราต้องแปลงข้อมูลจากตาราง HTML
+            const tableElement = document.getElementById('reportTable');
+            const tableRows = Array.from(tableElement.querySelectorAll('tr'));
+
+            // สร้างข้อมูลสำหรับ autoTable โดยรวมค่า rowspan ด้วย
+            const tableData = [];
+            const tableHeaders = [];
+
+            // ดึงข้อมูลหัวตาราง
+            const headerCells = tableRows[0].querySelectorAll('th');
+            headerCells.forEach(cell => {
+                tableHeaders.push(cell.textContent.trim());
+            });
+
+            // สร้างอาร์เรย์เก็บข้อมูลการรวมแถว (rowspan)
+            let spanningCells = {}; // เก็บข้อมูล cell ที่มีการรวมแถว
+
+            // แปลงข้อมูลแถวให้เป็นรูปแบบที่ autoTable รองรับ
+            for (let i = 1; i < tableRows.length; i++) { // เริ่มที่ 1 เพื่อข้ามหัวตาราง
+                const row = tableRows[i];
+                const cells = row.querySelectorAll('td');
+                const rowData = {};
+
+                let cellIndex = 0;
+                for (let j = 0; j < headerCells.length; j++) {
+                    // ตรวจสอบว่ามี cell ที่ถูก span มาจากแถวก่อนหน้าหรือไม่
+                    if (spanningCells[j] && spanningCells[j].rowsLeft > 0) {
+                        rowData[tableHeaders[j]] = spanningCells[j].content;
+                        spanningCells[j].rowsLeft--;
+                        continue;
+                    }
+
+                    // ถ้าไม่มี cell ที่ถูก span มา ให้ใช้ cell ปัจจุบัน
+                    const cell = cells[cellIndex++];
+                    if (!cell) continue; // กรณีไม่มี cell นี้ให้ข้าม
+
+                    const content = cell.textContent.trim();
+                    rowData[tableHeaders[j]] = content;
+
+                    // บันทึกข้อมูล rowspan หากมี
+                    if (cell.hasAttribute('rowspan')) {
+                        const rowSpan = parseInt(cell.getAttribute('rowspan'));
+                        if (rowSpan > 1) {
+                            spanningCells[j] = {
+                                content: content,
+                                rowsLeft: rowSpan - 1
+                            };
+                        }
+                    }
                 }
+
+                tableData.push(rowData);
             }
+
+            doc.autoTable({
+                head: [tableHeaders],
+                body: tableData.map(row => tableHeaders.map(header => row[header] || '')),
+                startY: 20,
+                theme: 'grid',
+                styles: {
+                    font: "THSarabun",
+                    fontSize: 7,
+                    cellPadding: 1,
+                    lineWidth: 0.1,
+                    lineColor: [0, 0, 0],
+                    minCellHeight: 5
+                },
+                headStyles: {
+                    fillColor: [220, 230, 241],
+                    textColor: [0, 0, 0],
+                    fontSize: 7,
+                    fontStyle: 'bold',
+                    halign: 'center',
+                    valign: 'middle'
+                },
+                columnStyles: {
+                    0: {
+                        halign: 'left'
+                    }, // คอลัมน์แรกให้ชิดซ้าย
+                },
+                didParseCell: function(data) {
+                    if (data.section === 'body' && data.column.index === 0) {
+                        data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
+                    }
+                },
+                willDrawCell: function(data) {
+                    // ตรวจสอบว่าเป็นเซลล์ที่ต้องซ่อนเส้นขอบด้านล่างหรือไม่ (เนื่องจากมี rowspan)
+                    if (data.section === 'body') {
+                        const rowIndex = data.row.index;
+                        const colIndex = data.column.index;
+
+                        // ถ้าเซลล์นี้เป็นส่วนหนึ่งของ rowspan ให้ซ่อนเส้นขอบด้านล่าง
+                        if (spanningCells[colIndex] && spanningCells[colIndex].rowsLeft > 0 &&
+                            rowIndex < tableData.length - 1) {
+                            // ซ่อนเส้นขอบด้านล่าง
+                            data.cell.styles.lineWidth = [0.1, 0.1, 0, 0.1]; // [top, right, bottom, left]
+                        }
+                    }
+                },
+                margin: {
+                    top: 15,
+                    right: 5,
+                    bottom: 10,
+                    left: 5
+                },
+                tableWidth: 'auto'
+            });
+            doc.save('รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง.pdf');
         }
-        
-        tableData.push(rowData);
-    }
 
-    doc.autoTable({
-        head: [tableHeaders],
-        body: tableData.map(row => tableHeaders.map(header => row[header] || '')),
-        startY: 20,
-        theme: 'grid',
-        styles: {
-            font: "THSarabun",
-            fontSize: 7,
-            cellPadding: 1,
-            lineWidth: 0.1,
-            lineColor: [0, 0, 0],
-            minCellHeight: 5
-        },
-        headStyles: {
-            fillColor: [220, 230, 241],
-            textColor: [0, 0, 0],
-            fontSize: 7,
-            fontStyle: 'bold',
-            halign: 'center',
-            valign: 'middle'
-        },
-        columnStyles: {
-            0: { halign: 'left' },  // คอลัมน์แรกให้ชิดซ้าย
-        },
-        didParseCell: function(data) {
-            if (data.section === 'body' && data.column.index === 0) {
-                data.cell.styles.halign = 'left'; // จัด text-align left สำหรับคอลัมน์แรก
-            }
-        },
-        willDrawCell: function(data) {
-            // ตรวจสอบว่าเป็นเซลล์ที่ต้องซ่อนเส้นขอบด้านล่างหรือไม่ (เนื่องจากมี rowspan)
-            if (data.section === 'body') {
-                const rowIndex = data.row.index;
-                const colIndex = data.column.index;
-                
-                // ถ้าเซลล์นี้เป็นส่วนหนึ่งของ rowspan ให้ซ่อนเส้นขอบด้านล่าง
-                if (spanningCells[colIndex] && spanningCells[colIndex].rowsLeft > 0 && 
-                    rowIndex < tableData.length - 1) {
-                    // ซ่อนเส้นขอบด้านล่าง
-                    data.cell.styles.lineWidth = [0.1, 0.1, 0, 0.1]; // [top, right, bottom, left]
-                }
-            }
-        },
-        margin: { top: 15, right: 5, bottom: 10, left: 5 },
-        tableWidth: 'auto'
-    });
-    doc.save('รายงานแสดงกรอบอัตรากำลังปัจจุบัน กับกรอบอัตรากำลังพึงมีรายตำแหน่ง.pdf');
-}
-    function exportXLS() {
+        function exportXLS() {
             const table = document.getElementById('reportTable');
 
             const rows = [];
@@ -537,7 +605,7 @@ thead tr:nth-child(3) th {
                                 vertical: "top",
                                 horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
                             },
-                            font: isHeader ? {  } : {} // **ทำให้ Header ตัวหนา**
+                            font: isHeader ? {} : {} // **ทำให้ Header ตัวหนา**
                         }
                     };
 
@@ -546,8 +614,14 @@ thead tr:nth-child(3) th {
 
                     if (rowspan > 1 || colspan > 1) {
                         merges.push({
-                            s: { r: rowIndex, c: colIndex },
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {

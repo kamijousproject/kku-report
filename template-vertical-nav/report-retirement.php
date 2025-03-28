@@ -1,70 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <?php include('../component/header.php'); ?>
-<style>     
-#main-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-}
+<style>
+    #main-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
-.content-body {
-    flex-grow: 1;
-    overflow: hidden; /* Prevent body scrolling */
-    display: flex;
-    flex-direction: column;
-}
+    .content-body {
+        flex-grow: 1;
+        overflow: hidden;
+        /* Prevent body scrolling */
+        display: flex;
+        flex-direction: column;
+    }
 
-.container {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
+    .container {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
 
 
-.table-responsive {
-    flex-grow: 1;
-    overflow-y: auto; /* Scrollable content only inside table */
-    max-height: 60vh; /* Set a fixed height */
-    border: 1px solid #ccc;
-}
+    .table-responsive {
+        flex-grow: 1;
+        overflow-y: auto;
+        /* Scrollable content only inside table */
+        max-height: 60vh;
+        /* Set a fixed height */
+        border: 1px solid #ccc;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-}
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
 
-th, td {
-    border: 1px solid #ddd;
-    padding: 10px;
-    text-align: left;
-}
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 10px;
+        text-align: left;
+    }
 
-thead tr:nth-child(1) th {
-    position: sticky;
-    top: 0;
-    background: #f4f4f4;
-    z-index: 1000;
-}
+    thead tr:nth-child(1) th {
+        position: sticky;
+        top: 0;
+        background: #f4f4f4;
+        z-index: 1000;
+    }
 
-thead tr:nth-child(2) th {
-    position: sticky;
-    top: 45px; /* Adjust height based on previous row */
-    background: #f4f4f4;
-    z-index: 999;
-}
+    thead tr:nth-child(2) th {
+        position: sticky;
+        top: 45px;
+        /* Adjust height based on previous row */
+        background: #f4f4f4;
+        z-index: 999;
+    }
 
-thead tr:nth-child(3) th {
-    position: sticky;
-    top: 105px; /* Adjust height based on previous rows */
-    background: #f4f4f4;
-    z-index: 998;
-}
-.nowrap {
-    white-space: nowrap;
-}
+    thead tr:nth-child(3) th {
+        position: sticky;
+        top: 105px;
+        /* Adjust height based on previous rows */
+        background: #f4f4f4;
+        z-index: 998;
+    }
+
+    .nowrap {
+        white-space: nowrap;
+    }
 </style>
+
 <body class="v-light vertical-nav fix-header fix-sidebar">
     <div id="preloader">
         <div class="loader">
@@ -96,10 +104,53 @@ thead tr:nth-child(3) th {
                                 <div class="card-title">
                                     <h4>รายงานอัตรากำลังที่เกษียณอายุในแต่ละช่วงเวลา</h4>
                                 </div>
-                                <label for="category">เลือกส่วนงาน:</label>
-                                <select name="category" id="category" onchange="fetchData()">
-                                    <option value="">-- Loading Categories --</option>
-                                </select>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <label for="category">เลือกส่วนงาน:</label>
+                                        <select name="category" id="category" onchange="fetchData()">
+                                            <option value="">-- Loading Categories --</option>
+                                        </select>
+                                    </div>
+                                    <!-- โหลด SweetAlert2 (ใส่ใน <head> หรือก่อนปิด </body>) -->
+                                    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+                                    <!-- ปุ่ม -->
+                                    <button class="btn btn-primary" onclick="runCmd()">อัพเดทข้อมูล</button>
+
+                                    <script>
+                                        function runCmd() {
+                                            // แสดง SweetAlert ขณะกำลังรัน .cmd
+                                            Swal.fire({
+                                                title: 'กำลังอัปเดตข้อมูล',
+                                                text: 'กรุณารอสักครู่...',
+                                                allowOutsideClick: false,
+                                                didOpen: () => {
+                                                    Swal.showLoading(); // แสดง loading spinner
+                                                }
+                                            });
+
+                                            // เรียก PHP เพื่อรัน .cmd
+                                            fetch('/kku-report/server/automateEPM/workforce/run_cmd_workforce.php')
+                                                .then(response => response.text())
+                                                .then(result => {
+                                                    // เมื่อทำงานเสร็จ ปิด loading แล้วแสดงผลลัพธ์
+                                                    Swal.fire({
+                                                        title: 'อัปเดตข้อมูลเสร็จสิ้น',
+                                                        html: result, // ใช้ .html เพื่อแสดงผลเป็น <br>
+                                                        icon: 'success'
+                                                    });
+                                                })
+                                                .catch(error => {
+                                                    Swal.fire({
+                                                        title: 'เกิดข้อผิดพลาด',
+                                                        text: 'ไม่สามารถอัปเดตข้อมูลได้',
+                                                        icon: 'error'
+                                                    });
+                                                    console.error(error);
+                                                });
+                                        }
+                                    </script>
+                                </div>
                                 <div class="table-responsive">
                                     <table id="reportTable" class="table table-hover">
                                         <thead>
@@ -112,11 +163,11 @@ thead tr:nth-child(3) th {
                                                 <th nowrap>เลขประจำตำแหน่ง</th>
                                                 <th nowrap>ประเภทตำแหน่ง</th>
                                                 <th>Job Family</th>
-                                                <th nowrap>ปีที่เกษียณ<br/>อายุราชการ</th>
+                                                <th nowrap>ปีที่เกษียณ<br />อายุราชการ</th>
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            
+
                                         </tbody>
                                     </table>
                                 </div>
@@ -144,7 +195,7 @@ thead tr:nth-child(3) th {
         let all_data;
         $(document).ready(function() {
             laodData();
-            
+
         });
 
         function laodData() {
@@ -156,7 +207,7 @@ thead tr:nth-child(3) th {
                 },
                 dataType: "json",
                 success: function(response) {
-                    all_data=response.wf;                                             
+                    all_data = response.wf;
                     const fac = [...new Set(all_data.map(item => item.pname))];
                     let dropdown = document.getElementById("category");
                     dropdown.innerHTML = '<option value="">-- Select --</option><option value="all">เลือกทั้งหมด</option>';
@@ -172,48 +223,76 @@ thead tr:nth-child(3) th {
                     responseError(jqXHR, exception);
                 }
             });
-           
+
         }
+
         function fetchData() {
             let category = document.getElementById("category").value;
-            
+
             const tableBody = document.querySelector('#reportTable tbody');
             tableBody.innerHTML = ''; // ล้างข้อมูลเก่า
             let data;
-            if(category=="all"){
-                data=all_data;
+            if (category == "all") {
+                data = all_data;
+            } else {
+                data = all_data.filter(item => item.pname === category);
             }
-            else{
-                data= all_data.filter(item=>item.pname===category);
-            }
-            data.forEach((row, index) => {                   
+            data.forEach((row, index) => {
                 const tr = document.createElement('tr');
 
-                const columns = [
-                    { key: 'No', value: index+1 },
-                    { key: 'Faculty', value: row.faculty },                           
-                    { key: 'personnel_type', value: row.Personnel_Type },
-                    { key: 'Workers_Name_Surname', value: row.Workers_Name_Surname },  
-                    { key: 'Position', value: row.Position },
-                    { key: 'Position_Number', value: row.Position_Number },                            
-                    { key: 'All_PositionTypes', value: row.all_position_types },
-                    { key: 'Job_Family', value: row.Job_Family },
-                    { key: 'Retirement_Year', value: row.Retirement_Year, nowrap: true },                                                                                   
+                const columns = [{
+                        key: 'No',
+                        value: index + 1
+                    },
+                    {
+                        key: 'Faculty',
+                        value: row.faculty
+                    },
+                    {
+                        key: 'personnel_type',
+                        value: row.Personnel_Type
+                    },
+                    {
+                        key: 'Workers_Name_Surname',
+                        value: row.Workers_Name_Surname
+                    },
+                    {
+                        key: 'Position',
+                        value: row.Position
+                    },
+                    {
+                        key: 'Position_Number',
+                        value: row.Position_Number
+                    },
+                    {
+                        key: 'All_PositionTypes',
+                        value: row.all_position_types
+                    },
+                    {
+                        key: 'Job_Family',
+                        value: row.Job_Family
+                    },
+                    {
+                        key: 'Retirement_Year',
+                        value: row.Retirement_Year,
+                        nowrap: true
+                    },
                 ];
 
                 columns.forEach(col => {
                     const td = document.createElement('td');
                     td.textContent = col.value;
-                    
+
                     if (col.nowrap) {
                         td.classList.add("nowrap");
                     }
 
                     tr.appendChild(td);
                 });
-                tableBody.appendChild(tr);     
-            });    
+                tableBody.appendChild(tr);
+            });
         }
+
         function exportCSV() {
             const table = document.getElementById('reportTable');
             const numRows = table.rows.length;
@@ -229,10 +308,14 @@ thead tr:nth-child(3) th {
             }
 
             // สร้างตาราง 2D เก็บค่าจากตาราง HTML
-            let csvMatrix = Array.from({ length: numRows }, () => Array(maxCols).fill(null));
+            let csvMatrix = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(null));
 
             // ใช้ตัวแปรตรวจสอบว่ามี cell ไหนถูก merge
-            let cellMap = Array.from({ length: numRows }, () => Array(maxCols).fill(false));
+            let cellMap = Array.from({
+                length: numRows
+            }, () => Array(maxCols).fill(false));
 
             for (let rowIndex = 0; rowIndex < numRows; rowIndex++) {
                 const row = table.rows[rowIndex];
@@ -271,7 +354,9 @@ thead tr:nth-child(3) th {
 
             // แปลงข้อมูลเป็น CSV
             const csvContent = "\uFEFF" + csvMatrix.map(row => row.join(',')).join('\n');
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
             const url = URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
@@ -283,7 +368,9 @@ thead tr:nth-child(3) th {
         }
 
         function exportPDF() {
-            const { jsPDF } = window.jspdf;
+            const {
+                jsPDF
+            } = window.jspdf;
             const doc = new jsPDF('l', 'mm', 'a4'); // Legal landscape size
 
             // Add Thai font
@@ -314,26 +401,44 @@ thead tr:nth-child(3) th {
                     minCellHeight: 12
                 },
                 columnStyles: {
-                    0: { cellWidth: 8 },  // ที่
-                    1: { cellWidth: 50 }, // ส่วนงาน/หน่วยงาน
+                    0: {
+                        cellWidth: 8
+                    }, // ที่
+                    1: {
+                        cellWidth: 50
+                    }, // ส่วนงาน/หน่วยงาน
                     // ข้าราชการ
-                    2: { cellWidth: 40 },  // วิชาการ
-                    3: { cellWidth: 50 },  // สนับสนุน
-                    4: { cellWidth: 30 },  // รวม
+                    2: {
+                        cellWidth: 40
+                    }, // วิชาการ
+                    3: {
+                        cellWidth: 50
+                    }, // สนับสนุน
+                    4: {
+                        cellWidth: 30
+                    }, // รวม
                     // ลูกจ้างประจำ
-                    5: { cellWidth: 25 },  // สนับสนุน
+                    5: {
+                        cellWidth: 25
+                    }, // สนับสนุน
                     // พนักงานมหาวิทยาลัยงบประมาณแผ่นดิน
-                    6: { cellWidth: 30 },  // บริหาร
-                    7: { cellWidth: 30},  // วิชาการ-คนครอง
-                    8: { cellWidth: 20 },  // วิชาการ-อัตราว่าง
-                    
-                    
+                    6: {
+                        cellWidth: 30
+                    }, // บริหาร
+                    7: {
+                        cellWidth: 30
+                    }, // วิชาการ-คนครอง
+                    8: {
+                        cellWidth: 20
+                    }, // วิชาการ-อัตราว่าง
+
+
                 },
                 didDrawPage: function(data) {
                     // Add header
                     doc.setFontSize(16);
                     doc.text('รายงานอัตรากำลังที่เกษียณอายุในแต่ละช่วงเวลา', 14, 15);
-                    
+
                     // Add footer with page number
                     doc.setFontSize(10);
                     /* doc.text(
@@ -351,7 +456,7 @@ thead tr:nth-child(3) th {
                         data.cell.styles.valign = 'middle';
                         data.cell.styles.cellPadding = 1;
                     }
-                    
+
                     // Center align all body cells except the second column (ส่วนงาน/หน่วยงาน)
                     if (data.section === 'body') {
                         if (data.column.index !== 1) {
@@ -373,7 +478,12 @@ thead tr:nth-child(3) th {
                     }
                 },
                 // Handle table width
-                margin: { top: 25, right: 7, bottom: 15, left: 7 },
+                margin: {
+                    top: 25,
+                    right: 7,
+                    bottom: 15,
+                    left: 7
+                },
                 tableWidth: 'auto'
             });
 
@@ -413,7 +523,9 @@ thead tr:nth-child(3) th {
                                 vertical: "top",
                                 horizontal: isHeader ? "center" : "left" // **Header = Center, Body = Left**
                             },
-                            font: isHeader ? { bold: true } : {} // **ทำให้ Header ตัวหนา**
+                            font: isHeader ? {
+                                bold: true
+                            } : {} // **ทำให้ Header ตัวหนา**
                         }
                     };
 
@@ -422,8 +534,14 @@ thead tr:nth-child(3) th {
 
                     if (rowspan > 1 || colspan > 1) {
                         merges.push({
-                            s: { r: rowIndex, c: colIndex },
-                            e: { r: rowIndex + rowspan - 1, c: colIndex + colspan - 1 }
+                            s: {
+                                r: rowIndex,
+                                c: colIndex
+                            },
+                            e: {
+                                r: rowIndex + rowspan - 1,
+                                c: colIndex + colspan - 1
+                            }
                         });
 
                         for (let r = 0; r < rowspan; r++) {
