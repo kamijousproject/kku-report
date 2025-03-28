@@ -27,6 +27,6 @@ CALL %WorkingDIR%\epmautomate deletefile Bursting_EPM_Report_workforce_new_posit
 
 CALL %WorkingDIR%\epmautomate logout
 
-REM python "C:/xampp/htdocs/kku-report/server/automateEPM/workforce/workforce_new_position_request/insert_workforce_new_position_request.py"
+python "C:/xampp/htdocs/kku-report/server/automateEPM/workforce/workforce_new_position_request/insert_workforce_new_position_request.py"
  
 EXIT
