@@ -12,7 +12,7 @@ str_password = 'TDyutdYdyudRTYDsEFOPI'
 # กำหนด path ของไฟล์ CSV
 # current_dir = os.path.dirname(__file__)
 # file_path = os.path.join(
-#     current_dir, 'warissarac_ExportedMetadata_Strategic Project.csv')
+#     current_dir, 'epm-service-admin@kku.ac.th_ExportedMetadata_Strategic Project.csv')
 
 if len(sys.argv) < 2:
     print("Error: No CSV file provided.")

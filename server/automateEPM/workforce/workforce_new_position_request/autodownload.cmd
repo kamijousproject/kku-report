@@ -2,7 +2,7 @@ SET WorkingDIR="C:\Oracle\EPM Automate\bin"
  
 REM Log in to EPM Cloud
  
-CALL %WorkingDIR%\epmautomate login warissarac PluEm_Passw0rd! https://epbcs-khonkaenuniversity.epm.ap-singapore-1.ocs.oraclecloud.com/HyperionPlanning
+CALL %WorkingDIR%\epmautomate login epm-service-admin@kku.ac.th kku_EPM_12345! https://epbcs-khonkaenuniversity.epm.ap-singapore-1.ocs.oraclecloud.com/HyperionPlanning
 REM Report Bursting
  
 CALL %WorkingDIR%\epmAutomate executeReportBurstingDefinition "/Library/EPM Report Workforce/Bursting_EPM_Report_workforce_new_position_request"

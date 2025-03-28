@@ -5,7 +5,7 @@ import pymysql
 
 # กำหนดพาธไฟล์ CSV
 # current_dir = os.path.dirname(__file__)
-# file_path = os.path.join(current_dir, 'warissarac_ExportedMetadata_OKR.csv')
+# file_path = os.path.join(current_dir, 'epm-service-admin@kku.ac.th_ExportedMetadata_OKR.csv')
 
 if len(sys.argv) < 2:
     print("Error: No CSV file provided.")

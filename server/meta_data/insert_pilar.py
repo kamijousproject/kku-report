@@ -5,7 +5,7 @@ import pymysql
 import re
 
 # กำหนดพาธของไฟล์ CSV
-# file_path = "c:\\Users\\suttipongk\\Downloads\\ExportedMetadataFile\\warissarac_ExportedMetadata_Pillar.csv"
+# file_path = "c:\\Users\\suttipongk\\Downloads\\ExportedMetadataFile\\epm-service-admin@kku.ac.th_ExportedMetadata_Pillar.csv"
 
 if len(sys.argv) < 2:
     print("Error: No CSV file provided.")
