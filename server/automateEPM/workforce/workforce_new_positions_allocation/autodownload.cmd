@@ -20,7 +20,6 @@ timeout /t 2 /nobreak
 
 move Bursting_EPM_Report_workforce_new_positions_allocation.xlsx C:\xampp\htdocs\kku-report\server\automateEPM\workforce\workforce_new_positions_allocation
 
-REM timeout /t 1 /nobreak
 
 python "C:/xampp/htdocs/kku-report/server/automateEPM/workforce/workforce_new_positions_allocation/xlsx2csv.py"
 

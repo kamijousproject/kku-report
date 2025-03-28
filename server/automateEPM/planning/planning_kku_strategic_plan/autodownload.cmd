@@ -20,8 +20,8 @@ CALL %WorkingDIR%\epmautomate downloadfile "Bursting_EPM_Report_planning_kku_str
 REM Logout ออกจากระบบ
 CALL %WorkingDIR%\epmautomate logout
 
-move Bursting_EPM_Report_planning_kku_strategic_plan.xlsx C:\xampp\htdocs\automateEPM\planning\planning_kku_strategic_plan\
+move Bursting_EPM_Report_planning_kku_strategic_plan.xlsx C:\xampp\htdocs\kku-report\server\automateEPM\planning\planning_kku_strategic_plan
 
-python "C:/xampp/htdocs/automateEPM/planning/planning_kku_strategic_plan/xlsx2csv.py"
+python "C:/xampp/htdocs/kku-report/server/automateEPM/planning/planning_kku_strategic_plan/xlsx2csv.py"
 
 EXIT
